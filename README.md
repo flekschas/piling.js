@@ -9,3 +9,10 @@ git clone https://github.com/flekschas/pile-me
 cd pile-me
 npm ci
 ```
+
+## Development
+
+```
+// Start the example
+npm start
+```
