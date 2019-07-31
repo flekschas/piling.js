@@ -15,12 +15,12 @@ const libConfigurator = (file, plugins = []) => ({
     file,
     globals: {
       'pub-sub-es': 'createPubSub',
-      regl: 'createREGL'
+      'pixi.js': 'PIXI'
     },
     intro: `var VERSION = ${VERSION};`
   },
   plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
-  external: ['pub-sub-es', 'regl']
+  external: ['pub-sub-es', 'pixi.js']
 });
 
 const libDev = libConfigurator('dist/pile-me.js', [filesize()]);
