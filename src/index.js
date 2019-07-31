@@ -10,7 +10,6 @@ const createPileMe = rootElement => {
   const store = createStore();
 
   let state = store.getState();
-  let itemsHash = {};
 
   const renderer = new PIXI.Renderer({
     width: rootElement.getBoundingClientRect().width,
@@ -74,14 +73,8 @@ const createPileMe = rootElement => {
     const { itemRenderer, items } = store.getState();
 
     stage.removeChildren();
-    itemsHash = {};
 
-    const renderItems = items.map(({ id, src }) => {
-      itemsHash[id] = {
-        rendered: itemRenderer(src)
-      };
-      return itemsHash[id].rendered;
-    });
+    const renderItems = items.map(({ src }) => itemRenderer(src));
 
     return Promise.all(renderItems).then(itemsA => {
       itemsA.forEach(item => {
