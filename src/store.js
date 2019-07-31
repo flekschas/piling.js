@@ -40,14 +40,16 @@ export const setItemRenderer = newItemRenderer => ({
   payload: { itemRenderer: newItemRenderer }
 });
 
-const items = setReducer('items', []);
+const items = setReducer('items', []); // how to update the store
 export const setItems = newItems => ({
+  // action to trigger update
   type: 'SET_ITEMS',
   payload: { items: newItems }
 });
 
 const createStore = () => {
   const appReducer = combineReducers({
+    // This defines what is on our store
     itemRenderer,
     items
   });
