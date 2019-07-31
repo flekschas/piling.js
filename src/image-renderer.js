@@ -6,11 +6,11 @@ import * as PIXI from 'pixi.js';
  * @return  {object}  Promise resolving to the image once its loaded
  */
 export const loadImage = (src, isCrossOrigin = false) =>
-  new Promise((accept, reject) => {
+  new Promise((resolve, reject) => {
     const image = new Image();
     if (isCrossOrigin) image.crossOrigin = 'Anonymous';
     image.onload = () => {
-      accept(image);
+      resolve(image);
     };
     image.onerror = error => {
       reject(error);
@@ -21,15 +21,12 @@ export const loadImage = (src, isCrossOrigin = false) =>
 const renderImage = image => {
   const texture = PIXI.Texture.from(image);
   const sprite = new PIXI.Sprite(texture);
-  sprite.width = 36;
-  sprite.height = 36;
-  sprite.x = 10;
-  sprite.y = 10;
+  sprite.width = 56;
+  sprite.height = 56;
+  sprite.x = 0;
+  sprite.y = 0;
 
-  const graphics = new PIXI.Graphics();
-  graphics.addChild(sprite);
-
-  return graphics;
+  return sprite;
 };
 
 const imageRenderer = src => {
