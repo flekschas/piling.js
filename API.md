@@ -6,7 +6,7 @@ An array of dictionaries (objects) with two essential properties:
 
 - `id`: the item identifier (has to be unique)
 - `src`: the item data. this can be a URL or data object. the only requirement
-   is that the renderer understands this object.
+  is that the renderer understands this object.
 
 _Note, mixed data types are currently not supported._
 
@@ -24,3 +24,4 @@ _Note, mixed data types are currently not supported._
 }
 ```
 
+## Renderer

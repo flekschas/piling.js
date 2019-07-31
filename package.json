@@ -1,0 +1,100 @@
+{
+  "name": "pile-me",
+  "version": "0.1.0",
+  "description": "A WebGL-based Library for Visual Piling/Stacking",
+  "author": "Fritz Lekschas",
+  "keywords": [
+    "scatterplot",
+    "2d",
+    "regl",
+    "webgl"
+  ],
+  "license": "MIT",
+  "main": "dist/pile-me.js",
+  "module": "src/index.js",
+  "files": [
+    "src/*",
+    "dist/pile-me.js",
+    "dist/pile-me.min.js"
+  ],
+  "scripts": {
+    "build": "rollup -c; webpack --config ./webpack.config.js --mode production",
+    "lint": "eslint src examples rollup.config.js webpack.config.js",
+    "precommit": "NODE_ENV=production lint-staged",
+    "prepublishOnly": "npm run test",
+    "prerelease": "rm -rf dist/*; npm run build; zip -r dist.zip dist",
+    "pretest": "npm run lint",
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development --open",
+    "test": "rollup -c; webpack --config ./webpack.config.js",
+    "watch": "rollup -cw"
+  },
+  "lint-staged": {
+    "*.js": [
+      "pretty-quick --staged",
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run precommit",
+      "pre-push": "npm test"
+    }
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "dependencies": {
+    "deep-equal": "^1.0.1",
+    "pixi.js": "^5.1.0",
+    "pub-sub-es": "^1.2.1",
+    "redux": "^4.0.4",
+    "with-raf": "^1.0.0"
+  },
+  "peerDependencies": {
+    "pub-sub-es": "^1.2.1",
+    "pixi.js": "^5.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-transform-regenerator": "^7.0.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.1.6",
+    "acorn": "^6.0.4",
+    "babel-loader": "^8.0.4",
+    "babel-plugin-lodash": "^3.3.4",
+    "browser-env": "^3.2.5",
+    "pascal-case": "^2.0.1",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^v6.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-prettier": "^3.0.0",
+    "eslint-plugin-react": "^7.11.1",
+    "esm": "^3.0.84",
+    "html-webpack-plugin": "^3.2.0",
+    "husky": "^3.0.2",
+    "lint-staged": "^9.2.1",
+    "prettier": "^1.15.2",
+    "pretty-quick": "^1.8.0",
+    "rollup": "^1.17.0",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-commonjs": "^10.0.1",
+    "rollup-plugin-filesize": "^6.1.1",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.1",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
+  },
+  "homepage": "https://github.com/flekschas/pile-me",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/flekschas/pile-me.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flekschas/pile-me/issues"
+  }
+}
