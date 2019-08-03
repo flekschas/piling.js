@@ -20,8 +20,9 @@
   },
   "rules": {
     "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-plusplus": 0,
-    "prefer-destructuring": 0
+    "prefer-destructuring": 0,
+    "no-param-reassign": ["error", { "props": false }]
   }
 }
