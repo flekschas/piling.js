@@ -4,6 +4,8 @@ import withRaf from 'with-raf';
 
 import createStore, { setItemRenderer, setItems } from './store';
 
+import createPile from './pile';
+
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
   const pubSub = createPubSub();
@@ -23,12 +25,7 @@ const createPileMe = rootElement => {
 
   const stage = new PIXI.Container();
   stage.interactive = true;
-
-  // automatically render?
-  const ticker = PIXI.Ticker.shared;
-  ticker.add(() => {
-    renderer.render(stage);
-  });
+  stage.sortableChildren = true;
 
   const get = property => {
     switch (property) {
@@ -69,120 +66,6 @@ const createPileMe = rootElement => {
 
   const renderRaf = withRaf(render);
 
-  // const withRender = f => (...args) => {
-  //   const out = f(...args);
-  //   renderRaf();
-  //   return out;
-  // };
-
-  const hover = image => {
-    const graphics = new PIXI.Graphics();
-    stage.addChild(graphics);
-
-    const drawBound = () => {
-      const rect = image.getBounds();
-
-      graphics.lineStyle(2, 0xfeeb77, 1);
-      graphics.beginFill(0x650a5a, 0);
-      graphics.drawRect(
-        rect.x - 2,
-        rect.y - 2,
-        rect.width + 4,
-        rect.height + 4
-      );
-      graphics.endFill();
-    };
-
-    function onButtonDown() {
-      this.isdown = true;
-      graphics.clear();
-      drawBound();
-    }
-
-    function onButtonUp() {
-      this.isdown = false;
-      if (this.isOver) {
-        graphics.clear();
-        drawBound();
-      } else {
-        graphics.clear();
-      }
-    }
-
-    function onButtonOver() {
-      this.isOver = true;
-      graphics.clear();
-      drawBound();
-    }
-
-    function onButtonOut() {
-      this.isOver = false;
-      graphics.clear();
-    }
-
-    function onButtonMove() {
-      if (this.isdown) {
-        graphics.clear();
-        drawBound();
-      }
-    }
-
-    image
-      .on('pointerdown', onButtonDown)
-      .on('pointerup', onButtonUp)
-      .on('pointerupoutside', onButtonUp)
-      .on('pointerover', onButtonOver)
-      .on('pointerout', onButtonOut)
-      .on('pointermove', onButtonMove);
-  };
-
-  const drag = image => {
-    function onDragStart(event) {
-      // store a reference to the data
-      // the reason for this is because of multitouch
-      // we want to track the movement of this particular touch
-      this.data = event.data;
-      this.alpha = 0.5;
-      this.dragging = true;
-    }
-
-    function onDragEnd() {
-      this.alpha = 1;
-      this.dragging = false;
-      // set the interaction data to null
-      this.data = null;
-    }
-
-    function onDragMove() {
-      if (this.dragging) {
-        const newPosition = this.data.getLocalPosition(this.parent);
-        this.x = newPosition.x;
-        this.y = newPosition.y;
-      }
-    }
-
-    image
-      .on('pointerdown', onDragStart)
-      .on('pointerup', onDragEnd)
-      .on('pointerupoutside', onDragEnd)
-      .on('pointermove', onDragMove);
-  };
-
-  const interactWith = image => {
-    // eslint-disable-next-line no-param-reassign
-    image.interactive = true;
-    // eslint-disable-next-line no-param-reassign
-    image.buttonMode = true;
-    image.anchor.set(0.5);
-    // eslint-disable-next-line no-param-reassign
-    image.x = image.width / 2;
-    // eslint-disable-next-line no-param-reassign
-    image.y = image.height / 2;
-
-    drag(image);
-    hover(image);
-  };
-
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
 
@@ -192,8 +75,8 @@ const createPileMe = rootElement => {
 
     return Promise.all(renderItems).then(itemsA => {
       itemsA.forEach(item => {
-        interactWith(item); // when to call the function?
-        stage.addChild(item);
+        const pile = createPile(item, renderRaf).initPile();
+        stage.addChild(pile);
       });
       render();
     });
