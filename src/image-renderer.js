@@ -21,10 +21,6 @@ export const loadImage = (src, isCrossOrigin = false) =>
 const renderImage = image => {
   const texture = PIXI.Texture.from(image);
   const sprite = new PIXI.Sprite(texture);
-  sprite.width = 56;
-  sprite.height = 56;
-  sprite.x = 0;
-  sprite.y = 0;
 
   return sprite;
 };
