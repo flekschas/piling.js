@@ -25,3 +25,25 @@ _Note, mixed data types are currently not supported._
 ```
 
 ## Renderer
+
+A function that takes as input a `src` property determining the source and
+outputs a promise which resolves to a rendered Pixi Sprite object.
+
+```
+// A very simple image renderer
+const imageRenderer = image =>  new PIXI.Sprite(PIXI.Texture.from(image));
+```
+
+## Orderer
+
+A function that takes as input the number of columns and outputs
+another function that takes in as input the position of a 1D ordering and
+outputs the an array of `x` an `y` coordinates.
+
+```
+// The default row-major order
+const rowMajor = cols => index => [
+  index % cols,
+  Math.floor(index / cols)
+];
+```
