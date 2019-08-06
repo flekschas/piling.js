@@ -2,9 +2,15 @@ import * as PIXI from 'pixi.js';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 
-import createStore, { setItemRenderer, setItems } from './store';
+import createStore, {
+  setItemRenderer,
+  setItems,
+  setOrderer,
+  setGrid
+} from './store';
 
 import createPile from './pile';
+import creatGrid from './grid';
 
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
@@ -19,7 +25,7 @@ const createPileMe = rootElement => {
     view: canvas,
     antialias: true,
     transparent: true,
-    resolution: 2,
+    resolution: window.devicePixelRatio,
     autoResize: true
   });
 
@@ -34,6 +40,12 @@ const createPileMe = rootElement => {
 
       case 'items':
         return state.items;
+
+      case 'orderer':
+        return state.orderer;
+
+      case 'grid':
+        return state.grid;
 
       default:
         console.warn(`Unknown property "${property}"`);
@@ -53,6 +65,14 @@ const createPileMe = rootElement => {
         action = setItems(value);
         break;
 
+      case 'orderer':
+        action = setOrderer(value);
+        break;
+
+      case 'grid':
+        action = setGrid(value);
+        break;
+
       default:
         console.warn(`Unknown property "${property}"`);
     }
@@ -66,30 +86,81 @@ const createPileMe = rootElement => {
 
   const renderRaf = withRaf(render);
 
+  const piles = new Map();
+
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
+
+    piles.clear();
 
     stage.removeChildren();
 
     const renderItems = items.map(({ src }) => itemRenderer(src));
 
     return Promise.all(renderItems).then(itemsA => {
-      itemsA.forEach(item => {
-        const pile = createPile(item, renderRaf).initPile();
+      itemsA.forEach((item, index) => {
+        const pile = createPile(item, renderRaf, index).initPile();
+        piles.set(index, pile);
         stage.addChild(pile);
       });
-      render();
+      renderRaf();
     });
   };
+
+  let layout;
+
+  const initGrid = () => {
+    const { grid } = store.getState();
+
+    layout = creatGrid(canvas, grid);
+  };
+
+  const positionPiles = () => {
+    const { orderer } = store.getState();
+
+    if (piles) {
+      piles.forEach((pile, id) => {
+        const getPosition = orderer(layout.myColNum);
+        let [x, y] = getPosition(id);
+
+        x *= layout.myColWidth;
+        y *= layout.myRowHeight;
+
+        pile.x += x;
+        pile.y += y;
+      });
+      renderRaf();
+    }
+  };
+
+  let stateUpdates;
 
   const updated = () => {
     const newState = store.getState();
 
+    stateUpdates = new Set();
+    const updates = [];
+
     if (
       state.items !== newState.items ||
       state.itemRenderer !== newState.itemRenderer
-    )
-      createItems();
+    ) {
+      updates.push(createItems());
+      stateUpdates.add('piles');
+    }
+
+    if (state.orderer !== newState.orderer) stateUpdates.add('layout');
+
+    if (state.grid !== newState.grid) {
+      initGrid();
+      stateUpdates.add('layout');
+    }
+
+    Promise.all(updates).then(() => {
+      if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
+        positionPiles();
+      }
+    });
 
     state = newState;
   };
