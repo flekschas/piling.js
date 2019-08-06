@@ -1,6 +1,7 @@
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 
+import creatOrderer from './orderer';
 import { camelToConst, deepClone } from './utils';
 
 const clone = (value, state) => {
@@ -47,11 +48,25 @@ export const setItems = newItems => ({
   payload: { items: newItems }
 });
 
+const orderer = setReducer('orderer', creatOrderer().rowMajor);
+export const setOrderer = newOrderer => ({
+  type: 'SET_ORDERER',
+  payload: { orderer: newOrderer }
+});
+
+const grid = setReducer('grid', []);
+export const setGrid = newGrid => ({
+  type: 'SET_GRID',
+  payload: { grid: newGrid }
+});
+
 const createStore = () => {
   const appReducer = combineReducers({
     // This defines what is on our store
     itemRenderer,
-    items
+    items,
+    orderer,
+    grid
   });
 
   const rootReducer = (state, action) => {
