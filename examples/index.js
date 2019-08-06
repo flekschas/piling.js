@@ -48,6 +48,21 @@ pileMe.set('items', [
   {
     id: 'test11',
     src: 'data/cat_0010.jpg'
+  },
+  {
+    id: 'test12',
+    src: 'data/cat_0011.jpg',
+    position: [3, 4]
+  },
+  {
+    id: 'test13',
+    src: 'data/cat_0012.jpg',
+    position: [5, 6]
+  },
+  {
+    id: 'test14',
+    src: 'data/cat_0013.jpg',
+    position: [8, 3]
   }
 ]);
 pileMe.set('grid', [10, 10]);
