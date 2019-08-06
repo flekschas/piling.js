@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-const createPile = (item, renderRaf) => {
+const createPile = (item, renderRaf, index) => {
   const drawBorder = border => {
     const rect = item.getBounds();
 
@@ -57,10 +57,10 @@ const createPile = (item, renderRaf) => {
   };
 
   const onDragStart = pile => event => {
-    const stage = pile.parent;
-    const index = stage.getChildIndex(pile);
-    stage.removeChildAt(index);
-    stage.addChildAt(pile, stage.children.length);
+    // const stage = pile.parent;
+    // const index = stage.getChildIndex(pile);
+    // stage.removeChildAt(index);
+    // stage.addChildAt(pile, stage.children.length);
     pile.data = event.data;
     pile.alpha = 0.5;
     pile.isDragging = true;
@@ -95,25 +95,27 @@ const createPile = (item, renderRaf) => {
   const initPile = () => {
     const pile = new PIXI.Graphics();
 
-    pile.x = item.width / 2;
-    pile.y = item.height / 2;
-
     pile.interactive = true;
     pile.buttonMode = true;
+    pile.x = item.width / 2;
+    pile.y = item.height / 2;
     item.anchor.set(0);
     item.x = -item.width / 2 + 2;
     item.y = -item.height / 2 + 2;
 
+    initHover(pile);
     initDrag(pile);
-    initHover(pile, item);
 
     pile.addChild(item);
 
     return pile;
   };
 
+  const id = index;
+
   return {
-    initPile
+    initPile,
+    id
   };
 };
 
