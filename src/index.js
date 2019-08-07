@@ -190,18 +190,26 @@ const createPileMe = rootElement => {
 
     source.removeChildAt(0);
 
-    console.log(source.children);
+    // source.children.forEach(item => {
+    //   target.addChild(item);
+    // });
 
-    source.children.forEach(item => {
-      target.addChild(item);
-    });
+    const srcLength = source.children.length;
+    for (let i = 0; i < srcLength; i++) {
+      target.addChild(source.children[0]);
+    }
+
+    const border = target.getChildAt(0);
+    target.removeChildAt(0);
 
     target.children.forEach((item, index) => {
+      item.x = -item.width / 2 + 2;
+      item.y = -item.height / 2 + 2;
       item.x += index * 5;
       item.y += index * 5;
     });
 
-    console.log(target.children);
+    target.addChildAt(border, 0);
 
     source.destroy();
     piles.delete(sourceId);
