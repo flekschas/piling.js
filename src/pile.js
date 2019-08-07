@@ -1,8 +1,11 @@
 import * as PIXI from 'pixi.js';
 
-const createPile = (item, renderRaf, index) => {
-  const drawBorder = border => {
-    const rect = item.getBounds();
+const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
+  const drawBorder = pile => {
+    const border = pile.getChildAt(0);
+    pile.removeChildAt(0);
+    const rect = pile.getBounds();
+    pile.addChildAt(border, 0);
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
@@ -17,31 +20,32 @@ const createPile = (item, renderRaf, index) => {
     renderRaf();
   };
 
-  const onMouseDown = (pile, border) => () => {
+  const onMouseDown = pile => () => {
     pile.isMouseDown = true;
-    drawBorder(border);
+    drawBorder(pile);
   };
 
-  const onMouseUp = (pile, border) => () => {
+  const onMouseUp = pile => () => {
     pile.isMouseDown = false;
     if (pile.isHover) {
-      drawBorder(border);
+      drawBorder(pile);
     } else {
+      const border = pile.getChildAt(0);
       border.clear();
     }
   };
 
-  const onMouseOver = (pile, border) => () => {
+  const onMouseOver = pile => () => {
     pile.isHover = true;
-    drawBorder(border);
+    drawBorder(pile);
   };
 
-  const onMouseOut = (pile, border) => () => {
+  const onMouseOut = pile => () => {
     if (pile.isDragging) return;
     pile.isHover = false;
+    const border = pile.getChildAt(0);
     border.clear();
     renderRaf();
-    //   console.log('HALLO');
   };
 
   const initHover = pile => {
@@ -49,35 +53,38 @@ const createPile = (item, renderRaf, index) => {
     pile.addChild(border);
 
     pile
-      .on('pointerdown', onMouseDown(pile, border))
-      .on('pointerup', onMouseUp(pile, border))
-      .on('pointerupoutside', onMouseUp(pile, border))
-      .on('pointerover', onMouseOver(pile, border))
-      .on('pointerout', onMouseOut(pile, border));
+      .on('pointerdown', onMouseDown(pile))
+      .on('pointerup', onMouseUp(pile))
+      .on('pointerupoutside', onMouseUp(pile))
+      .on('pointerover', onMouseOver(pile))
+      .on('pointerout', onMouseOut(pile));
   };
 
   const onDragStart = pile => event => {
-    // const stage = pile.parent;
-    // const index = stage.getChildIndex(pile);
-    // stage.removeChildAt(index);
-    // stage.addChildAt(pile, stage.children.length);
-    pile.data = event.data;
-    pile.alpha = 0.5;
+    activePile.addChild(pile);
+
+    pile.eventData = event.data;
+    pile.alpha = 1;
     pile.isDragging = true;
     renderRaf();
   };
 
   const onDragEnd = pile => () => {
+    activePile.removeChildren();
+    normalPile.addChild(pile);
+
     pile.alpha = 1;
     pile.isDragging = false;
     // set the interaction data to null
-    pile.data = null;
+    pile.eventData = null;
+    // trigger collision check
+    pubSub.publish('dropPile', index);
     renderRaf();
   };
 
   const onDragMove = pile => () => {
     if (pile.isDragging) {
-      const newPosition = pile.data.getLocalPosition(pile.parent);
+      const newPosition = pile.eventData.getLocalPosition(pile.parent);
       pile.x = newPosition.x;
       pile.y = newPosition.y;
       renderRaf();
@@ -111,10 +118,12 @@ const createPile = (item, renderRaf, index) => {
     return pile;
   };
 
+  const pileGraphics = initPile();
   const id = index;
 
   return {
     initPile,
+    pileGraphics,
     id
   };
 };
