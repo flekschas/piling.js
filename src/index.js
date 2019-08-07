@@ -11,6 +11,7 @@ import createStore, {
 
 import createPile from './pile';
 import creatGrid from './grid';
+import hitTestRectangle from './pileManager';
 
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
@@ -95,14 +96,26 @@ const createPileMe = rootElement => {
 
     stage.removeChildren();
 
+    const activePile = new PIXI.Container();
+    const normalPile = new PIXI.Container();
+    stage.addChild(normalPile);
+
     const renderItems = items.map(({ src }) => itemRenderer(src));
 
     return Promise.all(renderItems).then(itemsA => {
       itemsA.forEach((item, index) => {
-        const pile = createPile(item, renderRaf, index).initPile();
+        const pile = createPile(
+          item,
+          renderRaf,
+          index,
+          pubSub,
+          activePile,
+          normalPile
+        );
         piles.set(index, pile);
-        stage.addChild(pile);
+        normalPile.addChild(pile.pileGraphics);
       });
+      stage.addChild(activePile);
       renderRaf();
     });
   };
@@ -116,18 +129,24 @@ const createPileMe = rootElement => {
   };
 
   const positionPiles = () => {
-    const { orderer } = store.getState();
+    const { items, orderer } = store.getState();
 
     if (piles) {
       piles.forEach((pile, id) => {
-        const getPosition = orderer(layout.myColNum);
-        let [x, y] = getPosition(id);
+        let x;
+        let y;
+        if (items[id].position) {
+          [x, y] = items[id].position;
+        } else {
+          const getPosition = orderer(layout.myColNum);
+          [x, y] = getPosition(id);
+        }
 
         x *= layout.myColWidth;
         y *= layout.myRowHeight;
 
-        pile.x += x;
-        pile.y += y;
+        pile.pileGraphics.x += x;
+        pile.pileGraphics.y += y;
       });
       renderRaf();
     }
@@ -165,6 +184,52 @@ const createPileMe = rootElement => {
     state = newState;
   };
 
+  const mergePile = (sourceId, targetId) => {
+    const source = piles.get(sourceId).pileGraphics;
+    const target = piles.get(targetId).pileGraphics;
+
+    source.removeChildAt(0);
+
+    console.log(source.children);
+
+    source.children.forEach(item => {
+      target.addChild(item);
+    });
+
+    target.children.forEach((item, index) => {
+      item.x += index * 5;
+      item.y += index * 5;
+    });
+
+    console.log(target.children);
+
+    source.destroy();
+    piles.delete(sourceId);
+  };
+
+  const handleDropPile = pileId => {
+    let hit;
+    let targetId;
+    if (piles) {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const [id, pile] of piles.entries()) {
+        if (pileId !== id) {
+          hit = hitTestRectangle(
+            piles.get(pileId).pileGraphics,
+            pile.pileGraphics
+          );
+          if (hit === true) {
+            targetId = id;
+            break;
+          }
+        }
+      }
+      if (hit === true) {
+        mergePile(pileId, targetId);
+      }
+    }
+  };
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -175,6 +240,8 @@ const createPileMe = rootElement => {
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', () => {}, false);
     canvas.addEventListener('dblclick', () => {}, false);
+
+    pubSub.subscribe('dropPile', handleDropPile);
 
     store.subscribe(updated);
     rootElement.appendChild(canvas);
