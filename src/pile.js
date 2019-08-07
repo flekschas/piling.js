@@ -1,11 +1,10 @@
 import * as PIXI from 'pixi.js';
 
 const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
-  const drawBorder = pile => {
-    const border = pile.getChildAt(0);
-    pile.removeChildAt(0);
-    const rect = pile.getBounds();
-    pile.addChildAt(border, 0);
+  const drawBorder = (pile, border) => {
+    const rect = item.getBounds();
+
+    const length = pile.children.length - 2;
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
@@ -13,37 +12,35 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
     border.drawRect(
       -rect.width / 2,
       -rect.height / 2,
-      rect.width + 4,
-      rect.height + 4
+      rect.width + 4 + length * 5,
+      rect.height + 4 + length * 5
     );
     border.endFill();
     renderRaf();
   };
 
-  const onMouseDown = pile => () => {
+  const onMouseDown = (pile, border) => () => {
     pile.isMouseDown = true;
-    drawBorder(pile);
+    drawBorder(pile, border);
   };
 
-  const onMouseUp = pile => () => {
+  const onMouseUp = (pile, border) => () => {
     pile.isMouseDown = false;
     if (pile.isHover) {
-      drawBorder(pile);
+      drawBorder(pile, border);
     } else {
-      const border = pile.getChildAt(0);
       border.clear();
     }
   };
 
-  const onMouseOver = pile => () => {
+  const onMouseOver = (pile, border) => () => {
     pile.isHover = true;
-    drawBorder(pile);
+    drawBorder(pile, border);
   };
 
-  const onMouseOut = pile => () => {
+  const onMouseOut = (pile, border) => () => {
     if (pile.isDragging) return;
     pile.isHover = false;
-    const border = pile.getChildAt(0);
     border.clear();
     renderRaf();
   };
@@ -53,11 +50,11 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
     pile.addChild(border);
 
     pile
-      .on('pointerdown', onMouseDown(pile))
-      .on('pointerup', onMouseUp(pile))
-      .on('pointerupoutside', onMouseUp(pile))
-      .on('pointerover', onMouseOver(pile))
-      .on('pointerout', onMouseOut(pile));
+      .on('pointerdown', onMouseDown(pile, border))
+      .on('pointerup', onMouseUp(pile, border))
+      .on('pointerupoutside', onMouseUp(pile, border))
+      .on('pointerover', onMouseOver(pile, border))
+      .on('pointerout', onMouseOut(pile, border));
   };
 
   const onDragStart = pile => event => {
