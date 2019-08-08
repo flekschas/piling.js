@@ -1,10 +1,12 @@
 import * as PIXI from 'pixi.js';
 
-const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
+const createPile = (item, renderRaf, index, pubSub) => {
   const drawBorder = (pile, border) => {
     const rect = item.getBounds();
 
-    const length = pile.children.length - 2;
+    const itemContainer = pile.getChildAt(1);
+    // we don't want to move the position of the first item
+    const length = itemContainer.children.length - 1;
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
@@ -45,20 +47,21 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
     renderRaf();
   };
 
-  const initHover = pile => {
+  const initHover = (pile, borderContainer) => {
     const border = new PIXI.Graphics();
-    pile.addChild(border);
+    borderContainer.addChild(border);
 
     pile
       .on('pointerdown', onMouseDown(pile, border))
       .on('pointerup', onMouseUp(pile, border))
-      .on('pointerupoutside', onMouseUp(pile, border))
+      // .on('pointerupoutside', onMouseUp(pile, border))
       .on('pointerover', onMouseOver(pile, border))
       .on('pointerout', onMouseOut(pile, border));
   };
 
   const onDragStart = pile => event => {
-    activePile.addChild(pile);
+    // trigger active pile
+    pubSub.publish('highlightPile', index);
 
     pile.eventData = event.data;
     pile.alpha = 1;
@@ -67,9 +70,6 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
   };
 
   const onDragEnd = pile => () => {
-    activePile.removeChildren();
-    normalPile.addChild(pile);
-
     pile.alpha = 1;
     pile.isDragging = false;
     // set the interaction data to null
@@ -92,12 +92,16 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
     pile
       .on('pointerdown', onDragStart(pile))
       .on('pointerup', onDragEnd(pile))
-      .on('pointerupoutside', onDragEnd(pile))
+      // .on('pointerupoutside', onDragEnd(pile))
       .on('pointermove', onDragMove(pile));
   };
 
   const initPile = () => {
     const pile = new PIXI.Graphics();
+    const itemContainer = new PIXI.Container();
+    const borderContainer = new PIXI.Container();
+    pile.addChild(borderContainer);
+    pile.addChild(itemContainer);
 
     pile.interactive = true;
     pile.buttonMode = true;
@@ -107,10 +111,10 @@ const createPile = (item, renderRaf, index, pubSub, activePile, normalPile) => {
     item.x = -item.width / 2 + 2;
     item.y = -item.height / 2 + 2;
 
-    initHover(pile);
+    initHover(pile, borderContainer);
     initDrag(pile);
 
-    pile.addChild(item);
+    itemContainer.addChild(item);
 
     return pile;
   };
