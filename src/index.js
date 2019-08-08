@@ -88,6 +88,8 @@ const createPileMe = rootElement => {
   const renderRaf = withRaf(render);
 
   const piles = new Map();
+  const activePile = new PIXI.Container();
+  const normalPile = new PIXI.Container();
 
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
@@ -96,8 +98,6 @@ const createPileMe = rootElement => {
 
     stage.removeChildren();
 
-    const activePile = new PIXI.Container();
-    const normalPile = new PIXI.Container();
     stage.addChild(normalPile);
 
     const renderItems = items.map(({ src }) => itemRenderer(src));
@@ -185,47 +185,37 @@ const createPileMe = rootElement => {
   };
 
   const mergePile = (sourceId, targetId) => {
-    const source = piles.get(sourceId).pileGraphics;
-    const target = piles.get(targetId).pileGraphics;
-
-    source.removeChildAt(0);
-
-    // source.children.forEach(item => {
-    //   target.addChild(item);
-    // });
+    const source = piles.get(sourceId).pileGraphics.getChildAt(1);
+    const target = piles.get(targetId).pileGraphics.getChildAt(1);
 
     const srcLength = source.children.length;
     for (let i = 0; i < srcLength; i++) {
+      // move one container's child to another container means
+      // that child is removed from the original container
+      // so always add the first child
       target.addChild(source.children[0]);
     }
 
-    const border = target.getChildAt(0);
-    target.removeChildAt(0);
-
     target.children.forEach((item, index) => {
-      item.x = -item.width / 2 + 2;
-      item.y = -item.height / 2 + 2;
-      item.x += index * 5;
-      item.y += index * 5;
+      const padding = index * 5 + 2;
+      item.x = -item.width / 2 + padding;
+      item.y = -item.height / 2 + padding;
     });
 
-    target.addChildAt(border, 0);
-
-    source.destroy();
+    source.parent.destroy();
     piles.delete(sourceId);
   };
 
   const handleDropPile = pileId => {
     let hit;
     let targetId;
+    const pile = piles.get(pileId).pileGraphics;
+
     if (piles) {
       // eslint-disable-next-line no-restricted-syntax
-      for (const [id, pile] of piles.entries()) {
+      for (const [id, targetPile] of piles.entries()) {
         if (pileId !== id) {
-          hit = hitTestRectangle(
-            piles.get(pileId).pileGraphics,
-            pile.pileGraphics
-          );
+          hit = hitTestRectangle(pile, targetPile.pileGraphics);
           if (hit === true) {
             targetId = id;
             break;
@@ -236,6 +226,16 @@ const createPileMe = rootElement => {
         mergePile(pileId, targetId);
       }
     }
+    activePile.removeChildren();
+    // if hit = true, then the original pile is destoryed
+    if (hit !== true) {
+      normalPile.addChild(pile);
+    }
+  };
+
+  const handleHighlightPile = pileId => {
+    const pile = piles.get(pileId).pileGraphics;
+    activePile.addChild(pile);
   };
 
   const init = () => {
@@ -250,6 +250,7 @@ const createPileMe = rootElement => {
     canvas.addEventListener('dblclick', () => {}, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
+    pubSub.subscribe('highlightPile', handleHighlightPile);
 
     store.subscribe(updated);
     rootElement.appendChild(canvas);
