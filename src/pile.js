@@ -121,11 +121,13 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
   const pileGraphics = initPile();
   const id = index;
+  let pileBox;
 
   return {
     initPile,
     pileGraphics,
-    id
+    id,
+    pileBox
   };
 };
 
