@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
+import * as RBush from 'rbush';
 
 import createStore, {
   setItemRenderer,
@@ -11,7 +12,7 @@ import createStore, {
 
 import createPile from './pile';
 import creatGrid from './grid';
-import hitTestRectangle from './pileManager';
+// import hitTestRectangle from './pileManager';
 
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
@@ -90,6 +91,29 @@ const createPileMe = rootElement => {
   const piles = new Map();
   const activePile = new PIXI.Container();
   const normalPile = new PIXI.Container();
+
+  const tree = new RBush();
+
+  const createRBush = () => {
+    tree.clear();
+    if (piles) {
+      piles.forEach((pile, id) => {
+        const minx = pile.pileGraphics.worldTransform.tx;
+        const miny = pile.pileGraphics.worldTransform.ty;
+        const maxx = minx + pile.pileGraphics.getChildAt(1).width;
+        const maxy = miny + pile.pileGraphics.getChildAt(1).height;
+        const box = {
+          minX: minx,
+          minY: miny,
+          maxX: maxx,
+          maxY: maxy,
+          pileId: id
+        };
+        pile.pileBox = box;
+        tree.insert(box);
+      });
+    }
+  };
 
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
@@ -208,24 +232,38 @@ const createPileMe = rootElement => {
 
   const handleDropPile = pileId => {
     let hit;
-    let targetId;
+    // let targetId;
     const pile = piles.get(pileId).pileGraphics;
 
-    if (piles) {
-      // eslint-disable-next-line no-restricted-syntax
-      for (const [id, targetPile] of piles.entries()) {
-        if (pileId !== id) {
-          hit = hitTestRectangle(pile, targetPile.pileGraphics);
-          if (hit === true) {
-            targetId = id;
-            break;
-          }
+    createRBush();
+    const result = tree.search(piles.get(pileId).pileBox);
+
+    // only one pile is colliding with the pile
+    if (result.length === 2) {
+      result.forEach(collidePile => {
+        if (collidePile.pileId !== pileId) {
+          mergePile(pileId, collidePile.pileId);
+          hit = true;
         }
-      }
-      if (hit === true) {
-        mergePile(pileId, targetId);
-      }
+      });
     }
+
+    // if (piles) {
+    //   // eslint-disable-next-line no-restricted-syntax
+    //   for (const [id, targetPile] of piles.entries()) {
+    //     if (pileId !== id) {
+    //       hit = hitTestRectangle(pile, targetPile.pileGraphics);
+    //       if (hit === true) {
+    //         targetId = id;
+    //         break;
+    //       }
+    //     }
+    //   }
+    //   if (hit === true) {
+    //     mergePile(pileId, targetId);
+    //   }
+    // }
+
     activePile.removeChildren();
     // if hit = true, then the original pile is destoryed
     if (hit !== true) {
