@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "deep-equal": "^1.0.1",
+    "lodash-es": "^4.17.15",
     "pixi.js": "^5.1.0",
     "pub-sub-es": "^1.2.1",
     "rbush": "^3.0.1",
