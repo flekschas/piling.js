@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
+import withThrottle from 'lodash-es/throttle';
 
 import createStore, {
   setItemRenderer,
@@ -9,6 +10,8 @@ import createStore, {
   setOrderer,
   setGrid
 } from './store';
+
+import { dist } from './utils';
 
 import createPile from './pile';
 import creatGrid from './grid';
@@ -91,10 +94,15 @@ const createPileMe = rootElement => {
   const piles = new Map();
   const activePile = new PIXI.Container();
   const normalPile = new PIXI.Container();
+  const lassoContainer = new PIXI.Container();
+  const lasso = new PIXI.Graphics();
+
+  let isInit = false;
 
   const tree = new RBush();
 
   const createRBush = () => {
+    isInit = false;
     tree.clear();
     if (piles) {
       piles.forEach((pile, id) => {
@@ -113,6 +121,7 @@ const createPileMe = rootElement => {
         tree.insert(box);
       });
     }
+    isInit = true;
   };
 
   const createItems = () => {
@@ -128,18 +137,13 @@ const createPileMe = rootElement => {
 
     return Promise.all(renderItems).then(itemsA => {
       itemsA.forEach((item, index) => {
-        const pile = createPile(
-          item,
-          renderRaf,
-          index,
-          pubSub,
-          activePile,
-          normalPile
-        );
+        const pile = createPile(item, renderRaf, index, pubSub);
         piles.set(index, pile);
         normalPile.addChild(pile.pileGraphics);
       });
       stage.addChild(activePile);
+      stage.addChild(lassoContainer);
+      lassoContainer.addChild(lasso);
       renderRaf();
     });
   };
@@ -174,6 +178,74 @@ const createPileMe = rootElement => {
       });
       renderRaf();
     }
+  };
+
+  const mousePosition = [0, 0];
+
+  // Get a copy of the current mouse position
+  const getMousePos = () => mousePosition.slice();
+
+  const getRelativeMousePosition = event => {
+    mousePosition[0] = event.clientX;
+    mousePosition[1] = event.clientY;
+
+    return [...mousePosition];
+  };
+
+  const LASSO_MIN_DIST = 8;
+  const LASSO_MIN_DELAY = 25;
+  // let lasso;
+  let lassoPos = [];
+  let lassoPrevMousePos;
+
+  const lassoExtend = () => {
+    const currMousePos = getMousePos();
+
+    if (!lassoPrevMousePos) {
+      lassoPos.push(...currMousePos);
+      lassoPrevMousePos = currMousePos;
+    } else {
+      const d = dist(...currMousePos, ...lassoPrevMousePos);
+
+      if (d > LASSO_MIN_DIST) {
+        lassoPos.push(...currMousePos);
+        lassoPrevMousePos = currMousePos;
+        if (lassoPos.length > 2) {
+          // lasso.setPoints(lassoPos);
+          lasso.lineStyle(2, 0xffffff, 1);
+          // lasso.beginFill(0x3500FA, 0);
+          lasso.drawPolygon(lassoPos);
+          // lasso.endFill();
+          renderRaf();
+        }
+      }
+    }
+  };
+  const lassoExtendDb = withThrottle(lassoExtend, LASSO_MIN_DELAY, true);
+
+  // const findPointsInLasso = lassoPolygon => {
+  //   // get the bounding box of the lasso selection...
+  //   const bBox = getBBox(lassoPolygon);
+  //   // ...to efficiently preselect potentially selected points
+  //   const pointsInBBox = searchIndex.range(...bBox);
+  //   // next we test each point in the bounding box if it is in the polygon too
+  //   const pointsInPolygon = [];
+  //   pointsInBBox.forEach(pointIdx => {
+  //     if (isPointInPolygon(searchIndex.points[pointIdx], lassoPolygon))
+  //       pointsInPolygon.push(pointIdx);
+  //   });
+
+  //   return pointsInPolygon;
+  // };
+
+  const lassoEnd = () => {
+    // const t0 = performance.now();
+    // const pointsInLasso = findPointsInLasso(lassoScatterPos);
+    // console.log(`found ${pointsInLasso.length} in ${performance.now() - t0} msec`);
+    // select(pointsInLasso);
+    lassoPos = [];
+    lassoPrevMousePos = undefined;
+    // lasso.clear();
   };
 
   let stateUpdates;
@@ -276,15 +348,62 @@ const createPileMe = rootElement => {
     activePile.addChild(pile);
   };
 
+  let mouseDown = false;
+  // let mouseDownShift = false;
+  let mouseDownPosition = [0, 0];
+
+  const mouseDownHandler = event => {
+    if (!isInit) return;
+
+    mouseDownPosition = getRelativeMousePosition(event);
+
+    const result = tree.collides({
+      minX: mouseDownPosition[0] - 1,
+      minY: mouseDownPosition[1] - 1,
+      maxX: mouseDownPosition[0] + 1,
+      maxY: mouseDownPosition[1] + 1
+    });
+
+    // need implement
+    if (!result) {
+      console.log('mousedown');
+      mouseDown = true;
+    }
+  };
+
+  const mouseUpHandler = () => {
+    if (mouseDown) {
+      console.log(lassoPos);
+      lassoEnd();
+      mouseDown = false;
+    }
+  };
+
+  const mouseClickHandler = event => {
+    // const currentMousePosition = [event.clientX, event.clientY];
+    // const clickDist = dist(...currentMousePosition, ...mouseDownPosition);
+
+    // if (clickDist >= LASSO_MIN_DIST) return;
+    getRelativeMousePosition(event);
+  };
+
+  const mouseMoveHandler = event => {
+    getRelativeMousePosition(event);
+
+    if (mouseDown) {
+      lassoExtendDb();
+    }
+  };
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
-    window.addEventListener('mousedown', () => {}, false);
-    window.addEventListener('mouseup', () => {}, false);
-    window.addEventListener('mousemove', () => {}, false);
+    window.addEventListener('mousedown', mouseDownHandler, false);
+    window.addEventListener('mouseup', mouseUpHandler, false);
+    window.addEventListener('mousemove', mouseMoveHandler, false);
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
-    canvas.addEventListener('click', () => {}, false);
+    canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', () => {}, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
@@ -298,12 +417,12 @@ const createPileMe = rootElement => {
     // Remove event listeners
     window.removeEventListener('keyup', () => {}, false);
     window.removeEventListener('blur', () => {}, false);
-    window.removeEventListener('mousedown', () => {}, false);
-    window.removeEventListener('mouseup', () => {}, false);
-    window.removeEventListener('mousemove', () => {}, false);
+    window.removeEventListener('mousedown', mouseDownHandler, false);
+    window.removeEventListener('mouseup', mouseUpHandler, false);
+    window.removeEventListener('mousemove', mouseMoveHandler, false);
     canvas.removeEventListener('mouseenter', () => {}, false);
     canvas.removeEventListener('mouseleave', () => {}, false);
-    canvas.removeEventListener('click', () => {}, false);
+    canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', () => {}, false);
 
     stage.destroy(false);
