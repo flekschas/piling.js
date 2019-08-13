@@ -61,7 +61,7 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
   const onDragStart = pile => event => {
     // trigger active pile
-    pubSub.publish('highlightPile', index);
+    pubSub.publish('dragPile', index);
 
     pile.eventData = event.data;
     pile.alpha = 1;
@@ -84,6 +84,8 @@ const createPile = (item, renderRaf, index, pubSub) => {
       const newPosition = pile.eventData.getLocalPosition(pile.parent);
       pile.x = newPosition.x;
       pile.y = newPosition.y;
+      pubSub.publish('highlightPile', index);
+
       renderRaf();
     }
   };
@@ -95,6 +97,8 @@ const createPile = (item, renderRaf, index, pubSub) => {
       // .on('pointerupoutside', onDragEnd(pile))
       .on('pointermove', onDragMove(pile));
   };
+
+  const itemIDs = new Map();
 
   const initPile = () => {
     const pile = new PIXI.Graphics();
@@ -116,6 +120,8 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
     itemContainer.addChild(item);
 
+    itemIDs.set(index, item);
+
     return pile;
   };
 
@@ -124,7 +130,9 @@ const createPile = (item, renderRaf, index, pubSub) => {
   let pileBox;
 
   return {
+    drawBorder,
     initPile,
+    itemIDs,
     pileGraphics,
     id,
     pileBox
