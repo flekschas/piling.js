@@ -85,7 +85,12 @@ export const getBBox = positions2d => {
     yMax = positions2d[i + 1] > yMax ? positions2d[i + 1] : yMax;
   }
 
-  return [xMin, yMin, xMax, yMax];
+  return {
+    minX: xMin,
+    minY: yMin,
+    maxX: xMax,
+    maxY: yMax
+  };
 };
 
 /**
@@ -94,7 +99,7 @@ export const getBBox = positions2d => {
  * @param   {Array}  polygon  1D list of vertices defining the polygon.
  * @return  {boolean}  If `true` point lies within the polygon.
  */
-export const isPointInPolygon = ([px, py] = [], polygon) => {
+export const isPileInPolygon = ([px, py] = [], polygon) => {
   let x1;
   let y1;
   let x2;
