@@ -5,6 +5,9 @@ import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
 
 import createStore, {
+  initPiles,
+  // mergePiles,
+  // movePiles,
   setItemRenderer,
   setItems,
   setOrderer,
@@ -14,8 +17,7 @@ import createStore, {
 import { dist, getBBox, isPileInPolygon } from './utils';
 
 import createPile from './pile';
-import creatGrid from './grid';
-// import hitTestRectangle from './pileManager';
+import createGrid from './grid';
 
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
@@ -46,6 +48,9 @@ const createPileMe = rootElement => {
       case 'items':
         return state.items;
 
+      case 'piles':
+        return state.piles;
+
       case 'orderer':
         return state.orderer;
 
@@ -59,30 +64,35 @@ const createPileMe = rootElement => {
   };
 
   const set = (property, value) => {
-    let action;
+    const actions = [];
 
     switch (property) {
       case 'renderer':
-        action = setItemRenderer(value);
+        actions.push(setItemRenderer(value));
         break;
 
       case 'items':
-        action = setItems(value);
+        actions.push(setItems(value));
+        actions.push(initPiles(value.length));
         break;
 
       case 'orderer':
-        action = setOrderer(value);
+        actions.push(setOrderer(value));
         break;
 
       case 'grid':
-        action = setGrid(value);
+        actions.push(setGrid(value));
         break;
 
       default:
         console.warn(`Unknown property "${property}"`);
     }
 
-    if (action) store.dispatch(action);
+    if (actions.length !== 0) {
+      actions.forEach(action => {
+        store.dispatch(action);
+      });
+    }
   };
 
   const render = () => {
@@ -91,7 +101,7 @@ const createPileMe = rootElement => {
 
   const renderRaf = withRaf(render);
 
-  const piles = new Map();
+  const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPile = new PIXI.Container();
 
@@ -102,40 +112,32 @@ const createPileMe = rootElement => {
 
     const boxList = [];
 
-    if (piles) {
-      piles.forEach((pile, id) => {
-        const offsetX = pile.itemIDs.get(id).width / 2;
-        const offsetY = pile.itemIDs.get(id).height / 2;
-        const minx = pile.pileGraphics.x - offsetX;
-        const miny = pile.pileGraphics.y - offsetY;
-        const maxx = minx + pile.pileGraphics.getChildAt(1).width;
-        const maxy = miny + pile.pileGraphics.getChildAt(1).height;
-        const box = {
-          minX: minx,
-          minY: miny,
-          maxX: maxx,
-          maxY: maxy,
-          pileId: id
-        };
-        pile.pileBox = box;
-        boxList.push(box);
+    if (pileInstances) {
+      pileInstances.forEach(pile => {
+        pile.updateBBox();
+        boxList.push(pile.bBox);
       });
       searchIndex.load(boxList);
     }
   };
 
-  // const updateSearchIndex = pileId => {
-  //   const pile = piles.get(pileId);
-  //   const pileBox = pile.pileBox;
-  //   console.log(searchIndex);
-  //   searchIndex.remove(pileBox);
-  //   pileBox.minX = pile.pileGraphics.worldTransform.tx;
-  //   pileBox.miny = pile.pileGraphics.worldTransform.ty;
-  //   pileBox.maxX = pileBox.minX + pile.pileGraphics.getChildAt(1).width;
-  //   pileBox.maxY = pileBox.minY + pile.pileGraphics.getChildAt(1).height;
-  //   pileBox.id = pileId;
-  //   searchIndex.insert(pileBox);
-  // }
+  const deleteSearchIndex = pileId => {
+    const pile = pileInstances.get(pileId);
+
+    searchIndex.remove(pile.bBox, (a, b) => {
+      return a.pileId === b.pileId;
+    });
+  };
+
+  const updateBoundingBox = pileId => {
+    const pile = pileInstances.get(pileId);
+
+    searchIndex.remove(pile.bBox, (a, b) => {
+      return a.pileId === b.pileId;
+    });
+    pile.updateBBox();
+    searchIndex.insert(pile.bBox);
+  };
 
   const lassoContainer = new PIXI.Container();
   const lassoBgContainer = new PIXI.Container();
@@ -145,7 +147,7 @@ const createPileMe = rootElement => {
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
 
-    piles.clear();
+    pileInstances.clear();
 
     stage.removeChildren();
 
@@ -158,7 +160,7 @@ const createPileMe = rootElement => {
     return Promise.all(renderItems).then(itemsA => {
       itemsA.forEach((item, index) => {
         const pile = createPile(item, renderRaf, index, pubSub);
-        piles.set(index, pile);
+        pileInstances.set(index, pile);
         normalPile.addChild(pile.pileGraphics);
       });
       stage.addChild(activePile);
@@ -173,14 +175,16 @@ const createPileMe = rootElement => {
   const initGrid = () => {
     const { grid } = store.getState();
 
-    layout = creatGrid(canvas, grid);
+    layout = createGrid(canvas, grid);
   };
 
   const positionPiles = () => {
     const { items, orderer } = store.getState();
 
-    if (piles) {
-      piles.forEach((pile, id) => {
+    // const movingPiles = [];
+
+    if (pileInstances) {
+      pileInstances.forEach((pile, id) => {
         let x;
         let y;
         if (items[id].position) {
@@ -195,24 +199,17 @@ const createPileMe = rootElement => {
 
         pile.pileGraphics.x += x;
         pile.pileGraphics.y += y;
+
+        // movePiles.push({
+        //   id,
+        //   x: pile.pileGraphics.x,
+        //   y: pile.pileGraphics.y
+        // })
       });
+      // store.dispatch(movePiles(movingPiles));
       createRBush();
       renderRaf();
     }
-  };
-
-  const mousePosition = [0, 0];
-
-  // Get a copy of the current mouse position
-  const getMousePos = () => mousePosition.slice();
-
-  const getRelativeMousePosition = event => {
-    const rect = canvas.getBoundingClientRect();
-
-    mousePosition[0] = event.clientX - rect.left;
-    mousePosition[1] = event.clientY - rect.top;
-
-    return [...mousePosition];
   };
 
   let stateUpdates;
@@ -229,6 +226,20 @@ const createPileMe = rootElement => {
     ) {
       updates.push(createItems());
       stateUpdates.add('piles');
+    }
+
+    if (state.piles !== newState.piles) {
+      console.log(newState.piles);
+      // newState.piles
+      //   .filter((pile, id) => pile !== state.piles[id])
+      //   .forEach((pile, id) => {
+      //     if(pile === []) {
+      //       deleteSearchIndex(id);
+      //     }
+      //     else {
+      //       updateBoundingBox(id);
+      //     }
+      //   })
     }
 
     if (state.orderer !== newState.orderer) stateUpdates.add('layout');
@@ -249,11 +260,11 @@ const createPileMe = rootElement => {
 
   const mergePile = (sourceId, targetId) => {
     // get item container
-    const source = piles.get(sourceId).pileGraphics.getChildAt(1);
-    const target = piles.get(targetId).pileGraphics.getChildAt(1);
+    const source = pileInstances.get(sourceId).pileGraphics.getChildAt(1);
+    const target = pileInstances.get(targetId).pileGraphics.getChildAt(1);
 
-    piles.get(sourceId).itemIDs.forEach((item, id) => {
-      piles.get(targetId).itemIDs.set(id, item);
+    pileInstances.get(sourceId).itemIDs.forEach((item, id) => {
+      pileInstances.get(targetId).itemIDs.set(id, item);
     });
 
     const srcLength = source.children.length;
@@ -270,19 +281,26 @@ const createPileMe = rootElement => {
       item.y = -item.height / 2 + padding;
     });
 
-    source.parent.destroy();
-    piles.delete(sourceId);
+    deleteSearchIndex(sourceId);
+    updateBoundingBox(targetId);
 
-    createRBush();
+    source.parent.destroy();
+    pileInstances.delete(sourceId);
+
+    // store.dispatch(mergePiles([sourceId, targetId], true))
+
+    // updatePileState(sourceId);
+    // updatePileState(targetId);
   };
 
   const mergeMultiPiles = pileIds => {
     const targetId = Math.min(...pileIds);
-    // const targetPile = piles.get(targetId);
+    const targetPile = pileInstances.get(targetId);
+
     let centerX = 0;
     let centerY = 0;
     pileIds.forEach(id => {
-      const box = piles.get(id).pileBox;
+      const box = pileInstances.get(id).bBox;
       centerX += box.minX + (box.maxX - box.minX) / 2;
       centerY += box.minY + (box.maxY - box.minY) / 2;
     });
@@ -293,34 +311,60 @@ const createPileMe = rootElement => {
     });
     centerX /= pileIds.length;
     centerY /= pileIds.length;
-    piles.get(targetId).pileGraphics.x = centerX;
-    piles.get(targetId).pileGraphics.y = centerY;
+    targetPile.pileGraphics.x = centerX;
+    targetPile.pileGraphics.y = centerY;
 
-    createRBush();
+    updateBoundingBox(targetId);
+    // updatePileState(targetId);
+  };
+
+  const mousePosition = [0, 0];
+
+  // Get a copy of the current mouse position
+  const getMousePos = () => mousePosition.slice();
+
+  const getRelativeMousePosition = event => {
+    const rect = canvas.getBoundingClientRect();
+
+    mousePosition[0] = event.clientX - rect.left;
+    mousePosition[1] = event.clientY - rect.top;
+
+    return [...mousePosition];
   };
 
   const LASSO_MIN_DIST = 8;
   const LASSO_MIN_DELAY = 25;
-  // let lasso;
   let lassoPos = [];
   let lassoPosFlat = [];
   let lassoPrevMousePos;
-  // let lassoFirstPos;
   let isLasso = false;
 
+  const drawlasso = () => {
+    lasso.clear();
+    lassoFill.clear();
+    lasso.lineStyle(2, 0xffffff, 1);
+    lasso.moveTo(...lassoPos[0]);
+    lassoPos.forEach(pos => {
+      lasso.lineTo(...pos);
+      lasso.moveTo(...pos);
+    });
+    lassoFill.beginFill(0xffffff, 0.2);
+    lassoFill.drawPolygon(lassoPosFlat);
+    renderRaf();
+  };
+
+  let mouseDown = false;
+
   const lassoExtend = () => {
+    if (!mouseDown) return;
+
     const currMousePos = getMousePos();
 
     if (!lassoPrevMousePos) {
       lassoPos.push(currMousePos);
       lassoPosFlat.push(...currMousePos);
       lassoPrevMousePos = currMousePos;
-      // lassoFirstPos = currMousePos;
-      lasso.lineStyle(2, 0xffffff, 1);
-      // lassoFill.lineStyle(2, 0xffffff, 1);
-      // lassoFill.beginFill(0xffffff);
       lasso.moveTo(...currMousePos);
-      lassoFill.moveTo(...currMousePos);
     } else {
       const d = dist(...currMousePos, ...lassoPrevMousePos);
 
@@ -329,14 +373,8 @@ const createPileMe = rootElement => {
         lassoPosFlat.push(...currMousePos);
         lassoPrevMousePos = currMousePos;
         if (lassoPos.length > 1) {
-          lassoPos.forEach(pos => {
-            lasso.lineTo(...pos);
-            lasso.moveTo(...pos);
-            // lassoFill.lineTo(...pos);
-            // lassoFill.moveTo(...pos);
-            renderRaf();
-            isLasso = true;
-          });
+          drawlasso();
+          isLasso = true;
         }
       }
     }
@@ -370,20 +408,12 @@ const createPileMe = rootElement => {
       if (pilesInLasso.length > 1) {
         mergeMultiPiles(pilesInLasso);
       }
-      // lasso.lineStyle(2, 0xffffff, 1);
-      // lasso.moveTo(...lassoPos[lassoPos.length-1])
-      // lasso.lineTo(...lassoFirstPos);
       lasso.closePath();
       lasso.clear();
-      // lassoFill.moveTo(...lassoPos[lassoPos.length-1])
-      // lassoFill.lineTo(...lassoFirstPos);
-      // lassoFill.closePath();
-      // lassoFill.endFill();
+      lassoFill.clear();
       render();
       isLasso = false;
     }
-    // lassoFill.clear();
-    // render();
     lassoPos = [];
     lassoPosFlat = [];
     lassoPrevMousePos = undefined;
@@ -391,36 +421,20 @@ const createPileMe = rootElement => {
 
   const handleDropPile = pileId => {
     let hit;
-    const pile = piles.get(pileId).pileGraphics;
+    const pile = pileInstances.get(pileId).pileGraphics;
 
-    createRBush();
-    const result = searchIndex.search(piles.get(pileId).pileBox);
+    const collidePiles = searchIndex
+      .search(pileInstances.get(pileId).calcBBox())
+      .filter(collidePile => collidePile.pileId !== pileId);
 
     // only one pile is colliding with the pile
-    if (result.length === 2) {
-      result.forEach(collidePile => {
-        if (collidePile.pileId !== pileId) {
-          mergePile(pileId, collidePile.pileId);
-          hit = true;
-        }
-      });
+    if (collidePiles.length === 1) {
+      mergePile(pileId, collidePiles[0].pileId);
+      hit = true;
+    } else {
+      updateBoundingBox(pileId);
+      // updatePileState(pileId);
     }
-
-    // if (piles) {
-    //   // eslint-disable-next-line no-restricted-syntax
-    //   for (const [id, targetPile] of piles.entries()) {
-    //     if (pileId !== id) {
-    //       hit = hitTestRectangle(pile, targetPile.pileGraphics);
-    //       if (hit === true) {
-    //         targetId = id;
-    //         break;
-    //       }
-    //     }
-    //   }
-    //   if (hit === true) {
-    //     mergePile(pileId, targetId);
-    //   }
-    // }
 
     activePile.removeChildren();
     // if hit = true, then the original pile is destoryed
@@ -430,7 +444,7 @@ const createPileMe = rootElement => {
   };
 
   const handleDragPile = pileId => {
-    const pile = piles.get(pileId).pileGraphics;
+    const pile = pileInstances.get(pileId).pileGraphics;
     activePile.addChild(pile);
   };
 
@@ -438,16 +452,13 @@ const createPileMe = rootElement => {
   let newResult = [];
 
   const handleHighlightPile = pileId => {
-    createRBush();
-
     oldResult = [...newResult];
-
-    newResult = searchIndex.search(piles.get(pileId).pileBox);
+    newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
     if (oldResult !== []) {
       oldResult.forEach(collidePile => {
-        if (piles.get(collidePile.pileId)) {
-          const pile = piles.get(collidePile.pileId).pileGraphics;
+        if (pileInstances.get(collidePile.pileId)) {
+          const pile = pileInstances.get(collidePile.pileId).pileGraphics;
           const border = pile.getChildAt(0).getChildAt(0);
           border.clear();
         }
@@ -455,15 +466,14 @@ const createPileMe = rootElement => {
     }
 
     newResult.forEach(collidePile => {
-      if (piles.get(collidePile.pileId)) {
-        const pile = piles.get(collidePile.pileId).pileGraphics;
+      if (pileInstances.get(collidePile.pileId)) {
+        const pile = pileInstances.get(collidePile.pileId).pileGraphics;
         const border = pile.getChildAt(0).getChildAt(0);
-        piles.get(collidePile.pileId).drawBorder(pile, border);
+        pileInstances.get(collidePile.pileId).drawBorder(pile, border);
       }
     });
   };
 
-  let mouseDown = false;
   // let mouseDownShift = false;
   let mouseDownPosition = [0, 0];
 
@@ -503,9 +513,7 @@ const createPileMe = rootElement => {
   const mouseMoveHandler = event => {
     getRelativeMousePosition(event);
 
-    if (mouseDown) {
-      lassoExtendDb();
-    }
+    lassoExtendDb();
   };
 
   const init = () => {
