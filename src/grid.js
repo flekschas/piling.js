@@ -1,4 +1,4 @@
-const creatGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
+const createGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
   const { width, height } = canvas.getBoundingClientRect();
 
   const myColNum = cols;
@@ -31,4 +31,4 @@ const creatGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
   };
 };
 
-export default creatGrid;
+export default createGrid;
