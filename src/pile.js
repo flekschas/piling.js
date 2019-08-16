@@ -54,7 +54,7 @@ const createPile = (item, renderRaf, index, pubSub) => {
     pile
       .on('pointerdown', onMouseDown(pile, border))
       .on('pointerup', onMouseUp(pile, border))
-      // .on('pointerupoutside', onMouseUp(pile, border))
+      .on('pointerupoutside', onMouseUp(pile, border))
       .on('pointerover', onMouseOver(pile, border))
       .on('pointerout', onMouseOut(pile, border));
   };
@@ -70,6 +70,7 @@ const createPile = (item, renderRaf, index, pubSub) => {
   };
 
   const onDragEnd = pile => () => {
+    if (!pile.isDragging) return;
     pile.alpha = 1;
     pile.isDragging = false;
     // set the interaction data to null
@@ -94,7 +95,7 @@ const createPile = (item, renderRaf, index, pubSub) => {
     pile
       .on('pointerdown', onDragStart(pile))
       .on('pointerup', onDragEnd(pile))
-      // .on('pointerupoutside', onDragEnd(pile))
+      .on('pointerupoutside', onDragEnd(pile))
       .on('pointermove', onDragMove(pile));
   };
 
@@ -127,7 +128,42 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
   const pileGraphics = initPile();
   const id = index;
-  let pileBox;
+
+  const bBox = {
+    minX: null,
+    minY: null,
+    maxX: null,
+    maxY: null,
+    pileId: id
+  };
+
+  const setBBox = newBBox => {
+    bBox.minX = newBBox.minX;
+    bBox.minY = newBBox.minY;
+    bBox.maxX = newBBox.maxX;
+    bBox.maxY = newBBox.maxY;
+  };
+
+  const calcBBox = () => {
+    // compute bounding box
+    const offsetX = item.width / 2;
+    const offsetY = item.height / 2;
+    const minX = pileGraphics.x - offsetX;
+    const minY = pileGraphics.y - offsetY;
+    const maxX = minX + pileGraphics.getChildAt(1).width;
+    const maxY = minY + pileGraphics.getChildAt(1).height;
+
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY
+    };
+  };
+
+  const updateBBox = () => {
+    setBBox(calcBBox());
+  };
 
   return {
     drawBorder,
@@ -135,7 +171,9 @@ const createPile = (item, renderRaf, index, pubSub) => {
     itemIDs,
     pileGraphics,
     id,
-    pileBox
+    bBox,
+    calcBBox,
+    updateBBox
   };
 };
 
