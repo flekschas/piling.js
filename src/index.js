@@ -3,15 +3,19 @@ import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
+// import { scaleLinear } from 'd3-scale';
 
 import createStore, {
   initPiles,
   // mergePiles,
-  // movePiles,
+  movePiles,
   setItemRenderer,
   setItems,
   setOrderer,
-  setGrid
+  setGrid,
+  setAlignment,
+  setAlignDirection,
+  mergePiles
 } from './store';
 
 import { dist, getBBox, isPileInPolygon } from './utils';
@@ -57,6 +61,12 @@ const createPileMe = rootElement => {
       case 'grid':
         return state.grid;
 
+      case 'alignment':
+        return state.alignment;
+
+      case 'alignDirection':
+        return state.alignDirection;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -82,6 +92,14 @@ const createPileMe = rootElement => {
 
       case 'grid':
         actions.push(setGrid(value));
+        break;
+
+      case 'setAlignment':
+        actions.push(setAlignment(value));
+        break;
+
+      case 'alignDirection':
+        actions.push(setAlignDirection(value));
         break;
 
       default:
@@ -178,13 +196,56 @@ const createPileMe = rootElement => {
     layout = createGrid(canvas, grid);
   };
 
-  const positionPiles = () => {
-    const { items, orderer } = store.getState();
+  // const scaleItems = () => {
+  //   let min = Infinity;
+  //   let max = 0;
 
-    // const movingPiles = [];
+  //   pileInstances.forEach(pile => {
+  //     pile.pileGraphics.getChildAt(1).children.forEach(item => {
+  //       const maxBorder = Math.max(item.width, item.height);
+  //       if (maxBorder > max) max = maxBorder;
+  //       if (maxBorder < min) min = maxBorder;
+  //     });
+  //   });
+
+  //   const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
+  //   const range = [minRange * 0.5, minRange * 0.9];
+
+  //   const x = scaleLinear()
+  //     .domain([min, max])
+  //     .range(range);
+
+  //   x.clamp(true);
+
+  //   return x;
+  // };
+
+  const positionPiles = () => {
+    const { items, orderer, grid } = store.getState();
+
+    if (items.length === 0 || !orderer || grid.length === 0) return;
+
+    const movingPiles = [];
+
+    // const scale = scaleItems();
 
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
+        // pile.pileGraphics.getChildAt(1).children.forEach(item => {
+        //   const portion = item.height / item.width;
+        //   if(item.width > item.height) {
+        //     item.width = scale(item.width);
+        //     item.height = item.width * portion;
+        //   } else {
+        //     item.height = scale(item.height);
+        //     item.width = item.height / portion;
+        //   }
+        //   pile.pileGraphics.x = item.width / 2;
+        //   pile.pileGraphics.y = item.height / 2;
+        //   item.x = -item.width / 2 + 2;
+        //   item.y = -item.height / 2 + 2;
+        // })
+
         let x;
         let y;
         if (items[id].position) {
@@ -200,65 +261,63 @@ const createPileMe = rootElement => {
         pile.pileGraphics.x += x;
         pile.pileGraphics.y += y;
 
-        // movePiles.push({
-        //   id,
-        //   x: pile.pileGraphics.x,
-        //   y: pile.pileGraphics.y
-        // })
+        movingPiles.push({
+          id,
+          x: pile.pileGraphics.x,
+          y: pile.pileGraphics.y
+        });
       });
-      // store.dispatch(movePiles(movingPiles));
+      if (movingPiles.length !== 0) store.dispatch(movePiles(movingPiles));
       createRBush();
       renderRaf();
     }
   };
 
-  let stateUpdates;
+  const positionItems = pileId => {
+    const { alignment, alignDirection } = store.getState();
 
-  const updated = () => {
-    const newState = store.getState();
+    if (alignment) {
+      switch (alignDirection) {
+        case 'top':
+          pileInstances
+            .get(pileId)
+            .pileGraphics.getChildAt(1)
+            .children.forEach((item, index) => {
+              const padding = index * 5 + 2;
+              // item.x = -item.width / 2 + padding;
+              item.y = -item.height / 2 + padding;
+            });
+          break;
 
-    stateUpdates = new Set();
-    const updates = [];
+        case 'right':
+          pileInstances
+            .get(pileId)
+            .pileGraphics.getChildAt(1)
+            .children.forEach((item, index) => {
+              const padding = index * 5 + 2;
+              item.x = -item.width / 2 + padding;
+              // item.y = -item.height / 2 + padding;
+            });
+          break;
 
-    if (
-      state.items !== newState.items ||
-      state.itemRenderer !== newState.itemRenderer
-    ) {
-      updates.push(createItems());
-      stateUpdates.add('piles');
-    }
-
-    if (state.piles !== newState.piles) {
-      console.log(newState.piles);
-      // newState.piles
-      //   .filter((pile, id) => pile !== state.piles[id])
-      //   .forEach((pile, id) => {
-      //     if(pile === []) {
-      //       deleteSearchIndex(id);
-      //     }
-      //     else {
-      //       updateBoundingBox(id);
-      //     }
-      //   })
-    }
-
-    if (state.orderer !== newState.orderer) stateUpdates.add('layout');
-
-    if (state.grid !== newState.grid) {
-      initGrid();
-      stateUpdates.add('layout');
-    }
-
-    Promise.all(updates).then(() => {
-      if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
-        positionPiles();
+        // bottom-right
+        default: {
+          pileInstances
+            .get(pileId)
+            .pileGraphics.getChildAt(1)
+            .children.forEach((item, index) => {
+              const padding = index * 5 + 2;
+              item.x = -item.width / 2 + padding;
+              item.y = -item.height / 2 + padding;
+            });
+        }
       }
-    });
-
-    state = newState;
+    } else {
+      // randomized offset
+    }
   };
 
-  const mergePile = (sourceId, targetId) => {
+  const merge = (sourceId, targetId) => {
     // get item container
     const source = pileInstances.get(sourceId).pileGraphics.getChildAt(1);
     const target = pileInstances.get(targetId).pileGraphics.getChildAt(1);
@@ -275,14 +334,16 @@ const createPileMe = rootElement => {
       target.addChild(source.children[0]);
     }
 
-    target.children.forEach((item, index) => {
-      const padding = index * 5 + 2;
-      item.x = -item.width / 2 + padding;
-      item.y = -item.height / 2 + padding;
-    });
+    // target.children.forEach((item, index) => {
+    //   const padding = index * 5 + 2;
+    //   item.x = -item.width / 2 + padding;
+    //   item.y = -item.height / 2 + padding;
+    // });
 
-    deleteSearchIndex(sourceId);
-    updateBoundingBox(targetId);
+    positionItems(targetId);
+
+    // deleteSearchIndex(sourceId);
+    // updateBoundingBox(targetId);
 
     source.parent.destroy();
     pileInstances.delete(sourceId);
@@ -293,26 +354,36 @@ const createPileMe = rootElement => {
     // updatePileState(targetId);
   };
 
-  const mergeMultiPiles = pileIds => {
-    const targetId = Math.min(...pileIds);
+  const mergePile = (sourceIds, targetId) => {
+    const { piles } = store.getState();
+
+    if (sourceIds.length === 1) {
+      merge(sourceIds[0], targetId);
+    } else {
+      sourceIds.forEach(id => {
+        merge(id, targetId);
+      });
+    }
+
+    // const targetId = Math.min(...pileIds);
     const targetPile = pileInstances.get(targetId);
 
-    let centerX = 0;
-    let centerY = 0;
-    pileIds.forEach(id => {
-      const box = pileInstances.get(id).bBox;
-      centerX += box.minX + (box.maxX - box.minX) / 2;
-      centerY += box.minY + (box.maxY - box.minY) / 2;
-    });
-    pileIds.forEach(id => {
-      if (id !== targetId) {
-        mergePile(id, targetId);
-      }
-    });
-    centerX /= pileIds.length;
-    centerY /= pileIds.length;
-    targetPile.pileGraphics.x = centerX;
-    targetPile.pileGraphics.y = centerY;
+    // let centerX = 0;
+    // let centerY = 0;
+    // pileIds.forEach(id => {
+    //   const box = pileInstances.get(id).bBox;
+    //   centerX += box.minX + (box.maxX - box.minX) / 2;
+    //   centerY += box.minY + (box.maxY - box.minY) / 2;
+    // });
+    // pileIds.forEach(id => {
+    //   if (id !== targetId) {
+    //     mergePile(id, targetId);
+    //   }
+    // });
+    // centerX /= pileIds.length;
+    // centerY /= pileIds.length;
+    targetPile.pileGraphics.x = piles[targetId].x;
+    targetPile.pileGraphics.y = piles[targetId].y;
 
     updateBoundingBox(targetId);
     // updatePileState(targetId);
@@ -404,9 +475,10 @@ const createPileMe = rootElement => {
   const lassoEnd = () => {
     if (isLasso) {
       const pilesInLasso = findPilesInLasso(lassoPosFlat);
-      // console.log(pilesInLasso);
+      console.log(pilesInLasso);
       if (pilesInLasso.length > 1) {
-        mergeMultiPiles(pilesInLasso);
+        // mergeMultiPiles(pilesInLasso);
+        store.dispatch(mergePiles(pilesInLasso, false));
       }
       lasso.closePath();
       lasso.clear();
@@ -419,6 +491,88 @@ const createPileMe = rootElement => {
     lassoPrevMousePos = undefined;
   };
 
+  let stateUpdates;
+
+  const updated = () => {
+    const newState = store.getState();
+
+    stateUpdates = new Set();
+    const updates = [];
+
+    if (
+      state.items !== newState.items ||
+      state.itemRenderer !== newState.itemRenderer
+    ) {
+      updates.push(createItems());
+      stateUpdates.add('piles');
+    }
+
+    if (state.piles !== newState.piles) {
+      // console.log(state.piles, newState.piles);
+      const sourceIds = [];
+      let targetId;
+      if (state.piles.length !== 0) {
+        newState.piles
+          // .filter((pile, id) => pile !== state.piles[id])
+          .forEach((pile, id) => {
+            if (pile !== state.piles[id]) {
+              if (Object.keys(pile).length === 0) {
+                deleteSearchIndex(id);
+                sourceIds.push(id);
+              } else {
+                if (pile.items.length > state.piles[id].items.length) {
+                  targetId = id;
+                }
+                if (
+                  pile.x !== state.piles[id].x ||
+                  pile.y !== state.piles[id].y
+                ) {
+                  updateBoundingBox(id);
+                }
+              }
+            }
+          });
+        if (targetId && sourceIds.length > 0) {
+          mergePile(sourceIds, targetId);
+        }
+      }
+    }
+
+    if (state.orderer !== newState.orderer) {
+      stateUpdates.add('layout');
+    }
+
+    if (state.grid !== newState.grid) {
+      initGrid();
+      stateUpdates.add('layout');
+    }
+
+    if (state.alignment !== newState.alignment) {
+      //
+    }
+
+    if (state.alignDirection !== newState.alignDirection) {
+      // console.log(newState.alignDirection)
+      // stateUpdates.add('layout');
+      // pileInstances.forEach((pile, id) => {
+      //   console.log(pile.pileGraphics.getChildAt(1).children)
+      //   if (pile.pileGraphics.getChildAt(1).children.length > 1) {
+      //     positionItems(id);
+      //   }
+      // });
+    }
+
+    if (updates.length !== 0) {
+      Promise.all(updates).then(() => {
+        if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
+          positionPiles();
+        }
+      });
+    }
+
+    state = newState;
+  };
+
   const handleDropPile = pileId => {
     let hit;
     const pile = pileInstances.get(pileId).pileGraphics;
@@ -429,10 +583,20 @@ const createPileMe = rootElement => {
 
     // only one pile is colliding with the pile
     if (collidePiles.length === 1) {
-      mergePile(pileId, collidePiles[0].pileId);
+      // mergePile(pileId, collidePiles[0].pileId);
+      store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
       hit = true;
     } else {
-      updateBoundingBox(pileId);
+      store.dispatch(
+        movePiles([
+          {
+            id: pileId,
+            x: pile.x,
+            y: pile.y
+          }
+        ])
+      );
+      // updateBoundingBox(pileId);
       // updatePileState(pileId);
     }
 
