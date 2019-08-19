@@ -4,20 +4,24 @@ const createPile = (item, renderRaf, index, pubSub) => {
   const drawBorder = (pile, border) => {
     const rect = item.getBounds();
 
-    const itemContainer = pile.getChildAt(1);
+    // const itemContainer = pile.getChildAt(1);
     // we don't want to move the position of the first item
-    const length = itemContainer.children.length - 1;
+    const length = pile.getChildAt(1).children.length - 1;
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
-    border.beginFill(0xfff, 0);
     border.drawRect(
       -rect.width / 2,
       -rect.height / 2,
       rect.width + 4 + length * 5,
       rect.height + 4 + length * 5
     );
-    border.endFill();
+    // border.drawRect(
+    //   calcBBox().minX - pile.x,
+    //   calcBBox().minY - pile.y,
+    //   rect.width + 4 ,
+    //   rect.height + 4
+    // );
     renderRaf();
   };
 
@@ -152,6 +156,15 @@ const createPile = (item, renderRaf, index, pubSub) => {
     const minY = pileGraphics.y - offsetY;
     const maxX = minX + pileGraphics.getChildAt(1).width;
     const maxY = minY + pileGraphics.getChildAt(1).height;
+
+    // const rect = pileGraphics.getChildAt(1).getBounds();
+    // const offsetX = rect.width / 2;
+    // const offsetY = rect.height / 2;
+    // const minX = pileGraphics.x - offsetX;
+    // const minY = pileGraphics.y - offsetY;
+    // const maxX = minX + rect.width;
+    // const maxY = minY + rect.height;
+    // console.log(rect, pileGraphics.x)
 
     return {
       minX,
