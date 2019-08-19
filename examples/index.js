@@ -66,3 +66,4 @@ pileMe.set('items', [
   }
 ]);
 pileMe.set('grid', [10, 10]);
+// pileMe.set('alignDirection', 'right');
