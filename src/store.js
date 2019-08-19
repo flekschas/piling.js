@@ -60,6 +60,19 @@ export const setGrid = newGrid => ({
   payload: { grid: newGrid }
 });
 
+const alignment = setReducer('alignment', true);
+export const setAlignment = newAlignment => ({
+  type: 'SET_ALIGNMENT',
+  payload: { alignment: newAlignment }
+});
+
+// 'direction': bottom-right, top-right, top, right
+const alignDirection = setReducer('alignDirection', 'bottom-right');
+export const setAlignDirection = newAlignDirection => ({
+  type: 'SET_ALIGN_DIRECTION',
+  payload: { alignDirection: newAlignDirection }
+});
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -156,7 +169,9 @@ const createStore = () => {
     items,
     piles,
     orderer,
-    grid
+    grid,
+    alignment,
+    alignDirection
   });
 
   const rootReducer = (state, action) => {
