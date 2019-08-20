@@ -1,27 +1,22 @@
 import * as PIXI from 'pixi.js';
 
+export const ANCHOR = [0, 0];
+
 const createPile = (item, renderRaf, index, pubSub) => {
   const drawBorder = (pile, border) => {
-    const rect = item.getBounds();
-
-    // const itemContainer = pile.getChildAt(1);
-    // we don't want to move the position of the first item
-    const length = pile.getChildAt(1).children.length - 1;
+    const rect = pile.getChildAt(1).getBounds();
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
     border.drawRect(
-      -rect.width / 2,
-      -rect.height / 2,
-      rect.width + 4 + length * 5,
-      rect.height + 4 + length * 5
+      // eslint-disable-next-line no-use-before-define
+      calcBBox().minX - pile.x - 2,
+      // eslint-disable-next-line no-use-before-define
+      calcBBox().minY - pile.y - 2,
+      rect.width + 4,
+      rect.height + 4
     );
-    // border.drawRect(
-    //   calcBBox().minX - pile.x,
-    //   calcBBox().minY - pile.y,
-    //   rect.width + 4 ,
-    //   rect.height + 4
-    // );
+
     renderRaf();
   };
 
@@ -67,7 +62,12 @@ const createPile = (item, renderRaf, index, pubSub) => {
     // trigger active pile
     pubSub.publish('dragPile', index);
 
-    pile.eventData = event.data;
+    // first get the offset from the mouse position to the current pile.x and pile.y
+    // And store it (draggingMouseOffset = [x, y])
+    pile.draggingMouseOffset = [
+      event.data.getLocalPosition(pile.parent).x - pile.x,
+      event.data.getLocalPosition(pile.parent).y - pile.y
+    ];
     pile.alpha = 1;
     pile.isDragging = true;
     renderRaf();
@@ -77,18 +77,18 @@ const createPile = (item, renderRaf, index, pubSub) => {
     if (!pile.isDragging) return;
     pile.alpha = 1;
     pile.isDragging = false;
-    // set the interaction data to null
-    pile.eventData = null;
+    pile.draggingMouseOffset = null;
     // trigger collision check
     pubSub.publish('dropPile', index);
     renderRaf();
   };
 
-  const onDragMove = pile => () => {
+  const onDragMove = pile => event => {
     if (pile.isDragging) {
-      const newPosition = pile.eventData.getLocalPosition(pile.parent);
-      pile.x = newPosition.x;
-      pile.y = newPosition.y;
+      const newPosition = event.data.getLocalPosition(pile.parent);
+      // remove offset
+      pile.x = newPosition.x - pile.draggingMouseOffset[0];
+      pile.y = newPosition.y - pile.draggingMouseOffset[1];
       pubSub.publish('highlightPile', index);
 
       renderRaf();
@@ -114,11 +114,12 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
     pile.interactive = true;
     pile.buttonMode = true;
-    pile.x = item.width / 2;
-    pile.y = item.height / 2;
+    pile.x = 0; // use the ANCHOR
+    pile.y = 0;
+    // Origin of the items coordinste system relative to the pile
     item.anchor.set(0);
-    item.x = -item.width / 2 + 2;
-    item.y = -item.height / 2 + 2;
+    item.x = 2;
+    item.y = 2;
 
     initHover(pile, borderContainer);
     initDrag(pile);
@@ -150,21 +151,24 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
   const calcBBox = () => {
     // compute bounding box
-    const offsetX = item.width / 2;
-    const offsetY = item.height / 2;
-    const minX = pileGraphics.x - offsetX;
-    const minY = pileGraphics.y - offsetY;
-    const maxX = minX + pileGraphics.getChildAt(1).width;
-    const maxY = minY + pileGraphics.getChildAt(1).height;
+    // const minX = pileGraphics.x;
+    // const minY = pileGraphics.y;
+    // const maxX = minX + pileGraphics.getChildAt(1).width;
+    // const maxY = minY + pileGraphics.getChildAt(1).height;
 
-    // const rect = pileGraphics.getChildAt(1).getBounds();
-    // const offsetX = rect.width / 2;
-    // const offsetY = rect.height / 2;
-    // const minX = pileGraphics.x - offsetX;
-    // const minY = pileGraphics.y - offsetY;
-    // const maxX = minX + rect.width;
-    // const maxY = minY + rect.height;
-    // console.log(rect, pileGraphics.x)
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = 0;
+    let maxY = 0;
+
+    pileGraphics.getChildAt(1).children.forEach(element => {
+      const x = element.x + pileGraphics.x;
+      const y = element.y + pileGraphics.y;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x + element.width > maxX) maxX = x + element.width;
+      if (y + element.height > maxY) maxY = y + element.height;
+    });
 
     return {
       minX,
