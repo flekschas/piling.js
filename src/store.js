@@ -77,11 +77,7 @@ export const setAlignDirection = newAlignDirection => ({
 const piles = (previousState = [], action) => {
   switch (action.type) {
     case 'INIT_PILES': {
-      const itemIds = [];
-      for (let i = 0; i < action.payload.itemLength; i++) {
-        itemIds.push(i);
-      }
-      return itemIds.map(id => ({
+      return new Array(action.payload.itemLength).fill().map((x, id) => ({
         items: [id],
         x: 0,
         y: 0
@@ -100,7 +96,9 @@ const piles = (previousState = [], action) => {
         };
 
         newState[target].items.push(...newState[source].items);
-        newState[source] = {};
+        newState[source].items = [];
+        newState[source].x = 0;
+        newState[source].y = 0;
       } else {
         const target = Math.min(...action.payload.pileIds);
         const sourcePileIds = action.payload.pileIds.filter(
@@ -125,7 +123,9 @@ const piles = (previousState = [], action) => {
 
         sourcePileIds.forEach(id => {
           newState[target].items.push(...newState[id].items);
-          newState[id] = {};
+          newState[id].items = [];
+          newState[id].x = 0;
+          newState[id].y = 0;
         });
       }
       return newState;
