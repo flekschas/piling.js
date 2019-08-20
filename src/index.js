@@ -3,19 +3,18 @@ import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
-// import { scaleLinear } from 'd3-scale';
+import { scaleLinear } from 'd3-scale';
 
 import createStore, {
   initPiles,
-  // mergePiles,
+  mergePiles,
   movePiles,
   setItemRenderer,
   setItems,
   setOrderer,
   setGrid,
   setAlignment,
-  setAlignDirection,
-  mergePiles
+  setAlignDirection
 } from './store';
 
 import { dist, getBBox, isPileInPolygon } from './utils';
@@ -94,7 +93,7 @@ const createPileMe = rootElement => {
         actions.push(setGrid(value));
         break;
 
-      case 'setAlignment':
+      case 'alignment':
         actions.push(setAlignment(value));
         break;
 
@@ -119,6 +118,7 @@ const createPileMe = rootElement => {
 
   const renderRaf = withRaf(render);
 
+  const renderedItems = new Map();
   const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPile = new PIXI.Container();
@@ -165,6 +165,7 @@ const createPileMe = rootElement => {
   const createItems = () => {
     const { itemRenderer, items } = store.getState();
 
+    renderedItems.clear();
     pileInstances.clear();
 
     stage.removeChildren();
@@ -173,19 +174,20 @@ const createPileMe = rootElement => {
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
 
-    const renderItems = items.map(({ src }) => itemRenderer(src));
-
-    return Promise.all(renderItems).then(itemsA => {
-      itemsA.forEach((item, index) => {
-        const pile = createPile(item, renderRaf, index, pubSub);
-        pileInstances.set(index, pile);
-        normalPile.addChild(pile.pileGraphics);
-      });
-      stage.addChild(activePile);
-      stage.addChild(lassoContainer);
-      lassoContainer.addChild(lasso);
-      renderRaf();
-    });
+    return Promise.all(items.map(({ src }) => itemRenderer(src))).then(
+      newRenderedItems => {
+        newRenderedItems.forEach((item, index) => {
+          renderedItems.set(index, item);
+          const pile = createPile(item, renderRaf, index, pubSub);
+          pileInstances.set(index, pile);
+          normalPile.addChild(pile.pileGraphics);
+        });
+        stage.addChild(activePile);
+        stage.addChild(lassoContainer);
+        lassoContainer.addChild(lasso);
+        renderRaf();
+      }
+    );
   };
 
   let layout;
@@ -196,29 +198,29 @@ const createPileMe = rootElement => {
     layout = createGrid(canvas, grid);
   };
 
-  // const scaleItems = () => {
-  //   let min = Infinity;
-  //   let max = 0;
+  const scaleItems = () => {
+    let min = Infinity;
+    let max = 0;
 
-  //   pileInstances.forEach(pile => {
-  //     pile.pileGraphics.getChildAt(1).children.forEach(item => {
-  //       const maxBorder = Math.max(item.width, item.height);
-  //       if (maxBorder > max) max = maxBorder;
-  //       if (maxBorder < min) min = maxBorder;
-  //     });
-  //   });
+    pileInstances.forEach(pile => {
+      pile.pileGraphics.getChildAt(1).children.forEach(item => {
+        const maxBorder = Math.max(item.width, item.height);
+        if (maxBorder > max) max = maxBorder;
+        if (maxBorder < min) min = maxBorder;
+      });
+    });
 
-  //   const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
-  //   const range = [minRange * 0.5, minRange * 0.9];
+    const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
+    const range = [minRange * 0.5, minRange * 0.9];
 
-  //   const x = scaleLinear()
-  //     .domain([min, max])
-  //     .range(range);
+    const x = scaleLinear()
+      .domain([min, max])
+      .range(range);
 
-  //   x.clamp(true);
+    x.clamp(true);
 
-  //   return x;
-  // };
+    return x;
+  };
 
   const positionPiles = () => {
     const { items, orderer, grid } = store.getState();
@@ -227,24 +229,20 @@ const createPileMe = rootElement => {
 
     const movingPiles = [];
 
-    // const scale = scaleItems();
+    const scale = scaleItems();
 
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
-        // pile.pileGraphics.getChildAt(1).children.forEach(item => {
-        //   const portion = item.height / item.width;
-        //   if(item.width > item.height) {
-        //     item.width = scale(item.width);
-        //     item.height = item.width * portion;
-        //   } else {
-        //     item.height = scale(item.height);
-        //     item.width = item.height / portion;
-        //   }
-        //   pile.pileGraphics.x = item.width / 2;
-        //   pile.pileGraphics.y = item.height / 2;
-        //   item.x = -item.width / 2 + 2;
-        //   item.y = -item.height / 2 + 2;
-        // })
+        pile.pileGraphics.getChildAt(1).children.forEach(item => {
+          const portion = item.height / item.width;
+          if (item.width > item.height) {
+            item.width = scale(item.width);
+            item.height = item.width * portion;
+          } else {
+            item.height = scale(item.height);
+            item.width = item.height / portion;
+          }
+        });
 
         let x;
         let y;
@@ -273,9 +271,14 @@ const createPileMe = rootElement => {
     }
   };
 
+  const getRandomArbitrary = (min, max) => {
+    return Math.random() * (max - min) + min;
+  };
+
   const positionItems = pileId => {
     const { alignment, alignDirection } = store.getState();
 
+    console.log(alignment);
     if (alignment) {
       switch (alignDirection) {
         case 'top':
@@ -284,8 +287,7 @@ const createPileMe = rootElement => {
             .pileGraphics.getChildAt(1)
             .children.forEach((item, index) => {
               const padding = index * 5 + 2;
-              // item.x = -item.width / 2 + padding;
-              item.y = -item.height / 2 + padding;
+              item.y = padding;
             });
           break;
 
@@ -295,8 +297,7 @@ const createPileMe = rootElement => {
             .pileGraphics.getChildAt(1)
             .children.forEach((item, index) => {
               const padding = index * 5 + 2;
-              item.x = -item.width / 2 + padding;
-              // item.y = -item.height / 2 + padding;
+              item.x = padding;
             });
           break;
 
@@ -307,86 +308,83 @@ const createPileMe = rootElement => {
             .pileGraphics.getChildAt(1)
             .children.forEach((item, index) => {
               const padding = index * 5 + 2;
-              item.x = -item.width / 2 + padding;
-              item.y = -item.height / 2 + padding;
+              item.x = padding;
+              item.y = padding;
             });
         }
       }
     } else {
       // randomized offset
+      pileInstances
+        .get(pileId)
+        .pileGraphics.getChildAt(1)
+        .children.forEach((item, index) => {
+          const x = getRandomArbitrary(5, 10);
+          const y = getRandomArbitrary(5, 10);
+          // const padding = index * 5 + 2;
+          item.x = x * index;
+          item.y = y * index;
+        });
     }
   };
 
-  const merge = (sourceId, targetId) => {
-    // get item container
-    const source = pileInstances.get(sourceId).pileGraphics.getChildAt(1);
-    const target = pileInstances.get(targetId).pileGraphics.getChildAt(1);
+  // const merge = (sourceId, targetId) => {
+  //   // get item container
+  //   const source = pileInstances.get(sourceId).pileGraphics.getChildAt(1);
+  //   const target = pileInstances.get(targetId).pileGraphics.getChildAt(1);
 
-    pileInstances.get(sourceId).itemIDs.forEach((item, id) => {
-      pileInstances.get(targetId).itemIDs.set(id, item);
-    });
+  //   pileInstances.get(sourceId).itemIDs.forEach((item, id) => {
+  //     pileInstances.get(targetId).itemIDs.set(id, item);
+  //   });
 
-    const srcLength = source.children.length;
-    for (let i = 0; i < srcLength; i++) {
-      // move one container's child to another container means
-      // that child is removed from the original container
-      // so always add the first child
-      target.addChild(source.children[0]);
-    }
+  //   const srcLength = source.children.length;
+  //   for (let i = 0; i < srcLength; i++) {
+  //     // move one container's child to another container means
+  //     // that child is removed from the original container
+  //     // so always add the first child
+  //     target.addChild(source.children[0]);
+  //   }
 
-    // target.children.forEach((item, index) => {
-    //   const padding = index * 5 + 2;
-    //   item.x = -item.width / 2 + padding;
-    //   item.y = -item.height / 2 + padding;
-    // });
+  //   positionItems(targetId);
 
-    positionItems(targetId);
+  //   source.parent.destroy();
+  //   pileInstances.delete(sourceId);
+  // };
 
-    // deleteSearchIndex(sourceId);
-    // updateBoundingBox(targetId);
+  // const mergePile = (sourceIds, targetId) => {
+  //   const { piles } = store.getState();
 
-    source.parent.destroy();
-    pileInstances.delete(sourceId);
+  //   if (sourceIds.length === 1) {
+  //     merge(sourceIds[0], targetId);
+  //   } else {
+  //     sourceIds.forEach(id => {
+  //       merge(id, targetId);
+  //     });
+  //   }
 
-    // store.dispatch(mergePiles([sourceId, targetId], true))
+  //   const targetPile = pileInstances.get(targetId);
 
-    // updatePileState(sourceId);
-    // updatePileState(targetId);
-  };
+  //   targetPile.pileGraphics.x = piles[targetId].x;
+  //   targetPile.pileGraphics.y = piles[targetId].y;
 
-  const mergePile = (sourceIds, targetId) => {
-    const { piles } = store.getState();
+  //   updateBoundingBox(targetId);
+  // };
 
-    if (sourceIds.length === 1) {
-      merge(sourceIds[0], targetId);
+  const updatePileItems = (pile, id) => {
+    const pileInstance = pileInstances.get(id);
+    if (pile.items.length === 0) {
+      pileInstance.pileGraphics.destroy();
+      pileInstances.delete(id);
+      deleteSearchIndex(id);
     } else {
-      sourceIds.forEach(id => {
-        merge(id, targetId);
+      pileInstance.pileGraphics.getChildAt(1).removeChildren();
+      pile.items.forEach(itemId => {
+        pileInstance.pileGraphics
+          .getChildAt(1)
+          .addChild(renderedItems.get(itemId));
       });
+      positionItems(id);
     }
-
-    // const targetId = Math.min(...pileIds);
-    const targetPile = pileInstances.get(targetId);
-
-    // let centerX = 0;
-    // let centerY = 0;
-    // pileIds.forEach(id => {
-    //   const box = pileInstances.get(id).bBox;
-    //   centerX += box.minX + (box.maxX - box.minX) / 2;
-    //   centerY += box.minY + (box.maxY - box.minY) / 2;
-    // });
-    // pileIds.forEach(id => {
-    //   if (id !== targetId) {
-    //     mergePile(id, targetId);
-    //   }
-    // });
-    // centerX /= pileIds.length;
-    // centerY /= pileIds.length;
-    targetPile.pileGraphics.x = piles[targetId].x;
-    targetPile.pileGraphics.y = piles[targetId].y;
-
-    updateBoundingBox(targetId);
-    // updatePileState(targetId);
   };
 
   const mousePosition = [0, 0];
@@ -508,33 +506,21 @@ const createPileMe = rootElement => {
     }
 
     if (state.piles !== newState.piles) {
-      // console.log(state.piles, newState.piles);
-      const sourceIds = [];
-      let targetId;
+      console.log(state.piles, newState.piles);
+      // const sourceIds = [];
+      // let targetId;
       if (state.piles.length !== 0) {
-        newState.piles
-          // .filter((pile, id) => pile !== state.piles[id])
-          .forEach((pile, id) => {
-            if (pile !== state.piles[id]) {
-              if (Object.keys(pile).length === 0) {
-                deleteSearchIndex(id);
-                sourceIds.push(id);
-              } else {
-                if (pile.items.length > state.piles[id].items.length) {
-                  targetId = id;
-                }
-                if (
-                  pile.x !== state.piles[id].x ||
-                  pile.y !== state.piles[id].y
-                ) {
-                  updateBoundingBox(id);
-                }
-              }
-            }
-          });
-        if (targetId && sourceIds.length > 0) {
-          mergePile(sourceIds, targetId);
-        }
+        newState.piles.forEach((pile, id) => {
+          if (pile.items.length !== state.piles[id].items.length) {
+            updatePileItems(pile, id);
+          }
+          if (
+            (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
+            pile.items.length !== 0
+          ) {
+            updateBoundingBox(id);
+          }
+        });
       }
     }
 
@@ -548,12 +534,12 @@ const createPileMe = rootElement => {
     }
 
     if (state.alignment !== newState.alignment) {
-      //
+      stateUpdates.add('layout');
     }
 
     if (state.alignDirection !== newState.alignDirection) {
       // console.log(newState.alignDirection)
-      // stateUpdates.add('layout');
+      stateUpdates.add('layout');
       // pileInstances.forEach((pile, id) => {
       //   console.log(pile.pileGraphics.getChildAt(1).children)
       //   if (pile.pileGraphics.getChildAt(1).children.length > 1) {
@@ -596,8 +582,6 @@ const createPileMe = rootElement => {
           }
         ])
       );
-      // updateBoundingBox(pileId);
-      // updatePileState(pileId);
     }
 
     activePile.removeChildren();
@@ -667,10 +651,6 @@ const createPileMe = rootElement => {
   };
 
   const mouseClickHandler = event => {
-    // const currentMousePosition = [event.clientX, event.clientY];
-    // const clickDist = dist(...currentMousePosition, ...mouseDownPosition);
-
-    // if (clickDist >= LASSO_MIN_DIST) return;
     getRelativeMousePosition(event);
   };
 
