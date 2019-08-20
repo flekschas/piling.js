@@ -42,10 +42,10 @@ const renderImage = image => {
   //   sprite.height = x(texture.height);
   //   sprite.width = sprite.height / scale;
   // }
-  sprite.width = 56;
-  sprite.height = 56;
-  sprite.x = 0;
-  sprite.y = 0;
+  // sprite.width = 56;
+  // sprite.height = 56;
+  // sprite.x = 0;
+  // sprite.y = 0;
 
   return sprite;
 };
