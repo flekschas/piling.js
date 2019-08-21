@@ -13,8 +13,9 @@ import createStore, {
   setItems,
   setOrderer,
   setGrid,
-  setAlignment,
-  setAlignDirection
+  setItemSizeRange,
+  setItemAlignment,
+  setItemRotated
 } from './store';
 
 import { dist, getBBox, isPileInPolygon } from './utils';
@@ -60,11 +61,14 @@ const createPileMe = rootElement => {
       case 'grid':
         return state.grid;
 
-      case 'alignment':
-        return state.alignment;
+      case 'itemSizeRange':
+        return state.itemSizeRange;
 
-      case 'alignDirection':
-        return state.alignDirection;
+      case 'itemAlignment':
+        return state.itemAlignment;
+
+      case 'itemRotated':
+        return state.itemRotated;
 
       default:
         console.warn(`Unknown property "${property}"`);
@@ -93,12 +97,16 @@ const createPileMe = rootElement => {
         actions.push(setGrid(value));
         break;
 
-      case 'alignment':
-        actions.push(setAlignment(value));
+      case 'itemSizeRange':
+        actions.push(setItemSizeRange(value));
         break;
 
-      case 'alignDirection':
-        actions.push(setAlignDirection(value));
+      case 'itemAlignment':
+        actions.push(setItemAlignment(value));
+        break;
+
+      case 'itemRotated':
+        actions.push(setItemRotated(value));
         break;
 
       default:
@@ -157,6 +165,61 @@ const createPileMe = rootElement => {
     searchIndex.insert(pile.bBox);
   };
 
+  let layout;
+
+  const initGrid = () => {
+    const { grid } = store.getState();
+
+    layout = createGrid(canvas, grid);
+  };
+
+  const scaleItems = () => {
+    let min = Infinity;
+    let max = 0;
+
+    renderedItems.forEach(item => {
+      const maxBorder = Math.max(item.width, item.height);
+      if (maxBorder > max) max = maxBorder;
+      if (maxBorder < min) min = maxBorder;
+    });
+
+    const { itemSizeRange } = store.getState();
+    let range;
+
+    const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
+
+    // if it's within [0, 1] assume it's relative
+    if (
+      itemSizeRange[0] > 0 &&
+      itemSizeRange[0] <= 1 &&
+      itemSizeRange[1] > 0 &&
+      itemSizeRange[1] <= 1
+    ) {
+      range = [minRange * itemSizeRange[0], minRange * itemSizeRange[1]];
+    }
+    // else assume absolute values in pixels
+    else {
+      range = itemSizeRange;
+    }
+
+    const scale = scaleLinear()
+      .domain([min, max])
+      .range(range);
+
+    scale.clamp(true);
+
+    renderedItems.forEach(item => {
+      const ratio = item.height / item.width;
+      if (item.width > item.height) {
+        item.width = scale(item.width);
+        item.height = item.width * ratio;
+      } else {
+        item.height = scale(item.height);
+        item.width = item.height / ratio;
+      }
+    });
+  };
+
   const lassoContainer = new PIXI.Container();
   const lassoBgContainer = new PIXI.Container();
   const lasso = new PIXI.Graphics();
@@ -182,44 +245,13 @@ const createPileMe = rootElement => {
           pileInstances.set(index, pile);
           normalPile.addChild(pile.pileGraphics);
         });
+        scaleItems();
         stage.addChild(activePile);
         stage.addChild(lassoContainer);
         lassoContainer.addChild(lasso);
         renderRaf();
       }
     );
-  };
-
-  let layout;
-
-  const initGrid = () => {
-    const { grid } = store.getState();
-
-    layout = createGrid(canvas, grid);
-  };
-
-  const scaleItems = () => {
-    let min = Infinity;
-    let max = 0;
-
-    pileInstances.forEach(pile => {
-      pile.pileGraphics.getChildAt(1).children.forEach(item => {
-        const maxBorder = Math.max(item.width, item.height);
-        if (maxBorder > max) max = maxBorder;
-        if (maxBorder < min) min = maxBorder;
-      });
-    });
-
-    const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
-    const range = [minRange * 0.5, minRange * 0.9];
-
-    const x = scaleLinear()
-      .domain([min, max])
-      .range(range);
-
-    x.clamp(true);
-
-    return x;
   };
 
   const positionPiles = () => {
@@ -229,21 +261,8 @@ const createPileMe = rootElement => {
 
     const movingPiles = [];
 
-    const scale = scaleItems();
-
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
-        pile.pileGraphics.getChildAt(1).children.forEach(item => {
-          const portion = item.height / item.width;
-          if (item.width > item.height) {
-            item.width = scale(item.width);
-            item.height = item.width * portion;
-          } else {
-            item.height = scale(item.height);
-            item.width = item.height / portion;
-          }
-        });
-
         let x;
         let y;
         if (items[id].position) {
@@ -276,18 +295,19 @@ const createPileMe = rootElement => {
   };
 
   const positionItems = pileId => {
-    const { alignment, alignDirection } = store.getState();
+    const { itemAlignment, itemRotated } = store.getState();
 
-    console.log(alignment);
-    if (alignment) {
-      switch (alignDirection) {
+    console.log(itemRotated);
+
+    if (itemAlignment) {
+      switch (itemAlignment) {
         case 'top':
           pileInstances
             .get(pileId)
             .pileGraphics.getChildAt(1)
             .children.forEach((item, index) => {
               const padding = index * 5 + 2;
-              item.y = padding;
+              item.y = -padding;
             });
           break;
 
@@ -319,9 +339,8 @@ const createPileMe = rootElement => {
         .get(pileId)
         .pileGraphics.getChildAt(1)
         .children.forEach((item, index) => {
-          const x = getRandomArbitrary(5, 10);
-          const y = getRandomArbitrary(5, 10);
-          // const padding = index * 5 + 2;
+          const x = getRandomArbitrary(-10, 10);
+          const y = getRandomArbitrary(-10, 10);
           item.x = x * index;
           item.y = y * index;
         });
@@ -373,9 +392,9 @@ const createPileMe = rootElement => {
   const updatePileItems = (pile, id) => {
     const pileInstance = pileInstances.get(id);
     if (pile.items.length === 0) {
+      deleteSearchIndex(id);
       pileInstance.pileGraphics.destroy();
       pileInstances.delete(id);
-      deleteSearchIndex(id);
     } else {
       pileInstance.pileGraphics.getChildAt(1).removeChildren();
       pile.items.forEach(itemId => {
@@ -505,10 +524,11 @@ const createPileMe = rootElement => {
       stateUpdates.add('piles');
     }
 
+    if (state.itemSizeRange !== newState.itemSizeRange) {
+      stateUpdates.add('layout');
+    }
+
     if (state.piles !== newState.piles) {
-      console.log(state.piles, newState.piles);
-      // const sourceIds = [];
-      // let targetId;
       if (state.piles.length !== 0) {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
@@ -533,19 +553,12 @@ const createPileMe = rootElement => {
       stateUpdates.add('layout');
     }
 
-    if (state.alignment !== newState.alignment) {
+    if (state.itemAlignment !== newState.itemAlignment) {
       stateUpdates.add('layout');
     }
 
-    if (state.alignDirection !== newState.alignDirection) {
-      // console.log(newState.alignDirection)
+    if (state.itemRotated !== newState.itemRotated) {
       stateUpdates.add('layout');
-      // pileInstances.forEach((pile, id) => {
-      //   console.log(pile.pileGraphics.getChildAt(1).children)
-      //   if (pile.pileGraphics.getChildAt(1).children.length > 1) {
-      //     positionItems(id);
-      //   }
-      // });
     }
 
     if (updates.length !== 0) {
@@ -660,6 +673,19 @@ const createPileMe = rootElement => {
     lassoExtendDb();
   };
 
+  const mouseDblClickHandler = () => {
+    const result = searchIndex.collides({
+      minX: mouseDownPosition[0],
+      minY: mouseDownPosition[1],
+      maxX: mouseDownPosition[0] + 1,
+      maxY: mouseDownPosition[1] + 1
+    });
+
+    if (result) {
+      // console.log('dbl click')
+    }
+  };
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -669,7 +695,7 @@ const createPileMe = rootElement => {
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
-    canvas.addEventListener('dblclick', () => {}, false);
+    canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
@@ -689,7 +715,7 @@ const createPileMe = rootElement => {
     canvas.removeEventListener('mouseenter', () => {}, false);
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
-    canvas.removeEventListener('dblclick', () => {}, false);
+    canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
 
     stage.destroy(false);
     renderer.destroy(true);
