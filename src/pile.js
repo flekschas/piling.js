@@ -103,7 +103,8 @@ const createPile = (item, renderRaf, index, pubSub) => {
       .on('pointermove', onDragMove(pile));
   };
 
-  const itemIDs = new Map();
+  const itemIds = new Map();
+  const newItemIds = new Map();
 
   const initPile = () => {
     const pile = new PIXI.Graphics();
@@ -126,7 +127,7 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
     itemContainer.addChild(item);
 
-    itemIDs.set(index, item);
+    itemIds.set(index, item);
 
     return pile;
   };
@@ -158,8 +159,8 @@ const createPile = (item, renderRaf, index, pubSub) => {
 
     let minX = Infinity;
     let minY = Infinity;
-    let maxX = 0;
-    let maxY = 0;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
     pileGraphics.getChildAt(1).children.forEach(element => {
       const x = element.x + pileGraphics.x;
@@ -182,15 +183,67 @@ const createPile = (item, renderRaf, index, pubSub) => {
     setBBox(calcBBox());
   };
 
+  const getRandomArbitrary = (min, max) => {
+    return Math.random() * (max - min) + min;
+  };
+
+  const positionItems = (itemAlignment, itemRotated) => {
+    if (itemAlignment) {
+      switch (itemAlignment) {
+        case 'top':
+          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+            const padding = childIndex * 5 + 2;
+            child.y = -padding;
+          });
+          break;
+
+        case 'right':
+          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+            const padding = childIndex * 5 + 2;
+            child.x = padding;
+          });
+          break;
+
+        // bottom-right
+        default: {
+          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+            const padding = childIndex * 5 + 2;
+            child.x = padding;
+            child.y = padding;
+          });
+        }
+      }
+    } else {
+      // randomized offset
+      const x = getRandomArbitrary(-10, 10);
+      const y = getRandomArbitrary(-10, 10);
+      let rotation;
+      if (itemRotated) {
+        rotation = getRandomArbitrary(-10, 10);
+      }
+      newItemIds.forEach((itm, idx) => {
+        itm.x += x;
+        itm.y += y;
+        if (rotation) {
+          itm.angle += rotation;
+        }
+        itemIds.set(idx, itm);
+      });
+      newItemIds.clear();
+    }
+  };
+
   return {
     drawBorder,
     initPile,
-    itemIDs,
+    itemIds,
+    newItemIds,
     pileGraphics,
     id,
     bBox,
     calcBBox,
-    updateBBox
+    updateBBox,
+    positionItems
   };
 };
 
