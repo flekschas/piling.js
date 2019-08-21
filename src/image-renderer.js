@@ -1,8 +1,4 @@
 import * as PIXI from 'pixi.js';
-// import { scaleLinear } from 'd3-scale';
-
-// let min = Infinity;
-// let max = 0;
 
 /**
  * Promised-based image loading
@@ -20,28 +16,12 @@ export const loadImage = (src, isCrossOrigin = false) =>
       reject(error);
     };
     image.src = src;
-    // const maxBorder = Math.max(image.width, image.height);
-    // if(maxBorder > max) max = maxBorder;
-    // if(maxBorder < min) min = maxBorder;
   });
-
-// const x = scaleLinear()
-//   .domain([min, max])
-//   .range([32, 64]);
-
-// x.clamp(true);
 
 const renderImage = image => {
   const texture = PIXI.Texture.from(image);
   const sprite = new PIXI.Sprite(texture);
-  // const scale = texture.height / texture.width;
-  // if(texture.width > texture.height) {
-  //   sprite.width = x(texture.width);
-  //   sprite.height = sprite.width * scale;
-  // } else {
-  //   sprite.height = x(texture.height);
-  //   sprite.width = sprite.height / scale;
-  // }
+
   // sprite.width = 56;
   // sprite.height = 56;
   // sprite.x = 0;
