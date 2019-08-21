@@ -51,6 +51,7 @@
     "pub-sub-es": "^1.2.1",
     "rbush": "^3.0.1",
     "redux": "^4.0.4",
+    "redux-freeze": "^0.1.7",
     "with-raf": "^1.0.0"
   },
   "peerDependencies": {
