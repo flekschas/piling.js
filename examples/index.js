@@ -66,5 +66,6 @@ pileMe.set('items', [
   }
 ]);
 pileMe.set('grid', [10, 10]);
-// pileMe.set('alignDirection', 'right');
-pileMe.set('alignment', false);
+pileMe.set('itemAlignment', false);
+// pileMe.set('itemSizeRange', [0.8, 0.9]);
+pileMe.set('itemRotated', true);
