@@ -4,6 +4,8 @@ import { createStore as createReduxStore, combineReducers } from 'redux';
 import creatOrderer from './orderer';
 import { camelToConst, deepClone } from './utils';
 
+// import freeze from 'redux-freeze';
+
 const clone = (value, state) => {
   switch (typeof value) {
     case 'object': {
@@ -60,17 +62,22 @@ export const setGrid = newGrid => ({
   payload: { grid: newGrid }
 });
 
-const alignment = setReducer('alignment', true);
-export const setAlignment = newAlignment => ({
-  type: 'SET_ALIGNMENT',
-  payload: { alignment: newAlignment }
+const itemSizeRange = setReducer('itemSizeRange', [0.5, 0.9]);
+export const setItemSizeRange = newItemSizeRange => ({
+  type: 'SET_ITEM_SIZE_RANGE',
+  payload: { itemSizeRange: newItemSizeRange }
 });
 
-// 'direction': bottom-right, top-right, top, right
-const alignDirection = setReducer('alignDirection', 'bottom-right');
-export const setAlignDirection = newAlignDirection => ({
-  type: 'SET_ALIGN_DIRECTION',
-  payload: { alignDirection: newAlignDirection }
+const itemAlignment = setReducer('itemAlignment', 'bottom-right');
+export const setItemAlignment = newItemAlignment => ({
+  type: 'SET_ITEM_ALIGNMENT',
+  payload: { itemAlignment: newItemAlignment }
+});
+
+const itemRotated = setReducer('itemRotated', false);
+export const setItemRotated = newItemRotated => ({
+  type: 'SET_ITEM_ROTATED',
+  payload: { itemRotated: newItemRotated }
 });
 
 // reducer
@@ -96,9 +103,12 @@ const piles = (previousState = [], action) => {
         };
 
         newState[target].items.push(...newState[source].items);
-        newState[source].items = [];
-        newState[source].x = 0;
-        newState[source].y = 0;
+        newState[source] = {
+          ...newState[source],
+          items: [],
+          x: 0,
+          y: 0
+        };
       } else {
         const target = Math.min(...action.payload.pileIds);
         const sourcePileIds = action.payload.pileIds.filter(
@@ -123,9 +133,12 @@ const piles = (previousState = [], action) => {
 
         sourcePileIds.forEach(id => {
           newState[target].items.push(...newState[id].items);
-          newState[id].items = [];
-          newState[id].x = 0;
-          newState[id].y = 0;
+          newState[id] = {
+            ...newState[id],
+            items: [],
+            x: 0,
+            y: 0
+          };
         });
       }
       return newState;
@@ -170,8 +183,9 @@ const createStore = () => {
     piles,
     orderer,
     grid,
-    alignment,
-    alignDirection
+    itemSizeRange,
+    itemAlignment,
+    itemRotated
   });
 
   const rootReducer = (state, action) => {
