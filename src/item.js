@@ -1,16 +1,27 @@
+import * as PIXI from 'pixi.js';
+
 const createItem = (id, sprite, pubSub) => {
   const clone = () => {
-    return createItem(id, sprite, pubSub);
+    const clonedItem = new PIXI.Sprite(sprite.texture);
+    clonedItem.interactive = true;
+    clonedItem.x = sprite.x;
+    clonedItem.y = sprite.y;
+    clonedItem.width = sprite.width;
+    clonedItem.height = sprite.height;
+    clonedItem.angle = sprite.angle;
+
+    return clonedItem;
   };
 
   const destroy = () => {};
 
   const onPointerOver = () => {
-    pubSub.publish('hoverItem', { id });
+    // eslint-disable-next-line no-use-before-define
+    pubSub.publish('itemOver', { item: self });
   };
 
   const onPointerOut = () => {
-    pubSub.publish('finishHover', { id });
+    pubSub.publish('itemOut');
   };
 
   sprite.interactive = true;
@@ -23,12 +34,14 @@ const createItem = (id, sprite, pubSub) => {
     .on('pointerover', onPointerOver)
     .on('pointerout', onPointerOut);
 
-  return {
+  const self = {
     clone,
     destroy,
     sprite,
     id
   };
+
+  return self;
 };
 
 export default createItem;
