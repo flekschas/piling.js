@@ -302,13 +302,13 @@ const createPileMe = rootElement => {
     const pileInstance = pileInstances.get(id);
     if (pile.items.length === 0) {
       deleteSearchIndex(id);
-      pileInstance.pileGraphics.destroy();
+      pileInstance.destroy();
       pileInstances.delete(id);
     } else {
-      pileInstance.pileGraphics.getChildAt(1).removeChildren();
+      pileInstance.pileGraphics.getChildAt(2).removeChildren();
       pile.items.forEach(itemId => {
         pileInstance.pileGraphics
-          .getChildAt(1)
+          .getChildAt(2)
           .addChild(renderedItems.get(itemId).sprite);
         if (!pileInstance.itemIds.has(itemId)) {
           pileInstance.newItemIds.set(itemId, renderedItems.get(itemId).sprite);
@@ -532,7 +532,7 @@ const createPileMe = rootElement => {
       oldResult.forEach(collidePile => {
         if (pileInstances.get(collidePile.pileId)) {
           const pile = pileInstances.get(collidePile.pileId).pileGraphics;
-          const border = pile.getChildAt(0).getChildAt(0);
+          const border = pile.getChildAt(1).getChildAt(0);
           border.clear();
         }
       });
@@ -541,7 +541,7 @@ const createPileMe = rootElement => {
     newResult.forEach(collidePile => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId).pileGraphics;
-        const border = pile.getChildAt(0).getChildAt(0);
+        const border = pile.getChildAt(1).getChildAt(0);
         pileInstances.get(collidePile.pileId).drawBorder(border);
       }
     });
