@@ -23,6 +23,8 @@ import { dist, getBBox, isPileInPolygon } from './utils';
 import createPile from './pile';
 import createGrid from './grid';
 
+import createItem from './item';
+
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
   const pubSub = createPubSub();
@@ -178,7 +180,7 @@ const createPileMe = rootElement => {
     let max = 0;
 
     renderedItems.forEach(item => {
-      const longerBorder = Math.max(item.width, item.height);
+      const longerBorder = Math.max(item.sprite.width, item.sprite.height);
       if (longerBorder > max) max = longerBorder;
       if (longerBorder < min) min = longerBorder;
     });
@@ -209,13 +211,13 @@ const createPileMe = rootElement => {
     scale.clamp(true);
 
     renderedItems.forEach(item => {
-      const ratio = item.height / item.width;
-      if (item.width > item.height) {
-        item.width = scale(item.width);
-        item.height = item.width * ratio;
+      const ratio = item.sprite.height / item.sprite.width;
+      if (item.sprite.width > item.sprite.height) {
+        item.sprite.width = scale(item.sprite.width);
+        item.sprite.height = item.sprite.width * ratio;
       } else {
-        item.height = scale(item.height);
-        item.width = item.height / ratio;
+        item.sprite.height = scale(item.sprite.height);
+        item.sprite.width = item.sprite.height / ratio;
       }
     });
   };
@@ -240,8 +242,9 @@ const createPileMe = rootElement => {
     return Promise.all(items.map(({ src }) => itemRenderer(src))).then(
       newRenderedItems => {
         newRenderedItems.forEach((item, index) => {
-          renderedItems.set(index, item);
-          const pile = createPile(item, renderRaf, index, pubSub);
+          const newItem = createItem(index, item, pubSub);
+          renderedItems.set(index, newItem);
+          const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
           pileInstances.set(index, pile);
           normalPile.addChild(pile.pileGraphics);
         });
@@ -284,67 +287,15 @@ const createPileMe = rootElement => {
           y: pile.pileGraphics.y
         });
       });
-      if (movingPiles.length !== 0) store.dispatch(movePiles(movingPiles));
       createRBush();
       renderRaf();
     }
   };
 
-  // const getRandomArbitrary = (min, max) => {
-  //   return Math.random() * (max - min) + min;
-  // };
-
   const positionItems = pileId => {
     const { itemAlignment, itemRotated } = store.getState();
 
     pileInstances.get(pileId).positionItems(itemAlignment, itemRotated);
-
-    // if (itemAlignment) {
-    //   switch (itemAlignment) {
-    //     case 'top':
-    //       pileInstances
-    //         .get(pileId)
-    //         .pileGraphics.getChildAt(1)
-    //         .children.forEach((item, index) => {
-    //           const padding = index * 5 + 2;
-    //           item.y = -padding;
-    //         });
-    //       break;
-
-    //     case 'right':
-    //       pileInstances
-    //         .get(pileId)
-    //         .pileGraphics.getChildAt(1)
-    //         .children.forEach((item, index) => {
-    //           const padding = index * 5 + 2;
-    //           item.x = padding;
-    //         });
-    //       break;
-
-    //     // bottom-right
-    //     default: {
-    //       pileInstances
-    //         .get(pileId)
-    //         .pileGraphics.getChildAt(1)
-    //         .children.forEach((item, index) => {
-    //           const padding = index * 5 + 2;
-    //           item.x = padding;
-    //           item.y = padding;
-    //         });
-    //     }
-    //   }
-    // } else {
-    //   // randomized offset
-    //   pileInstances
-    //     .get(pileId)
-    //     .pileGraphics.getChildAt(1)
-    //     .children.forEach((item, index) => {
-    //       const x = getRandomArbitrary(-10, 10);
-    //       const y = getRandomArbitrary(-10, 10);
-    //       item.x = x * index;
-    //       item.y = y * index;
-    //     });
-    // }
   };
 
   const updatePileItems = (pile, id) => {
@@ -354,17 +305,15 @@ const createPileMe = rootElement => {
       pileInstance.pileGraphics.destroy();
       pileInstances.delete(id);
     } else {
-      // const itemIds = [];
       pileInstance.pileGraphics.getChildAt(1).removeChildren();
       pile.items.forEach(itemId => {
         pileInstance.pileGraphics
           .getChildAt(1)
-          .addChild(renderedItems.get(itemId));
+          .addChild(renderedItems.get(itemId).sprite);
         if (!pileInstance.itemIds.has(itemId)) {
-          pileInstance.newItemIds.set(itemId, renderedItems.get(itemId));
+          pileInstance.newItemIds.set(itemId, renderedItems.get(itemId).sprite);
         }
       });
-      // pileInstance.setItemIds(itemIds);
       positionItems(id);
     }
   };
@@ -593,7 +542,7 @@ const createPileMe = rootElement => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId).pileGraphics;
         const border = pile.getChildAt(0).getChildAt(0);
-        pileInstances.get(collidePile.pileId).drawBorder(pile, border);
+        pileInstances.get(collidePile.pileId).drawBorder(border);
       }
     });
   };
