@@ -1,7 +1,5 @@
 import * as PIXI from 'pixi.js';
 
-// export const ANCHOR = [0, 0];
-
 const createPile = (item, renderRaf, id, pubSub) => {
   const itemIds = new Map();
   const newItemIds = new Map();
@@ -9,6 +7,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
+  const border = new PIXI.Graphics();
+  const pileInteractiveBorder = new PIXI.Sprite();
+
   const bBox = {
     minX: null,
     minY: null,
@@ -17,12 +18,34 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileId: id
   };
 
-  const handleHoverItem = hoveredItem => {
-    console.log(hoveredItem.id);
+  const pubSubSubscribers = [];
+  let hoverItemSubscriber;
+  let hoverItemEndSubscriber;
+
+  const destroy = () => {
+    pileGraphics.destroy();
+    pubSubSubscribers.forEach(subscriber => {
+      pubSub.unsubscribe(subscriber);
+    });
   };
 
-  const drawBorder = border => {
-    const rect = pileGraphics.getChildAt(1).getBounds();
+  // eslint-disable-next-line no-shadow
+  const handleHoverItem = ({ item }) => {
+    if (!pileGraphics.isDragging) {
+      const clonedItem = item.clone();
+      hoverItemContainer.addChild(clonedItem);
+      renderRaf();
+    }
+  };
+
+  const handleHoverItemEnd = () => {
+    if (hoverItemContainer.children.length === 2)
+      hoverItemContainer.removeChildAt(0);
+    renderRaf();
+  };
+
+  const drawBorder = () => {
+    const rect = itemContainer.getBounds();
 
     border.clear();
     border.lineStyle(2, 0xfeeb77, 1);
@@ -38,58 +61,55 @@ const createPile = (item, renderRaf, id, pubSub) => {
     renderRaf();
   };
 
-  const onMouseDown = border => () => {
-    pileGraphics.isMouseDown = true;
-    drawBorder(border);
+  const onPointerDown = () => {
+    pileGraphics.isPointerDown = true;
+    drawBorder();
   };
 
-  const onMouseUp = border => () => {
-    pileGraphics.isMouseDown = false;
+  const onPointerUp = () => {
+    pileGraphics.isPointerDown = false;
     if (pileGraphics.isHover) {
-      drawBorder(border);
+      drawBorder();
     } else {
       border.clear();
     }
   };
 
-  let isSubscribe = false;
-
-  const onMouseOver = border => () => {
+  const onPointerOver = () => {
     pileGraphics.isHover = true;
-    drawBorder(border);
+    drawBorder();
     // add pubSub subscription for hoverItem
-    if (!isSubscribe) {
-      pubSub.subscribe('hoverItem', handleHoverItem);
-      isSubscribe = true;
+    if (!hoverItemSubscriber) {
+      hoverItemSubscriber = pubSub.subscribe('itemOver', handleHoverItem);
+      pubSubSubscribers.push(hoverItemSubscriber);
+    }
+    if (!hoverItemEndSubscriber) {
+      hoverItemEndSubscriber = pubSub.subscribe('itemOver', handleHoverItemEnd);
+      pubSubSubscribers.push(hoverItemEndSubscriber);
     }
   };
 
-  const onMouseOut = border => () => {
+  const onPointerOut = () => {
     if (pileGraphics.isDragging) return;
     pileGraphics.isHover = false;
     border.clear();
+    if (hoverItemSubscriber) {
+      pubSub.unsubscribe(hoverItemSubscriber);
+      hoverItemSubscriber = undefined;
+    }
+    if (hoverItemEndSubscriber) {
+      pubSub.unsubscribe(hoverItemEndSubscriber);
+      hoverItemEndSubscriber = undefined;
+    }
+    hoverItemContainer.removeChildren();
     renderRaf();
-    // remove pubSub subscription for hoverItem
-    pubSub.unsubscribe('hoverItem');
-  };
-
-  const initHover = () => {
-    const border = new PIXI.Graphics();
-    borderContainer.addChild(border);
-
-    pileGraphics
-      .on('pointerdown', onMouseDown(border))
-      .on('pointerup', onMouseUp(border))
-      .on('pointerupoutside', onMouseUp(border))
-      .on('pointerover', onMouseOver(border))
-      .on('pointerout', onMouseOut(border));
   };
 
   const onDragStart = event => {
     // trigger active pile
     pubSub.publish('dragPile', id);
 
-    // first get the offset from the mouse position to the current pile.x and pile.y
+    // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     pileGraphics.draggingMouseOffset = [
       event.data.getLocalPosition(pileGraphics.parent).x - pileGraphics.x,
@@ -117,17 +137,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
       pileGraphics.x = newPosition.x - pileGraphics.draggingMouseOffset[0];
       pileGraphics.y = newPosition.y - pileGraphics.draggingMouseOffset[1];
       pubSub.publish('highlightPile', id);
-
+      drawBorder();
       renderRaf();
     }
-  };
-
-  const initDrag = () => {
-    pileGraphics
-      .on('pointerdown', onDragStart)
-      .on('pointerup', onDragEnd)
-      .on('pointerupoutside', onDragEnd)
-      .on('pointermove', onDragMove);
   };
 
   const setBBox = newBBox => {
@@ -145,7 +157,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    pileGraphics.getChildAt(1).children.forEach(element => {
+    itemContainer.children.forEach(element => {
       const x = element.x + pileGraphics.x;
       const y = element.y + pileGraphics.y;
       if (x < minX) minX = x;
@@ -154,6 +166,10 @@ const createPile = (item, renderRaf, id, pubSub) => {
       if (y + element.height > maxY) maxY = y + element.height;
     });
 
+    pileInteractiveBorder.x = 0;
+    pileInteractiveBorder.y = 0;
+    pileInteractiveBorder.width = maxX - minX + 4;
+    pileInteractiveBorder.height = maxY - minY + 4;
     return {
       minX,
       minY,
@@ -174,14 +190,14 @@ const createPile = (item, renderRaf, id, pubSub) => {
     if (itemAlignment) {
       switch (itemAlignment) {
         case 'top':
-          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+          itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             child.y = -padding;
           });
           break;
 
         case 'right':
-          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+          itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             child.x = padding;
           });
@@ -189,7 +205,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
         // bottom-right
         default: {
-          pileGraphics.getChildAt(1).children.forEach((child, childIndex) => {
+          itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             child.x = padding;
             child.y = padding;
@@ -217,6 +233,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const init = () => {
+    pileInteractiveBorder.interactive = true;
+    pileGraphics.addChild(pileInteractiveBorder);
+
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
     pileGraphics.addChild(hoverItemContainer);
@@ -230,10 +249,20 @@ const createPile = (item, renderRaf, id, pubSub) => {
     item.x = 2;
     item.y = 2;
 
-    // initHoverItem();
+    borderContainer.addChild(border);
 
-    initHover();
-    initDrag();
+    pileGraphics
+      .on('pointerdown', onPointerDown)
+      .on('pointerup', onPointerUp)
+      .on('pointerupoutside', onPointerUp)
+      .on('pointerover', onPointerOver)
+      .on('pointerout', onPointerOut);
+
+    pileGraphics
+      .on('pointerdown', onDragStart)
+      .on('pointerup', onDragEnd)
+      .on('pointerupoutside', onDragEnd)
+      .on('pointermove', onDragMove);
 
     itemContainer.addChild(item);
 
@@ -243,6 +272,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   init();
 
   return {
+    destroy,
     drawBorder,
     itemIds,
     newItemIds,
