@@ -4,6 +4,7 @@ import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
 import { scaleLinear } from 'd3-scale';
+import normalizeWheel from 'normalize-wheel';
 
 import createStore, {
   initPiles,
@@ -15,14 +16,14 @@ import createStore, {
   setGrid,
   setItemSizeRange,
   setItemAlignment,
-  setItemRotated
+  setItemRotated,
+  setPileClicked
 } from './store';
 
 import { dist, getBBox, isPileInPolygon } from './utils';
 
 import createPile from './pile';
 import createGrid from './grid';
-
 import createItem from './item';
 
 const createPileMe = rootElement => {
@@ -72,6 +73,9 @@ const createPileMe = rootElement => {
       case 'itemRotated':
         return state.itemRotated;
 
+      case 'pileClicked':
+        return state.pileClicked;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -109,6 +113,10 @@ const createPileMe = rootElement => {
 
       case 'itemRotated':
         actions.push(setItemRotated(value));
+        break;
+
+      case 'pileClicked':
+        actions.push(setPileClicked(value));
         break;
 
       default:
@@ -318,7 +326,7 @@ const createPileMe = rootElement => {
     }
   };
 
-  const mousePosition = [0, 0];
+  let mousePosition = [0, 0];
 
   // Get a copy of the current mouse position
   const getMousePos = () => mousePosition.slice();
@@ -420,6 +428,25 @@ const createPileMe = rootElement => {
     lassoPrevMousePos = undefined;
   };
 
+  const scalePile = (pileId, wheelDelta) => {
+    const pile = pileInstances.get(pileId).pileGraphics;
+
+    const force = Math.log(Math.abs(wheelDelta));
+    const momentum = wheelDelta > 0 ? force : -force;
+
+    const newScale = Math.min(
+      Math.max(1, pile.scale.y * (1 + 0.1 * momentum)),
+      5
+    );
+
+    if (newScale > 1) {
+      pile.scale.x = newScale;
+      pile.scale.y = newScale;
+      updateBoundingBox(pileId);
+    }
+    renderRaf();
+  };
+
   let stateUpdates;
 
   const updated = () => {
@@ -473,6 +500,24 @@ const createPileMe = rootElement => {
       stateUpdates.add('layout');
     }
 
+    if (state.pileClicked !== newState.pileClicked) {
+      if (newState.pileClicked.length !== 0) {
+        const newPile = pileInstances.get(newState.pileClicked[0]);
+        newPile.drawBorder(newPile.border);
+        newPile.isFocus[0] = true;
+        if (state.pileClicked.length !== 0) {
+          const oldPile = pileInstances.get(state.pileClicked[0]);
+          oldPile.border.clear();
+          oldPile.isFocus[0] = false;
+        }
+      } else {
+        const pile = pileInstances.get(state.pileClicked[0]);
+        pile.border.clear();
+        pile.isFocus[0] = false;
+      }
+      renderRaf();
+    }
+
     if (updates.length !== 0) {
       Promise.all(updates).then(() => {
         if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
@@ -484,7 +529,7 @@ const createPileMe = rootElement => {
     state = newState;
   };
 
-  const handleDropPile = pileId => {
+  const handleDropPile = ({ pileId }) => {
     let hit;
     const pile = pileInstances.get(pileId).pileGraphics;
 
@@ -516,7 +561,7 @@ const createPileMe = rootElement => {
     }
   };
 
-  const handleDragPile = pileId => {
+  const handleDragPile = ({ pileId }) => {
     const pile = pileInstances.get(pileId).pileGraphics;
     activePile.addChild(pile);
   };
@@ -524,25 +569,23 @@ const createPileMe = rootElement => {
   let oldResult = [];
   let newResult = [];
 
-  const handleHighlightPile = pileId => {
+  const handleHighlightPile = ({ pileId }) => {
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
     if (oldResult !== []) {
       oldResult.forEach(collidePile => {
         if (pileInstances.get(collidePile.pileId)) {
-          const pile = pileInstances.get(collidePile.pileId).pileGraphics;
-          const border = pile.getChildAt(1).getChildAt(0);
-          border.clear();
+          const pile = pileInstances.get(collidePile.pileId);
+          pile.border.clear();
         }
       });
     }
 
     newResult.forEach(collidePile => {
       if (pileInstances.get(collidePile.pileId)) {
-        const pile = pileInstances.get(collidePile.pileId).pileGraphics;
-        const border = pile.getChildAt(1).getChildAt(0);
-        pileInstances.get(collidePile.pileId).drawBorder(border);
+        const pile = pileInstances.get(collidePile.pileId);
+        pile.drawBorder(pile.border);
       }
     });
   };
@@ -577,15 +620,30 @@ const createPileMe = rootElement => {
 
   const mouseClickHandler = event => {
     getRelativeMousePosition(event);
+
+    const result = searchIndex.search({
+      minX: mouseDownPosition[0],
+      minY: mouseDownPosition[1],
+      maxX: mouseDownPosition[0] + 1,
+      maxY: mouseDownPosition[1] + 1
+    });
+
+    if (result.length !== 0) {
+      store.dispatch(setPileClicked([result[0].pileId]));
+    } else {
+      store.dispatch(setPileClicked([]));
+    }
   };
 
   const mouseMoveHandler = event => {
-    getRelativeMousePosition(event);
+    mousePosition = getRelativeMousePosition(event);
 
     lassoExtendDb();
   };
 
-  const mouseDblClickHandler = () => {
+  const mouseDblClickHandler = event => {
+    getRelativeMousePosition(event);
+
     const result = searchIndex.collides({
       minX: mouseDownPosition[0],
       minY: mouseDownPosition[1],
@@ -594,7 +652,25 @@ const createPileMe = rootElement => {
     });
 
     if (result) {
-      // console.log('dbl click')
+      // console.log(result)
+    }
+  };
+
+  const mouseWheelHandler = event => {
+    event.preventDefault();
+
+    // getRelativeMousePosition(event);
+
+    const result = searchIndex.search({
+      minX: mousePosition[0],
+      minY: mousePosition[1],
+      maxX: mousePosition[0] + 1,
+      maxY: mousePosition[1] + 1
+    });
+
+    if (result.length !== 0) {
+      const normalizedDeltaY = normalizeWheel(event).pixelY;
+      scalePile(result[0].pileId, normalizedDeltaY);
     }
   };
 
@@ -608,6 +684,7 @@ const createPileMe = rootElement => {
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
+    canvas.addEventListener('wheel', mouseWheelHandler, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
@@ -628,6 +705,7 @@ const createPileMe = rootElement => {
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
+    canvas.removeEventListener('wheel', mouseWheelHandler, false);
 
     stage.destroy(false);
     renderer.destroy(true);
