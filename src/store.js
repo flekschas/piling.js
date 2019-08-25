@@ -80,6 +80,12 @@ export const setItemRotated = newItemRotated => ({
   payload: { itemRotated: newItemRotated }
 });
 
+const pileClicked = setReducer('pileClicked', []);
+export const setPileClicked = newPileClicked => ({
+  type: 'SET_PILE_CLICKED',
+  payload: { pileClicked: newPileClicked }
+});
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -185,7 +191,8 @@ const createStore = () => {
     grid,
     itemSizeRange,
     itemAlignment,
-    itemRotated
+    itemRotated,
+    pileClicked
   });
 
   const rootReducer = (state, action) => {
