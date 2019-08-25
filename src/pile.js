@@ -18,6 +18,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileId: id
   };
 
+  const isFocus = [false];
+
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
   let hoverItemEndSubscriber;
@@ -31,17 +33,21 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   // eslint-disable-next-line no-shadow
   const handleHoverItem = ({ item }) => {
-    if (!pileGraphics.isDragging) {
-      const clonedItem = item.clone();
-      hoverItemContainer.addChild(clonedItem);
-      renderRaf();
+    if (isFocus[0]) {
+      if (!pileGraphics.isDragging) {
+        const clonedSprite = item.cloneSprite();
+        hoverItemContainer.addChild(clonedSprite);
+        renderRaf();
+      }
     }
   };
 
   const handleHoverItemEnd = () => {
-    if (hoverItemContainer.children.length === 2)
-      hoverItemContainer.removeChildAt(0);
-    renderRaf();
+    if (isFocus[0]) {
+      if (hoverItemContainer.children.length === 2)
+        hoverItemContainer.removeChildAt(0);
+      renderRaf();
+    }
   };
 
   const drawBorder = () => {
@@ -70,8 +76,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileGraphics.isPointerDown = false;
     if (pileGraphics.isHover) {
       drawBorder();
-    } else {
-      border.clear();
     }
   };
 
@@ -92,7 +96,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const onPointerOut = () => {
     if (pileGraphics.isDragging) return;
     pileGraphics.isHover = false;
-    border.clear();
+
+    if (!isFocus[0]) border.clear();
+
     if (hoverItemSubscriber) {
       pubSub.unsubscribe(hoverItemSubscriber);
       hoverItemSubscriber = undefined;
@@ -102,12 +108,16 @@ const createPile = (item, renderRaf, id, pubSub) => {
       hoverItemEndSubscriber = undefined;
     }
     hoverItemContainer.removeChildren();
+
+    pileGraphics.scale.x = 1;
+    pileGraphics.scale.y = 1;
+
     renderRaf();
   };
 
   const onDragStart = event => {
     // trigger active pile
-    pubSub.publish('dragPile', id);
+    pubSub.publish('dragPile', { pileId: id });
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
@@ -126,7 +136,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileGraphics.isDragging = false;
     pileGraphics.draggingMouseOffset = null;
     // trigger collision check
-    pubSub.publish('dropPile', id);
+    pubSub.publish('dropPile', { pileId: id });
     renderRaf();
   };
 
@@ -136,7 +146,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
       // remove offset
       pileGraphics.x = newPosition.x - pileGraphics.draggingMouseOffset[0];
       pileGraphics.y = newPosition.y - pileGraphics.draggingMouseOffset[1];
-      pubSub.publish('highlightPile', id);
+      pubSub.publish('highlightPile', { pileId: id });
       drawBorder();
       renderRaf();
     }
@@ -274,6 +284,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   return {
     destroy,
     drawBorder,
+    border,
     itemIds,
     newItemIds,
     pileGraphics,
@@ -281,7 +292,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     bBox,
     calcBBox,
     updateBBox,
-    positionItems
+    positionItems,
+    isFocus
   };
 };
 
