@@ -80,10 +80,29 @@ export const setItemRotated = newItemRotated => ({
   payload: { itemRotated: newItemRotated }
 });
 
-const pileClicked = setReducer('pileClicked', []);
-export const setPileClicked = newPileClicked => ({
-  type: 'SET_PILE_CLICKED',
-  payload: { pileClicked: newPileClicked }
+const clickedPile = setReducer('clickedPile', []);
+export const setClickedPile = newClickedPile => ({
+  type: 'SET_CLICKED_PILE',
+  payload: { clickedPile: newClickedPile }
+});
+
+const scaledPile = setReducer('scaledPile', []);
+export const setScaledPile = newScaledPile => ({
+  type: 'SET_SCALED_PILE',
+  payload: { scaledPile: newScaledPile }
+});
+
+// 'originalPosition' or 'gridLayout'
+const depileSolution = setReducer('depileSolution', 'originalPosition');
+export const setDepileSolution = newDepileSolution => ({
+  type: 'SET_DEPILE_SOLUTION',
+  payload: { depileSolution: newDepileSolution }
+});
+
+const temporaryDepiledPile = setReducer('temporaryDepiledPile', []);
+export const setTemporaryDepiledPile = newTemporaryDepiledPile => ({
+  type: 'SET_TEMPORARY_DEPILED_PILE',
+  payload: { temporaryDepiledPile: newTemporaryDepiledPile }
 });
 
 // reducer
@@ -160,6 +179,21 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+    case 'DEPILE_PILES': {
+      const newState = [...previousState];
+      if (action.payload.depiledPile.items.length === 1) return previousState;
+      action.payload.depiledPile.items.forEach((itemId, index) => {
+        const x = action.payload.depiledPile.positions[index][0];
+        const y = action.payload.depiledPile.positions[index][1];
+        newState[itemId] = {
+          ...newState[itemId],
+          items: [itemId],
+          x,
+          y
+        };
+      });
+      return newState;
+    }
     default:
       return previousState;
   }
@@ -181,6 +215,11 @@ export const movePiles = movingPiles => ({
   payload: { movingPiles }
 });
 
+export const depilePiles = depiledPile => ({
+  type: 'DEPILE_PILES',
+  payload: { depiledPile }
+});
+
 const createStore = () => {
   const appReducer = combineReducers({
     // This defines what is on our store
@@ -192,7 +231,10 @@ const createStore = () => {
     itemSizeRange,
     itemAlignment,
     itemRotated,
-    pileClicked
+    clickedPile,
+    scaledPile,
+    depileSolution,
+    temporaryDepiledPile
   });
 
   const rootReducer = (state, action) => {
