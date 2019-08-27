@@ -3,6 +3,8 @@ import * as PIXI from 'pixi.js';
 const createItem = (id, texture, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
+  const lastPosition = [0, 0];
+
   const cloneSprite = () => {
     const clonedSprite = new PIXI.Sprite(texture);
     clonedSprite.interactive = true;
@@ -37,7 +39,8 @@ const createItem = (id, texture, pubSub) => {
     cloneSprite,
     destroy,
     sprite,
-    id
+    id,
+    lastPosition
   };
 
   return self;
