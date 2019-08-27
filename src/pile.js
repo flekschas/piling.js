@@ -8,7 +8,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const border = new PIXI.Graphics();
-  const pileInteractiveBorder = new PIXI.Sprite();
 
   const bBox = {
     minX: null,
@@ -50,18 +49,23 @@ const createPile = (item, renderRaf, id, pubSub) => {
     }
   };
 
-  const drawBorder = () => {
+  const drawBorder = (thickness, color) => {
     const rect = itemContainer.getBounds();
 
+    if (pileGraphics.scale.x !== 1) {
+      rect.width /= pileGraphics.scale.x;
+      rect.height /= pileGraphics.scale.x;
+    }
+
     border.clear();
-    border.lineStyle(2, 0xfeeb77, 1);
+    border.lineStyle(thickness, color, 1);
     border.drawRect(
       // eslint-disable-next-line no-use-before-define
-      calcBBox().minX - pileGraphics.x - 2,
+      calcBBox().minX - pileGraphics.x - thickness,
       // eslint-disable-next-line no-use-before-define
-      calcBBox().minY - pileGraphics.y - 2,
-      rect.width + 4,
-      rect.height + 4
+      calcBBox().minY - pileGraphics.y - thickness,
+      rect.width + 2 * thickness,
+      rect.height + 2 * thickness
     );
 
     renderRaf();
@@ -69,19 +73,23 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   const onPointerDown = () => {
     pileGraphics.isPointerDown = true;
-    drawBorder();
+    // drawBorder(2, 0xfeeb77);
   };
 
   const onPointerUp = () => {
     pileGraphics.isPointerDown = false;
     if (pileGraphics.isHover) {
-      drawBorder();
+      // drawBorder(1, 0x91989F);
     }
   };
 
   const onPointerOver = () => {
     pileGraphics.isHover = true;
-    drawBorder();
+    if (isFocus[0]) {
+      drawBorder(2, 0xfeeb77);
+    } else {
+      drawBorder(1, 0x91989f);
+    }
     // add pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
       hoverItemSubscriber = pubSub.subscribe('itemOver', handleHoverItem);
@@ -108,10 +116,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
       hoverItemEndSubscriber = undefined;
     }
     hoverItemContainer.removeChildren();
-
-    pileGraphics.scale.x = 1;
-    pileGraphics.scale.y = 1;
-
     renderRaf();
   };
 
@@ -147,7 +151,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
       pileGraphics.x = newPosition.x - pileGraphics.draggingMouseOffset[0];
       pileGraphics.y = newPosition.y - pileGraphics.draggingMouseOffset[1];
       pubSub.publish('highlightPile', { pileId: id });
-      drawBorder();
+      drawBorder(2, 0xfeeb77);
       renderRaf();
     }
   };
@@ -162,6 +166,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const calcBBox = () => {
     // compute bounding box
 
+    const scale = pileGraphics.scale.x;
+
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -172,14 +178,10 @@ const createPile = (item, renderRaf, id, pubSub) => {
       const y = element.y + pileGraphics.y;
       if (x < minX) minX = x;
       if (y < minY) minY = y;
-      if (x + element.width > maxX) maxX = x + element.width;
-      if (y + element.height > maxY) maxY = y + element.height;
+      if (x + element.width * scale > maxX) maxX = x + element.width * scale;
+      if (y + element.height * scale > maxY) maxY = y + element.height * scale;
     });
 
-    pileInteractiveBorder.x = 0;
-    pileInteractiveBorder.y = 0;
-    pileInteractiveBorder.width = maxX - minX + 4;
-    pileInteractiveBorder.height = maxY - minY + 4;
     return {
       minX,
       minY,
@@ -243,9 +245,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const init = () => {
-    pileInteractiveBorder.interactive = true;
-    pileGraphics.addChild(pileInteractiveBorder);
-
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
     pileGraphics.addChild(hoverItemContainer);
