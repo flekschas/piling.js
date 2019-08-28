@@ -10,7 +10,7 @@ import createStore, {
   initPiles,
   mergePiles,
   movePiles,
-  depilePiles,
+  // depilePiles,
   setItemRenderer,
   setItems,
   setOrderer,
@@ -20,7 +20,7 @@ import createStore, {
   setItemRotated,
   setClickedPile,
   setScaledPile,
-  setDepileSolution,
+  setDepiledPile,
   setTemporaryDepiledPile
 } from './store';
 
@@ -30,12 +30,17 @@ import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
 
+const convolve = require('ndarray-convolve');
+const ndarray = require('ndarray');
+
 const createPileMe = rootElement => {
   const canvas = document.createElement('canvas');
   const pubSub = createPubSub();
   const store = createStore();
 
   let state = store.getState();
+
+  let gridMat;
 
   const renderer = new PIXI.Renderer({
     width: rootElement.getBoundingClientRect().width,
@@ -47,9 +52,18 @@ const createPileMe = rootElement => {
     autoResize: true
   });
 
+  const root = new PIXI.Container();
+  root.interactive = true;
+
   const stage = new PIXI.Container();
   stage.interactive = true;
   stage.sortableChildren = true;
+
+  root.addChild(stage);
+
+  const mask = new PIXI.Graphics();
+  root.addChild(mask);
+  stage.mask = mask;
 
   const get = property => {
     switch (property) {
@@ -83,8 +97,8 @@ const createPileMe = rootElement => {
       case 'scaledPile':
         return state.scaledPile;
 
-      case 'depileSolution':
-        return state.depileSolution;
+      case 'depiledPile':
+        return state.depiledPile;
 
       case 'temporaryDepiledPile':
         return state.temporaryDepiledPile;
@@ -136,8 +150,8 @@ const createPileMe = rootElement => {
         actions.push(setScaledPile(value));
         break;
 
-      case 'depileSolution':
-        actions.push(setDepileSolution(value));
+      case 'depiledPile':
+        actions.push(setDepiledPile(value));
         break;
 
       case 'temporaryDepiledPile':
@@ -156,7 +170,14 @@ const createPileMe = rootElement => {
   };
 
   const render = () => {
-    renderer.render(stage);
+    const { width, height } = canvas.getBoundingClientRect();
+
+    mask
+      .beginFill(0xffffff)
+      .drawRect(0, 0, width, height)
+      .endFill();
+
+    renderer.render(root);
   };
 
   const renderRaf = withRaf(render);
@@ -190,6 +211,37 @@ const createPileMe = rootElement => {
     });
   };
 
+  let layout;
+
+  const initGrid = () => {
+    const { grid } = store.getState();
+
+    layout = createGrid(canvas, grid);
+
+    gridMat = layout.mat;
+  };
+
+  const updateGridMat = () => {
+    for (let i = 0; i < gridMat.shape[0]; i++) {
+      for (let j = 0; j < gridMat.shape[1]; j++) {
+        gridMat.set(i, j, 0);
+      }
+    }
+
+    pileInstances.forEach(pile => {
+      const bBox = pile.bBox;
+      const minY = Math.floor(bBox.minX / layout.myColWidth);
+      const minX = Math.floor(bBox.minY / layout.myRowHeight);
+      const maxY = Math.floor(bBox.maxX / layout.myColWidth);
+      const maxX = Math.floor(bBox.maxY / layout.myRowHeight);
+      gridMat.set(minX, minY, 1);
+      gridMat.set(minX, maxY, 1);
+      gridMat.set(maxX, minY, 1);
+      gridMat.set(maxX, maxY, 1);
+    });
+    // console.log(gridMat);
+  };
+
   const updateBoundingBox = pileId => {
     const pile = pileInstances.get(pileId);
 
@@ -198,14 +250,6 @@ const createPileMe = rootElement => {
     });
     pile.updateBBox();
     searchIndex.insert(pile.bBox);
-  };
-
-  let layout;
-
-  const initGrid = () => {
-    const { grid } = store.getState();
-
-    layout = createGrid(canvas, grid);
   };
 
   const scaleItems = () => {
@@ -314,6 +358,8 @@ const createPileMe = rootElement => {
         pile.pileGraphics.x += x;
         pile.pileGraphics.y += y;
 
+        renderedItems.get(id).originalPosition = [x, y];
+
         movingPiles.push({
           id,
           x: pile.pileGraphics.x,
@@ -365,6 +411,7 @@ const createPileMe = rootElement => {
       pileInstances.set(id, newPile);
       normalPile.addChild(newPile.pileGraphics);
     }
+    updateGridMat();
   };
 
   const updatePileLocation = (pile, id) => {
@@ -373,11 +420,48 @@ const createPileMe = rootElement => {
       pileGraphics.x = pile.x;
       pileGraphics.y = pile.y;
       updateBoundingBox(id);
+      updateGridMat();
     }
+  };
 
-    if (pile.items.length === 1) {
-      renderedItems.get(id).position = [pile.x, pile.y];
+  const test = () => {
+    const a = ndarray(new Int8Array([1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1]), [
+      3,
+      4
+    ]);
+    const b = ndarray(new Int8Array([1, 1, 1, 1]), [2, 2]);
+    const out = ndarray(new Int8Array(6), [2, 3]);
+    convolve(out, a, b);
+    console.log(out, a, b);
+  };
+
+  const depile = pileId => {
+    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
+      .children.length;
+    if (itemNum === 1) return;
+    test();
+    const length = Math.ceil(Math.sqrt(itemNum));
+    const filter = ndarray(new Int8Array(length * length), [length, length]);
+    for (let i = 0; i < filter.shape[0]; i++) {
+      for (let j = 0; j < filter.shape[1]; j++) {
+        filter.set(i, j, 1);
+      }
     }
+    const result = ndarray(
+      new Int8Array(
+        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
+      ),
+      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
+    );
+    convolve(result, gridMat, filter);
+    // for(let i = 0; i < result.shape[0]; i++){
+    //   for(let j = 0; j < result.shape[1]; j++){
+    //     if(result.get(i, j)>0){
+    //       result.set(i, j, 1);
+    //     }
+    //   }
+    // }
+    console.log(result, gridMat, filter);
   };
 
   let mousePosition = [0, 0];
@@ -484,19 +568,8 @@ const createPileMe = rootElement => {
   };
 
   const scalePile = (pileId, wheelDelta) => {
-    const pile = pileInstances.get(pileId).pileGraphics;
-
-    const force = Math.log(Math.abs(wheelDelta));
-    const momentum = wheelDelta > 0 ? force : -force;
-
-    const newScale = Math.min(
-      Math.max(1, pile.scale.y * (1 + 0.1 * momentum)),
-      5
-    );
-
-    if (newScale > 1) {
-      pile.scale.x = newScale;
-      pile.scale.y = newScale;
+    const pile = pileInstances.get(pileId);
+    if (pile.scale(wheelDelta)) {
       updateBoundingBox(pileId);
     }
     renderRaf();
@@ -588,9 +661,9 @@ const createPileMe = rootElement => {
       renderRaf();
     }
 
-    if (state.depileSolution !== newState.depileSolution) {
-      console.log(newState.depileSolution);
-      stateUpdates.add('layout');
+    if (state.depiledPile !== newState.depiledPile) {
+      console.log(newState.depiledPile);
+      depile(newState.depiledPile[0]);
     }
 
     if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
@@ -669,7 +742,7 @@ const createPileMe = rootElement => {
     });
   };
 
-  let mouseDblClickShift = false;
+  let mouseClickShift = false;
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
@@ -695,21 +768,42 @@ const createPileMe = rootElement => {
       lassoEnd();
       mouseDown = false;
     }
-    if (mouseDblClickShift) mouseDblClickShift = false;
+    if (mouseClickShift) mouseClickShift = false;
   };
 
   const mouseClickHandler = event => {
+    const { piles } = store.getState();
+
     getRelativeMousePosition(event);
 
+    mouseClickShift = event.shiftKey;
+
     const result = searchIndex.search({
-      minX: mousePosition[0],
-      minY: mousePosition[1],
-      maxX: mousePosition[0] + 1,
-      maxY: mousePosition[1] + 1
+      minX: mouseDownPosition[0],
+      minY: mouseDownPosition[1],
+      maxX: mouseDownPosition[0] + 1,
+      maxY: mouseDownPosition[1] + 1
     });
 
     if (result.length !== 0) {
-      store.dispatch(setClickedPile([result[0].pileId]));
+      if (mouseClickShift) {
+        const depiledPiles = [];
+        const items = [...piles[result[0].pileId].items];
+        const itemPositions = [];
+        items.forEach(itemId => {
+          itemPositions.push([...renderedItems.get(itemId).originalPosition]);
+        });
+        const depiledPile = {
+          items,
+          itemPositions
+        };
+        depiledPiles.push(depiledPile);
+        // store.dispatch(depilePiles(depiledPiles));
+        store.dispatch(setDepiledPile([result[0].pileId]));
+        store.dispatch(setClickedPile([]));
+      } else {
+        store.dispatch(setClickedPile([result[0].pileId]));
+      }
     } else {
       store.dispatch(setClickedPile([]));
       store.dispatch(setScaledPile([]));
@@ -723,11 +817,7 @@ const createPileMe = rootElement => {
   };
 
   const mouseDblClickHandler = event => {
-    const { piles } = store.getState();
-
     getRelativeMousePosition(event);
-
-    mouseDblClickShift = event.shiftKey;
 
     const result = searchIndex.search({
       minX: mouseDownPosition[0],
@@ -737,21 +827,7 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
-      if (mouseDblClickShift) {
-        const items = [...piles[result[0].pileId].items];
-        const positions = [];
-        items.forEach(itemId => {
-          positions.push([...renderedItems.get(itemId).position]);
-        });
-        const depiledPile = {
-          items,
-          positions
-        };
-        store.dispatch(depilePiles(depiledPile));
-        store.dispatch(setClickedPile([]));
-      } else {
-        store.dispatch(setTemporaryDepiledPile(result[0].pileId));
-      }
+      store.dispatch(setTemporaryDepiledPile(result[0].pileId));
     }
   };
 

@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 const createItem = (id, texture, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
-  const lastPosition = [0, 0];
+  const originalPosition = [0, 0]; // use original position
 
   const cloneSprite = () => {
     const clonedSprite = new PIXI.Sprite(texture);
@@ -40,7 +40,7 @@ const createItem = (id, texture, pubSub) => {
     destroy,
     sprite,
     id,
-    lastPosition
+    originalPosition
   };
 
   return self;

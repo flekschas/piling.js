@@ -63,9 +63,44 @@ pileMe.set('items', [
     id: 'test14',
     src: 'data/cat_0013.jpg',
     position: [8, 3]
+  },
+  {
+    id: 'test15',
+    src: 'data/cat_0014.jpg',
+    position: [7, 7]
+  },
+  {
+    id: 'test16',
+    src: 'data/cat_0015.jpg',
+    position: [1, 8]
+  },
+  {
+    id: 'test17',
+    src: 'data/cat_0016.jpg',
+    position: [9, 8]
+  },
+  {
+    id: 'test18',
+    src: 'data/cat_0017.jpg',
+    position: [2, 5]
+  },
+  {
+    id: 'test19',
+    src: 'data/cat_0018.jpg',
+    position: [4, 3]
+  },
+  {
+    id: 'test20',
+    src: 'data/cat_0019.jpg',
+    position: [3, 11]
+  },
+  {
+    id: 'test21',
+    src: 'data/cat_0020.jpg',
+    position: [12, 8]
   }
 ]);
-pileMe.set('grid', [10, 10]);
-pileMe.set('itemAlignment', false);
+pileMe.set('grid', [10, 9]);
+// pileMe.set('itemAlignment', false);
 // pileMe.set('itemSizeRange', [0.8, 0.9]);
 pileMe.set('itemRotated', true);

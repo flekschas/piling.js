@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 
+const MAX_SCALE = 5;
+
 const createPile = (item, renderRaf, id, pubSub) => {
   const itemIds = new Map();
   const newItemIds = new Map();
@@ -244,6 +246,23 @@ const createPile = (item, renderRaf, id, pubSub) => {
     }
   };
 
+  const scale = wheelDelta => {
+    const force = Math.log(Math.abs(wheelDelta) + 1);
+    const momentum = Math.sign(wheelDelta) * force;
+
+    const newScale = Math.min(
+      Math.max(1, pileGraphics.scale.y * (1 + 0.075 * momentum)),
+      MAX_SCALE
+    );
+
+    if (newScale > 1) {
+      pileGraphics.scale.x = newScale;
+      pileGraphics.scale.y = newScale;
+      return true;
+    }
+    return false;
+  };
+
   const init = () => {
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
@@ -292,7 +311,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     calcBBox,
     updateBBox,
     positionItems,
-    isFocus
+    isFocus,
+    scale
   };
 };
 

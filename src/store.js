@@ -92,11 +92,10 @@ export const setScaledPile = newScaledPile => ({
   payload: { scaledPile: newScaledPile }
 });
 
-// 'originalPosition' or 'gridLayout'
-const depileSolution = setReducer('depileSolution', 'originalPosition');
-export const setDepileSolution = newDepileSolution => ({
-  type: 'SET_DEPILE_SOLUTION',
-  payload: { depileSolution: newDepileSolution }
+const depiledPile = setReducer('depiledPile', []);
+export const setDepiledPile = newDepiledPile => ({
+  type: 'SET_DEPILED_PILE',
+  payload: { depiledPile: newDepiledPile }
 });
 
 const temporaryDepiledPile = setReducer('temporaryDepiledPile', []);
@@ -111,8 +110,8 @@ const piles = (previousState = [], action) => {
     case 'INIT_PILES': {
       return new Array(action.payload.itemLength).fill().map((x, id) => ({
         items: [id],
-        x: 0,
-        y: 0
+        x: null,
+        y: null
       }));
     }
     case 'MERGE_PILES': {
@@ -131,8 +130,8 @@ const piles = (previousState = [], action) => {
         newState[source] = {
           ...newState[source],
           items: [],
-          x: 0,
-          y: 0
+          x: null,
+          y: null
         };
       } else {
         const target = Math.min(...action.payload.pileIds);
@@ -161,8 +160,8 @@ const piles = (previousState = [], action) => {
           newState[id] = {
             ...newState[id],
             items: [],
-            x: 0,
-            y: 0
+            x: null,
+            y: null
           };
         });
       }
@@ -180,17 +179,25 @@ const piles = (previousState = [], action) => {
       return newState;
     }
     case 'DEPILE_PILES': {
+      const depilePiles = action.payload.piles.filter(
+        pile => pile.items.length > 1
+      );
+
+      if (!depilePiles.length) return previousState;
+
       const newState = [...previousState];
-      if (action.payload.depiledPile.items.length === 1) return previousState;
-      action.payload.depiledPile.items.forEach((itemId, index) => {
-        const x = action.payload.depiledPile.positions[index][0];
-        const y = action.payload.depiledPile.positions[index][1];
-        newState[itemId] = {
-          ...newState[itemId],
-          items: [itemId],
-          x,
-          y
-        };
+
+      depilePiles.forEach(pile => {
+        pile.items.forEach((itemId, index) => {
+          const x = pile.itemPositions[index][0];
+          const y = pile.itemPositions[index][1];
+          newState[itemId] = {
+            ...newState[itemId],
+            items: [itemId],
+            x,
+            y
+          };
+        });
       });
       return newState;
     }
@@ -215,9 +222,9 @@ export const movePiles = movingPiles => ({
   payload: { movingPiles }
 });
 
-export const depilePiles = depiledPile => ({
+export const depilePiles = depiledPiles => ({
   type: 'DEPILE_PILES',
-  payload: { depiledPile }
+  payload: { piles: depiledPiles }
 });
 
 const createStore = () => {
@@ -233,7 +240,7 @@ const createStore = () => {
     itemRotated,
     clickedPile,
     scaledPile,
-    depileSolution,
+    depiledPile,
     temporaryDepiledPile
   });
 
