@@ -10,7 +10,7 @@ import createStore, {
   initPiles,
   mergePiles,
   movePiles,
-  // depilePiles,
+  depilePiles,
   setItemRenderer,
   setItems,
   setOrderer,
@@ -208,12 +208,16 @@ const createPileMe = rootElement => {
 
   let layout;
 
+  const updateScrollContainer = () => {
+    scrollContainer.style.height = `${layout.myRowHeight * layout.myRowNum +
+      canvas.getBoundingClientRect().height}px`;
+  };
+
   const initGrid = () => {
     const { grid } = store.getState();
 
     layout = createGrid(canvas, grid);
-    scrollContainer.style.height = `${layout.myRowHeight * layout.myRowNum +
-      canvas.getBoundingClientRect().height}px`;
+    updateScrollContainer();
     gridMat = layout.mat;
   };
 
@@ -405,6 +409,7 @@ const createPileMe = rootElement => {
       );
       pileInstances.set(id, newPile);
       normalPile.addChild(newPile.pileGraphics);
+      updateBoundingBox(id);
     }
     updateGridMat();
   };
@@ -479,106 +484,20 @@ const createPileMe = rootElement => {
     const length = distanceMat.data.length;
     distanceMat.set(current[0], current[1], length);
 
-    return nextPos;
-  };
-
-  // const test = () => {
-  //   const result = ndarray(new Float32Array([
-  //     3,2,2,1,
-  //     1,2,3,1,
-  //     3,1,2,2,
-  //     0,1,0,2]), [
-  //     4,
-  //     4
-  //   ]);
-  //   const distanceMat = ndarray(
-  //     new Float32Array(
-  //       16
-  //     ),
-  //     [4,4]
-  //   );
-  //   for (let i = 0; i < distanceMat.shape[0]; i++) {
-  //     for (let j = 0; j < distanceMat.shape[1]; j++) {
-  //       distanceMat.set(i, j, -1);
-  //     }
-  //   }
-  //   const origin = [1,1];
-  //   let current = [1,1];
-  //   let final = false;
-  //   let count = 0;
-
-  //   while(!final && count < distanceMat.data.length){
-  //     // top
-  //     if((current[0]-1) >= 0){
-  //       final = isFound(result, distanceMat, current[0]-1, current[1], origin);
-  //     }
-  //     // left
-  //     if(!final && (current[1]-1) >= 0){
-  //       final = isFound(result, distanceMat, current[0], current[1]-1, origin);
-  //     }
-  //     // bottom
-  //     if(!final && (current[0]+1) < distanceMat.shape[0]){
-  //       final = isFound(result, distanceMat, current[0]+1, current[1], origin);
-  //     }
-  //     // right
-  //     if(!final && (current[1]+1) < distanceMat.shape[1]){
-  //       final = isFound(result, distanceMat, current[0], current[1]+1, origin);
-  //     }
-  //     if(!final){
-  //       current = next(distanceMat, current);
-  //       count ++;
-  //       console.log(current);
-  //     }
-  //   }
-  //   console.log(final);
-  // }
-
-  const convolveGridMat = length => {
-    const filter = ndarray(new Float32Array(length * length), [length, length]);
-    for (let i = 0; i < filter.shape[0]; i++) {
-      for (let j = 0; j < filter.shape[1]; j++) {
-        filter.set(i, j, 1);
-      }
-    }
-    const result = ndarray(
-      new Float32Array(
-        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
-      ),
-      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
-    );
-
-    convolve(result, gridMat, filter);
-    for (let i = 0; i < result.shape[0]; i++) {
-      for (let j = 0; j < result.shape[1]; j++) {
-        if (result.get(i, j) < 1) {
-          result.set(i, j, 0);
+    if (min === distanceMat.data.length) {
+      for (let i = 0; i < distanceMat.shape[0]; i++) {
+        for (let j = 0; j < distanceMat.shape[1]; j++) {
+          if (distanceMat.get(i, j) < min && distanceMat.get(i, j) > 0)
+            min = distanceMat.get(i, j);
+          nextPos = [i, j];
         }
       }
     }
-    return result;
+
+    return nextPos;
   };
 
-  const depile = pileId => {
-    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
-      .children.length;
-
-    if (itemNum === 1) return;
-
-    const length = Math.ceil(Math.sqrt(itemNum));
-
-    const result = convolveGridMat(length);
-
-    const distanceMat = ndarray(
-      new Float32Array(
-        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
-      ),
-      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
-    );
-    for (let i = 0; i < distanceMat.shape[0]; i++) {
-      for (let j = 0; j < distanceMat.shape[1]; j++) {
-        distanceMat.set(i, j, -1);
-      }
-    }
+  const findDepilePos = (pileId, distanceMat, result, squareLength) => {
     const bBox = pileInstances.get(pileId).bBox;
     const minY = Math.floor(bBox.minX / layout.myColWidth);
     const minX = Math.floor(bBox.minY / layout.myRowHeight);
@@ -636,7 +555,84 @@ const createPileMe = rootElement => {
       }
     }
     console.log(final);
-    // test();
+
+    // doesn't find available cell
+    if (!final) {
+      final = [layout.myRowNum, 0];
+      layout.myRowNum += squareLength;
+      updateScrollContainer();
+    }
+
+    return final;
+  };
+
+  const convolveGridMat = length => {
+    const filter = ndarray(new Float32Array(length * length), [length, length]);
+    for (let i = 0; i < filter.shape[0]; i++) {
+      for (let j = 0; j < filter.shape[1]; j++) {
+        filter.set(i, j, 1);
+      }
+    }
+    const result = ndarray(
+      new Float32Array(
+        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
+      ),
+      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
+    );
+
+    convolve(result, gridMat, filter);
+    for (let i = 0; i < result.shape[0]; i++) {
+      for (let j = 0; j < result.shape[1]; j++) {
+        if (result.get(i, j) < 1) {
+          result.set(i, j, 0);
+        }
+      }
+    }
+    return result;
+  };
+
+  const depile = pileId => {
+    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
+      .children.length;
+
+    if (itemNum === 1) return;
+
+    const squareLength = Math.ceil(Math.sqrt(itemNum));
+
+    const result = convolveGridMat(squareLength);
+
+    const distanceMat = ndarray(
+      new Float32Array(
+        (layout.myRowNum - squareLength + 1) *
+          (layout.myColNum - squareLength + 1)
+      ),
+      [layout.myRowNum - squareLength + 1, layout.myColNum - squareLength + 1]
+    );
+    for (let i = 0; i < distanceMat.shape[0]; i++) {
+      for (let j = 0; j < distanceMat.shape[1]; j++) {
+        distanceMat.set(i, j, -1);
+      }
+    }
+
+    const final = findDepilePos(pileId, distanceMat, result, squareLength);
+
+    const { piles } = store.getState();
+    const depiledPiles = [];
+    const items = [...piles[pileId].items];
+    const itemPositions = [];
+    for (let i = 0; i < items.length; i++) {
+      const x = Math.floor(i / squareLength) + final[0];
+      const y = (i % squareLength) + final[1];
+      itemPositions.push([y * layout.myColWidth, x * layout.myRowHeight]);
+    }
+    const depiledPile = {
+      items,
+      itemPositions
+    };
+    depiledPiles.push(depiledPile);
+    console.log(depiledPiles);
+    store.dispatch(depilePiles(depiledPiles));
+    store.dispatch(setDepiledPile([]));
   };
 
   let mousePosition = [0, 0];
@@ -840,7 +836,7 @@ const createPileMe = rootElement => {
 
     if (state.depiledPile !== newState.depiledPile) {
       console.log(newState.depiledPile);
-      depile(newState.depiledPile[0]);
+      if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
     if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
@@ -949,7 +945,7 @@ const createPileMe = rootElement => {
   };
 
   const mouseClickHandler = event => {
-    const { piles } = store.getState();
+    // const { piles } = store.getState();
 
     getRelativeMousePosition(event);
 
@@ -964,17 +960,17 @@ const createPileMe = rootElement => {
 
     if (result.length !== 0) {
       if (mouseClickShift) {
-        const depiledPiles = [];
-        const items = [...piles[result[0].pileId].items];
-        const itemPositions = [];
-        items.forEach(itemId => {
-          itemPositions.push([...renderedItems.get(itemId).originalPosition]);
-        });
-        const depiledPile = {
-          items,
-          itemPositions
-        };
-        depiledPiles.push(depiledPile);
+        // const depiledPiles = [];
+        // const items = [...piles[result[0].pileId].items];
+        // const itemPositions = [];
+        // items.forEach(itemId => {
+        //   itemPositions.push([...renderedItems.get(itemId).originalPosition]);
+        // });
+        // const depiledPile = {
+        //   items,
+        //   itemPositions
+        // };
+        // depiledPiles.push(depiledPile);
         // store.dispatch(depilePiles(depiledPiles));
         store.dispatch(setDepiledPile([result[0].pileId]));
         store.dispatch(setClickedPile([]));
