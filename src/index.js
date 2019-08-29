@@ -34,6 +34,8 @@ const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
 const createPileMe = rootElement => {
+  const scrollContainer = document.createElement('div');
+
   const canvas = document.createElement('canvas');
   const pubSub = createPubSub();
   const store = createStore();
@@ -170,13 +172,6 @@ const createPileMe = rootElement => {
   };
 
   const render = () => {
-    const { width, height } = canvas.getBoundingClientRect();
-
-    mask
-      .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
-      .endFill();
-
     renderer.render(root);
   };
 
@@ -217,7 +212,8 @@ const createPileMe = rootElement => {
     const { grid } = store.getState();
 
     layout = createGrid(canvas, grid);
-
+    scrollContainer.style.height = `${layout.myRowHeight * layout.myRowNum +
+      canvas.getBoundingClientRect().height}px`;
     gridMat = layout.mat;
   };
 
@@ -239,7 +235,6 @@ const createPileMe = rootElement => {
       gridMat.set(maxX, minY, 1);
       gridMat.set(maxX, maxY, 1);
     });
-    // console.log(gridMat);
   };
 
   const updateBoundingBox = pileId => {
@@ -424,44 +419,224 @@ const createPileMe = rootElement => {
     }
   };
 
-  const test = () => {
-    const a = ndarray(new Int8Array([1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1]), [
-      3,
-      4
-    ]);
-    const b = ndarray(new Int8Array([1, 1, 1, 1]), [2, 2]);
-    const out = ndarray(new Int8Array(6), [2, 3]);
-    convolve(out, a, b);
-    console.log(out, a, b);
+  const isFound = (resultMat, distanceMat, x, y, origin) => {
+    if (distanceMat.get(x, y) === -1) {
+      const result = resultMat.get(x, y);
+      if (result === 0) {
+        return [x, y];
+      }
+      if (typeof distanceMat.get(x, y) !== 'undefined') {
+        const distance = Math.sqrt(
+          (x - origin[0]) * (x - origin[0]) + (y - origin[1]) * (y - origin[1])
+        );
+        distanceMat.set(x, y, distance);
+      }
+    }
+
+    return false;
   };
 
-  const depile = pileId => {
-    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
-      .children.length;
-    if (itemNum === 1) return;
-    test();
-    const length = Math.ceil(Math.sqrt(itemNum));
-    const filter = ndarray(new Int8Array(length * length), [length, length]);
+  const next = (distanceMat, current) => {
+    let nextPos; // top
+    let min = Infinity; // top
+
+    // top
+    if (
+      current[0] - 1 >= 0 &&
+      distanceMat.get(current[0] - 1, current[1]) < min
+    ) {
+      min = distanceMat.get(current[0] - 1, current[1]);
+      nextPos = [current[0] - 1, current[1]];
+    }
+
+    // left
+    if (
+      current[1] - 1 >= 0 &&
+      distanceMat.get(current[0], current[1] - 1) < min
+    ) {
+      min = distanceMat.get(current[0], current[1] - 1);
+      nextPos = [current[0], current[1] - 1];
+    }
+
+    // bottom
+    if (
+      current[0] + 1 < distanceMat.shape[0] &&
+      distanceMat.get(current[0] + 1, current[1]) < min
+    ) {
+      min = distanceMat.get(current[0] + 1, current[1]);
+      nextPos = [current[0] + 1, current[1]];
+    }
+
+    // right
+    if (
+      current[1] + 1 < distanceMat.shape[1] &&
+      distanceMat.get(current[0], current[1] + 1) < min
+    ) {
+      min = distanceMat.get(current[0], current[1] + 1);
+      nextPos = [current[0], current[1] + 1];
+    }
+
+    const length = distanceMat.data.length;
+    distanceMat.set(current[0], current[1], length);
+
+    return nextPos;
+  };
+
+  // const test = () => {
+  //   const result = ndarray(new Float32Array([
+  //     3,2,2,1,
+  //     1,2,3,1,
+  //     3,1,2,2,
+  //     0,1,0,2]), [
+  //     4,
+  //     4
+  //   ]);
+  //   const distanceMat = ndarray(
+  //     new Float32Array(
+  //       16
+  //     ),
+  //     [4,4]
+  //   );
+  //   for (let i = 0; i < distanceMat.shape[0]; i++) {
+  //     for (let j = 0; j < distanceMat.shape[1]; j++) {
+  //       distanceMat.set(i, j, -1);
+  //     }
+  //   }
+  //   const origin = [1,1];
+  //   let current = [1,1];
+  //   let final = false;
+  //   let count = 0;
+
+  //   while(!final && count < distanceMat.data.length){
+  //     // top
+  //     if((current[0]-1) >= 0){
+  //       final = isFound(result, distanceMat, current[0]-1, current[1], origin);
+  //     }
+  //     // left
+  //     if(!final && (current[1]-1) >= 0){
+  //       final = isFound(result, distanceMat, current[0], current[1]-1, origin);
+  //     }
+  //     // bottom
+  //     if(!final && (current[0]+1) < distanceMat.shape[0]){
+  //       final = isFound(result, distanceMat, current[0]+1, current[1], origin);
+  //     }
+  //     // right
+  //     if(!final && (current[1]+1) < distanceMat.shape[1]){
+  //       final = isFound(result, distanceMat, current[0], current[1]+1, origin);
+  //     }
+  //     if(!final){
+  //       current = next(distanceMat, current);
+  //       count ++;
+  //       console.log(current);
+  //     }
+  //   }
+  //   console.log(final);
+  // }
+
+  const convolveGridMat = length => {
+    const filter = ndarray(new Float32Array(length * length), [length, length]);
     for (let i = 0; i < filter.shape[0]; i++) {
       for (let j = 0; j < filter.shape[1]; j++) {
         filter.set(i, j, 1);
       }
     }
     const result = ndarray(
-      new Int8Array(
+      new Float32Array(
         (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
       ),
       [layout.myRowNum - length + 1, layout.myColNum - length + 1]
     );
+
     convolve(result, gridMat, filter);
-    // for(let i = 0; i < result.shape[0]; i++){
-    //   for(let j = 0; j < result.shape[1]; j++){
-    //     if(result.get(i, j)>0){
-    //       result.set(i, j, 1);
-    //     }
-    //   }
-    // }
-    console.log(result, gridMat, filter);
+    for (let i = 0; i < result.shape[0]; i++) {
+      for (let j = 0; j < result.shape[1]; j++) {
+        if (result.get(i, j) < 1) {
+          result.set(i, j, 0);
+        }
+      }
+    }
+    return result;
+  };
+
+  const depile = pileId => {
+    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
+      .children.length;
+
+    if (itemNum === 1) return;
+
+    const length = Math.ceil(Math.sqrt(itemNum));
+
+    const result = convolveGridMat(length);
+
+    const distanceMat = ndarray(
+      new Float32Array(
+        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
+      ),
+      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
+    );
+    for (let i = 0; i < distanceMat.shape[0]; i++) {
+      for (let j = 0; j < distanceMat.shape[1]; j++) {
+        distanceMat.set(i, j, -1);
+      }
+    }
+    const bBox = pileInstances.get(pileId).bBox;
+    const minY = Math.floor(bBox.minX / layout.myColWidth);
+    const minX = Math.floor(bBox.minY / layout.myRowHeight);
+    const origin = [minX, minY];
+    let current = [minX, minY];
+
+    let final;
+    let count = 0;
+
+    while (!final && count < distanceMat.data.length) {
+      // top
+      if (current[0] - 1 >= 0) {
+        final = isFound(
+          result,
+          distanceMat,
+          current[0] - 1,
+          current[1],
+          origin
+        );
+      }
+      // left
+      if (!final && current[1] - 1 >= 0) {
+        final = isFound(
+          result,
+          distanceMat,
+          current[0],
+          current[1] - 1,
+          origin
+        );
+      }
+      // bottom
+      if (!final && current[0] + 1 < distanceMat.shape[0]) {
+        final = isFound(
+          result,
+          distanceMat,
+          current[0] + 1,
+          current[1],
+          origin
+        );
+      }
+      // right
+      if (!final && current[1] + 1 < distanceMat.shape[1]) {
+        final = isFound(
+          result,
+          distanceMat,
+          current[0],
+          current[1] + 1,
+          origin
+        );
+      }
+      if (!final) {
+        current = next(distanceMat, current);
+        count++;
+        console.log(current);
+      }
+    }
+    console.log(final);
+    // test();
   };
 
   let mousePosition = [0, 0];
@@ -473,7 +648,7 @@ const createPileMe = rootElement => {
     const rect = canvas.getBoundingClientRect();
 
     mousePosition[0] = event.clientX - rect.left;
-    mousePosition[1] = event.clientY - rect.top;
+    mousePosition[1] = event.clientY - rect.top - stage.y;
 
     return [...mousePosition];
   };
@@ -656,6 +831,8 @@ const createPileMe = rootElement => {
           pile.scale.x = 1;
           pile.scale.y = 1;
           updateBoundingBox(state.scaledPile[0]);
+          activePile.removeChildren();
+          normalPile.addChild(pile);
         }
       }
       renderRaf();
@@ -832,7 +1009,7 @@ const createPileMe = rootElement => {
   };
 
   const mouseWheelHandler = event => {
-    event.preventDefault();
+    getRelativeMousePosition(event);
 
     const result = searchIndex.search({
       minX: mousePosition[0],
@@ -842,10 +1019,18 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
+      event.preventDefault();
       store.dispatch(setScaledPile([result[0].pileId]));
       const normalizedDeltaY = normalizeWheel(event).pixelY;
       scalePile(result[0].pileId, normalizedDeltaY);
+      const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
+      activePile.addChild(pileGraphics);
     }
+  };
+
+  const mouseScrollHandler = () => {
+    stage.y = -rootElement.scrollTop;
+    renderRaf();
   };
 
   const init = () => {
@@ -854,6 +1039,9 @@ const createPileMe = rootElement => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
+
+    rootElement.addEventListener('scroll', mouseScrollHandler, false);
+
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
@@ -866,6 +1054,21 @@ const createPileMe = rootElement => {
 
     store.subscribe(updated);
     rootElement.appendChild(canvas);
+    rootElement.appendChild(scrollContainer);
+
+    rootElement.style.overflow = 'auto';
+    canvas.style.position = 'sticky';
+    canvas.style.top = '0px';
+    canvas.style.left = '0px';
+
+    scrollContainer.style.marginTop = `-100%`;
+
+    const { width, height } = canvas.getBoundingClientRect();
+
+    mask
+      .beginFill(0xffffff)
+      .drawRect(0, 0, width, height)
+      .endFill();
   };
 
   const destroy = () => {
@@ -875,17 +1078,22 @@ const createPileMe = rootElement => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
+
+    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
+
     canvas.removeEventListener('mouseenter', () => {}, false);
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
 
-    stage.destroy(false);
+    root.destroy(false);
     renderer.destroy(true);
     store.unsubscribe(updated);
 
     rootElement.removeChild(canvas);
+    rootElement.removeChild(scrollContainer);
+
     pubSub.clear();
   };
 
