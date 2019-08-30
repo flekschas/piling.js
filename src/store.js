@@ -104,6 +104,20 @@ export const setTemporaryDepiledPile = newTemporaryDepiledPile => ({
   payload: { temporaryDepiledPile: newTemporaryDepiledPile }
 });
 
+// 'horizontal' or 'vertical'
+const tempDepileDirection = setReducer('tempDepileDirection', 'horizontal');
+export const setTempDepileDirection = newTempDepileDirection => ({
+  type: 'SET_TEMP_DEPILE_DIRECTION',
+  payload: { tempDepileDirection: newTempDepileDirection }
+});
+
+// 'horizontal' or 'vertical'
+const tempDepileOneDNum = setReducer('tempDepileOneDNum', 6);
+export const settempDepileOneDNum = newtempDepileOneDNum => ({
+  type: 'SET_TEMP_DEPILE_ONE_D_NUM',
+  payload: { tempDepileOneDNum: newtempDepileOneDNum }
+});
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -241,7 +255,9 @@ const createStore = () => {
     clickedPile,
     scaledPile,
     depiledPile,
-    temporaryDepiledPile
+    temporaryDepiledPile,
+    tempDepileDirection,
+    tempDepileOneDNum
   });
 
   const rootReducer = (state, action) => {

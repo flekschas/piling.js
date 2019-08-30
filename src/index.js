@@ -21,7 +21,9 @@ import createStore, {
   setClickedPile,
   setScaledPile,
   setDepiledPile,
-  setTemporaryDepiledPile
+  setTemporaryDepiledPile,
+  setTempDepileDirection,
+  settempDepileOneDNum
 } from './store';
 
 import { dist, getBBox, isPileInPolygon } from './utils';
@@ -105,6 +107,12 @@ const createPileMe = rootElement => {
       case 'temporaryDepiledPile':
         return state.temporaryDepiledPile;
 
+      case 'tempDepileDirection':
+        return state.tempDepileDirection;
+
+      case 'tempDepileOneDNum':
+        return state.tempDepileOneDNum;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -158,6 +166,14 @@ const createPileMe = rootElement => {
 
       case 'temporaryDepiledPile':
         actions.push(setTemporaryDepiledPile(value));
+        break;
+
+      case 'tempDepileDirection':
+        actions.push(setTempDepileDirection(value));
+        break;
+
+      case 'tempDepileOneDNum':
+        actions.push(settempDepileOneDNum(value));
         break;
 
       default:
@@ -385,11 +401,9 @@ const createPileMe = rootElement => {
         pileInstance.destroy();
         pileInstances.delete(id);
       } else {
-        pileInstance.pileGraphics.getChildAt(1).removeChildren();
+        pileInstance.itemContainer.removeChildren();
         pile.items.forEach(itemId => {
-          pileInstance.pileGraphics
-            .getChildAt(1)
-            .addChild(renderedItems.get(itemId).sprite);
+          pileInstance.itemContainer.addChild(renderedItems.get(itemId).sprite);
           if (!pileInstance.itemIds.has(itemId)) {
             pileInstance.newItemIds.set(
               itemId,
@@ -592,8 +606,7 @@ const createPileMe = rootElement => {
   };
 
   const depile = pileId => {
-    const itemNum = pileInstances.get(pileId).pileGraphics.getChildAt(1)
-      .children.length;
+    const itemNum = pileInstances.get(pileId).itemContainer.children.length;
 
     if (itemNum === 1) return;
 
@@ -633,6 +646,58 @@ const createPileMe = rootElement => {
     console.log(depiledPiles);
     store.dispatch(depilePiles(depiledPiles));
     store.dispatch(setDepiledPile([]));
+  };
+
+  const temporaryDepile = pileId => {
+    const pile = pileInstances.get(pileId);
+
+    if (pile.isTempDepiled[0]) {
+      const length = pile.itemContainer.children.length;
+      pile.itemContainer.removeChildAt(length - 1);
+      pile.isTempDepiled[0] = false;
+    } else {
+      const { piles, tempDepileDirection } = store.getState();
+
+      const items = [...piles[pileId].items];
+
+      const temporaryDepileContainer = new PIXI.Container();
+
+      pile.itemContainer.addChild(temporaryDepileContainer);
+
+      if (tempDepileDirection === 'horizontal') {
+        temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+        temporaryDepileContainer.y = 0;
+        temporaryDepileContainer.interactive = true;
+
+        let widths = 0;
+        items.forEach((itemId, index) => {
+          const clonedSprite = renderedItems.get(itemId).cloneSprite();
+          temporaryDepileContainer.addChild(clonedSprite);
+          clonedSprite.x = index * 5 + widths;
+          clonedSprite.y = 0;
+          widths += clonedSprite.width;
+        });
+      } else if (tempDepileDirection === 'vertical') {
+        temporaryDepileContainer.x = 0;
+        temporaryDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+        temporaryDepileContainer.interactive = true;
+
+        let heights = 0;
+        items.forEach((itemId, index) => {
+          const clonedSprite = renderedItems.get(itemId).cloneSprite();
+          temporaryDepileContainer.addChild(clonedSprite);
+          clonedSprite.x = 0;
+          clonedSprite.y = index * 5 + heights;
+          heights += clonedSprite.height;
+        });
+      }
+
+      pile.isTempDepiled[0] = true;
+    }
+
+    updateBoundingBox(pileId);
+    renderRaf();
+    store.dispatch(setTemporaryDepiledPile([]));
   };
 
   let mousePosition = [0, 0];
@@ -800,6 +865,16 @@ const createPileMe = rootElement => {
       stateUpdates.add('layout');
     }
 
+    if (state.tempDepileDirection !== newState.tempDepileDirection) {
+      console.log(newState.tempDepileDirection);
+      stateUpdates.add('layout');
+    }
+
+    if (state.tempDepileOneDNum !== newState.tempDepileOneDNum) {
+      console.log(newState.tempDepileOneDNum);
+      stateUpdates.add('layout');
+    }
+
     if (state.clickedPile !== newState.clickedPile) {
       if (newState.clickedPile.length !== 0) {
         const newPile = pileInstances.get(newState.clickedPile[0]);
@@ -840,7 +915,9 @@ const createPileMe = rootElement => {
     }
 
     if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
-      // console.log(newState.temporaryDepiledPile);
+      console.log(newState.temporaryDepiledPile);
+      if (newState.temporaryDepiledPile.length !== 0)
+        temporaryDepile(newState.temporaryDepiledPile[0]);
     }
 
     if (updates.length !== 0) {
@@ -1000,7 +1077,11 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
-      store.dispatch(setTemporaryDepiledPile(result[0].pileId));
+      const { piles } = store.getState();
+      if (piles[result[0].pileId].items.length > 1) {
+        store.dispatch(setTemporaryDepiledPile([result[0].pileId]));
+        store.dispatch(setClickedPile([]));
+      }
     }
   };
 

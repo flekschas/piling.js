@@ -20,6 +20,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const isFocus = [false];
+  const isTempDepiled = [false];
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -306,12 +307,14 @@ const createPile = (item, renderRaf, id, pubSub) => {
     itemIds,
     newItemIds,
     pileGraphics,
+    itemContainer,
     id,
     bBox,
     calcBBox,
     updateBBox,
     positionItems,
     isFocus,
+    isTempDepiled,
     scale
   };
 };
