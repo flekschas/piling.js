@@ -1,4 +1,4 @@
-const creatOrderer = () => {
+const createOrderer = () => {
   // The default row-major order
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
 
@@ -7,4 +7,4 @@ const creatOrderer = () => {
   };
 };
 
-export default creatOrderer;
+export default createOrderer;

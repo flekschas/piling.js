@@ -1,7 +1,7 @@
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 
-import creatOrderer from './orderer';
+import createOrderer from './orderer';
 import { camelToConst, deepClone } from './utils';
 
 // import freeze from 'redux-freeze';
@@ -50,7 +50,7 @@ export const setItems = newItems => ({
   payload: { items: newItems }
 });
 
-const orderer = setReducer('orderer', creatOrderer().rowMajor);
+const orderer = setReducer('orderer', createOrderer().rowMajor);
 export const setOrderer = newOrderer => ({
   type: 'SET_ORDERER',
   payload: { orderer: newOrderer }
