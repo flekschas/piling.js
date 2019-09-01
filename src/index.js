@@ -565,10 +565,8 @@ const createPileMe = rootElement => {
       if (!final) {
         current = next(distanceMat, current);
         count++;
-        console.log(current);
       }
     }
-    console.log(final);
 
     // doesn't find available cell
     if (!final) {
@@ -648,53 +646,103 @@ const createPileMe = rootElement => {
     store.dispatch(setDepiledPile([]));
   };
 
+  const tempDepileOneD = (
+    temporaryDepileContainer,
+    pile,
+    tempDepileDirection,
+    items
+  ) => {
+    if (tempDepileDirection === 'horizontal') {
+      temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      temporaryDepileContainer.y = 0;
+      temporaryDepileContainer.interactive = true;
+
+      let widths = 0;
+      items.forEach((itemId, index) => {
+        const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        temporaryDepileContainer.addChild(clonedSprite);
+        clonedSprite.x = index * 5 + widths;
+        clonedSprite.y = 0;
+        widths += clonedSprite.width;
+      });
+    } else if (tempDepileDirection === 'vertical') {
+      temporaryDepileContainer.x = 0;
+      temporaryDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      temporaryDepileContainer.interactive = true;
+
+      let heights = 0;
+      items.forEach((itemId, index) => {
+        const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        temporaryDepileContainer.addChild(clonedSprite);
+        clonedSprite.x = 0;
+        clonedSprite.y = index * 5 + heights;
+        heights += clonedSprite.height;
+      });
+    }
+  };
+
+  const tempDepileTwoD = (temporaryDepileContainer, pile, items, orderer) => {
+    temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    temporaryDepileContainer.y = 0;
+    temporaryDepileContainer.interactive = true;
+
+    const squareLength = Math.ceil(Math.sqrt(items.length));
+
+    items.forEach((itemId, index) => {
+      const clonedSprite = renderedItems.get(itemId).cloneSprite();
+      temporaryDepileContainer.addChild(clonedSprite);
+      const getPosition = orderer(squareLength);
+      let x;
+      let y;
+      [x, y] = getPosition(index);
+      x *= layout.myColWidth;
+      y *= layout.myRowHeight;
+      clonedSprite.x = x;
+      clonedSprite.y = y;
+    });
+  };
+
   const temporaryDepile = pileId => {
     const pile = pileInstances.get(pileId);
 
     if (pile.isTempDepiled[0]) {
+      pileInstances.forEach(otherPile => {
+        otherPile.pileGraphics.alpha = 1;
+      });
       const length = pile.itemContainer.children.length;
       pile.itemContainer.removeChildAt(length - 1);
       pile.isTempDepiled[0] = false;
     } else {
-      const { piles, tempDepileDirection } = store.getState();
+      const temporaryDepileContainer = new PIXI.Container();
+      pile.itemContainer.addChild(temporaryDepileContainer);
+
+      pileInstances.forEach(otherPile => {
+        otherPile.pileGraphics.alpha = 0.3;
+      });
+
+      pile.pileGraphics.alpha = 1;
+
+      const {
+        piles,
+        tempDepileDirection,
+        tempDepileOneDNum,
+        orderer
+      } = store.getState();
 
       const items = [...piles[pileId].items];
 
-      const temporaryDepileContainer = new PIXI.Container();
-
-      pile.itemContainer.addChild(temporaryDepileContainer);
-
-      if (tempDepileDirection === 'horizontal') {
-        temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-        temporaryDepileContainer.y = 0;
-        temporaryDepileContainer.interactive = true;
-
-        let widths = 0;
-        items.forEach((itemId, index) => {
-          const clonedSprite = renderedItems.get(itemId).cloneSprite();
-          temporaryDepileContainer.addChild(clonedSprite);
-          clonedSprite.x = index * 5 + widths;
-          clonedSprite.y = 0;
-          widths += clonedSprite.width;
-        });
-      } else if (tempDepileDirection === 'vertical') {
-        temporaryDepileContainer.x = 0;
-        temporaryDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
-        temporaryDepileContainer.interactive = true;
-
-        let heights = 0;
-        items.forEach((itemId, index) => {
-          const clonedSprite = renderedItems.get(itemId).cloneSprite();
-          temporaryDepileContainer.addChild(clonedSprite);
-          clonedSprite.x = 0;
-          clonedSprite.y = index * 5 + heights;
-          heights += clonedSprite.height;
-        });
+      if (items.length < tempDepileOneDNum) {
+        tempDepileOneD(
+          temporaryDepileContainer,
+          pile,
+          tempDepileDirection,
+          items
+        );
+      } else {
+        tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
       }
-
       pile.isTempDepiled[0] = true;
     }
-
     updateBoundingBox(pileId);
     renderRaf();
     store.dispatch(setTemporaryDepiledPile([]));
