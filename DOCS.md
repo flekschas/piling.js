@@ -2,11 +2,16 @@
 
 ## Depile
 
-input: 
+**input:**
+
 `distanceMat`: a matrix that every cell store the distance from the cell to the `originalPos`
+
 `resultMat`: the result of the convolution between the grid matrix and the filter
+
 `originalPos`: the center of the depiling pile
-output: 
+
+**output:**
+
 `depilePos`: the center of the items to be placed
 
 ```
