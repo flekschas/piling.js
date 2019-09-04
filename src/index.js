@@ -63,6 +63,9 @@ const createPileMe = rootElement => {
   stage.interactive = true;
   stage.sortableChildren = true;
 
+  const gridGfx = new PIXI.Graphics();
+  root.addChild(gridGfx);
+
   root.addChild(stage);
 
   const mask = new PIXI.Graphics();
@@ -235,26 +238,17 @@ const createPileMe = rootElement => {
     layout = createGrid(canvas, grid);
     updateScrollContainer();
     gridMat = layout.mat;
-  };
 
-  const updateGridMat = () => {
-    for (let i = 0; i < gridMat.shape[0]; i++) {
-      for (let j = 0; j < gridMat.shape[1]; j++) {
-        gridMat.set(i, j, 0);
-      }
-    }
-
-    pileInstances.forEach(pile => {
-      const bBox = pile.bBox;
-      const minY = Math.floor(bBox.minX / layout.myColWidth);
-      const minX = Math.floor(bBox.minY / layout.myRowHeight);
-      const maxY = Math.floor(bBox.maxX / layout.myColWidth);
-      const maxX = Math.floor(bBox.maxY / layout.myRowHeight);
-      gridMat.set(minX, minY, 1);
-      gridMat.set(minX, maxY, 1);
-      gridMat.set(maxX, minY, 1);
-      gridMat.set(maxX, maxY, 1);
-    });
+    // gridGfx.clear();
+    // gridGfx.lineStyle(2, 0xffd900, 1);
+    // for(let i = 0; i < layout.myColNum; i++){
+    //   gridGfx.moveTo(i * layout.myColWidth, 0);
+    //   gridGfx.lineTo(i * layout.myColWidth, layout.myRowNum * layout.myRowHeight);
+    // }
+    // for(let i = 0; i < layout.myRowNum; i++){
+    //   gridGfx.moveTo(0, i * layout.myRowHeight);
+    //   gridGfx.lineTo(layout.myColNum * layout.myColWidth, i * layout.myRowHeight);
+    // }
   };
 
   const updateBoundingBox = pileId => {
@@ -425,7 +419,6 @@ const createPileMe = rootElement => {
       normalPile.addChild(newPile.pileGraphics);
       updateBoundingBox(id);
     }
-    updateGridMat();
   };
 
   const updatePileLocation = (pile, id) => {
@@ -434,25 +427,29 @@ const createPileMe = rootElement => {
       pileGraphics.x = pile.x;
       pileGraphics.y = pile.y;
       updateBoundingBox(id);
-      updateGridMat();
     }
   };
 
-  const isFound = (resultMat, distanceMat, x, y, origin) => {
-    if (distanceMat.get(x, y) === -1) {
-      const result = resultMat.get(x, y);
-      if (result === 0) {
-        return [x, y];
-      }
-      if (typeof distanceMat.get(x, y) !== 'undefined') {
-        const distance = Math.sqrt(
-          (x - origin[0]) * (x - origin[0]) + (y - origin[1]) * (y - origin[1])
-        );
-        distanceMat.set(x, y, distance);
+  const updateGridMat = pileId => {
+    for (let i = 0; i < gridMat.shape[0]; i++) {
+      for (let j = 0; j < gridMat.shape[1]; j++) {
+        gridMat.set(i, j, 0);
       }
     }
 
-    return false;
+    pileInstances.forEach(pile => {
+      if (pile.id === pileId) return;
+
+      const bBox = pile.bBox;
+      const minY = Math.floor(bBox.minX / layout.myColWidth);
+      const minX = Math.floor(bBox.minY / layout.myRowHeight);
+      const maxY = Math.floor(bBox.maxX / layout.myColWidth);
+      const maxX = Math.floor(bBox.maxY / layout.myRowHeight);
+      gridMat.set(minX, minY, 1);
+      gridMat.set(minX, maxY, 1);
+      gridMat.set(maxX, minY, 1);
+      gridMat.set(maxX, maxY, 1);
+    });
   };
 
   const next = (distanceMat, current) => {
@@ -511,96 +508,94 @@ const createPileMe = rootElement => {
     return nextPos;
   };
 
-  const findDepilePos = (pileId, distanceMat, result, squareLength) => {
-    const bBox = pileInstances.get(pileId).bBox;
-    const minY = Math.floor(bBox.minX / layout.myColWidth);
-    const minX = Math.floor(bBox.minY / layout.myRowHeight);
-    const origin = [minX, minY];
-    let current = [minX, minY];
+  const calcDist = (distanceMat, x, y, origin) => {
+    if (distanceMat.get(x, y) !== -1) return;
 
-    let final;
+    const distance = dist(x, y, origin[0], origin[1]);
+    distanceMat.set(x, y, distance);
+  };
+
+  const findDepilePos = (distanceMat, resultMat, origin, filterRowNum) => {
+    let current = [...origin];
+
+    let depilePos;
     let count = 0;
 
-    while (!final && count < distanceMat.data.length) {
-      // top
-      if (current[0] - 1 >= 0) {
-        final = isFound(
-          result,
-          distanceMat,
-          current[0] - 1,
-          current[1],
-          origin
-        );
-      }
-      // left
-      if (!final && current[1] - 1 >= 0) {
-        final = isFound(
-          result,
-          distanceMat,
-          current[0],
-          current[1] - 1,
-          origin
-        );
-      }
-      // bottom
-      if (!final && current[0] + 1 < distanceMat.shape[0]) {
-        final = isFound(
-          result,
-          distanceMat,
-          current[0] + 1,
-          current[1],
-          origin
-        );
-      }
-      // right
-      if (!final && current[1] + 1 < distanceMat.shape[1]) {
-        final = isFound(
-          result,
-          distanceMat,
-          current[0],
-          current[1] + 1,
-          origin
-        );
-      }
-      if (!final) {
+    while (!depilePos && count < distanceMat.data.length) {
+      // check current
+      if (resultMat.get(current[0], current[1]) < 1) depilePos = current;
+
+      if (!depilePos) {
+        // calc dist
+
+        // top
+        if (current[0] - 1 >= 0) {
+          calcDist(distanceMat, current[0] - 1, current[1], origin);
+        }
+        // left
+        if (current[1] - 1 >= 0) {
+          calcDist(distanceMat, current[0], current[1] - 1, origin);
+        }
+        // bottom
+        if (current[0] + 1 < distanceMat.shape[0]) {
+          calcDist(distanceMat, current[0] + 1, current[1], origin);
+        }
+        // right
+        if (current[1] + 1 < distanceMat.shape[1]) {
+          calcDist(distanceMat, current[0], current[1] + 1, origin);
+        }
+
+        // get closest cell
         current = next(distanceMat, current);
         count++;
       }
     }
 
-    // doesn't find available cell
-    if (!final) {
-      final = [layout.myRowNum, 0];
-      layout.myRowNum += squareLength;
+    // doesn't find a available cell
+    if (!depilePos) {
+      depilePos = [resultMat.shape[0], 0];
+      layout.myRowNum += filterRowNum;
       updateScrollContainer();
     }
 
-    return final;
+    return depilePos;
   };
 
-  const convolveGridMat = length => {
-    const filter = ndarray(new Float32Array(length * length), [length, length]);
-    for (let i = 0; i < filter.shape[0]; i++) {
-      for (let j = 0; j < filter.shape[1]; j++) {
-        filter.set(i, j, 1);
-      }
-    }
-    const result = ndarray(
-      new Float32Array(
-        (layout.myRowNum - length + 1) * (layout.myColNum - length + 1)
-      ),
-      [layout.myRowNum - length + 1, layout.myColNum - length + 1]
+  const convolveGridMat = (filterColNum, filterRowNum) => {
+    const filter = ndarray(
+      new Float32Array(new Array(filterColNum * filterRowNum).fill(1)),
+      [filterRowNum, filterColNum]
     );
 
-    convolve(result, gridMat, filter);
-    for (let i = 0; i < result.shape[0]; i++) {
-      for (let j = 0; j < result.shape[1]; j++) {
-        if (result.get(i, j) < 1) {
-          result.set(i, j, 0);
-        }
-      }
-    }
-    return result;
+    const resultMat = ndarray(
+      new Float32Array(
+        (layout.myRowNum - filterRowNum + 1) *
+          (layout.myColNum - filterColNum + 1)
+      ),
+      [layout.myRowNum - filterRowNum + 1, layout.myColNum - filterColNum + 1]
+    );
+
+    convolve(resultMat, gridMat, filter);
+
+    return resultMat;
+  };
+
+  const findPos = (origin, colNum, rowNum) => {
+    const resultMat = convolveGridMat(colNum, rowNum);
+
+    const distanceMat = ndarray(
+      new Float32Array(
+        new Array(
+          (layout.myRowNum - rowNum + 1) * (layout.myColNum - colNum + 1)
+        ).fill(-1)
+      ),
+      [layout.myRowNum - rowNum + 1, layout.myColNum - colNum + 1]
+    );
+
+    const depilePos = findDepilePos(distanceMat, resultMat, origin, rowNum);
+    const distance = dist(depilePos[0], depilePos[1], origin[0], origin[1]);
+
+    return { depilePos, distance };
   };
 
   const depile = pileId => {
@@ -608,32 +603,53 @@ const createPileMe = rootElement => {
 
     if (itemNum === 1) return;
 
-    const squareLength = Math.ceil(Math.sqrt(itemNum));
+    updateGridMat(pileId);
 
-    const result = convolveGridMat(squareLength);
-
-    const distanceMat = ndarray(
-      new Float32Array(
-        (layout.myRowNum - squareLength + 1) *
-          (layout.myColNum - squareLength + 1)
-      ),
-      [layout.myRowNum - squareLength + 1, layout.myColNum - squareLength + 1]
+    // take the center point of pile as the original pos
+    const bBox = pileInstances.get(pileId).bBox;
+    const centerY = Math.floor(
+      (bBox.minX + bBox.maxX) / (layout.myColWidth * 2)
     );
-    for (let i = 0; i < distanceMat.shape[0]; i++) {
-      for (let j = 0; j < distanceMat.shape[1]; j++) {
-        distanceMat.set(i, j, -1);
-      }
-    }
+    const centerX = Math.floor(
+      (bBox.minY + bBox.maxY) / (layout.myRowHeight * 2)
+    );
 
-    const final = findDepilePos(pileId, distanceMat, result, squareLength);
+    const origin = [centerX, centerY];
+
+    const colNum = Math.ceil(Math.sqrt(itemNum));
+    const rowNum = Math.ceil(itemNum / colNum);
+
+    let depilePos;
+    let filterRowNum;
+    let filterColNum;
+
+    if (colNum !== rowNum) {
+      const result1 = findPos(origin, colNum, rowNum);
+      const result2 = findPos(origin, rowNum, colNum);
+
+      depilePos =
+        result1.distance > result2.distance
+          ? result2.depilePos
+          : result1.depilePos;
+      filterColNum = result1.distance > result2.distance ? rowNum : colNum;
+      filterRowNum = result1.distance > result2.distance ? colNum : rowNum;
+    } else {
+      depilePos = findPos(origin, colNum, rowNum).depilePos;
+      filterColNum = colNum;
+      filterRowNum = rowNum;
+    }
 
     const { piles } = store.getState();
     const depiledPiles = [];
     const items = [...piles[pileId].items];
     const itemPositions = [];
     for (let i = 0; i < items.length; i++) {
-      const x = Math.floor(i / squareLength) + final[0];
-      const y = (i % squareLength) + final[1];
+      const x =
+        Math.floor(i / filterColNum) +
+        depilePos[0] -
+        Math.floor((filterRowNum - 1) / 2);
+      const y =
+        (i % filterColNum) + depilePos[1] - Math.floor((filterColNum - 1) / 2);
       itemPositions.push([y * layout.myColWidth, x * layout.myRowHeight]);
     }
     const depiledPile = {
@@ -641,7 +657,6 @@ const createPileMe = rootElement => {
       itemPositions
     };
     depiledPiles.push(depiledPile);
-    console.log(depiledPiles);
     store.dispatch(depilePiles(depiledPiles));
     store.dispatch(setDepiledPile([]));
   };
