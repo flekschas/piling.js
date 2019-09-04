@@ -18,12 +18,7 @@ export const loadImage = (src, isCrossOrigin = false) =>
     image.src = src;
   });
 
-const renderImage = image => {
-  const texture = PIXI.Texture.from(image);
-  const sprite = new PIXI.Sprite(texture);
-
-  return sprite;
-};
+const renderImage = image => PIXI.Texture.from(image);
 
 const imageRenderer = src => {
   const isCrossOrigin = true;

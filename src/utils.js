@@ -54,3 +54,85 @@ export const deepClone = source => {
   let target;
   return extend(target, source);
 };
+
+/**
+ * L2 distance between a pair of 2D points
+ * @param   {number}  x1  X coordinate of the first point
+ * @param   {number}  y1  Y coordinate of the first point
+ * @param   {number}  x2  X coordinate of the second point
+ * @param   {number}  y2  Y coordinate of the first point
+ * @return  {number}  L2 distance
+ */
+export const dist = (x1, y1, x2, y2) =>
+  Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+
+/**
+ * Get the bounding box of a set of 2D positions
+ * @param   {array}  positions2d  2D positions to be checked
+ * @return  {array}  Quadruple of form `[xMin, yMin, xMax, yMax]` defining the
+ *  bounding box
+ */
+export const getBBox = positions2d => {
+  let xMin = Infinity;
+  let xMax = -Infinity;
+  let yMin = Infinity;
+  let yMax = -Infinity;
+
+  for (let i = 0; i < positions2d.length; i += 2) {
+    xMin = positions2d[i] < xMin ? positions2d[i] : xMin;
+    xMax = positions2d[i] > xMax ? positions2d[i] : xMax;
+    yMin = positions2d[i + 1] < yMin ? positions2d[i + 1] : yMin;
+    yMax = positions2d[i + 1] > yMax ? positions2d[i + 1] : yMax;
+  }
+
+  return {
+    minX: xMin,
+    minY: yMin,
+    maxX: xMax,
+    maxY: yMax
+  };
+};
+
+/**
+ * From: https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
+ * @param   {Array}  point  Tuple of the form `[x,y]` to be tested.
+ * @param   {Array}  polygon  1D list of vertices defining the polygon.
+ * @return  {boolean}  If `true` point lies within the polygon.
+ */
+export const isPileInPolygon = ([px, py] = [], polygon) => {
+  let x1;
+  let y1;
+  let x2;
+  let y2;
+  let isWithin = false;
+  for (let i = 0, j = polygon.length - 2; i < polygon.length; i += 2) {
+    x1 = polygon[i];
+    y1 = polygon[i + 1];
+    x2 = polygon[j];
+    y2 = polygon[j + 1];
+    if (y1 > py !== y2 > py && px < ((x2 - x1) * (py - y1)) / (y2 - y1) + x1)
+      isWithin = !isWithin;
+    j = i;
+  }
+  return isWithin;
+};
+
+/**
+ * Fast version of `Math.max`. Based on
+ *   https://jsperf.com/math-min-max-vs-ternary-vs-if/24 `Math.max` is not
+ *   very fast
+ * @param   {number}  a  Value A
+ * @param   {number}  b  Value B
+ * @return  {boolean}  If `true` A is greater than B.
+ */
+export const max = (a, b) => (a > b ? a : b);
+
+/**
+ * Fast version of `Math.min`. Based on
+ *   https://jsperf.com/math-min-max-vs-ternary-vs-if/24 `Math.max` is not
+ *   very fast
+ * @param   {number}  a  Value A
+ * @param   {number}  b  Value B
+ * @return  {boolean}  If `true` A is smaller than B.
+ */
+export const min = (a, b) => (a < b ? a : b);
