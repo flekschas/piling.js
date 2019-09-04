@@ -1,7 +1,7 @@
 const ndarray = require('ndarray');
 
 const createGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
-  const { width, height } = canvas.getBoundingClientRect();
+  const { width } = canvas.getBoundingClientRect();
 
   const myColNum = cols;
   let myRowNum;
@@ -20,11 +20,14 @@ const createGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
   } else if (+rows) {
     if (!myRowHeight) {
       myRowNum = rows;
-      myRowHeight = height / rows;
+      myRowHeight = myColWidth;
     }
   }
 
-  const mat = ndarray(new Int8Array(myColNum * myRowNum), [myRowNum, myColNum]);
+  const mat = ndarray(new Uint16Array(myColNum * myRowNum), [
+    myRowNum,
+    myColNum
+  ]);
 
   for (let i = 0; i < mat.shape[0]; i++) {
     for (let j = 0; j < mat.shape[1]; j++) {

@@ -97,10 +97,12 @@ pileMe.set('items', [
   {
     id: 'test21',
     src: 'data/cat_0020.jpg',
-    position: [12, 8]
+    position: [8, 9]
   }
 ]);
-pileMe.set('grid', [10, 9]);
+pileMe.set('grid', [10, 12]);
 // pileMe.set('itemAlignment', false);
 // pileMe.set('itemSizeRange', [0.8, 0.9]);
-pileMe.set('itemRotated', true);
+// pileMe.set('itemRotated', true);
+// pileMe.set('tempDepileDirection', 'vertical');
+// pileMe.set('tempDepileOneDNum', 10);
