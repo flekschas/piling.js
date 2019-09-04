@@ -60,13 +60,16 @@ const createPile = (item, renderRaf, id, pubSub) => {
       rect.height /= pileGraphics.scale.x;
     }
 
+    // eslint-disable-next-line no-use-before-define
+    updateBBox();
+
     border.clear();
     border.lineStyle(thickness, color, 1);
     border.drawRect(
       // eslint-disable-next-line no-use-before-define
-      calcBBox().minX - pileGraphics.x - thickness,
+      bBox.minX - pileGraphics.x - thickness,
       // eslint-disable-next-line no-use-before-define
-      calcBBox().minY - pileGraphics.y - thickness,
+      bBox.minY - pileGraphics.y - thickness,
       rect.width + 2 * thickness,
       rect.height + 2 * thickness
     );
@@ -89,7 +92,11 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const onPointerOver = () => {
     pileGraphics.isHover = true;
     if (isFocus[0]) {
-      drawBorder(2, 0xfeeb77);
+      if (isTempDepiled[0]) {
+        drawBorder(3, 0xe87a90);
+      } else {
+        drawBorder(2, 0xfeeb77);
+      }
     } else {
       drawBorder(1, 0x91989f);
     }
@@ -134,6 +141,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
     ];
     pileGraphics.alpha = 1;
     pileGraphics.isDragging = true;
+    pileGraphics.beforeDragX = pileGraphics.x;
+    pileGraphics.beforeDragY = pileGraphics.y;
+    // pileGraphics.dragTime = performance.now();
     renderRaf();
   };
 
@@ -154,7 +164,11 @@ const createPile = (item, renderRaf, id, pubSub) => {
       pileGraphics.x = newPosition.x - pileGraphics.draggingMouseOffset[0];
       pileGraphics.y = newPosition.y - pileGraphics.draggingMouseOffset[1];
       pubSub.publish('highlightPile', { pileId: id });
-      drawBorder(2, 0xfeeb77);
+      if (isTempDepiled[0]) {
+        drawBorder(3, 0xe87a90);
+      } else {
+        drawBorder(2, 0xfeeb77);
+      }
       renderRaf();
     }
   };

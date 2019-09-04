@@ -717,50 +717,53 @@ const createPileMe = rootElement => {
     });
   };
 
-  const temporaryDepile = pileId => {
-    const pile = pileInstances.get(pileId);
+  const temporaryDepile = pileIds => {
+    pileIds.forEach(pileId => {
+      const pile = pileInstances.get(pileId);
 
-    if (pile.isTempDepiled[0]) {
-      pileInstances.forEach(otherPile => {
-        otherPile.pileGraphics.alpha = 1;
-      });
-      const length = pile.itemContainer.children.length;
-      pile.itemContainer.removeChildAt(length - 1);
-      pile.isTempDepiled[0] = false;
-    } else {
-      const temporaryDepileContainer = new PIXI.Container();
-      pile.itemContainer.addChild(temporaryDepileContainer);
-
-      pileInstances.forEach(otherPile => {
-        otherPile.pileGraphics.alpha = 0.3;
-      });
-
-      pile.pileGraphics.alpha = 1;
-
-      const {
-        piles,
-        tempDepileDirection,
-        tempDepileOneDNum,
-        orderer
-      } = store.getState();
-
-      const items = [...piles[pileId].items];
-
-      if (items.length < tempDepileOneDNum) {
-        tempDepileOneD(
-          temporaryDepileContainer,
-          pile,
-          tempDepileDirection,
-          items
-        );
+      if (pile.isTempDepiled[0]) {
+        pileInstances.forEach(otherPile => {
+          otherPile.pileGraphics.alpha = 1;
+        });
+        const length = pile.itemContainer.children.length;
+        pile.itemContainer.removeChildAt(length - 1);
+        pile.isTempDepiled[0] = false;
+        pile.border.clear();
+        pile.isFocus[0] = false;
       } else {
-        tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
+        const temporaryDepileContainer = new PIXI.Container();
+        pile.itemContainer.addChild(temporaryDepileContainer);
+
+        pileInstances.forEach(otherPile => {
+          otherPile.pileGraphics.alpha = 0.3;
+        });
+
+        pile.pileGraphics.alpha = 1;
+
+        const {
+          piles,
+          tempDepileDirection,
+          tempDepileOneDNum,
+          orderer
+        } = store.getState();
+
+        const items = [...piles[pileId].items];
+
+        if (items.length < tempDepileOneDNum) {
+          tempDepileOneD(
+            temporaryDepileContainer,
+            pile,
+            tempDepileDirection,
+            items
+          );
+        } else {
+          tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
+        }
+        pile.isTempDepiled[0] = true;
       }
-      pile.isTempDepiled[0] = true;
-    }
-    updateBoundingBox(pileId);
+      updateBoundingBox(pileId);
+    });
     renderRaf();
-    store.dispatch(setTemporaryDepiledPile([]));
   };
 
   let mousePosition = [0, 0];
@@ -938,22 +941,42 @@ const createPileMe = rootElement => {
       stateUpdates.add('layout');
     }
 
+    if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
+      console.log(newState.temporaryDepiledPile);
+      if (newState.temporaryDepiledPile.length !== 0) {
+        if (state.temporaryDepiledPile.length !== 0) {
+          temporaryDepile(state.temporaryDepiledPile);
+        }
+        temporaryDepile(newState.temporaryDepiledPile);
+      } else {
+        temporaryDepile(state.temporaryDepiledPile);
+      }
+    }
+
     if (state.clickedPile !== newState.clickedPile) {
       if (newState.clickedPile.length !== 0) {
         const newPile = pileInstances.get(newState.clickedPile[0]);
-        newPile.drawBorder(2, 0xfeeb77);
+        if (newPile.isTempDepiled[0]) {
+          newPile.drawBorder(3, 0xe87a90);
+        } else {
+          newPile.drawBorder(2, 0xfeeb77);
+        }
         newPile.isFocus[0] = true;
         if (state.clickedPile.length !== 0) {
           if (pileInstances.has(state.clickedPile[0])) {
             const oldPile = pileInstances.get(state.clickedPile[0]);
-            oldPile.border.clear();
-            oldPile.isFocus[0] = false;
+            if (!oldPile.isTempDepiled[0]) {
+              oldPile.border.clear();
+              oldPile.isFocus[0] = false;
+            }
           }
         }
       } else if (pileInstances.has(state.clickedPile[0])) {
         const pile = pileInstances.get(state.clickedPile[0]);
-        pile.border.clear();
-        pile.isFocus[0] = false;
+        if (!pile.isTempDepiled[0]) {
+          pile.border.clear();
+          pile.isFocus[0] = false;
+        }
       }
       renderRaf();
     }
@@ -977,12 +1000,6 @@ const createPileMe = rootElement => {
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
-    if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
-      console.log(newState.temporaryDepiledPile);
-      if (newState.temporaryDepiledPile.length !== 0)
-        temporaryDepile(newState.temporaryDepiledPile[0]);
-    }
-
     if (updates.length !== 0) {
       Promise.all(updates).then(() => {
         if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
@@ -998,27 +1015,28 @@ const createPileMe = rootElement => {
     let hit;
     const pile = pileInstances.get(pileId).pileGraphics;
 
-    const collidePiles = searchIndex
-      .search(pileInstances.get(pileId).calcBBox())
-      .filter(collidePile => collidePile.pileId !== pileId);
+    if (pile.x !== pile.beforeDragX || pile.y !== pile.beforeDragY) {
+      const collidePiles = searchIndex
+        .search(pileInstances.get(pileId).calcBBox())
+        .filter(collidePile => collidePile.pileId !== pileId);
 
-    // only one pile is colliding with the pile
-    if (collidePiles.length === 1) {
-      store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
-      // store.dispatch(setClickedPile([collidePiles[0].pileId]));
-      hit = true;
-    } else {
-      store.dispatch(
-        movePiles([
-          {
-            id: pileId,
-            x: pile.x,
-            y: pile.y
-          }
-        ])
-      );
+      // only one pile is colliding with the pile
+      if (collidePiles.length === 1) {
+        store.dispatch(setTemporaryDepiledPile([]));
+        store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
+        hit = true;
+      } else {
+        store.dispatch(
+          movePiles([
+            {
+              id: pileId,
+              x: pile.x,
+              y: pile.y
+            }
+          ])
+        );
+      }
     }
-
     activePile.removeChildren();
     // if hit = true, then the original pile is destoryed
     if (hit !== true) {
@@ -1132,6 +1150,8 @@ const createPileMe = rootElement => {
   const mouseDblClickHandler = event => {
     getRelativeMousePosition(event);
 
+    const { temporaryDepiledPile, piles } = store.getState();
+
     const result = searchIndex.search({
       minX: mouseDownPosition[0],
       minY: mouseDownPosition[1],
@@ -1140,11 +1160,20 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
-      const { piles } = store.getState();
       if (piles[result[0].pileId].items.length > 1) {
-        store.dispatch(setTemporaryDepiledPile([result[0].pileId]));
+        let temp = [...temporaryDepiledPile];
+        if (temp.includes(result[0].pileId)) {
+          temp = temp.filter(id => id !== result[0].pileId);
+        } else {
+          temp.push(result[0].pileId);
+        }
+        store.dispatch(setTemporaryDepiledPile([...temp]));
         store.dispatch(setClickedPile([]));
+        store.dispatch(setClickedPile([result[0].pileId]));
       }
+    } else {
+      store.dispatch(setTemporaryDepiledPile([]));
+      store.dispatch(setClickedPile([]));
     }
   };
 
