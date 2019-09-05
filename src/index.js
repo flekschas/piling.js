@@ -38,10 +38,6 @@ const ndarray = require('ndarray');
 const createPileMe = rootElement => {
   const scrollContainer = document.createElement('div');
 
-  rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
-  const menu = document.getElementById('contextmenu');
-  const depileBtn = document.getElementById('depile-button');
-
   const canvas = document.createElement('canvas');
 
   const pubSub = createPubSub();
@@ -1078,6 +1074,36 @@ const createPileMe = rootElement => {
     });
   };
 
+  const depileBtnClick = (menu, pileId) => () => {
+    console.log(pileId);
+    store.dispatch(setDepiledPile([pileId]));
+    store.dispatch(setClickedPile([]));
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
+  const tempDepileBtnClick = (menu, pileId) => () => {
+    console.log(pileId);
+    const { piles, temporaryDepiledPile } = store.getState();
+    if (piles[pileId].items.length > 1) {
+      let temp = [...temporaryDepiledPile];
+      if (temp.includes(pileId)) {
+        temp = temp.filter(id => id !== pileId);
+      } else {
+        temp.push(pileId);
+      }
+      store.dispatch(setTemporaryDepiledPile([...temp]));
+      store.dispatch(setClickedPile([]));
+      store.dispatch(setClickedPile([pileId]));
+    }
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
   let mouseClickShift = false;
   let mouseDownPosition = [0, 0];
 
@@ -1108,7 +1134,12 @@ const createPileMe = rootElement => {
   };
 
   const mouseClickHandler = event => {
-    menu.style.display = 'none';
+    const menu = document.getElementById('contextmenu');
+    const style = document.getElementById('style');
+    if (menu) {
+      rootElement.removeChild(menu);
+      rootElement.removeChild(style);
+    }
 
     // const { piles } = store.getState();
 
@@ -1209,18 +1240,53 @@ const createPileMe = rootElement => {
     renderRaf();
   };
 
-  const depileBtnClick = () => {
-    console.log('111');
-  };
-
   const contextmenuHandler = event => {
     event.preventDefault();
 
     getRelativeMousePosition(event);
 
-    menu.style.display = 'block';
-    menu.style.left = `${mousePosition[0]}px`;
-    menu.style.top = `${mousePosition[1]}px`;
+    const result = searchIndex.search({
+      minX: mousePosition[0],
+      minY: mousePosition[1],
+      maxX: mousePosition[0] + 1,
+      maxY: mousePosition[1] + 1
+    });
+
+    if (result.length !== 0) {
+      rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
+      const menu = document.getElementById('contextmenu');
+      const depileBtn = document.getElementById('depile-button');
+      const tempDepileBtn = document.getElementById('temp-depile-button');
+
+      const pile = pileInstances.get(result[0].pileId);
+      if (pile.itemContainer.children.length === 1) {
+        depileBtn.setAttribute('disabled', '');
+        depileBtn.style.opacity = 0.3;
+        depileBtn.style.cursor = 'not-allowed';
+        tempDepileBtn.setAttribute('disabled', '');
+        tempDepileBtn.style.opacity = 0.3;
+        tempDepileBtn.style.cursor = 'not-allowed';
+      } else if (pile.isTempDepiled[0]) {
+        depileBtn.setAttribute('disabled', '');
+        depileBtn.style.opacity = 0.3;
+        depileBtn.style.cursor = 'not-allowed';
+        tempDepileBtn.innerHTML = 'close temp depile';
+      }
+      menu.style.display = 'block';
+      menu.style.left = `${mousePosition[0]}px`;
+      menu.style.top = `${mousePosition[1]}px`;
+
+      depileBtn.addEventListener(
+        'click',
+        depileBtnClick(menu, result[0].pileId),
+        false
+      );
+      tempDepileBtn.addEventListener(
+        'click',
+        tempDepileBtnClick(menu, result[0].pileId),
+        false
+      );
+    }
   };
 
   const init = () => {
@@ -1238,8 +1304,6 @@ const createPileMe = rootElement => {
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
     canvas.addEventListener('wheel', mouseWheelHandler, false);
-
-    depileBtn.addEventListener('click', depileBtnClick, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
@@ -1280,8 +1344,6 @@ const createPileMe = rootElement => {
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
-
-    depileBtn.removeEventListener('click', depileBtnClick, false);
 
     root.destroy(false);
     renderer.destroy(true);

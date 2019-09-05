@@ -138,9 +138,47 @@ export const max = (a, b) => (a > b ? a : b);
 export const min = (a, b) => (a < b ? a : b);
 
 export const contextMenuTemplate =
-  "<div id = 'contextmenu' style = 'position: absolute; display: none'>" +
+  "<style id = 'style'>" +
+  '.contextmenu {' +
+  'background-color: #fff;' +
+  'position: absolute;' +
+  'margin: 5px;' +
+  'display: none;' +
+  'z-index: 2;' +
+  '}' +
+  '.contextmenu ul {' +
+  'list-style: none;' +
+  'padding: 0;' +
+  'margin: 0' +
+  '}' +
+  '.contextmenu button {' +
+  'height: 40px; ' +
+  'width: 150px;' +
+  'font-size: 15px;' +
+  'color: black;' +
+  'background-color: white;' +
+  'cursor: pointer;' +
+  'outline: none' +
+  '}' +
+  '.contextmenu button:hover {' +
+  'background-color: #555555;' +
+  'color: white;' +
+  '}' +
+  '.contextmenu button:active {' +
+  'transform: translateY(1px);' +
+  '}' +
+  '</style>' +
+  "<nav class = 'contextmenu' id = 'contextmenu'>" +
   "<ul style = 'list-style: none; padding: 0;'>" +
   '<li>' +
-  "<button id = 'depile-button' style = 'height: 40px; width: 150px; font-size: 20px;'>" +
+  "<button id = 'depile-button'>" +
   'depile' +
-  '</button></li></ul></div>';
+  '</button>' +
+  '</li>' +
+  '<li>' +
+  "<button id = 'temp-depile-button'>" +
+  'temp depile' +
+  '</button>' +
+  '</li>' +
+  '</ul>' +
+  '</nav>';
