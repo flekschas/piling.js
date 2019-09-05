@@ -136,3 +136,6 @@ export const max = (a, b) => (a > b ? a : b);
  * @return  {boolean}  If `true` A is smaller than B.
  */
 export const min = (a, b) => (a < b ? a : b);
+
+export const contextMenuTemplate =
+  "<div id = 'contextmenu' style = 'position: absolute; display: none'><ul style = 'list-style: none; padding: 0;'><li><button id = 'depile-button' style = 'height: 40px; width: 150px; font-size: 20px;'>depile</button></li></ul></div>";

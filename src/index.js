@@ -26,7 +26,7 @@ import createStore, {
   settempDepileOneDNum
 } from './store';
 
-import { dist, getBBox, isPileInPolygon } from './utils';
+import { dist, getBBox, isPileInPolygon, contextMenuTemplate } from './utils';
 
 import createPile from './pile';
 import createGrid from './grid';
@@ -38,7 +38,12 @@ const ndarray = require('ndarray');
 const createPileMe = rootElement => {
   const scrollContainer = document.createElement('div');
 
+  rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
+  const menu = document.getElementById('contextmenu');
+  const depileBtn = document.getElementById('depile-button');
+
   const canvas = document.createElement('canvas');
+
   const pubSub = createPubSub();
   const store = createStore();
 
@@ -861,7 +866,7 @@ const createPileMe = rootElement => {
       lasso.closePath();
       lasso.clear();
       lassoFill.clear();
-      render();
+      renderRaf();
       isLasso = false;
     }
     lassoPos = [];
@@ -1077,7 +1082,7 @@ const createPileMe = rootElement => {
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
-    render();
+    renderRaf();
 
     mouseDownPosition = getRelativeMousePosition(event);
 
@@ -1103,6 +1108,8 @@ const createPileMe = rootElement => {
   };
 
   const mouseClickHandler = event => {
+    menu.style.display = 'none';
+
     // const { piles } = store.getState();
 
     getRelativeMousePosition(event);
@@ -1202,6 +1209,20 @@ const createPileMe = rootElement => {
     renderRaf();
   };
 
+  const depileBtnClick = () => {
+    console.log('111');
+  };
+
+  const contextmenuHandler = event => {
+    event.preventDefault();
+
+    getRelativeMousePosition(event);
+
+    menu.style.display = 'block';
+    menu.style.left = `${mousePosition[0]}px`;
+    menu.style.top = `${mousePosition[1]}px`;
+  };
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -1211,11 +1232,14 @@ const createPileMe = rootElement => {
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
+    canvas.addEventListener('contextmenu', contextmenuHandler, false);
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
     canvas.addEventListener('wheel', mouseWheelHandler, false);
+
+    depileBtn.addEventListener('click', depileBtnClick, false);
 
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
@@ -1250,11 +1274,14 @@ const createPileMe = rootElement => {
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
+    canvas.removeEventListener('contextmenu', contextmenuHandler, false);
     canvas.removeEventListener('mouseenter', () => {}, false);
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
+
+    depileBtn.removeEventListener('click', depileBtnClick, false);
 
     root.destroy(false);
     renderer.destroy(true);
