@@ -65,7 +65,7 @@ const createPileMe = rootElement => {
   stage.sortableChildren = true;
 
   const gridGfx = new PIXI.Graphics();
-  root.addChild(gridGfx);
+  stage.addChild(gridGfx);
 
   root.addChild(stage);
 
@@ -239,17 +239,6 @@ const createPileMe = rootElement => {
     layout = createGrid(canvas, grid);
     updateScrollContainer();
     gridMat = layout.mat;
-
-    // gridGfx.clear();
-    // gridGfx.lineStyle(2, 0xffd900, 1);
-    // for(let i = 0; i < layout.myColNum; i++){
-    //   gridGfx.moveTo(i * layout.myColWidth, 0);
-    //   gridGfx.lineTo(i * layout.myColWidth, layout.myRowNum * layout.myRowHeight);
-    // }
-    // for(let i = 0; i < layout.myRowNum; i++){
-    //   gridGfx.moveTo(0, i * layout.myRowHeight);
-    //   gridGfx.lineTo(layout.myColNum * layout.myColWidth, i * layout.myRowHeight);
-    // }
   };
 
   const updateBoundingBox = pileId => {
@@ -322,6 +311,7 @@ const createPileMe = rootElement => {
 
     stage.removeChildren();
 
+    stage.addChild(gridGfx);
     stage.addChild(lassoBgContainer);
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
@@ -1075,7 +1065,6 @@ const createPileMe = rootElement => {
   };
 
   const depileBtnClick = (menu, pileId) => () => {
-    console.log(pileId);
     store.dispatch(setDepiledPile([pileId]));
     store.dispatch(setClickedPile([]));
     menu.style.display = 'none';
@@ -1085,7 +1074,6 @@ const createPileMe = rootElement => {
   };
 
   const tempDepileBtnClick = (menu, pileId) => () => {
-    console.log(pileId);
     const { piles, temporaryDepiledPile } = store.getState();
     if (piles[pileId].items.length > 1) {
       let temp = [...temporaryDepiledPile];
@@ -1104,24 +1092,58 @@ const createPileMe = rootElement => {
     rootElement.removeChild(menu);
   };
 
+  let isGridShown = false;
+  const gridBtnClick = menu => () => {
+    if (!isGridShown) {
+      gridGfx.clear();
+      gridGfx.lineStyle(2, 0xffd900, 1);
+      for (let i = 0; i < layout.myColNum; i++) {
+        gridGfx.moveTo(i * layout.myColWidth, 0);
+        gridGfx.lineTo(
+          i * layout.myColWidth,
+          layout.myRowNum * layout.myRowHeight
+        );
+      }
+      for (let i = 0; i < layout.myRowNum; i++) {
+        gridGfx.moveTo(0, i * layout.myRowHeight);
+        gridGfx.lineTo(
+          layout.myColNum * layout.myColWidth,
+          i * layout.myRowHeight
+        );
+      }
+      isGridShown = true;
+    } else {
+      gridGfx.clear();
+      isGridShown = false;
+    }
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+
+    renderRaf();
+  };
+
   let mouseClickShift = false;
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
-    renderRaf();
+    if (event.button === 0) {
+      renderRaf();
 
-    mouseDownPosition = getRelativeMousePosition(event);
+      mouseDownPosition = getRelativeMousePosition(event);
 
-    // whether mouse click on any pile
-    const result = searchIndex.collides({
-      minX: mouseDownPosition[0],
-      minY: mouseDownPosition[1],
-      maxX: mouseDownPosition[0] + 1,
-      maxY: mouseDownPosition[1] + 1
-    });
+      // whether mouse click on any pile
+      const result = searchIndex.collides({
+        minX: mouseDownPosition[0],
+        minY: mouseDownPosition[1],
+        maxX: mouseDownPosition[0] + 1,
+        maxY: mouseDownPosition[1] + 1
+      });
 
-    if (!result) {
-      mouseDown = true;
+      if (!result) {
+        mouseDown = true;
+      }
     }
   };
 
@@ -1241,51 +1263,74 @@ const createPileMe = rootElement => {
   };
 
   const contextmenuHandler = event => {
-    event.preventDefault();
-
     getRelativeMousePosition(event);
 
-    const result = searchIndex.search({
-      minX: mousePosition[0],
-      minY: mousePosition[1],
-      maxX: mousePosition[0] + 1,
-      maxY: mousePosition[1] + 1
-    });
+    if (!event.altKey) {
+      event.preventDefault();
 
-    if (result.length !== 0) {
       rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
       const menu = document.getElementById('contextmenu');
       const depileBtn = document.getElementById('depile-button');
       const tempDepileBtn = document.getElementById('temp-depile-button');
+      const gridBtn = document.getElementById('grid-button');
 
-      const pile = pileInstances.get(result[0].pileId);
-      if (pile.itemContainer.children.length === 1) {
+      const result = searchIndex.search({
+        minX: mousePosition[0],
+        minY: mousePosition[1],
+        maxX: mousePosition[0] + 1,
+        maxY: mousePosition[1] + 1
+      });
+      if (result.length !== 0) {
+        gridBtn.setAttribute('disabled', '');
+        gridBtn.style.opacity = 0.3;
+        gridBtn.style.cursor = 'not-allowed';
+
+        const pile = pileInstances.get(result[0].pileId);
+        if (pile.itemContainer.children.length === 1) {
+          depileBtn.setAttribute('disabled', '');
+          depileBtn.style.opacity = 0.3;
+          depileBtn.style.cursor = 'not-allowed';
+          tempDepileBtn.setAttribute('disabled', '');
+          tempDepileBtn.style.opacity = 0.3;
+          tempDepileBtn.style.cursor = 'not-allowed';
+        } else if (pile.isTempDepiled[0]) {
+          depileBtn.setAttribute('disabled', '');
+          depileBtn.style.opacity = 0.3;
+          depileBtn.style.cursor = 'not-allowed';
+          tempDepileBtn.innerHTML = 'close temp depile';
+        }
+
+        menu.style.display = 'block';
+        menu.style.left = `${mousePosition[0]}px`;
+        menu.style.top = `${mousePosition[1]}px`;
+
+        depileBtn.addEventListener(
+          'click',
+          depileBtnClick(menu, result[0].pileId),
+          false
+        );
+        tempDepileBtn.addEventListener(
+          'click',
+          tempDepileBtnClick(menu, result[0].pileId),
+          false
+        );
+      } else {
         depileBtn.setAttribute('disabled', '');
         depileBtn.style.opacity = 0.3;
         depileBtn.style.cursor = 'not-allowed';
         tempDepileBtn.setAttribute('disabled', '');
         tempDepileBtn.style.opacity = 0.3;
         tempDepileBtn.style.cursor = 'not-allowed';
-      } else if (pile.isTempDepiled[0]) {
-        depileBtn.setAttribute('disabled', '');
-        depileBtn.style.opacity = 0.3;
-        depileBtn.style.cursor = 'not-allowed';
-        tempDepileBtn.innerHTML = 'close temp depile';
-      }
-      menu.style.display = 'block';
-      menu.style.left = `${mousePosition[0]}px`;
-      menu.style.top = `${mousePosition[1]}px`;
 
-      depileBtn.addEventListener(
-        'click',
-        depileBtnClick(menu, result[0].pileId),
-        false
-      );
-      tempDepileBtn.addEventListener(
-        'click',
-        tempDepileBtnClick(menu, result[0].pileId),
-        false
-      );
+        if (isGridShown) {
+          gridBtn.innerHTML = 'hide grid';
+        }
+        menu.style.display = 'block';
+        menu.style.left = `${mousePosition[0]}px`;
+        menu.style.top = `${mousePosition[1]}px`;
+
+        gridBtn.addEventListener('click', gridBtnClick(menu), false);
+      }
     }
   };
 

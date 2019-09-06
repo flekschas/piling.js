@@ -180,5 +180,10 @@ export const contextMenuTemplate =
   'temp depile' +
   '</button>' +
   '</li>' +
+  '<li>' +
+  "<button id = 'grid-button'>" +
+  'show grid' +
+  '</button>' +
+  '</li>' +
   '</ul>' +
   '</nav>';
