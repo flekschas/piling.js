@@ -2,7 +2,12 @@ import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 
 import createOrderer from './orderer';
-import { camelToConst, deepClone } from './utils';
+import {
+  camelToConst,
+  deepClone,
+  cubicInOut,
+  interpolateNumber
+} from './utils';
 
 // import freeze from 'redux-freeze';
 
@@ -116,6 +121,18 @@ const tempDepileOneDNum = setReducer('tempDepileOneDNum', 6);
 export const settempDepileOneDNum = newtempDepileOneDNum => ({
   type: 'SET_TEMP_DEPILE_ONE_D_NUM',
   payload: { tempDepileOneDNum: newtempDepileOneDNum }
+});
+
+const easingFunc = setReducer('easingFunc', cubicInOut);
+export const setEasingFunc = newEasingFunc => ({
+  type: 'SET_EASING_FUNC',
+  payload: { easingFunc: newEasingFunc }
+});
+
+const interpolator = setReducer('interpolator', interpolateNumber);
+export const setInterpolator = newInterpolator => ({
+  type: 'SET_INTERPOLATOR',
+  payload: { interpolator: newInterpolator }
 });
 
 // reducer
@@ -257,7 +274,9 @@ const createStore = () => {
     depiledPile,
     temporaryDepiledPile,
     tempDepileDirection,
-    tempDepileOneDNum
+    tempDepileOneDNum,
+    easingFunc,
+    interpolator
   });
 
   const rootReducer = (state, action) => {

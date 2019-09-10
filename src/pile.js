@@ -1,5 +1,8 @@
 import * as PIXI from 'pixi.js';
 
+import createTweener from './tweener';
+import { interpolateNumber } from './utils';
+
 const MAX_SCALE = 5;
 
 const createPile = (item, renderRaf, id, pubSub) => {
@@ -278,6 +281,37 @@ const createPile = (item, renderRaf, id, pubSub) => {
     return false;
   };
 
+  let scaleUp = false;
+  let scaleTweener;
+  const animateScale = () => {
+    let duration = 250;
+    if (scaleTweener) {
+      pubSub.publish('cancelAnimation', scaleTweener);
+      const Dt = scaleTweener.getDt();
+      if (Dt < duration && scaleUp) {
+        duration = Dt;
+      }
+    }
+    scaleTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateNumber,
+      endValue: scaleUp ? 1 : MAX_SCALE,
+      getter: () => {
+        return pileGraphics.scale.x;
+      },
+      setter: newScale => {
+        pileGraphics.scale.x = newScale;
+        pileGraphics.scale.y = newScale;
+      },
+      onDone: () => {
+        pubSub.publish('updateBBox', id);
+      }
+    });
+    pubSub.publish('animate', scaleTweener);
+    scaleUp = !scaleUp;
+  };
+
   const init = () => {
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
@@ -329,7 +363,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     positionItems,
     isFocus,
     isTempDepiled,
-    scale
+    scale,
+    animateScale
   };
 };
 

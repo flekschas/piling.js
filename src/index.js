@@ -5,6 +5,7 @@ import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
 import { scaleLinear } from 'd3-scale';
 import normalizeWheel from 'normalize-wheel';
+import createAnimator from './animator';
 
 import createStore, {
   initPiles,
@@ -23,7 +24,9 @@ import createStore, {
   setDepiledPile,
   setTemporaryDepiledPile,
   setTempDepileDirection,
-  settempDepileOneDNum
+  settempDepileOneDNum,
+  setEasingFunc,
+  setInterpolator
 } from './store';
 
 import { dist, getBBox, isPileInPolygon, contextMenuTemplate } from './utils';
@@ -117,6 +120,12 @@ const createPileMe = rootElement => {
       case 'tempDepileOneDNum':
         return state.tempDepileOneDNum;
 
+      case 'easingFunc':
+        return state.easingFunc;
+
+      case 'interpolator':
+        return state.interpolator;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -180,6 +189,14 @@ const createPileMe = rootElement => {
         actions.push(settempDepileOneDNum(value));
         break;
 
+      case 'easingFunc':
+        actions.push(setEasingFunc(value));
+        break;
+
+      case 'interpolator':
+        actions.push(setInterpolator(value));
+        break;
+
       default:
         console.warn(`Unknown property "${property}"`);
     }
@@ -226,6 +243,16 @@ const createPileMe = rootElement => {
     });
   };
 
+  const updateBoundingBox = pileId => {
+    const pile = pileInstances.get(pileId);
+
+    searchIndex.remove(pile.bBox, (a, b) => {
+      return a.pileId === b.pileId;
+    });
+    pile.updateBBox();
+    searchIndex.insert(pile.bBox);
+  };
+
   let layout;
 
   const updateScrollContainer = () => {
@@ -239,16 +266,6 @@ const createPileMe = rootElement => {
     layout = createGrid(canvas, grid);
     updateScrollContainer();
     gridMat = layout.mat;
-  };
-
-  const updateBoundingBox = pileId => {
-    const pile = pileInstances.get(pileId);
-
-    searchIndex.remove(pile.bBox, (a, b) => {
-      return a.pileId === b.pileId;
-    });
-    pile.updateBBox();
-    searchIndex.insert(pile.bBox);
   };
 
   const scaleItems = () => {
@@ -352,6 +369,8 @@ const createPileMe = rootElement => {
           [x, y] = getPosition(id);
         }
 
+        layout.myRowNum = y + 1;
+
         x *= layout.myColWidth;
         y *= layout.myRowHeight;
 
@@ -368,6 +387,7 @@ const createPileMe = rootElement => {
       });
       if (movingPiles.length !== 0) store.dispatch(movePiles(movingPiles));
       createRBush();
+      updateScrollContainer();
       renderRaf();
     }
   };
@@ -652,6 +672,23 @@ const createPileMe = rootElement => {
     store.dispatch(setDepiledPile([]));
   };
 
+  const depileToOriginPos = pileId => {
+    const { piles } = store.getState();
+
+    const depiledPiles = [];
+    const items = [...piles[pileId].items];
+    const itemPositions = [];
+    items.forEach(itemId => {
+      itemPositions.push([...renderedItems.get(itemId).originalPosition]);
+    });
+    const depiledPile = {
+      items,
+      itemPositions
+    };
+    depiledPiles.push(depiledPile);
+    store.dispatch(depilePiles(depiledPiles));
+  };
+
   const tempDepileOneD = (
     temporaryDepileContainer,
     pile,
@@ -721,6 +758,8 @@ const createPileMe = rootElement => {
         pile.isTempDepiled[0] = false;
         pile.border.clear();
         pile.isFocus[0] = false;
+        // eslint-disable-next-line no-use-before-define
+        handleHighlightPile({ pileId });
       } else {
         const temporaryDepileContainer = new PIXI.Container();
         pile.itemContainer.addChild(temporaryDepileContainer);
@@ -843,7 +882,7 @@ const createPileMe = rootElement => {
   const lassoEnd = () => {
     if (isLasso) {
       const pilesInLasso = findPilesInLasso(lassoPosFlat);
-      console.log(pilesInLasso);
+      console.log('lasso', pilesInLasso);
       if (pilesInLasso.length > 1) {
         // mergeMultiPiles(pilesInLasso);
         store.dispatch(setClickedPile([]));
@@ -867,6 +906,8 @@ const createPileMe = rootElement => {
     }
     renderRaf();
   };
+
+  const animator = createAnimator(render);
 
   let stateUpdates;
 
@@ -933,7 +974,7 @@ const createPileMe = rootElement => {
     }
 
     if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
-      console.log(newState.temporaryDepiledPile);
+      console.log('temp depile', newState.temporaryDepiledPile);
       if (newState.temporaryDepiledPile.length !== 0) {
         if (state.temporaryDepiledPile.length !== 0) {
           temporaryDepile(state.temporaryDepiledPile);
@@ -987,7 +1028,7 @@ const createPileMe = rootElement => {
     }
 
     if (state.depiledPile !== newState.depiledPile) {
-      console.log(newState.depiledPile);
+      console.log('depile', newState.depiledPile);
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
@@ -1011,9 +1052,10 @@ const createPileMe = rootElement => {
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
 
+      console.log('collide', collidePiles);
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        store.dispatch(setTemporaryDepiledPile([]));
+        // store.dispatch(setTemporaryDepiledPile([]));
         store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
         hit = true;
       } else {
@@ -1065,7 +1107,8 @@ const createPileMe = rootElement => {
   };
 
   const depileBtnClick = (menu, pileId) => () => {
-    store.dispatch(setDepiledPile([pileId]));
+    // store.dispatch(setDepiledPile([pileId]));
+    depileToOriginPos(pileId);
     store.dispatch(setClickedPile([]));
     menu.style.display = 'none';
     const style = document.getElementById('style');
@@ -1124,7 +1167,6 @@ const createPileMe = rootElement => {
     renderRaf();
   };
 
-  let mouseClickShift = false;
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
@@ -1152,7 +1194,6 @@ const createPileMe = rootElement => {
       lassoEnd();
       mouseDown = false;
     }
-    if (mouseClickShift) mouseClickShift = false;
   };
 
   const mouseClickHandler = event => {
@@ -1163,37 +1204,31 @@ const createPileMe = rootElement => {
       rootElement.removeChild(style);
     }
 
-    // const { piles } = store.getState();
-
     getRelativeMousePosition(event);
 
-    mouseClickShift = event.shiftKey;
-
-    const result = searchIndex.search({
-      minX: mouseDownPosition[0],
-      minY: mouseDownPosition[1],
-      maxX: mouseDownPosition[0] + 1,
-      maxY: mouseDownPosition[1] + 1
+    const results = searchIndex.search({
+      minX: mousePosition[0],
+      minY: mousePosition[1],
+      maxX: mousePosition[0] + 1,
+      maxY: mousePosition[1] + 1
     });
 
-    if (result.length !== 0) {
-      if (mouseClickShift) {
-        // const depiledPiles = [];
-        // const items = [...piles[result[0].pileId].items];
-        // const itemPositions = [];
-        // items.forEach(itemId => {
-        //   itemPositions.push([...renderedItems.get(itemId).originalPosition]);
-        // });
-        // const depiledPile = {
-        //   items,
-        //   itemPositions
-        // };
-        // depiledPiles.push(depiledPile);
-        // store.dispatch(depilePiles(depiledPiles));
-        store.dispatch(setDepiledPile([result[0].pileId]));
+    if (results.length !== 0) {
+      if (event.shiftKey) {
+        depileToOriginPos(results[0].pileId);
+        // store.dispatch(setDepiledPile([results[0].pileId]));
         store.dispatch(setClickedPile([]));
+      } else if (event.altKey) {
+        results.forEach(result => {
+          const pile = pileInstances.get(result.pileId);
+          if (pile.pileGraphics.isHover) pile.animateScale();
+        });
       } else {
-        store.dispatch(setClickedPile([result[0].pileId]));
+        results.forEach(result => {
+          const pile = pileInstances.get(result.pileId);
+          if (pile.pileGraphics.isHover)
+            store.dispatch(setClickedPile([result.pileId]));
+        });
       }
     } else {
       store.dispatch(setClickedPile([]));
@@ -1248,12 +1283,15 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
-      event.preventDefault();
-      store.dispatch(setScaledPile([result[0].pileId]));
-      const normalizedDeltaY = normalizeWheel(event).pixelY;
-      scalePile(result[0].pileId, normalizedDeltaY);
-      const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
-      activePile.addChild(pileGraphics);
+      if (event.altKey) {
+        event.preventDefault();
+        store.dispatch(setScaledPile([result[0].pileId]));
+        const normalizedDeltaY = normalizeWheel(event).pixelY;
+        scalePile(result[0].pileId, normalizedDeltaY);
+        scalePile(result[0].pileId);
+        const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
+        activePile.addChild(pileGraphics);
+      }
     }
   };
 
@@ -1334,6 +1372,19 @@ const createPileMe = rootElement => {
     }
   };
 
+  const handleAnimate = tweener => {
+    tweener.setEasing(store.getState().easingFunc);
+    animator.add(tweener);
+  };
+
+  const handleCancelAnimation = tweener => {
+    animator.cancel(tweener);
+  };
+
+  const handleUpdateBBox = pileId => {
+    updateBoundingBox(pileId);
+  };
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -1353,6 +1404,9 @@ const createPileMe = rootElement => {
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
     pubSub.subscribe('highlightPile', handleHighlightPile);
+    pubSub.subscribe('animate', handleAnimate);
+    pubSub.subscribe('cancelAnimation', handleCancelAnimation);
+    pubSub.subscribe('updateBBox', handleUpdateBBox);
 
     store.subscribe(updated);
     rootElement.appendChild(canvas);

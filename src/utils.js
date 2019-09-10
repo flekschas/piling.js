@@ -137,6 +137,19 @@ export const max = (a, b) => (a > b ? a : b);
  */
 export const min = (a, b) => (a < b ? a : b);
 
+export const cubicInOut = t => {
+  // eslint-disable-next-line no-param-reassign
+  t *= 2;
+  // eslint-disable-next-line no-param-reassign
+  const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
+  return p;
+};
+
+export const interpolateNumber = (a, b) => p => a * (1 - p) + b * p;
+
+export const interpolateVector = (a, b) => p =>
+  a.map((x, i) => interpolateNumber(x, b[i])(p));
+
 export const contextMenuTemplate =
   "<style id = 'style'>" +
   '.contextmenu {' +
