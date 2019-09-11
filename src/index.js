@@ -29,11 +29,18 @@ import createStore, {
   setInterpolator
 } from './store';
 
-import { dist, getBBox, isPileInPolygon, contextMenuTemplate } from './utils';
+import {
+  dist,
+  getBBox,
+  isPileInPolygon,
+  contextMenuTemplate,
+  interpolateVector
+} from './utils';
 
 import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
+import createTweener from './tweener';
 
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
@@ -213,6 +220,8 @@ const createPileMe = rootElement => {
   };
 
   const renderRaf = withRaf(render);
+
+  const animator = createAnimator(render);
 
   const renderedItems = new Map();
   const pileInstances = new Map();
@@ -879,14 +888,48 @@ const createPileMe = rootElement => {
     return pilesInPolygon;
   };
 
+  const animateMerge = pileIds => {
+    const { piles } = store.getState();
+    let centerX = 0;
+    let centerY = 0;
+    pileIds.forEach(id => {
+      centerX += piles[id].x;
+      centerY += piles[id].y;
+    });
+    centerX /= pileIds.length;
+    centerY /= pileIds.length;
+
+    pileIds.forEach((id, index) => {
+      const pile = pileInstances.get(id);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue: [centerX, centerY],
+        getter: () => {
+          return [pile.pileGraphics.x, pile.pileGraphics.y];
+        },
+        setter: newValue => {
+          pile.pileGraphics.x = newValue[0];
+          pile.pileGraphics.y = newValue[1];
+        },
+        onDone: () => {
+          if (index === pileIds.length - 1) {
+            store.dispatch(mergePiles(pileIds, false));
+          }
+        }
+      });
+      animator.add(tweener);
+    });
+  };
+
   const lassoEnd = () => {
     if (isLasso) {
       const pilesInLasso = findPilesInLasso(lassoPosFlat);
       console.log('lasso', pilesInLasso);
       if (pilesInLasso.length > 1) {
-        // mergeMultiPiles(pilesInLasso);
         store.dispatch(setClickedPile([]));
-        store.dispatch(mergePiles(pilesInLasso, false));
+        animateMerge(pilesInLasso);
       }
       lasso.closePath();
       lasso.clear();
@@ -906,8 +949,6 @@ const createPileMe = rootElement => {
     }
     renderRaf();
   };
-
-  const animator = createAnimator(render);
 
   let stateUpdates;
 
@@ -1052,7 +1093,6 @@ const createPileMe = rootElement => {
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
 
-      console.log('collide', collidePiles);
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
         // store.dispatch(setTemporaryDepiledPile([]));
@@ -1206,33 +1246,39 @@ const createPileMe = rootElement => {
 
     getRelativeMousePosition(event);
 
-    const results = searchIndex.search({
-      minX: mousePosition[0],
-      minY: mousePosition[1],
-      maxX: mousePosition[0] + 1,
-      maxY: mousePosition[1] + 1
-    });
+    // click event: only when mouse down pos and mouse up pos are the same
+    if (
+      mousePosition[0] === mouseDownPosition[0] &&
+      mousePosition[1] === mouseDownPosition[1]
+    ) {
+      const results = searchIndex.search({
+        minX: mousePosition[0],
+        minY: mousePosition[1],
+        maxX: mousePosition[0] + 1,
+        maxY: mousePosition[1] + 1
+      });
 
-    if (results.length !== 0) {
-      if (event.shiftKey) {
-        depileToOriginPos(results[0].pileId);
-        // store.dispatch(setDepiledPile([results[0].pileId]));
-        store.dispatch(setClickedPile([]));
-      } else if (event.altKey) {
-        results.forEach(result => {
-          const pile = pileInstances.get(result.pileId);
-          if (pile.pileGraphics.isHover) pile.animateScale();
-        });
+      if (results.length !== 0) {
+        if (event.shiftKey) {
+          depileToOriginPos(results[0].pileId);
+          // store.dispatch(setDepiledPile([results[0].pileId]));
+          store.dispatch(setClickedPile([]));
+        } else if (event.altKey) {
+          results.forEach(result => {
+            const pile = pileInstances.get(result.pileId);
+            if (pile.pileGraphics.isHover) pile.animateScale();
+          });
+        } else {
+          results.forEach(result => {
+            const pile = pileInstances.get(result.pileId);
+            if (pile.pileGraphics.isHover)
+              store.dispatch(setClickedPile([result.pileId]));
+          });
+        }
       } else {
-        results.forEach(result => {
-          const pile = pileInstances.get(result.pileId);
-          if (pile.pileGraphics.isHover)
-            store.dispatch(setClickedPile([result.pileId]));
-        });
+        store.dispatch(setClickedPile([]));
+        store.dispatch(setScaledPile([]));
       }
-    } else {
-      store.dispatch(setClickedPile([]));
-      store.dispatch(setScaledPile([]));
     }
   };
 
