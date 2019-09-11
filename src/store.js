@@ -2,12 +2,7 @@ import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 
 import createOrderer from './orderer';
-import {
-  camelToConst,
-  deepClone,
-  cubicInOut,
-  interpolateNumber
-} from './utils';
+import { camelToConst, deepClone, cubicInOut } from './utils';
 
 // import freeze from 'redux-freeze';
 
@@ -97,6 +92,13 @@ export const setScaledPile = newScaledPile => ({
   payload: { scaledPile: newScaledPile }
 });
 
+// 'originalPos' and 'closestPos'
+const depileMethod = setReducer('depileMethod', 'originalPos');
+export const setDepileMethod = newDepileMethod => ({
+  type: 'SET_DEPILE_METHOD',
+  payload: { depileMethod: newDepileMethod }
+});
+
 const depiledPile = setReducer('depiledPile', []);
 export const setDepiledPile = newDepiledPile => ({
   type: 'SET_DEPILED_PILE',
@@ -116,7 +118,6 @@ export const setTempDepileDirection = newTempDepileDirection => ({
   payload: { tempDepileDirection: newTempDepileDirection }
 });
 
-// 'horizontal' or 'vertical'
 const tempDepileOneDNum = setReducer('tempDepileOneDNum', 6);
 export const settempDepileOneDNum = newtempDepileOneDNum => ({
   type: 'SET_TEMP_DEPILE_ONE_D_NUM',
@@ -127,12 +128,6 @@ const easingFunc = setReducer('easingFunc', cubicInOut);
 export const setEasingFunc = newEasingFunc => ({
   type: 'SET_EASING_FUNC',
   payload: { easingFunc: newEasingFunc }
-});
-
-const interpolator = setReducer('interpolator', interpolateNumber);
-export const setInterpolator = newInterpolator => ({
-  type: 'SET_INTERPOLATOR',
-  payload: { interpolator: newInterpolator }
 });
 
 // reducer
@@ -219,14 +214,12 @@ const piles = (previousState = [], action) => {
       const newState = [...previousState];
 
       depilePiles.forEach(pile => {
-        pile.items.forEach((itemId, index) => {
-          const x = pile.itemPositions[index][0];
-          const y = pile.itemPositions[index][1];
+        pile.items.forEach(itemId => {
           newState[itemId] = {
             ...newState[itemId],
             items: [itemId],
-            x,
-            y
+            x: pile.x,
+            y: pile.y
           };
         });
       });
@@ -276,7 +269,7 @@ const createStore = () => {
     tempDepileDirection,
     tempDepileOneDNum,
     easingFunc,
-    interpolator
+    depileMethod
   });
 
   const rootReducer = (state, action) => {
