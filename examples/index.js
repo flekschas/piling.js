@@ -108,3 +108,4 @@ pileMe.set('grid', [10]);
 // pileMe.set('itemRotated', true);
 // pileMe.set('tempDepileDirection', 'vertical');
 // pileMe.set('tempDepileOneDNum', 10);
+// pileMe.set('depileMethod', 'cloestPos');
