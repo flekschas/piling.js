@@ -5,6 +5,7 @@ import * as RBush from 'rbush';
 import withThrottle from 'lodash-es/throttle';
 import { scaleLinear } from 'd3-scale';
 import normalizeWheel from 'normalize-wheel';
+import createAnimator from './animator';
 
 import createStore, {
   initPiles,
@@ -21,16 +22,25 @@ import createStore, {
   setClickedPile,
   setScaledPile,
   setDepiledPile,
+  setDepileMethod,
   setTemporaryDepiledPile,
   setTempDepileDirection,
-  settempDepileOneDNum
+  settempDepileOneDNum,
+  setEasingFunc
 } from './store';
 
-import { dist, getBBox, isPileInPolygon } from './utils';
+import {
+  dist,
+  getBBox,
+  isPileInPolygon,
+  contextMenuTemplate,
+  interpolateVector
+} from './utils';
 
 import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
+import createTweener from './tweener';
 
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
@@ -39,6 +49,7 @@ const createPileMe = rootElement => {
   const scrollContainer = document.createElement('div');
 
   const canvas = document.createElement('canvas');
+
   const pubSub = createPubSub();
   const store = createStore();
 
@@ -51,6 +62,7 @@ const createPileMe = rootElement => {
     height: rootElement.getBoundingClientRect().height,
     view: canvas,
     antialias: true,
+    // backgroundColor: 0x787878,
     transparent: true,
     resolution: window.devicePixelRatio,
     autoResize: true
@@ -64,7 +76,7 @@ const createPileMe = rootElement => {
   stage.sortableChildren = true;
 
   const gridGfx = new PIXI.Graphics();
-  root.addChild(gridGfx);
+  stage.addChild(gridGfx);
 
   root.addChild(stage);
 
@@ -107,6 +119,9 @@ const createPileMe = rootElement => {
       case 'depiledPile':
         return state.depiledPile;
 
+      case 'depileMethod':
+        return state.depileMethod;
+
       case 'temporaryDepiledPile':
         return state.temporaryDepiledPile;
 
@@ -115,6 +130,9 @@ const createPileMe = rootElement => {
 
       case 'tempDepileOneDNum':
         return state.tempDepileOneDNum;
+
+      case 'easingFunc':
+        return state.easingFunc;
 
       default:
         console.warn(`Unknown property "${property}"`);
@@ -167,6 +185,10 @@ const createPileMe = rootElement => {
         actions.push(setDepiledPile(value));
         break;
 
+      case 'depileMethod':
+        actions.push(setDepileMethod(value));
+        break;
+
       case 'temporaryDepiledPile':
         actions.push(setTemporaryDepiledPile(value));
         break;
@@ -177,6 +199,10 @@ const createPileMe = rootElement => {
 
       case 'tempDepileOneDNum':
         actions.push(settempDepileOneDNum(value));
+        break;
+
+      case 'easingFunc':
+        actions.push(setEasingFunc(value));
         break;
 
       default:
@@ -195,6 +221,8 @@ const createPileMe = rootElement => {
   };
 
   const renderRaf = withRaf(render);
+
+  const animator = createAnimator(render);
 
   const renderedItems = new Map();
   const pileInstances = new Map();
@@ -225,6 +253,16 @@ const createPileMe = rootElement => {
     });
   };
 
+  const updateBoundingBox = pileId => {
+    const pile = pileInstances.get(pileId);
+
+    searchIndex.remove(pile.bBox, (a, b) => {
+      return a.pileId === b.pileId;
+    });
+    pile.updateBBox();
+    searchIndex.insert(pile.bBox);
+  };
+
   let layout;
 
   const updateScrollContainer = () => {
@@ -237,28 +275,7 @@ const createPileMe = rootElement => {
 
     layout = createGrid(canvas, grid);
     updateScrollContainer();
-    gridMat = layout.mat;
-
-    // gridGfx.clear();
-    // gridGfx.lineStyle(2, 0xffd900, 1);
-    // for(let i = 0; i < layout.myColNum; i++){
-    //   gridGfx.moveTo(i * layout.myColWidth, 0);
-    //   gridGfx.lineTo(i * layout.myColWidth, layout.myRowNum * layout.myRowHeight);
-    // }
-    // for(let i = 0; i < layout.myRowNum; i++){
-    //   gridGfx.moveTo(0, i * layout.myRowHeight);
-    //   gridGfx.lineTo(layout.myColNum * layout.myColWidth, i * layout.myRowHeight);
-    // }
-  };
-
-  const updateBoundingBox = pileId => {
-    const pile = pileInstances.get(pileId);
-
-    searchIndex.remove(pile.bBox, (a, b) => {
-      return a.pileId === b.pileId;
-    });
-    pile.updateBBox();
-    searchIndex.insert(pile.bBox);
+    // gridMat = layout.mat;
   };
 
   const scaleItems = () => {
@@ -321,6 +338,7 @@ const createPileMe = rootElement => {
 
     stage.removeChildren();
 
+    stage.addChild(gridGfx);
     stage.addChild(lassoBgContainer);
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
@@ -361,6 +379,8 @@ const createPileMe = rootElement => {
           [x, y] = getPosition(id);
         }
 
+        layout.myRowNum = y + 1;
+
         x *= layout.myColWidth;
         y *= layout.myRowHeight;
 
@@ -377,6 +397,7 @@ const createPileMe = rootElement => {
       });
       if (movingPiles.length !== 0) store.dispatch(movePiles(movingPiles));
       createRBush();
+      updateScrollContainer();
       renderRaf();
     }
   };
@@ -431,11 +452,12 @@ const createPileMe = rootElement => {
   };
 
   const updateGridMat = pileId => {
-    for (let i = 0; i < gridMat.shape[0]; i++) {
-      for (let j = 0; j < gridMat.shape[1]; j++) {
-        gridMat.set(i, j, 0);
-      }
-    }
+    const mat = ndarray(
+      new Uint16Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
+      [layout.myRowNum, layout.myColNum]
+    );
+
+    gridMat = mat;
 
     pileInstances.forEach(pile => {
       if (pile.id === pileId) return;
@@ -598,6 +620,40 @@ const createPileMe = rootElement => {
     return { depilePos, distance };
   };
 
+  const animateDepile = (items, itemPositions = []) => {
+    const movingPiles = [];
+    items.forEach((itemId, index) => {
+      const pile = pileInstances.get(itemId);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue:
+          itemPositions.length > 0
+            ? itemPositions[index]
+            : renderedItems.get(itemId).originalPosition,
+        getter: () => {
+          return [pile.pileGraphics.x, pile.pileGraphics.y];
+        },
+        setter: newValue => {
+          pile.pileGraphics.x = newValue[0];
+          pile.pileGraphics.y = newValue[1];
+        },
+        onDone: finalValue => {
+          movingPiles.push({
+            id: itemId,
+            x: finalValue[0],
+            y: finalValue[1]
+          });
+          if (index === items.length - 1) {
+            store.dispatch(movePiles(movingPiles));
+          }
+        }
+      });
+      animator.add(tweener);
+    });
+  };
+
   const depile = pileId => {
     const itemNum = pileInstances.get(pileId).itemContainer.children.length;
 
@@ -652,13 +708,79 @@ const createPileMe = rootElement => {
         (i % filterColNum) + depilePos[1] - Math.floor((filterColNum - 1) / 2);
       itemPositions.push([y * layout.myColWidth, x * layout.myRowHeight]);
     }
+    // starts from the depiled pile's position
     const depiledPile = {
       items,
-      itemPositions
+      x: piles[pileId].x,
+      y: piles[pileId].y
     };
     depiledPiles.push(depiledPile);
     store.dispatch(depilePiles(depiledPiles));
+    // when animation is done, dispatch move piles
+    animateDepile(items, itemPositions);
     store.dispatch(setDepiledPile([]));
+  };
+
+  const depileToOriginPos = pileId => {
+    const { piles } = store.getState();
+
+    const depiledPiles = [];
+    const items = [...piles[pileId].items];
+
+    // starts from the depiled pile's position
+    const depiledPile = {
+      items,
+      x: piles[pileId].x,
+      y: piles[pileId].y
+    };
+    depiledPiles.push(depiledPile);
+    store.dispatch(depilePiles(depiledPiles));
+    // when animation is done, dispatch move piles
+    animateDepile(items);
+  };
+
+  const animateTempDepile = (clonedSprite, pile, x, y, isLastOne) => {
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => {
+        return [clonedSprite.x, clonedSprite.y];
+      },
+      setter: newValue => {
+        clonedSprite.x = newValue[0];
+        clonedSprite.y = newValue[1];
+      },
+      onDone: () => {
+        if (isLastOne) {
+          pile.isTempDepiled[0] = true;
+          store.dispatch(setClickedPile([]));
+          store.dispatch(setClickedPile([pile.id]));
+        }
+      }
+    });
+    animator.add(tweener);
+  };
+
+  const animateCloseTempDepile = (clonedSprite, x, y, isLastOne) => {
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => {
+        return [clonedSprite.x, clonedSprite.y];
+      },
+      setter: newValue => {
+        clonedSprite.x = newValue[0];
+        clonedSprite.y = newValue[1];
+      },
+      onDone: () => {
+        if (isLastOne) {
+          pubSub.publish('closeTempDepile');
+        }
+      }
+    });
+    animator.add(tweener);
   };
 
   const tempDepileOneD = (
@@ -675,9 +797,15 @@ const createPileMe = rootElement => {
       let widths = 0;
       items.forEach((itemId, index) => {
         const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        clonedSprite.x = -temporaryDepileContainer.x;
         temporaryDepileContainer.addChild(clonedSprite);
-        clonedSprite.x = index * 5 + widths;
-        clonedSprite.y = 0;
+        animateTempDepile(
+          clonedSprite,
+          pile,
+          index * 5 + widths,
+          0,
+          index === items.length - 1
+        );
         widths += clonedSprite.width;
       });
     } else if (tempDepileDirection === 'vertical') {
@@ -688,9 +816,15 @@ const createPileMe = rootElement => {
       let heights = 0;
       items.forEach((itemId, index) => {
         const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        clonedSprite.y = -temporaryDepileContainer.y;
         temporaryDepileContainer.addChild(clonedSprite);
-        clonedSprite.x = 0;
-        clonedSprite.y = index * 5 + heights;
+        animateTempDepile(
+          clonedSprite,
+          pile,
+          0,
+          index * 5 + heights,
+          index === items.length - 1
+        );
         heights += clonedSprite.height;
       });
     }
@@ -705,6 +839,7 @@ const createPileMe = rootElement => {
 
     items.forEach((itemId, index) => {
       const clonedSprite = renderedItems.get(itemId).cloneSprite();
+      clonedSprite.x = -temporaryDepileContainer.x;
       temporaryDepileContainer.addChild(clonedSprite);
       const getPosition = orderer(squareLength);
       let x;
@@ -712,31 +847,46 @@ const createPileMe = rootElement => {
       [x, y] = getPosition(index);
       x *= layout.myColWidth;
       y *= layout.myRowHeight;
-      clonedSprite.x = x;
-      clonedSprite.y = y;
+      animateTempDepile(clonedSprite, pile, x, y, index === items.length - 1);
     });
   };
+
+  let closeTempDepileEvent;
 
   const temporaryDepile = pileIds => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
       if (pile.isTempDepiled[0]) {
-        pileInstances.forEach(otherPile => {
-          otherPile.pileGraphics.alpha = 1;
-        });
         const length = pile.itemContainer.children.length;
-        pile.itemContainer.removeChildAt(length - 1);
-        pile.isTempDepiled[0] = false;
-        pile.border.clear();
-        pile.isFocus[0] = false;
+        const temporaryDepileContainer = pile.itemContainer.getChildAt(
+          length - 1
+        );
+        temporaryDepileContainer.children.forEach((item, index) => {
+          animateCloseTempDepile(
+            item,
+            -temporaryDepileContainer.x,
+            -temporaryDepileContainer.y,
+            index === temporaryDepileContainer.children.length - 1,
+            pile,
+            length
+          );
+        });
+        if (closeTempDepileEvent) pubSub.unsubscribe(closeTempDepileEvent);
+
+        closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
+          if (pile.isTempDepiled[0]) {
+            pile.itemContainer.removeChildAt(length - 1);
+            pile.isTempDepiled[0] = false;
+            pile.border.clear();
+            pile.isFocus[0] = false;
+            // eslint-disable-next-line no-use-before-define
+            handleHighlightPile({ pileId });
+          }
+        });
       } else {
         const temporaryDepileContainer = new PIXI.Container();
         pile.itemContainer.addChild(temporaryDepileContainer);
-
-        pileInstances.forEach(otherPile => {
-          otherPile.pileGraphics.alpha = 0.3;
-        });
 
         pile.pileGraphics.alpha = 1;
 
@@ -759,7 +909,6 @@ const createPileMe = rootElement => {
         } else {
           tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
         }
-        pile.isTempDepiled[0] = true;
       }
       updateBoundingBox(pileId);
     });
@@ -849,19 +998,53 @@ const createPileMe = rootElement => {
     return pilesInPolygon;
   };
 
+  const animateMerge = pileIds => {
+    const { piles } = store.getState();
+    let centerX = 0;
+    let centerY = 0;
+    pileIds.forEach(id => {
+      centerX += piles[id].x;
+      centerY += piles[id].y;
+    });
+    centerX /= pileIds.length;
+    centerY /= pileIds.length;
+
+    pileIds.forEach((id, index) => {
+      const pile = pileInstances.get(id);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue: [centerX, centerY],
+        getter: () => {
+          return [pile.pileGraphics.x, pile.pileGraphics.y];
+        },
+        setter: newValue => {
+          pile.pileGraphics.x = newValue[0];
+          pile.pileGraphics.y = newValue[1];
+        },
+        onDone: () => {
+          if (index === pileIds.length - 1) {
+            store.dispatch(mergePiles(pileIds, false));
+          }
+        }
+      });
+      animator.add(tweener);
+    });
+  };
+
   const lassoEnd = () => {
     if (isLasso) {
       const pilesInLasso = findPilesInLasso(lassoPosFlat);
-      console.log(pilesInLasso);
+      console.log('lasso', pilesInLasso);
       if (pilesInLasso.length > 1) {
-        // mergeMultiPiles(pilesInLasso);
         store.dispatch(setClickedPile([]));
-        store.dispatch(mergePiles(pilesInLasso, false));
+        animateMerge(pilesInLasso);
       }
       lasso.closePath();
       lasso.clear();
       lassoFill.clear();
-      render();
+      renderRaf();
       isLasso = false;
     }
     lassoPos = [];
@@ -942,13 +1125,19 @@ const createPileMe = rootElement => {
     }
 
     if (state.temporaryDepiledPile !== newState.temporaryDepiledPile) {
-      console.log(newState.temporaryDepiledPile);
+      console.log('temp depile', newState.temporaryDepiledPile);
       if (newState.temporaryDepiledPile.length !== 0) {
         if (state.temporaryDepiledPile.length !== 0) {
           temporaryDepile(state.temporaryDepiledPile);
         }
+        pileInstances.forEach(otherPile => {
+          otherPile.pileGraphics.alpha = 0.3;
+        });
         temporaryDepile(newState.temporaryDepiledPile);
       } else {
+        pileInstances.forEach(otherPile => {
+          otherPile.pileGraphics.alpha = 1;
+        });
         temporaryDepile(state.temporaryDepiledPile);
       }
     }
@@ -995,8 +1184,12 @@ const createPileMe = rootElement => {
       renderRaf();
     }
 
+    if (state.depileMethod !== newState.depileMethod) {
+      stateUpdates.add('layout');
+    }
+
     if (state.depiledPile !== newState.depiledPile) {
-      console.log(newState.depiledPile);
+      console.log('depile', newState.depiledPile);
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
@@ -1022,9 +1215,10 @@ const createPileMe = rootElement => {
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        store.dispatch(setTemporaryDepiledPile([]));
-        store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
-        hit = true;
+        if (!pileInstances.get(collidePiles[0].pileId).isTempDepiled[0]) {
+          store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
+          hit = true;
+        }
       } else {
         store.dispatch(
           movePiles([
@@ -1073,24 +1267,89 @@ const createPileMe = rootElement => {
     });
   };
 
-  let mouseClickShift = false;
+  const depileBtnClick = (menu, pileId) => () => {
+    const { depileMethod } = store.getState();
+
+    if (depileMethod === 'originalPos') {
+      depileToOriginPos(pileId);
+    } else if (depileMethod === 'cloestPos') {
+      store.dispatch(setDepiledPile([pileId]));
+    }
+    store.dispatch(setClickedPile([]));
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
+  const tempDepileBtnClick = (menu, pileId) => () => {
+    const { piles, temporaryDepiledPile } = store.getState();
+    if (piles[pileId].items.length > 1) {
+      let temp = [...temporaryDepiledPile];
+      if (temp.includes(pileId)) {
+        temp = temp.filter(id => id !== pileId);
+      } else {
+        temp = [pileId];
+      }
+      store.dispatch(setTemporaryDepiledPile([...temp]));
+    }
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
+  let isGridShown = false;
+  const gridBtnClick = menu => () => {
+    if (!isGridShown) {
+      gridGfx.clear();
+      gridGfx.lineStyle(1, 0x787878, 1);
+      for (let i = 0; i < layout.myColNum; i++) {
+        gridGfx.moveTo(i * layout.myColWidth, 0);
+        gridGfx.lineTo(
+          i * layout.myColWidth,
+          layout.myRowNum * layout.myRowHeight
+        );
+      }
+      for (let i = 0; i < layout.myRowNum; i++) {
+        gridGfx.moveTo(0, i * layout.myRowHeight);
+        gridGfx.lineTo(
+          layout.myColNum * layout.myColWidth,
+          i * layout.myRowHeight
+        );
+      }
+      isGridShown = true;
+    } else {
+      gridGfx.clear();
+      isGridShown = false;
+    }
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+
+    renderRaf();
+  };
+
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
-    render();
+    if (event.button === 0) {
+      renderRaf();
 
-    mouseDownPosition = getRelativeMousePosition(event);
+      mouseDownPosition = getRelativeMousePosition(event);
 
-    // whether mouse click on any pile
-    const result = searchIndex.collides({
-      minX: mouseDownPosition[0],
-      minY: mouseDownPosition[1],
-      maxX: mouseDownPosition[0] + 1,
-      maxY: mouseDownPosition[1] + 1
-    });
+      // whether mouse click on any pile
+      const result = searchIndex.collides({
+        minX: mouseDownPosition[0],
+        minY: mouseDownPosition[1],
+        maxX: mouseDownPosition[0] + 1,
+        maxY: mouseDownPosition[1] + 1
+      });
 
-    if (!result) {
-      mouseDown = true;
+      if (!result) {
+        mouseDown = true;
+      }
     }
   };
 
@@ -1099,45 +1358,55 @@ const createPileMe = rootElement => {
       lassoEnd();
       mouseDown = false;
     }
-    if (mouseClickShift) mouseClickShift = false;
   };
 
   const mouseClickHandler = event => {
-    // const { piles } = store.getState();
+    const menu = document.getElementById('contextmenu');
+    const style = document.getElementById('style');
+    if (menu) {
+      rootElement.removeChild(menu);
+      rootElement.removeChild(style);
+    }
 
     getRelativeMousePosition(event);
 
-    mouseClickShift = event.shiftKey;
+    // click event: only when mouse down pos and mouse up pos are the same
+    if (
+      mousePosition[0] === mouseDownPosition[0] &&
+      mousePosition[1] === mouseDownPosition[1]
+    ) {
+      const results = searchIndex.search({
+        minX: mousePosition[0],
+        minY: mousePosition[1],
+        maxX: mousePosition[0] + 1,
+        maxY: mousePosition[1] + 1
+      });
 
-    const result = searchIndex.search({
-      minX: mouseDownPosition[0],
-      minY: mouseDownPosition[1],
-      maxX: mouseDownPosition[0] + 1,
-      maxY: mouseDownPosition[1] + 1
-    });
-
-    if (result.length !== 0) {
-      if (mouseClickShift) {
-        // const depiledPiles = [];
-        // const items = [...piles[result[0].pileId].items];
-        // const itemPositions = [];
-        // items.forEach(itemId => {
-        //   itemPositions.push([...renderedItems.get(itemId).originalPosition]);
-        // });
-        // const depiledPile = {
-        //   items,
-        //   itemPositions
-        // };
-        // depiledPiles.push(depiledPile);
-        // store.dispatch(depilePiles(depiledPiles));
-        store.dispatch(setDepiledPile([result[0].pileId]));
-        store.dispatch(setClickedPile([]));
+      if (results.length !== 0) {
+        if (event.shiftKey) {
+          const { depileMethod } = store.getState();
+          if (depileMethod === 'originalPos') {
+            depileToOriginPos(results[0].pileId);
+          } else if (depileMethod === 'cloestPos') {
+            store.dispatch(setDepiledPile([results[0].pileId]));
+          }
+          store.dispatch(setClickedPile([]));
+        } else if (event.altKey) {
+          results.forEach(result => {
+            const pile = pileInstances.get(result.pileId);
+            if (pile.pileGraphics.isHover) pile.animateScale();
+          });
+        } else {
+          results.forEach(result => {
+            const pile = pileInstances.get(result.pileId);
+            if (pile.pileGraphics.isHover)
+              store.dispatch(setClickedPile([result.pileId]));
+          });
+        }
       } else {
-        store.dispatch(setClickedPile([result[0].pileId]));
+        store.dispatch(setClickedPile([]));
+        store.dispatch(setScaledPile([]));
       }
-    } else {
-      store.dispatch(setClickedPile([]));
-      store.dispatch(setScaledPile([]));
     }
   };
 
@@ -1165,11 +1434,9 @@ const createPileMe = rootElement => {
         if (temp.includes(result[0].pileId)) {
           temp = temp.filter(id => id !== result[0].pileId);
         } else {
-          temp.push(result[0].pileId);
+          temp = [result[0].pileId];
         }
         store.dispatch(setTemporaryDepiledPile([...temp]));
-        store.dispatch(setClickedPile([]));
-        store.dispatch(setClickedPile([result[0].pileId]));
       }
     } else {
       store.dispatch(setTemporaryDepiledPile([]));
@@ -1188,18 +1455,101 @@ const createPileMe = rootElement => {
     });
 
     if (result.length !== 0) {
-      event.preventDefault();
-      store.dispatch(setScaledPile([result[0].pileId]));
-      const normalizedDeltaY = normalizeWheel(event).pixelY;
-      scalePile(result[0].pileId, normalizedDeltaY);
-      const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
-      activePile.addChild(pileGraphics);
+      if (event.altKey) {
+        event.preventDefault();
+        store.dispatch(setScaledPile([result[0].pileId]));
+        const normalizedDeltaY = normalizeWheel(event).pixelY;
+        scalePile(result[0].pileId, normalizedDeltaY);
+        scalePile(result[0].pileId);
+        const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
+        activePile.addChild(pileGraphics);
+      }
     }
   };
 
   const mouseScrollHandler = () => {
     stage.y = -rootElement.scrollTop;
     renderRaf();
+  };
+
+  const contextmenuHandler = event => {
+    getRelativeMousePosition(event);
+
+    if (!event.altKey) {
+      event.preventDefault();
+
+      rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
+      const menu = document.getElementById('contextmenu');
+      const depileBtn = document.getElementById('depile-button');
+      const tempDepileBtn = document.getElementById('temp-depile-button');
+      const gridBtn = document.getElementById('grid-button');
+
+      const result = searchIndex.search({
+        minX: mousePosition[0],
+        minY: mousePosition[1],
+        maxX: mousePosition[0] + 1,
+        maxY: mousePosition[1] + 1
+      });
+      // click on pile
+      if (result.length !== 0) {
+        gridBtn.style.display = 'none';
+
+        const pile = pileInstances.get(result[0].pileId);
+        if (pile.itemContainer.children.length === 1) {
+          depileBtn.setAttribute('disabled', '');
+          depileBtn.style.opacity = 0.3;
+          depileBtn.style.cursor = 'not-allowed';
+          tempDepileBtn.setAttribute('disabled', '');
+          tempDepileBtn.style.opacity = 0.3;
+          tempDepileBtn.style.cursor = 'not-allowed';
+        } else if (pile.isTempDepiled[0]) {
+          depileBtn.setAttribute('disabled', '');
+          depileBtn.style.opacity = 0.3;
+          depileBtn.style.cursor = 'not-allowed';
+          tempDepileBtn.innerHTML = 'close temp depile';
+        }
+
+        menu.style.display = 'block';
+        menu.style.left = `${mousePosition[0]}px`;
+        menu.style.top = `${mousePosition[1]}px`;
+
+        depileBtn.addEventListener(
+          'click',
+          depileBtnClick(menu, result[0].pileId),
+          false
+        );
+        tempDepileBtn.addEventListener(
+          'click',
+          tempDepileBtnClick(menu, result[0].pileId),
+          false
+        );
+      } else {
+        depileBtn.style.display = 'none';
+        tempDepileBtn.style.display = 'none';
+
+        if (isGridShown) {
+          gridBtn.innerHTML = 'hide grid';
+        }
+        menu.style.display = 'block';
+        menu.style.left = `${mousePosition[0]}px`;
+        menu.style.top = `${mousePosition[1]}px`;
+
+        gridBtn.addEventListener('click', gridBtnClick(menu), false);
+      }
+    }
+  };
+
+  const handleAnimate = tweener => {
+    tweener.setEasing(store.getState().easingFunc);
+    animator.add(tweener);
+  };
+
+  const handleCancelAnimation = tweener => {
+    animator.cancel(tweener);
+  };
+
+  const handleUpdateBBox = pileId => {
+    updateBoundingBox(pileId);
   };
 
   const init = () => {
@@ -1211,6 +1561,7 @@ const createPileMe = rootElement => {
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
+    canvas.addEventListener('contextmenu', contextmenuHandler, false);
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
@@ -1220,6 +1571,9 @@ const createPileMe = rootElement => {
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
     pubSub.subscribe('highlightPile', handleHighlightPile);
+    pubSub.subscribe('animate', handleAnimate);
+    pubSub.subscribe('cancelAnimation', handleCancelAnimation);
+    pubSub.subscribe('updateBBox', handleUpdateBBox);
 
     store.subscribe(updated);
     rootElement.appendChild(canvas);
@@ -1250,6 +1604,7 @@ const createPileMe = rootElement => {
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
+    canvas.removeEventListener('contextmenu', contextmenuHandler, false);
     canvas.removeEventListener('mouseenter', () => {}, false);
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);

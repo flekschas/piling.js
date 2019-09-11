@@ -136,3 +136,67 @@ export const max = (a, b) => (a > b ? a : b);
  * @return  {boolean}  If `true` A is smaller than B.
  */
 export const min = (a, b) => (a < b ? a : b);
+
+export const cubicInOut = t => {
+  // eslint-disable-next-line no-param-reassign
+  t *= 2;
+  // eslint-disable-next-line no-param-reassign
+  const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
+  return p;
+};
+
+export const interpolateNumber = (a, b) => p => a * (1 - p) + b * p;
+
+export const interpolateVector = (a, b) => p =>
+  a.map((x, i) => interpolateNumber(x, b[i])(p));
+
+export const contextMenuTemplate =
+  "<style id = 'style'>" +
+  '.contextmenu {' +
+  'background-color: #fff;' +
+  'position: absolute;' +
+  'margin: 5px;' +
+  'display: none;' +
+  'z-index: 2;' +
+  '}' +
+  '.contextmenu ul {' +
+  'list-style: none;' +
+  'padding: 0;' +
+  'margin: 0' +
+  '}' +
+  '.contextmenu button {' +
+  'height: 40px; ' +
+  'width: 150px;' +
+  'font-size: 15px;' +
+  'color: black;' +
+  'background-color: white;' +
+  'cursor: pointer;' +
+  'outline: none' +
+  '}' +
+  '.contextmenu button:hover {' +
+  'background-color: #555555;' +
+  'color: white;' +
+  '}' +
+  '.contextmenu button:active {' +
+  'transform: translateY(1px);' +
+  '}' +
+  '</style>' +
+  "<nav class = 'contextmenu' id = 'contextmenu'>" +
+  "<ul style = 'list-style: none; padding: 0;'>" +
+  '<li>' +
+  "<button id = 'depile-button'>" +
+  'depile' +
+  '</button>' +
+  '</li>' +
+  '<li>' +
+  "<button id = 'temp-depile-button'>" +
+  'temp depile' +
+  '</button>' +
+  '</li>' +
+  '<li>' +
+  "<button id = 'grid-button'>" +
+  'show grid' +
+  '</button>' +
+  '</li>' +
+  '</ul>' +
+  '</nav>';
