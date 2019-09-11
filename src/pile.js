@@ -63,8 +63,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
       rect.height /= pileGraphics.scale.x;
     }
 
-    // eslint-disable-next-line no-use-before-define
-    updateBBox();
+    pubSub.publish('updateBBox', id);
 
     border.clear();
     border.lineStyle(thickness, color, 1);
