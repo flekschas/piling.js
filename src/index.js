@@ -575,7 +575,7 @@ const createPileMe = rootElement => {
 
     // doesn't find a available cell
     if (!depilePos) {
-      depilePos = [resultMat.shape[0], 0];
+      depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
       layout.myRowNum += filterRowNum;
       updateScrollContainer();
     }
@@ -1331,6 +1331,46 @@ const createPileMe = rootElement => {
     renderRaf();
   };
 
+  // const alignBtnClick = menu => () => {
+  //   pileInstances.forEach(pile => {
+  //     const bBox = pile.bBox;
+  //     const centerY = Math.floor(
+  //       (bBox.minX + bBox.maxX) / (layout.myColWidth * 2)
+  //     );
+  //     const centerX = Math.floor(
+  //       (bBox.minY + bBox.maxY) / (layout.myRowHeight * 2)
+  //     );
+  //     const center = [centerX, centerY];
+
+  //     const { orderer } = store.getState();
+  //     const getPosition = orderer(layout.myColNum);
+  //     const [x, y] = getPosition(pile.id);
+
+  //     updateGridMatWithCenter(pile.id);
+
+  //     if (center[1] === x && center[0] === y) {
+  //       pile.pileGraphics.x = x * layout.myColWidth;
+  //       pile.pileGraphics.y = y * layout.myRowHeight;
+  //     } else {
+  //       const distanceMat = ndarray(
+  //         new Float32Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
+  //         [layout.myRowNum, layout.myColNum]
+  //       );
+
+  //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
+  //       console.log(center, closestPos);
+  //       pile.pileGraphics.x = closestPos[1] * layout.myColWidth;
+  //       pile.pileGraphics.y = closestPos[0] * layout.myRowHeight;
+  //     }
+  //     renderRaf();
+  //   })
+
+  //   menu.style.display = 'none';
+  //   const style = document.getElementById('style');
+  //   rootElement.removeChild(style);
+  //   rootElement.removeChild(menu);
+  // }
+
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
@@ -1483,6 +1523,7 @@ const createPileMe = rootElement => {
       const depileBtn = document.getElementById('depile-button');
       const tempDepileBtn = document.getElementById('temp-depile-button');
       const gridBtn = document.getElementById('grid-button');
+      const alignBtn = document.getElementById('align-button');
 
       const result = searchIndex.search({
         minX: mousePosition[0],
@@ -1493,6 +1534,7 @@ const createPileMe = rootElement => {
       // click on pile
       if (result.length !== 0) {
         gridBtn.style.display = 'none';
+        alignBtn.style.display = 'none';
 
         const pile = pileInstances.get(result[0].pileId);
         if (pile.itemContainer.children.length === 1) {
@@ -1526,6 +1568,7 @@ const createPileMe = rootElement => {
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';
+        alignBtn.style.display = 'none';
 
         if (isGridShown) {
           gridBtn.innerHTML = 'hide grid';
@@ -1535,6 +1578,7 @@ const createPileMe = rootElement => {
         menu.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(menu), false);
+        // alignBtn.addEventListener('click', alignBtnClick(menu), false);
       }
     }
   };
