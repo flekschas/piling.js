@@ -405,7 +405,9 @@ const createPileMe = rootElement => {
   const positionItems = pileId => {
     const { itemAlignment, itemRotated } = store.getState();
 
-    pileInstances.get(pileId).positionItems(itemAlignment, itemRotated);
+    pileInstances
+      .get(pileId)
+      .positionItems(itemAlignment, itemRotated, animator);
   };
 
   const updatePileItems = (pile, id) => {
@@ -428,6 +430,7 @@ const createPileMe = rootElement => {
         });
         positionItems(id);
         updateBoundingBox(id);
+        pileInstance.border.clear();
       }
     } else {
       const newPile = createPile(
@@ -1204,8 +1207,34 @@ const createPileMe = rootElement => {
     state = newState;
   };
 
+  let hit;
+
+  const animateMovePile = (sourceId, targetId) => {
+    const source = pileInstances.get(sourceId).pileGraphics;
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateVector,
+      endValue: [
+        pileInstances.get(targetId).pileGraphics.x,
+        pileInstances.get(targetId).pileGraphics.y
+      ],
+      getter: () => {
+        return [source.x, source.y];
+      },
+      setter: newValue => {
+        source.x = newValue[0];
+        source.y = newValue[1];
+      },
+      onDone: () => {
+        store.dispatch(mergePiles([sourceId, targetId], true));
+        hit = true;
+      }
+    });
+    animator.add(tweener);
+  };
+
   const handleDropPile = ({ pileId }) => {
-    let hit;
+    hit = false;
     const pile = pileInstances.get(pileId).pileGraphics;
 
     if (pile.x !== pile.beforeDragX || pile.y !== pile.beforeDragY) {
@@ -1216,8 +1245,9 @@ const createPileMe = rootElement => {
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
         if (!pileInstances.get(collidePiles[0].pileId).isTempDepiled[0]) {
-          store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
-          hit = true;
+          animateMovePile(pileId, collidePiles[0].pileId);
+          // store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
+          // hit = true;
         }
       } else {
         store.dispatch(

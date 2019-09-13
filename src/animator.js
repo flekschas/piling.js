@@ -29,15 +29,9 @@ const createAnimator = render => {
     tweeners.delete(tweener);
   };
 
-  // const isAnimate = () => {
-  //   return tweeners.length;
-  // }
-
   return {
-    // isAnimate,
     add,
     cancel
-    // animate
   };
 };
 
