@@ -343,22 +343,20 @@ const createPileMe = rootElement => {
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
 
-    return Promise.all(items.map(({ src }) => itemRenderer(src))).then(
-      newRenderedItems => {
-        newRenderedItems.forEach((item, index) => {
-          const newItem = createItem(index, item, pubSub);
-          renderedItems.set(index, newItem);
-          const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
-          pileInstances.set(index, pile);
-          normalPile.addChild(pile.pileGraphics);
-        });
-        scaleItems();
-        stage.addChild(activePile);
-        stage.addChild(lassoContainer);
-        lassoContainer.addChild(lasso);
-        renderRaf();
-      }
-    );
+    return itemRenderer(items.map(({ src }) => src)).then(newRenderedItems => {
+      newRenderedItems.forEach((item, index) => {
+        const newItem = createItem(index, item, pubSub);
+        renderedItems.set(index, newItem);
+        const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
+        pileInstances.set(index, pile);
+        normalPile.addChild(pile.pileGraphics);
+      });
+      scaleItems();
+      stage.addChild(activePile);
+      stage.addChild(lassoContainer);
+      lassoContainer.addChild(lasso);
+      renderRaf();
+    });
   };
 
   const positionPiles = () => {
@@ -1579,7 +1577,8 @@ const createPileMe = rootElement => {
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
 
-    rootElement.style.overflow = 'auto';
+    rootElement.style.overflowX = 'hidden';
+    rootElement.style.overflowY = 'auto';
     canvas.style.position = 'sticky';
     canvas.style.top = '0px';
     canvas.style.left = '0px';

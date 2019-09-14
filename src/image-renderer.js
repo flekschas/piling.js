@@ -20,17 +20,20 @@ export const loadImage = (src, isCrossOrigin = false) =>
 
 const renderImage = image => PIXI.Texture.from(image);
 
-const imageRenderer = src => {
-  const isCrossOrigin = true;
-  return new Promise((resolve, reject) => {
-    loadImage(src, isCrossOrigin)
-      .then(image => {
-        resolve(renderImage(image));
-      })
-      .catch(error => {
-        reject(error);
+const imageRenderer = sources =>
+  Promise.all(
+    sources.map(src => {
+      const isCrossOrigin = true;
+      return new Promise((resolve, reject) => {
+        loadImage(src, isCrossOrigin)
+          .then(image => {
+            resolve(renderImage(image));
+          })
+          .catch(error => {
+            reject(error);
+          });
       });
-  });
-};
+    })
+  );
 
 export default imageRenderer;
