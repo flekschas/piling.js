@@ -1361,6 +1361,16 @@ const createPileMe = rootElement => {
     renderRaf();
   };
 
+  const scaleBtnBtnClick = (menu, pileId) => () => {
+    const pile = pileInstances.get(pileId);
+    pile.animateScale();
+
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
   // const alignBtnClick = menu => () => {
   //   pileInstances.forEach(pile => {
   //     const bBox = pile.bBox;
@@ -1554,6 +1564,7 @@ const createPileMe = rootElement => {
       const tempDepileBtn = document.getElementById('temp-depile-button');
       const gridBtn = document.getElementById('grid-button');
       const alignBtn = document.getElementById('align-button');
+      const scaleBtn = document.getElementById('scale-button');
 
       const result = searchIndex.search({
         minX: mousePosition[0],
@@ -1574,11 +1585,22 @@ const createPileMe = rootElement => {
           tempDepileBtn.setAttribute('disabled', '');
           tempDepileBtn.style.opacity = 0.3;
           tempDepileBtn.style.cursor = 'not-allowed';
+          console.log(pile.pileGraphics.scale.x);
+          if (pile.pileGraphics.scale.x > 1.1) {
+            scaleBtn.innerHTML = 'scale down';
+          }
         } else if (pile.isTempDepiled[0]) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
           depileBtn.style.cursor = 'not-allowed';
+          scaleBtn.setAttribute('disabled', '');
+          scaleBtn.style.opacity = 0.3;
+          scaleBtn.style.cursor = 'not-allowed';
           tempDepileBtn.innerHTML = 'close temp depile';
+        } else {
+          scaleBtn.setAttribute('disabled', '');
+          scaleBtn.style.opacity = 0.3;
+          scaleBtn.style.cursor = 'not-allowed';
         }
 
         menu.style.display = 'block';
@@ -1595,10 +1617,16 @@ const createPileMe = rootElement => {
           tempDepileBtnClick(menu, result[0].pileId),
           false
         );
+        scaleBtn.addEventListener(
+          'click',
+          scaleBtnBtnClick(menu, result[0].pileId),
+          false
+        );
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';
         alignBtn.style.display = 'none';
+        scaleBtn.style.display = 'none';
 
         if (isGridShown) {
           gridBtn.innerHTML = 'hide grid';
@@ -1653,7 +1681,8 @@ const createPileMe = rootElement => {
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
 
-    rootElement.style.overflow = 'auto';
+    rootElement.style.overflowX = 'hidden';
+    rootElement.style.overflowY = 'auto';
     canvas.style.position = 'sticky';
     canvas.style.top = '0px';
     canvas.style.left = '0px';

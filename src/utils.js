@@ -203,5 +203,10 @@ export const contextMenuTemplate =
   'align by grid' +
   '</button>' +
   '</li>' +
+  '<li>' +
+  "<button id = 'scale-button'>" +
+  'scale up' +
+  '</button>' +
+  '</li>' +
   '</ul>' +
   '</nav>';
