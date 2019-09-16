@@ -13,6 +13,10 @@ import createStore, {
   movePiles,
   depilePiles,
   setItemRenderer,
+  setAggregateRenderer,
+  setPreviewRenderer,
+  setCoverAggregator,
+  setPreviewAggregator,
   setItems,
   setOrderer,
   setGrid,
@@ -89,6 +93,21 @@ const createPileMe = rootElement => {
       case 'renderer':
         return state.itemRenderer;
 
+      case 'itemRenderer':
+        return state.itemRenderer;
+
+      case 'previewRenderer':
+        return state.previewRenderer;
+
+      case 'aggregateRenderer':
+        return state.aggregateRenderer;
+
+      case 'previewAggregator':
+        return state.previewAggregator;
+
+      case 'coverAggregator':
+        return state.coverAggregator;
+
       case 'items':
         return state.items;
 
@@ -146,6 +165,28 @@ const createPileMe = rootElement => {
     switch (property) {
       case 'renderer':
         actions.push(setItemRenderer(value));
+        actions.push(setPreviewRenderer(value));
+        actions.push(setAggregateRenderer(value));
+        break;
+
+      case 'itemRenderer':
+        actions.push(setItemRenderer(value));
+        break;
+
+      case 'previewRenderer':
+        actions.push(setPreviewRenderer(value));
+        break;
+
+      case 'aggregateRenderer':
+        actions.push(setAggregateRenderer(value));
+        break;
+
+      case 'previewAggregator':
+        actions.push(setPreviewAggregator(value));
+        break;
+
+      case 'coverAggregator':
+        actions.push(setCoverAggregator(value));
         break;
 
       case 'items':
@@ -1071,9 +1112,14 @@ const createPileMe = rootElement => {
 
     if (
       state.items !== newState.items ||
-      state.itemRenderer !== newState.itemRenderer
+      state.itemRenderer !== newState.itemRenderer ||
+      state.previewRenderer !== newState.previewRenderer ||
+      state.aggregateRenderer !== newState.aggregateRenderer ||
+      state.previewAggregator !== newState.previewAggregator ||
+      state.coverAggregator !== newState.coverAggregator
     ) {
       updates.push(createItems());
+      console.log('update');
       stateUpdates.add('piles');
     }
 

@@ -17,5 +17,10 @@ const matrixRenderer = createMatrixRenderer({ colorMap });
 const pileMe = createPileMe(document.getElementById('demo'));
 
 pileMe.set('renderer', matrixRenderer);
+pileMe.set('itemRenderer', matrixRenderer);
+pileMe.set('previewRenderer', matrixRenderer);
+pileMe.set('aggregateRenderer', matrixRenderer);
+// pileMe.set('previewAggregator', aggregator);
+// pileMe.set('coverAggregator', matrixRenderer);
 pileMe.set('items', peaks);
 pileMe.set('grid', [10]);
