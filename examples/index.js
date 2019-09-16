@@ -1,11 +1,15 @@
 import createPileMe from '../src/index';
 import imageRenderer from '../src/image-renderer';
-import catJson from './data/cat';
+import dataJson from './data/data.json';
 
 const pileMe = createPileMe(document.getElementById('demo'));
 
 pileMe.set('renderer', imageRenderer);
-pileMe.set('items', catJson);
+const item = [];
+// for (let i = 0; i < 100; i++)
+item.push(...dataJson);
+
+pileMe.set('items', item);
 // pileMe.set('items', [
 //   {
 //     id: 'test',
