@@ -1,7 +1,7 @@
-import createWorker from './utils';
+import { createWorker } from './utils';
 import workerFn from './matrix-cover-aggregator-worker';
 
-const aggregate = (aggregagtor = 'mean') => sources => {
+const createMatrixCoverAggregator = (aggregagtor = 'mean') => sources => {
   const worker = createWorker(workerFn);
 
   return new Promise((resolve, reject) => {
@@ -19,4 +19,4 @@ const aggregate = (aggregagtor = 'mean') => sources => {
   });
 };
 
-export default aggregate;
+export default createMatrixCoverAggregator;

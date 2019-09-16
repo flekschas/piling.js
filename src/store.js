@@ -43,6 +43,30 @@ export const setItemRenderer = newItemRenderer => ({
   payload: { itemRenderer: newItemRenderer }
 });
 
+const previewRenderer = setReducer('previewRenderer');
+export const setPreviewRenderer = newPreviewRenderer => ({
+  type: 'SET_PREVIEW_RENDERER',
+  payload: { previewRenderer: newPreviewRenderer }
+});
+
+const aggregateRenderer = setReducer('aggregateRenderer');
+export const setAggregateRenderer = newAggregateRenderer => ({
+  type: 'SET_AGGREGATE_RENDERER',
+  payload: { aggregateRenderer: newAggregateRenderer }
+});
+
+const previewAggregator = setReducer('previewAggregator');
+export const setPreviewAggregator = newPreviewAggregator => ({
+  type: 'SET_PREVIEW_AGGREGATOR',
+  payload: { previewAggregator: newPreviewAggregator }
+});
+
+const coverAggregator = setReducer('coverAggregator');
+export const setCoverAggregator = newCoverAggregator => ({
+  type: 'SET_COVER_AGGREGATOR',
+  payload: { coverAggregator: newCoverAggregator }
+});
+
 const items = setReducer('items', []); // how to update the store
 export const setItems = newItems => ({
   // action to trigger update
@@ -255,6 +279,10 @@ const createStore = () => {
   const appReducer = combineReducers({
     // This defines what is on our store
     itemRenderer,
+    previewRenderer,
+    aggregateRenderer,
+    previewAggregator,
+    coverAggregator,
     items,
     piles,
     orderer,

@@ -13,6 +13,10 @@ import createStore, {
   movePiles,
   depilePiles,
   setItemRenderer,
+  setAggregateRenderer,
+  setPreviewRenderer,
+  setCoverAggregator,
+  setPreviewAggregator,
   setItems,
   setOrderer,
   setGrid,
@@ -89,6 +93,21 @@ const createPileMe = rootElement => {
       case 'renderer':
         return state.itemRenderer;
 
+      case 'itemRenderer':
+        return state.itemRenderer;
+
+      case 'previewRenderer':
+        return state.previewRenderer;
+
+      case 'aggregateRenderer':
+        return state.aggregateRenderer;
+
+      case 'previewAggregator':
+        return state.previewAggregator;
+
+      case 'coverAggregator':
+        return state.coverAggregator;
+
       case 'items':
         return state.items;
 
@@ -146,6 +165,28 @@ const createPileMe = rootElement => {
     switch (property) {
       case 'renderer':
         actions.push(setItemRenderer(value));
+        actions.push(setPreviewRenderer(value));
+        actions.push(setAggregateRenderer(value));
+        break;
+
+      case 'itemRenderer':
+        actions.push(setItemRenderer(value));
+        break;
+
+      case 'previewRenderer':
+        actions.push(setPreviewRenderer(value));
+        break;
+
+      case 'aggregateRenderer':
+        actions.push(setAggregateRenderer(value));
+        break;
+
+      case 'previewAggregator':
+        actions.push(setPreviewAggregator(value));
+        break;
+
+      case 'coverAggregator':
+        actions.push(setCoverAggregator(value));
         break;
 
       case 'items':
@@ -331,7 +372,12 @@ const createPileMe = rootElement => {
   const lassoFill = new PIXI.Graphics();
 
   const createItems = () => {
-    const { itemRenderer, items } = store.getState();
+    const {
+      itemRenderer,
+      previewRenderer,
+      previewAggregator,
+      items
+    } = store.getState();
 
     renderedItems.clear();
     pileInstances.clear();
@@ -343,9 +389,39 @@ const createPileMe = rootElement => {
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
 
-    return itemRenderer(items.map(({ src }) => src)).then(newRenderedItems => {
-      newRenderedItems.forEach((item, index) => {
-        const newItem = createItem(index, item, pubSub);
+    const renderItems = itemRenderer(items.map(({ src }) => src));
+    if (previewAggregator) {
+      const renderPreviews = previewAggregator(
+        items.map(({ src }) => src)
+      ).then(newPreviews => previewRenderer(newPreviews));
+      return Promise.all([renderItems, renderPreviews]).then(
+        ([newRenderedItems, newRenderedPreviews]) => {
+          newRenderedItems.forEach((renderedItem, index) => {
+            const newItem = createItem(
+              index,
+              renderedItem,
+              newRenderedPreviews[index],
+              pubSub
+            );
+            renderedItems.set(index, newItem);
+            renderedItems.set(index, newItem);
+            const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
+            pileInstances.set(index, pile);
+            normalPile.addChild(pile.pileGraphics);
+          });
+          scaleItems();
+          stage.addChild(activePile);
+          stage.addChild(lassoContainer);
+          lassoContainer.addChild(lasso);
+          renderRaf();
+        }
+      );
+    }
+
+    return Promise.all([renderItems]).then(([newRenderedItems]) => {
+      newRenderedItems.forEach((renderedItem, index) => {
+        const newItem = createItem(index, renderedItem, null, pubSub);
+        renderedItems.set(index, newItem);
         renderedItems.set(index, newItem);
         const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
         pileInstances.set(index, pile);
@@ -890,6 +966,7 @@ const createPileMe = rootElement => {
         pile.itemContainer.addChild(temporaryDepileContainer);
 
         pile.pileGraphics.alpha = 1;
+        pile.pileGraphics.interactive = true;
 
         const {
           piles,
@@ -1071,7 +1148,11 @@ const createPileMe = rootElement => {
 
     if (
       state.items !== newState.items ||
-      state.itemRenderer !== newState.itemRenderer
+      state.itemRenderer !== newState.itemRenderer ||
+      state.previewRenderer !== newState.previewRenderer ||
+      state.aggregateRenderer !== newState.aggregateRenderer ||
+      state.previewAggregator !== newState.previewAggregator ||
+      state.coverAggregator !== newState.coverAggregator
     ) {
       updates.push(createItems());
       stateUpdates.add('piles');
@@ -1132,12 +1213,14 @@ const createPileMe = rootElement => {
           temporaryDepile(state.temporaryDepiledPile);
         }
         pileInstances.forEach(otherPile => {
-          otherPile.pileGraphics.alpha = 0.3;
+          otherPile.pileGraphics.alpha = 0;
+          otherPile.pileGraphics.interactive = false;
         });
         temporaryDepile(newState.temporaryDepiledPile);
       } else {
         pileInstances.forEach(otherPile => {
           otherPile.pileGraphics.alpha = 1;
+          otherPile.pileGraphics.interactive = true;
         });
         temporaryDepile(state.temporaryDepiledPile);
       }
@@ -1538,7 +1621,6 @@ const createPileMe = rootElement => {
         store.dispatch(setScaledPile([result[0].pileId]));
         const normalizedDeltaY = normalizeWheel(event).pixelY;
         scalePile(result[0].pileId, normalizedDeltaY);
-        scalePile(result[0].pileId);
         const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
         activePile.addChild(pileGraphics);
       }
@@ -1564,18 +1646,24 @@ const createPileMe = rootElement => {
       const alignBtn = document.getElementById('align-button');
       const scaleBtn = document.getElementById('scale-button');
 
-      const result = searchIndex.search({
+      const results = searchIndex.search({
         minX: mousePosition[0],
         minY: mousePosition[1],
         maxX: mousePosition[0] + 1,
         maxY: mousePosition[1] + 1
       });
       // click on pile
-      if (result.length !== 0) {
+      if (results.length !== 0) {
         gridBtn.style.display = 'none';
         alignBtn.style.display = 'none';
 
-        const pile = pileInstances.get(result[0].pileId);
+        let pile;
+        results.forEach(result => {
+          if (pileInstances.get(result.pileId).pileGraphics.isHover) {
+            pile = pileInstances.get(result.pileId);
+          }
+        });
+        // const pile = pileInstances.get(results[0].pileId);
         if (pile.itemContainer.children.length === 1) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
@@ -1583,10 +1671,6 @@ const createPileMe = rootElement => {
           tempDepileBtn.setAttribute('disabled', '');
           tempDepileBtn.style.opacity = 0.3;
           tempDepileBtn.style.cursor = 'not-allowed';
-          console.log(pile.pileGraphics.scale.x);
-          if (pile.pileGraphics.scale.x > 1.1) {
-            scaleBtn.innerHTML = 'scale down';
-          }
         } else if (pile.isTempDepiled[0]) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
@@ -1595,10 +1679,10 @@ const createPileMe = rootElement => {
           scaleBtn.style.opacity = 0.3;
           scaleBtn.style.cursor = 'not-allowed';
           tempDepileBtn.innerHTML = 'close temp depile';
-        } else {
-          scaleBtn.setAttribute('disabled', '');
-          scaleBtn.style.opacity = 0.3;
-          scaleBtn.style.cursor = 'not-allowed';
+        }
+
+        if (pile.pileGraphics.scale.x > 1.1) {
+          scaleBtn.innerHTML = 'scale down';
         }
 
         menu.style.display = 'block';
@@ -1607,17 +1691,17 @@ const createPileMe = rootElement => {
 
         depileBtn.addEventListener(
           'click',
-          depileBtnClick(menu, result[0].pileId),
+          depileBtnClick(menu, pile.id),
           false
         );
         tempDepileBtn.addEventListener(
           'click',
-          tempDepileBtnClick(menu, result[0].pileId),
+          tempDepileBtnClick(menu, pile.id),
           false
         );
         scaleBtn.addEventListener(
           'click',
-          scaleBtnBtnClick(menu, result[0].pileId),
+          scaleBtnBtnClick(menu, pile.id),
           false
         );
       } else {
@@ -1735,12 +1819,3 @@ const createPileMe = rootElement => {
 };
 
 export default createPileMe;
-
-export { default as createImageRenderer } from './image-renderer';
-export { default as createMatrixRenderer } from './matrix-renderer';
-export {
-  default as createMatrixPreviewAggregator
-} from './matrix-preview-aggregator';
-export {
-  default as createMatrixCoverAggregator
-} from './matrix-cover-aggregator';

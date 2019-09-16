@@ -65,7 +65,7 @@ const createColorTexture = (regl, colors) => {
   ];
 };
 
-const matrixRenderer = ({
+const createMatrixRenderer = ({
   colorMap,
   shape: dataShape,
   minValue = 0,
@@ -152,4 +152,4 @@ const matrixRenderer = ({
   return Promise.all(textures);
 };
 
-export default matrixRenderer;
+export default createMatrixRenderer;
