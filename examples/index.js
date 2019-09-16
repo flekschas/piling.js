@@ -1,6 +1,6 @@
 import createPileMe from '../src/index';
 import imageRenderer from '../src/image-renderer';
-import dataJson from './data/data';
+import dataJson from './data/data.json';
 
 const pileMe = createPileMe(document.getElementById('demo'));
 
