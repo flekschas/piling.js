@@ -1735,3 +1735,12 @@ const createPileMe = rootElement => {
 };
 
 export default createPileMe;
+
+export { default as createImageRenderer } from './image-renderer';
+export { default as createMatrixRenderer } from './matrix-renderer';
+export {
+  default as createMatrixPreviewAggregator
+} from './matrix-preview-aggregator';
+export {
+  default as createMatrixCoverAggregator
+} from './matrix-cover-aggregator';
