@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-const createItem = (id, texture, pubSub) => {
+const createItem = (id, texture, preview, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
   const originalPosition = [0, 0]; // use original position
@@ -39,6 +39,7 @@ const createItem = (id, texture, pubSub) => {
     cloneSprite,
     destroy,
     sprite,
+    preview,
     id,
     originalPosition
   };

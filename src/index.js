@@ -372,7 +372,12 @@ const createPileMe = rootElement => {
   const lassoFill = new PIXI.Graphics();
 
   const createItems = () => {
-    const { itemRenderer, items } = store.getState();
+    const {
+      itemRenderer,
+      previewRenderer,
+      previewAggregator,
+      items
+    } = store.getState();
 
     renderedItems.clear();
     pileInstances.clear();
@@ -384,20 +389,33 @@ const createPileMe = rootElement => {
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPile);
 
-    return itemRenderer(items.map(({ src }) => src)).then(newRenderedItems => {
-      newRenderedItems.forEach((item, index) => {
-        const newItem = createItem(index, item, pubSub);
-        renderedItems.set(index, newItem);
-        const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
-        pileInstances.set(index, pile);
-        normalPile.addChild(pile.pileGraphics);
-      });
-      scaleItems();
-      stage.addChild(activePile);
-      stage.addChild(lassoContainer);
-      lassoContainer.addChild(lasso);
-      renderRaf();
-    });
+    const renderItems = itemRenderer(items.map(({ src }) => src));
+    const renderPreviews = previewAggregator(items.map(({ src }) => src)).then(
+      newPreviews => previewRenderer(newPreviews)
+    );
+
+    return Promise.all([renderItems, renderPreviews]).then(
+      ([newRenderedItems, newRenderedPreviews]) => {
+        newRenderedItems.forEach((renderedItem, index) => {
+          const newItem = createItem(
+            index,
+            renderedItem,
+            newRenderedPreviews[index],
+            pubSub
+          );
+          renderedItems.set(index, newItem);
+          renderedItems.set(index, newItem);
+          const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
+          pileInstances.set(index, pile);
+          normalPile.addChild(pile.pileGraphics);
+        });
+        scaleItems();
+        stage.addChild(activePile);
+        stage.addChild(lassoContainer);
+        lassoContainer.addChild(lasso);
+        renderRaf();
+      }
+    );
   };
 
   const positionPiles = () => {
@@ -1119,7 +1137,6 @@ const createPileMe = rootElement => {
       state.coverAggregator !== newState.coverAggregator
     ) {
       updates.push(createItems());
-      console.log('update');
       stateUpdates.add('piles');
     }
 
@@ -1781,12 +1798,3 @@ const createPileMe = rootElement => {
 };
 
 export default createPileMe;
-
-export { default as createImageRenderer } from './image-renderer';
-export { default as createMatrixRenderer } from './matrix-renderer';
-export {
-  default as createMatrixPreviewAggregator
-} from './matrix-preview-aggregator';
-export {
-  default as createMatrixCoverAggregator
-} from './matrix-cover-aggregator';
