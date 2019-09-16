@@ -12,7 +12,7 @@ const createTweener = ({
 } = {}) => {
   let startValue;
   let startTime;
-  let Dt;
+  let dt;
   let interpolate;
 
   const startAnimation = () => {
@@ -28,14 +28,14 @@ const createTweener = ({
   const update = () => {
     if (!startValue) return false;
 
-    Dt = performance.now() - startTime;
+    dt = performance.now() - startTime;
 
-    if (Dt >= duration) {
+    if (dt >= duration) {
       if (onDone !== null) onDone(getter());
       return true;
     }
 
-    setter(interpolate(easing(Dt / duration)));
+    setter(interpolate(easing(dt / duration)));
 
     return false;
   };
@@ -48,7 +48,7 @@ const createTweener = ({
   return {
     register,
     update,
-    getDt: () => Dt,
+    getDt: () => dt,
     setEasing
   };
 };
