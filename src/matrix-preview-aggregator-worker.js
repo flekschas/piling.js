@@ -3,6 +3,7 @@
 
 const worker = function worker() {
   self.onmessage = function onmessage({ src }) {
+    console.log('worker');
     const newSrc = Object.assign({}, src);
 
     try {
@@ -19,6 +20,7 @@ const worker = function worker() {
       self.postMessage({ error });
     }
 
+    console.log('worker');
     self.postMessage({ src }, [newSrc.data.buffer]);
   };
 };
