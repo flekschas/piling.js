@@ -55,6 +55,20 @@ export const deepClone = source => {
   return extend(target, source);
 };
 
+export const createWorker = fn =>
+  new Worker(
+    window.URL.createObjectURL(
+      new Blob(
+        [
+          fn
+            .toString()
+            .match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]
+        ],
+        { type: 'text/javascript' }
+      )
+    )
+  );
+
 /**
  * L2 distance between a pair of 2D points
  * @param   {number}  x1  X coordinate of the first point
