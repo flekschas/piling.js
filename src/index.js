@@ -403,7 +403,9 @@ const createPileMe = rootElement => {
   const positionItems = pileId => {
     const { itemAlignment, itemRotated } = store.getState();
 
-    pileInstances.get(pileId).positionItems(itemAlignment, itemRotated);
+    pileInstances
+      .get(pileId)
+      .positionItems(itemAlignment, itemRotated, animator);
   };
 
   const updatePileItems = (pile, id) => {
@@ -426,6 +428,7 @@ const createPileMe = rootElement => {
         });
         positionItems(id);
         updateBoundingBox(id);
+        pileInstance.border.clear();
       }
     } else {
       const newPile = createPile(
@@ -573,7 +576,7 @@ const createPileMe = rootElement => {
 
     // doesn't find a available cell
     if (!depilePos) {
-      depilePos = [resultMat.shape[0], 0];
+      depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
       layout.myRowNum += filterRowNum;
       updateScrollContainer();
     }
@@ -1202,8 +1205,34 @@ const createPileMe = rootElement => {
     state = newState;
   };
 
+  let hit;
+
+  const animateMovePile = (sourceId, targetId) => {
+    const source = pileInstances.get(sourceId).pileGraphics;
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateVector,
+      endValue: [
+        pileInstances.get(targetId).pileGraphics.x,
+        pileInstances.get(targetId).pileGraphics.y
+      ],
+      getter: () => {
+        return [source.x, source.y];
+      },
+      setter: newValue => {
+        source.x = newValue[0];
+        source.y = newValue[1];
+      },
+      onDone: () => {
+        store.dispatch(mergePiles([sourceId, targetId], true));
+        hit = true;
+      }
+    });
+    animator.add(tweener);
+  };
+
   const handleDropPile = ({ pileId }) => {
-    let hit;
+    hit = false;
     const pile = pileInstances.get(pileId).pileGraphics;
 
     if (pile.x !== pile.beforeDragX || pile.y !== pile.beforeDragY) {
@@ -1214,8 +1243,9 @@ const createPileMe = rootElement => {
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
         if (!pileInstances.get(collidePiles[0].pileId).isTempDepiled[0]) {
-          store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
-          hit = true;
+          animateMovePile(pileId, collidePiles[0].pileId);
+          // store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
+          // hit = true;
         }
       } else {
         store.dispatch(
@@ -1328,6 +1358,56 @@ const createPileMe = rootElement => {
 
     renderRaf();
   };
+
+  const scaleBtnBtnClick = (menu, pileId) => () => {
+    const pile = pileInstances.get(pileId);
+    pile.animateScale();
+
+    menu.style.display = 'none';
+    const style = document.getElementById('style');
+    rootElement.removeChild(style);
+    rootElement.removeChild(menu);
+  };
+
+  // const alignBtnClick = menu => () => {
+  //   pileInstances.forEach(pile => {
+  //     const bBox = pile.bBox;
+  //     const centerY = Math.floor(
+  //       (bBox.minX + bBox.maxX) / (layout.myColWidth * 2)
+  //     );
+  //     const centerX = Math.floor(
+  //       (bBox.minY + bBox.maxY) / (layout.myRowHeight * 2)
+  //     );
+  //     const center = [centerX, centerY];
+
+  //     const { orderer } = store.getState();
+  //     const getPosition = orderer(layout.myColNum);
+  //     const [x, y] = getPosition(pile.id);
+
+  //     updateGridMatWithCenter(pile.id);
+
+  //     if (center[1] === x && center[0] === y) {
+  //       pile.pileGraphics.x = x * layout.myColWidth;
+  //       pile.pileGraphics.y = y * layout.myRowHeight;
+  //     } else {
+  //       const distanceMat = ndarray(
+  //         new Float32Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
+  //         [layout.myRowNum, layout.myColNum]
+  //       );
+
+  //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
+  //       console.log(center, closestPos);
+  //       pile.pileGraphics.x = closestPos[1] * layout.myColWidth;
+  //       pile.pileGraphics.y = closestPos[0] * layout.myRowHeight;
+  //     }
+  //     renderRaf();
+  //   })
+
+  //   menu.style.display = 'none';
+  //   const style = document.getElementById('style');
+  //   rootElement.removeChild(style);
+  //   rootElement.removeChild(menu);
+  // }
 
   let mouseDownPosition = [0, 0];
 
@@ -1481,6 +1561,8 @@ const createPileMe = rootElement => {
       const depileBtn = document.getElementById('depile-button');
       const tempDepileBtn = document.getElementById('temp-depile-button');
       const gridBtn = document.getElementById('grid-button');
+      const alignBtn = document.getElementById('align-button');
+      const scaleBtn = document.getElementById('scale-button');
 
       const result = searchIndex.search({
         minX: mousePosition[0],
@@ -1491,6 +1573,7 @@ const createPileMe = rootElement => {
       // click on pile
       if (result.length !== 0) {
         gridBtn.style.display = 'none';
+        alignBtn.style.display = 'none';
 
         const pile = pileInstances.get(result[0].pileId);
         if (pile.itemContainer.children.length === 1) {
@@ -1500,11 +1583,22 @@ const createPileMe = rootElement => {
           tempDepileBtn.setAttribute('disabled', '');
           tempDepileBtn.style.opacity = 0.3;
           tempDepileBtn.style.cursor = 'not-allowed';
+          console.log(pile.pileGraphics.scale.x);
+          if (pile.pileGraphics.scale.x > 1.1) {
+            scaleBtn.innerHTML = 'scale down';
+          }
         } else if (pile.isTempDepiled[0]) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
           depileBtn.style.cursor = 'not-allowed';
+          scaleBtn.setAttribute('disabled', '');
+          scaleBtn.style.opacity = 0.3;
+          scaleBtn.style.cursor = 'not-allowed';
           tempDepileBtn.innerHTML = 'close temp depile';
+        } else {
+          scaleBtn.setAttribute('disabled', '');
+          scaleBtn.style.opacity = 0.3;
+          scaleBtn.style.cursor = 'not-allowed';
         }
 
         menu.style.display = 'block';
@@ -1521,9 +1615,16 @@ const createPileMe = rootElement => {
           tempDepileBtnClick(menu, result[0].pileId),
           false
         );
+        scaleBtn.addEventListener(
+          'click',
+          scaleBtnBtnClick(menu, result[0].pileId),
+          false
+        );
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';
+        alignBtn.style.display = 'none';
+        scaleBtn.style.display = 'none';
 
         if (isGridShown) {
           gridBtn.innerHTML = 'hide grid';
@@ -1533,6 +1634,7 @@ const createPileMe = rootElement => {
         menu.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(menu), false);
+        // alignBtn.addEventListener('click', alignBtnClick(menu), false);
       }
     }
   };

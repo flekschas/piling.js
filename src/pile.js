@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 
 import createTweener from './tweener';
-import { interpolateNumber } from './utils';
+import { interpolateNumber, interpolateVector } from './utils';
 
 const MAX_SCALE = 5;
 
@@ -217,19 +217,37 @@ const createPile = (item, renderRaf, id, pubSub) => {
     return Math.random() * (max - min) + min;
   };
 
-  const positionItems = (itemAlignment, itemRotated) => {
+  const animatePositionItems = (child, x, y, animator) => {
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => {
+        return [child.x, child.y];
+      },
+      setter: newValue => {
+        child.x = newValue[0];
+        child.y = newValue[1];
+      }
+    });
+    animator.add(tweener);
+  };
+
+  const positionItems = (itemAlignment, itemRotated, animator) => {
     if (itemAlignment) {
       switch (itemAlignment) {
         case 'top':
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
-            child.y = -padding;
+            animatePositionItems(child, 0, -padding, animator);
+            // child.y = -padding;
           });
           break;
 
         case 'right':
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
+            animatePositionItems(child, padding, 0, animator);
             child.x = padding;
           });
           break;
@@ -238,8 +256,9 @@ const createPile = (item, renderRaf, id, pubSub) => {
         default: {
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
-            child.x = padding;
-            child.y = padding;
+            animatePositionItems(child, padding, padding, animator);
+            // child.x = padding;
+            // child.y = padding;
           });
         }
       }
@@ -363,7 +382,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     isFocus,
     isTempDepiled,
     scale,
-    animateScale
+    animateScale,
+    animatePositionItems
   };
 };
 

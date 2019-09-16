@@ -198,5 +198,15 @@ export const contextMenuTemplate =
   'show grid' +
   '</button>' +
   '</li>' +
+  '<li>' +
+  "<button id = 'align-button'>" +
+  'align by grid' +
+  '</button>' +
+  '</li>' +
+  '<li>' +
+  "<button id = 'scale-button'>" +
+  'scale up' +
+  '</button>' +
+  '</li>' +
   '</ul>' +
   '</nav>';
