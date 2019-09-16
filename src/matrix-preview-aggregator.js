@@ -1,7 +1,7 @@
 import createWorker from './utils';
 import workerFn from './matrix-preview-aggregator-worker';
 
-const aggregate = sources => {
+const aggregate = (aggregagtor = 'mean') => sources => {
   const worker = createWorker(workerFn);
 
   const aggregatedSources = sources.map(
@@ -11,7 +11,7 @@ const aggregate = sources => {
           if (error) reject(error);
           else resolve(newSrc);
         };
-        worker.postMessage(src);
+        worker.postMessage({ src, aggregagtor });
       })
   );
 
