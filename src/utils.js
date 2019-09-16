@@ -58,14 +58,7 @@ export const deepClone = source => {
 export const createWorker = fn =>
   new Worker(
     window.URL.createObjectURL(
-      new Blob(
-        [
-          fn
-            .toString()
-            .match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/)[1]
-        ],
-        { type: 'text/javascript' }
-      )
+      new Blob([`(${fn.toString()})()`], { type: 'text/javascript' })
     )
   );
 
