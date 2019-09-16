@@ -2,7 +2,7 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  self.onmessage = function onmessage(src) {
+  self.onmessage = function onmessage({ src }) {
     const newSrc = Object.assign({}, src);
 
     try {
@@ -10,13 +10,10 @@ const worker = function worker() {
 
       for (let i = 0; i < src.shape[0]; i++) {
         for (let j = 0; j < src.shape[1]; j++) {
-          newData[i] += src.data[i * src.shape[0] + j];
+          newData[i] += src.data[i * src.shape[0] + j] / src.shape[1];
         }
       }
 
-      for (let i = 0; i < src.shape[0]; i++) {
-        newData[i] /= src.shape[1];
-      }
       newSrc.data = newData;
     } catch (error) {
       self.postMessage({ error });
