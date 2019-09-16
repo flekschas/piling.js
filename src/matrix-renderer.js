@@ -20,7 +20,6 @@ const VS = `
 const FS = `
   precision mediump float;
 
-  // states to read from to get velocity
   uniform sampler2D uDataTex;
   uniform float uMinValue;
   uniform float uMaxValue;
@@ -30,7 +29,9 @@ const FS = `
   varying vec2 vTexIdx;
 
   vec3 toColor(float value) {
+    // Linear index into the colormap, e.g., 5 means the 5th color
     float linIdx = (value - uMinValue) / uMaxValue * uColorMapRes * uColorMapRes;
+    // Texture index into the colormap texture
     vec2 texIdx = vec2(
       (mod(linIdx, uColorMapRes) / uColorMapRes),
       (floor(linIdx / uColorMapRes) / uColorMapRes)
@@ -66,6 +67,7 @@ const createColorTexture = (regl, colors) => {
 
 const matrixRenderer = ({
   colorMap,
+  shape: dataShape,
   minValue = 0,
   maxValue = 1
 }) => sources => {
@@ -77,10 +79,10 @@ const matrixRenderer = ({
     extensions: 'OES_texture_float'
   });
 
-  const textureBuffer = new Float32Array(16 ** 2 * 4);
+  const textureBuffer = new Float32Array(dataShape[0] * dataShape[1] * 4);
   const texture = regl.texture({
     data: textureBuffer,
-    shape: [16, 16, 4],
+    shape: [...dataShape, 4],
     type: 'float'
   });
 
@@ -118,12 +120,18 @@ const matrixRenderer = ({
   });
 
   const textures = sources.map(
-    ({ data, shape }) =>
-      new Promise(resolve => {
+    ({ data, shape, dtype }) =>
+      new Promise((resolve, reject) => {
+        if (shape[0] !== dataShape[0] || shape[1] !== dataShape[1]) {
+          reject(
+            new Error('The renderer currently only matrices of equal shape.')
+          );
+        }
+
         dataTexture = regl.texture({
           data,
           shape: [...shape, 1],
-          type: 'float'
+          type: dtype
         });
 
         regl.clear({

@@ -13,7 +13,7 @@ const numColors = 256;
 const colorMap = new Array(numColors)
   .fill(0)
   .map((x, i) => hex2rgba(interpolateMagma(i / numColors)));
-const matrixRenderer = createMatrixRenderer({ colorMap });
+const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 const pileMe = createPileMe(document.getElementById('demo'));
 
 pileMe.set('renderer', matrixRenderer);
