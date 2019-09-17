@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
-const MAX_SCALE = 5;
+const MAX_SCALE = 3;
 
 const createPile = (item, renderRaf, id, pubSub) => {
   const itemIds = new Map();
@@ -12,17 +12,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
-  const coverContainer = new PIXI.Container();
   const border = new PIXI.Graphics();
-  let cover;
-
-  const setCover = coverTex => {
-    cover = new PIXI.Sprite(coverTex);
-    cover.x = 2;
-    cover.y = 2;
-  };
-
-  const getCover = () => cover;
 
   const bBox = {
     minX: null,
@@ -60,6 +50,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const handleHoverItemEnd = () => {
+    console.log('hover out');
     if (isFocus[0]) {
       if (hoverItemContainer.children.length === 2)
         hoverItemContainer.removeChildAt(0);
@@ -78,6 +69,16 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pubSub.publish('updateBBox', id);
 
     border.clear();
+    border.beginFill(0x00000);
+    border.drawRect(
+      // eslint-disable-next-line no-use-before-define
+      bBox.minX - pileGraphics.x - thickness,
+      // eslint-disable-next-line no-use-before-define
+      bBox.minY - pileGraphics.y - thickness,
+      rect.width + 2 * thickness,
+      rect.height + 2 * thickness
+    );
+    border.endFill();
     border.lineStyle(thickness, color, 1);
     border.drawRect(
       // eslint-disable-next-line no-use-before-define
@@ -349,7 +350,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
     pileGraphics.addChild(hoverItemContainer);
-    pileGraphics.addChild(coverContainer);
 
     pileGraphics.interactive = true;
     pileGraphics.buttonMode = true;
@@ -390,13 +390,10 @@ const createPile = (item, renderRaf, id, pubSub) => {
     newItemIds,
     pileGraphics,
     itemContainer,
-    coverContainer,
     id,
     bBox,
     calcBBox,
     updateBBox,
-    setCover,
-    getCover,
     hasCover,
     positionItems,
     isFocus,
