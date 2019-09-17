@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-const createItem = (id, texture, previewTexture, pubSub) => {
+const createItem = (id, texture, preview, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
   const originalPosition = [0, 0]; // use original position
@@ -35,14 +35,7 @@ const createItem = (id, texture, previewTexture, pubSub) => {
 
   sprite.on('pointerover', onPointerOver).on('pointerout', onPointerOut);
 
-  let preview;
-
-  if (previewTexture) {
-    preview = new PIXI.Sprite(previewTexture);
-
-    preview.interactive = true;
-    preview.buttonMode = true;
-
+  if (preview) {
     preview.on('pointerover', onPointerOver).on('pointerout', onPointerOut);
   }
 
