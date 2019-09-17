@@ -34,7 +34,7 @@ const worker = function worker() {
   self.onmessage = function onmessage(event) {
     const newSrc = {};
 
-    const numSources = event.sources.length;
+    const numSources = event.data.sources.length;
 
     if (!numSources) {
       self.postMessage({ error: new Error('No sources provided') });
@@ -43,27 +43,27 @@ const worker = function worker() {
     let newData;
     let length;
     try {
-      newSrc.shape = event.sources[0].shape;
-      newSrc.dtype = event.sources[0].dtype;
-      length = event.sources[0].data.length;
+      newSrc.shape = event.data.sources[0].shape;
+      newSrc.dtype = event.data.sources[0].dtype;
+      length = event.data.sources[0].data.length;
       newData = new Float32Array(length);
     } catch (error) {
       self.postMessage({ error });
     }
 
     try {
-      switch (event.aggregator) {
+      switch (event.data.aggregator) {
         case 'variance':
-          variance(newData, event.sources, length);
+          variance(newData, event.data.sources, length);
           break;
 
         case 'std':
-          std(newData, event.sources, length);
+          std(newData, event.data.sources, length);
           break;
 
         case 'mean':
         default:
-          mean(newData, event.sources, length);
+          mean(newData, event.data.sources, length);
           break;
       }
       newSrc.data = newData;
@@ -71,7 +71,7 @@ const worker = function worker() {
       self.postMessage({ error });
     }
 
-    self.postMessage({ src: newSrc });
+    self.postMessage({ newSrc });
   };
 };
 

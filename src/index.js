@@ -30,7 +30,8 @@ import createStore, {
   setTemporaryDepiledPile,
   setTempDepileDirection,
   settempDepileOneDNum,
-  setEasingFunc
+  setEasingFunc,
+  setPreviewSpacing
 } from './store';
 
 import {
@@ -38,7 +39,8 @@ import {
   getBBox,
   isPileInPolygon,
   contextMenuTemplate,
-  interpolateVector
+  interpolateVector,
+  interpolateNumber
 } from './utils';
 
 import createPile from './pile';
@@ -153,6 +155,9 @@ const createPileMe = rootElement => {
       case 'easingFunc':
         return state.easingFunc;
 
+      case 'previewSpacing':
+        return state.previewSpacing;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -165,8 +170,6 @@ const createPileMe = rootElement => {
     switch (property) {
       case 'renderer':
         actions.push(setItemRenderer(value));
-        actions.push(setPreviewRenderer(value));
-        actions.push(setAggregateRenderer(value));
         break;
 
       case 'itemRenderer':
@@ -246,6 +249,10 @@ const createPileMe = rootElement => {
         actions.push(setEasingFunc(value));
         break;
 
+      case 'previewSpacing':
+        actions.push(setPreviewSpacing(value));
+        break;
+
       default:
         console.warn(`Unknown property "${property}"`);
     }
@@ -319,6 +326,8 @@ const createPileMe = rootElement => {
     // gridMat = layout.mat;
   };
 
+  let scaleSprite;
+
   const scaleItems = () => {
     let min = Infinity;
     let max = 0;
@@ -348,22 +357,53 @@ const createPileMe = rootElement => {
       range = itemSizeRange;
     }
 
-    const scale = scaleLinear()
+    scaleSprite = scaleLinear()
       .domain([min, max])
       .range(range);
 
-    scale.clamp(true);
+    scaleSprite.clamp(true);
 
     renderedItems.forEach(item => {
-      const ratio = item.sprite.height / item.sprite.width;
+      const spriteRatio = item.sprite.height / item.sprite.width;
+
       if (item.sprite.width > item.sprite.height) {
-        item.sprite.width = scale(item.sprite.width);
-        item.sprite.height = item.sprite.width * ratio;
+        item.sprite.width = scaleSprite(item.sprite.width);
+        item.sprite.height = item.sprite.width * spriteRatio;
       } else {
-        item.sprite.height = scale(item.sprite.height);
-        item.sprite.width = item.sprite.height / ratio;
+        item.sprite.height = scaleSprite(item.sprite.height);
+        item.sprite.width = item.sprite.height / spriteRatio;
+      }
+      if (item.preview) {
+        const previewRatio = item.preview.height / item.preview.width;
+        item.preview.width = scaleSprite(item.preview.width);
+        item.preview.height = item.preview.width * previewRatio;
       }
     });
+  };
+
+  const createPreview = previewTexture => {
+    if (previewTexture) {
+      const preview = new PIXI.Graphics();
+      preview.clear();
+      preview.beginFill(0x000000);
+      preview.drawRect(
+        0,
+        0,
+        previewTexture.width,
+        previewTexture.height + store.getState().previewSpacing
+      );
+      preview.endFill();
+
+      const previewSprite = new PIXI.Sprite(previewTexture);
+      preview.addChild(previewSprite);
+
+      preview.interactive = true;
+      preview.buttonMode = true;
+
+      return preview;
+    }
+
+    return null;
   };
 
   const lassoContainer = new PIXI.Container();
@@ -379,6 +419,8 @@ const createPileMe = rootElement => {
       items
     } = store.getState();
 
+    if (!items.length || !itemRenderer) return null;
+
     renderedItems.clear();
     pileInstances.clear();
 
@@ -390,49 +432,30 @@ const createPileMe = rootElement => {
     stage.addChild(normalPile);
 
     const renderItems = itemRenderer(items.map(({ src }) => src));
-    if (previewAggregator) {
-      const renderPreviews = previewAggregator(
-        items.map(({ src }) => src)
-      ).then(newPreviews => previewRenderer(newPreviews));
-      return Promise.all([renderItems, renderPreviews]).then(
-        ([newRenderedItems, newRenderedPreviews]) => {
-          newRenderedItems.forEach((renderedItem, index) => {
-            const newItem = createItem(
-              index,
-              renderedItem,
-              newRenderedPreviews[index],
-              pubSub
-            );
-            renderedItems.set(index, newItem);
-            renderedItems.set(index, newItem);
-            const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
-            pileInstances.set(index, pile);
-            normalPile.addChild(pile.pileGraphics);
-          });
-          scaleItems();
-          stage.addChild(activePile);
-          stage.addChild(lassoContainer);
-          lassoContainer.addChild(lasso);
-          renderRaf();
-        }
-      );
-    }
+    const renderPreviews = previewAggregator
+      ? previewAggregator(items.map(({ src }) => src)).then(newPreviews => {
+          return previewRenderer(newPreviews);
+        })
+      : Promise.resolve([]);
 
-    return Promise.all([renderItems]).then(([newRenderedItems]) => {
-      newRenderedItems.forEach((renderedItem, index) => {
-        const newItem = createItem(index, renderedItem, null, pubSub);
-        renderedItems.set(index, newItem);
-        renderedItems.set(index, newItem);
-        const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
-        pileInstances.set(index, pile);
-        normalPile.addChild(pile.pileGraphics);
-      });
-      scaleItems();
-      stage.addChild(activePile);
-      stage.addChild(lassoContainer);
-      lassoContainer.addChild(lasso);
-      renderRaf();
-    });
+    return Promise.all([renderItems, renderPreviews]).then(
+      ([newRenderedItems, newRenderedPreviews]) => {
+        newRenderedItems.forEach((renderedItem, index) => {
+          const preview = createPreview(newRenderedPreviews[index]);
+          const newItem = createItem(index, renderedItem, preview, pubSub);
+          renderedItems.set(index, newItem);
+          renderedItems.set(index, newItem);
+          const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
+          pileInstances.set(index, pile);
+          normalPile.addChild(pile.pileGraphics);
+        });
+        scaleItems();
+        stage.addChild(activePile);
+        stage.addChild(lassoContainer);
+        lassoContainer.addChild(lasso);
+        renderRaf();
+      }
+    );
   };
 
   const positionPiles = () => {
@@ -484,6 +507,41 @@ const createPileMe = rootElement => {
       .positionItems(itemAlignment, itemRotated, animator);
   };
 
+  const updatePreview = (pile, pileInstance) => {
+    const { items, coverAggregator, aggregateRenderer } = store.getState();
+    if (pile.items.length === 1) {
+      pileInstance.itemContainer.addChild(
+        renderedItems.get(pile.items[0]).sprite
+      );
+      pileInstance.hasCover[0] = false;
+      positionItems(pileInstance.id);
+    } else {
+      const itemSrcs = [];
+      pile.items.forEach(itemId => {
+        itemSrcs.push(items[itemId].src);
+        pileInstance.itemContainer.addChild(renderedItems.get(itemId).preview);
+        if (!pileInstance.itemIds.has(itemId)) {
+          pileInstance.newItemIds.set(itemId, renderedItems.get(itemId).sprite);
+        }
+      });
+      const renderedCover = coverAggregator(itemSrcs).then(newSrc =>
+        aggregateRenderer([newSrc])
+      );
+
+      Promise.all([renderedCover]).then(newCover => {
+        // const cover = createItem(null, newCover[0][0], null, pubSub).sprite;
+        const cover = new PIXI.Sprite(newCover[0][0]);
+        cover.x = 2;
+        cover.y = 2;
+        cover.width = scaleSprite(cover.width);
+        cover.height = scaleSprite(cover.height);
+        pileInstance.itemContainer.addChild(cover);
+        pileInstance.hasCover[0] = true;
+        positionItems(pileInstance.id);
+      });
+    }
+  };
+
   const updatePileItems = (pile, id) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
@@ -493,16 +551,23 @@ const createPileMe = rootElement => {
         pileInstances.delete(id);
       } else {
         pileInstance.itemContainer.removeChildren();
-        pile.items.forEach(itemId => {
-          pileInstance.itemContainer.addChild(renderedItems.get(itemId).sprite);
-          if (!pileInstance.itemIds.has(itemId)) {
-            pileInstance.newItemIds.set(
-              itemId,
+        if (store.getState().previewAggregator) {
+          updatePreview(pile, pileInstance);
+        } else {
+          pile.items.forEach(itemId => {
+            pileInstance.itemContainer.addChild(
               renderedItems.get(itemId).sprite
             );
-          }
-        });
-        positionItems(id);
+            if (!pileInstance.itemIds.has(itemId)) {
+              pileInstance.newItemIds.set(
+                itemId,
+                renderedItems.get(itemId).sprite
+              );
+            }
+          });
+          positionItems(id);
+        }
+        // positionItems(id);
         updateBoundingBox(id);
         pileInstance.border.clear();
       }
@@ -860,6 +925,21 @@ const createPileMe = rootElement => {
     animator.add(tweener);
   };
 
+  const animateAlpha = (pileGraphics, endValue) => {
+    const tweener = createTweener({
+      duration: 250,
+      interpolator: interpolateNumber,
+      endValue,
+      getter: () => {
+        return pileGraphics.alpha;
+      },
+      setter: newValue => {
+        pileGraphics.alpha = newValue;
+      }
+    });
+    animator.add(tweener);
+  };
+
   const tempDepileOneD = (
     temporaryDepileContainer,
     pile,
@@ -965,7 +1045,8 @@ const createPileMe = rootElement => {
         const temporaryDepileContainer = new PIXI.Container();
         pile.itemContainer.addChild(temporaryDepileContainer);
 
-        pile.pileGraphics.alpha = 1;
+        animateAlpha(pile.pileGraphics, 1);
+        // pile.pileGraphics.alpha = 1;
         pile.pileGraphics.interactive = true;
 
         const {
@@ -1213,13 +1294,15 @@ const createPileMe = rootElement => {
           temporaryDepile(state.temporaryDepiledPile);
         }
         pileInstances.forEach(otherPile => {
-          otherPile.pileGraphics.alpha = 0;
+          animateAlpha(otherPile.pileGraphics, 0);
+          // otherPile.pileGraphics.alpha = 0;
           otherPile.pileGraphics.interactive = false;
         });
         temporaryDepile(newState.temporaryDepiledPile);
       } else {
         pileInstances.forEach(otherPile => {
-          otherPile.pileGraphics.alpha = 1;
+          animateAlpha(otherPile.pileGraphics, 1);
+          // otherPile.pileGraphics.alpha = 1;
           otherPile.pileGraphics.interactive = true;
         });
         temporaryDepile(state.temporaryDepiledPile);
@@ -1275,6 +1358,10 @@ const createPileMe = rootElement => {
     if (state.depiledPile !== newState.depiledPile) {
       console.log('depile', newState.depiledPile);
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
+    }
+
+    if (state.previewSpacing !== newState.previewSpacing) {
+      stateUpdates.add('layout');
     }
 
     if (updates.length !== 0) {
@@ -1358,6 +1445,7 @@ const createPileMe = rootElement => {
   let newResult = [];
 
   const handleHighlightPile = ({ pileId }) => {
+    if (pileInstances.get(pileId).pileGraphics.scale.x > 1.1) return;
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
@@ -1663,8 +1751,7 @@ const createPileMe = rootElement => {
             pile = pileInstances.get(result.pileId);
           }
         });
-        // const pile = pileInstances.get(results[0].pileId);
-        if (pile.itemContainer.children.length === 1) {
+        if (pile && pile.itemContainer.children.length === 1) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
           depileBtn.style.cursor = 'not-allowed';

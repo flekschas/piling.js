@@ -2,8 +2,8 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  self.onmessage = function onmessage({ src }) {
-    console.log('worker');
+  self.onmessage = function onmessage(e) {
+    const src = e.data.src;
     const newSrc = Object.assign({}, src);
 
     try {
@@ -16,12 +16,12 @@ const worker = function worker() {
       }
 
       newSrc.data = newData;
+      newSrc.shape = [src.shape[0], 1];
     } catch (error) {
       self.postMessage({ error });
     }
 
-    console.log('worker');
-    self.postMessage({ src }, [newSrc.data.buffer]);
+    self.postMessage({ newSrc }, [newSrc.data.buffer]);
   };
 };
 

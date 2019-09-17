@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
-const MAX_SCALE = 5;
+const MAX_SCALE = 3;
 
 const createPile = (item, renderRaf, id, pubSub) => {
   const itemIds = new Map();
@@ -24,6 +24,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   const isFocus = [false];
   const isTempDepiled = [false];
+  const hasCover = [false];
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -31,6 +32,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   const destroy = () => {
     pileGraphics.destroy();
+    // cover = null;
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -48,6 +50,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const handleHoverItemEnd = () => {
+    console.log('hover out');
     if (isFocus[0]) {
       if (hoverItemContainer.children.length === 2)
         hoverItemContainer.removeChildAt(0);
@@ -66,6 +69,16 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pubSub.publish('updateBBox', id);
 
     border.clear();
+    border.beginFill(0x00000);
+    border.drawRect(
+      // eslint-disable-next-line no-use-before-define
+      bBox.minX - pileGraphics.x - thickness,
+      // eslint-disable-next-line no-use-before-define
+      bBox.minY - pileGraphics.y - thickness,
+      rect.width + 2 * thickness,
+      rect.height + 2 * thickness
+    );
+    border.endFill();
     border.lineStyle(thickness, color, 1);
     border.drawRect(
       // eslint-disable-next-line no-use-before-define
@@ -234,13 +247,18 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const positionItems = (itemAlignment, itemRotated, animator) => {
-    if (itemAlignment) {
+    if (hasCover[0]) {
+      itemContainer.children.forEach((child, childIndex) => {
+        if (childIndex === itemContainer.children.length - 1) return;
+        const padding = child.height * (childIndex + 1);
+        animatePositionItems(child, 2, -padding, animator);
+      });
+    } else if (itemAlignment) {
       switch (itemAlignment) {
         case 'top':
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             animatePositionItems(child, 0, -padding, animator);
-            // child.y = -padding;
           });
           break;
 
@@ -257,8 +275,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             animatePositionItems(child, padding, padding, animator);
-            // child.x = padding;
-            // child.y = padding;
           });
         }
       }
@@ -378,6 +394,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
     bBox,
     calcBBox,
     updateBBox,
+    hasCover,
     positionItems,
     isFocus,
     isTempDepiled,
