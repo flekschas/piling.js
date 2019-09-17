@@ -12,7 +12,17 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
+  const coverContainer = new PIXI.Container();
   const border = new PIXI.Graphics();
+  let cover;
+
+  const setCover = coverTex => {
+    cover = new PIXI.Sprite(coverTex);
+    cover.x = 2;
+    cover.y = 2;
+  };
+
+  const getCover = () => cover;
 
   const bBox = {
     minX: null,
@@ -24,6 +34,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   const isFocus = [false];
   const isTempDepiled = [false];
+  const hasCover = [false];
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -31,6 +42,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   const destroy = () => {
     pileGraphics.destroy();
+    // cover = null;
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -234,13 +246,18 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const positionItems = (itemAlignment, itemRotated, animator) => {
-    if (itemAlignment) {
+    if (hasCover[0]) {
+      itemContainer.children.forEach((child, childIndex) => {
+        if (childIndex === itemContainer.children.length - 1) return;
+        const padding = child.height * (childIndex + 1);
+        animatePositionItems(child, 2, -padding, animator);
+      });
+    } else if (itemAlignment) {
       switch (itemAlignment) {
         case 'top':
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             animatePositionItems(child, 0, -padding, animator);
-            // child.y = -padding;
           });
           break;
 
@@ -257,8 +274,6 @@ const createPile = (item, renderRaf, id, pubSub) => {
           itemContainer.children.forEach((child, childIndex) => {
             const padding = childIndex * 5 + 2;
             animatePositionItems(child, padding, padding, animator);
-            // child.x = padding;
-            // child.y = padding;
           });
         }
       }
@@ -334,6 +349,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileGraphics.addChild(borderContainer);
     pileGraphics.addChild(itemContainer);
     pileGraphics.addChild(hoverItemContainer);
+    pileGraphics.addChild(coverContainer);
 
     pileGraphics.interactive = true;
     pileGraphics.buttonMode = true;
@@ -374,10 +390,14 @@ const createPile = (item, renderRaf, id, pubSub) => {
     newItemIds,
     pileGraphics,
     itemContainer,
+    coverContainer,
     id,
     bBox,
     calcBBox,
     updateBBox,
+    setCover,
+    getCover,
+    hasCover,
     positionItems,
     isFocus,
     isTempDepiled,
