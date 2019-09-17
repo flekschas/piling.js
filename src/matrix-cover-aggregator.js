@@ -2,20 +2,19 @@ import { createWorker } from './utils';
 import workerFn from './matrix-cover-aggregator-worker';
 
 const createMatrixCoverAggregator = (aggregagtor = 'mean') => sources => {
-  const worker = createWorker(workerFn);
-
   return new Promise((resolve, reject) => {
-    worker.onmessage = ({ newSrc, error }) => {
-      if (error) reject(error);
-      else resolve(newSrc);
+    const worker = createWorker(workerFn);
+
+    worker.onmessage = e => {
+      if (e.data.error) reject(e.data.error);
+      else resolve(e.data.newSrc);
+      worker.terminate();
     };
 
     worker.postMessage({
       sources,
       aggregagtor
     });
-
-    worker.terminate();
   });
 };
 
