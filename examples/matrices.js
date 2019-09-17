@@ -17,13 +17,14 @@ const colorMap = new Array(numColors)
   .fill(0)
   .map((x, i) => hex2rgba(interpolateMagma(i / numColors)));
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
+const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
 const pileMe = createPileMe(document.getElementById('demo'));
 
 pileMe.set('renderer', matrixRenderer);
 pileMe.set('itemRenderer', matrixRenderer);
-pileMe.set('previewRenderer', matrixRenderer);
+pileMe.set('previewRenderer', previewRenderer);
 pileMe.set('aggregateRenderer', matrixRenderer);
 pileMe.set('coverAggregator', matrixCoverAggregator);
 pileMe.set('previewAggregator', matrixPreviewAggregator);
