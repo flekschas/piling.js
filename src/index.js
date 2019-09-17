@@ -30,7 +30,8 @@ import createStore, {
   setTemporaryDepiledPile,
   setTempDepileDirection,
   settempDepileOneDNum,
-  setEasingFunc
+  setEasingFunc,
+  setPreviewSpacing
 } from './store';
 
 import {
@@ -154,6 +155,9 @@ const createPileMe = rootElement => {
       case 'easingFunc':
         return state.easingFunc;
 
+      case 'previewSpacing':
+        return state.previewSpacing;
+
       default:
         console.warn(`Unknown property "${property}"`);
         return undefined;
@@ -243,6 +247,10 @@ const createPileMe = rootElement => {
 
       case 'easingFunc':
         actions.push(setEasingFunc(value));
+        break;
+
+      case 'previewSpacing':
+        actions.push(setPreviewSpacing(value));
         break;
 
       default:
@@ -373,6 +381,31 @@ const createPileMe = rootElement => {
     });
   };
 
+  const createPreview = previewTexture => {
+    if (previewTexture) {
+      const preview = new PIXI.Graphics();
+      preview.clear();
+      preview.beginFill(0x000000);
+      preview.drawRect(
+        0,
+        0,
+        previewTexture.width,
+        previewTexture.height + store.getState().previewSpacing
+      );
+      preview.endFill();
+
+      const previewSprite = new PIXI.Sprite(previewTexture);
+      preview.addChild(previewSprite);
+
+      preview.interactive = true;
+      preview.buttonMode = true;
+
+      return preview;
+    }
+
+    return null;
+  };
+
   const lassoContainer = new PIXI.Container();
   const lassoBgContainer = new PIXI.Container();
   const lasso = new PIXI.Graphics();
@@ -408,12 +441,8 @@ const createPileMe = rootElement => {
     return Promise.all([renderItems, renderPreviews]).then(
       ([newRenderedItems, newRenderedPreviews]) => {
         newRenderedItems.forEach((renderedItem, index) => {
-          const newItem = createItem(
-            index,
-            renderedItem,
-            newRenderedPreviews[index],
-            pubSub
-          );
+          const preview = createPreview(newRenderedPreviews[index]);
+          const newItem = createItem(index, renderedItem, preview, pubSub);
           renderedItems.set(index, newItem);
           renderedItems.set(index, newItem);
           const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
@@ -500,11 +529,10 @@ const createPileMe = rootElement => {
       );
 
       Promise.all([renderedCover]).then(newCover => {
+        // const cover = createItem(null, newCover[0][0], null, pubSub).sprite;
         const cover = new PIXI.Sprite(newCover[0][0]);
         cover.x = 2;
         cover.y = 2;
-        // pileInstance.setCover(newCover[0][0]);
-        // const cover = pileInstance.getCover();
         cover.width = scaleSprite(cover.width);
         cover.height = scaleSprite(cover.height);
         pileInstance.itemContainer.addChild(cover);
@@ -1332,6 +1360,10 @@ const createPileMe = rootElement => {
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
+    if (state.previewSpacing !== newState.previewSpacing) {
+      stateUpdates.add('layout');
+    }
+
     if (updates.length !== 0) {
       Promise.all(updates).then(() => {
         if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
@@ -1413,6 +1445,7 @@ const createPileMe = rootElement => {
   let newResult = [];
 
   const handleHighlightPile = ({ pileId }) => {
+    if (pileInstances.get(pileId).pileGraphics.scale.x > 1.1) return;
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 

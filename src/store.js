@@ -154,6 +154,12 @@ export const setEasingFunc = newEasingFunc => ({
   payload: { easingFunc: newEasingFunc }
 });
 
+const previewSpacing = setReducer('previewSpacing', 0.5);
+export const setPreviewSpacing = newPreviewSpacing => ({
+  type: 'SET_PREVIEW_SPACING',
+  payload: { previewSpacing: newPreviewSpacing }
+});
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -297,7 +303,8 @@ const createStore = () => {
     tempDepileDirection,
     tempDepileOneDNum,
     easingFunc,
-    depileMethod
+    depileMethod,
+    previewSpacing
   });
 
   const rootReducer = (state, action) => {
