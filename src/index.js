@@ -447,7 +447,7 @@ const createPileMe = rootElement => {
           renderedItems.set(index, newItem);
           const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
           pileInstances.set(index, pile);
-          normalPile.addChild(pile.pileGraphics);
+          normalPile.addChild(pile.graphics);
         });
         scaleItems();
         stage.addChild(activePile);
@@ -481,15 +481,15 @@ const createPileMe = rootElement => {
         x *= layout.myColWidth;
         y *= layout.myRowHeight;
 
-        pile.pileGraphics.x += x;
-        pile.pileGraphics.y += y;
+        pile.graphics.x += x;
+        pile.graphics.y += y;
 
         renderedItems.get(id).originalPosition = [x, y];
 
         movingPiles.push({
           id,
-          x: pile.pileGraphics.x,
-          y: pile.pileGraphics.y
+          x: pile.graphics.x,
+          y: pile.graphics.y
         });
       });
       if (movingPiles.length !== 0) store.dispatch(movePiles(movingPiles));
@@ -507,38 +507,33 @@ const createPileMe = rootElement => {
       .positionItems(itemAlignment, itemRotated, animator);
   };
 
-  const updatePreview = (pile, pileInstance) => {
+  const updatePreviewAndCover = (pile, pileInstance) => {
     const { items, coverAggregator, aggregateRenderer } = store.getState();
     if (pile.items.length === 1) {
       pileInstance.itemContainer.addChild(
         renderedItems.get(pile.items[0]).sprite
       );
-      pileInstance.hasCover[0] = false;
+      pileInstance.hasCover = false;
       positionItems(pileInstance.id);
     } else {
       const itemSrcs = [];
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
         pileInstance.itemContainer.addChild(renderedItems.get(itemId).preview);
-        if (!pileInstance.itemIds.has(itemId)) {
-          pileInstance.newItemIds.set(itemId, renderedItems.get(itemId).sprite);
-        }
       });
-      const renderedCover = coverAggregator(itemSrcs).then(newSrc =>
-        aggregateRenderer([newSrc])
-      );
 
-      Promise.all([renderedCover]).then(newCover => {
-        // const cover = createItem(null, newCover[0][0], null, pubSub).sprite;
-        const cover = new PIXI.Sprite(newCover[0][0]);
-        cover.x = 2;
-        cover.y = 2;
-        cover.width = scaleSprite(cover.width);
-        cover.height = scaleSprite(cover.height);
-        pileInstance.itemContainer.addChild(cover);
-        pileInstance.hasCover[0] = true;
-        positionItems(pileInstance.id);
-      });
+      coverAggregator(itemSrcs)
+        .then(newSrc => aggregateRenderer([newSrc]))
+        .then(newCover => {
+          const cover = new PIXI.Sprite(newCover[0]);
+          cover.x = 2;
+          cover.y = 2;
+          cover.width = scaleSprite(cover.width);
+          cover.height = scaleSprite(cover.height);
+          pileInstance.itemContainer.addChild(cover);
+          pileInstance.hasCover = true;
+          positionItems(pileInstance.id);
+        });
     }
   };
 
@@ -552,14 +547,14 @@ const createPileMe = rootElement => {
       } else {
         pileInstance.itemContainer.removeChildren();
         if (store.getState().previewAggregator) {
-          updatePreview(pile, pileInstance);
+          updatePreviewAndCover(pile, pileInstance);
         } else {
           pile.items.forEach(itemId => {
             pileInstance.itemContainer.addChild(
               renderedItems.get(itemId).sprite
             );
-            if (!pileInstance.itemIds.has(itemId)) {
-              pileInstance.newItemIds.set(
+            if (!pileInstance.itemsById.has(itemId)) {
+              pileInstance.newItemsById.set(
                 itemId,
                 renderedItems.get(itemId).sprite
               );
@@ -567,7 +562,6 @@ const createPileMe = rootElement => {
           });
           positionItems(id);
         }
-        // positionItems(id);
         updateBoundingBox(id);
         pileInstance.border.clear();
       }
@@ -579,16 +573,16 @@ const createPileMe = rootElement => {
         pubSub
       );
       pileInstances.set(id, newPile);
-      normalPile.addChild(newPile.pileGraphics);
+      normalPile.addChild(newPile.graphics);
       updateBoundingBox(id);
     }
   };
 
   const updatePileLocation = (pile, id) => {
     if (pileInstances.has(id)) {
-      const pileGraphics = pileInstances.get(id).pileGraphics;
-      pileGraphics.x = pile.x;
-      pileGraphics.y = pile.y;
+      const graphics = pileInstances.get(id).graphics;
+      graphics.x = pile.x;
+      graphics.y = pile.y;
       updateBoundingBox(id);
     }
   };
@@ -775,11 +769,11 @@ const createPileMe = rootElement => {
             ? itemPositions[index]
             : renderedItems.get(itemId).originalPosition,
         getter: () => {
-          return [pile.pileGraphics.x, pile.pileGraphics.y];
+          return [pile.graphics.x, pile.graphics.y];
         },
         setter: newValue => {
-          pile.pileGraphics.x = newValue[0];
-          pile.pileGraphics.y = newValue[1];
+          pile.graphics.x = newValue[0];
+          pile.graphics.y = newValue[1];
         },
         onDone: finalValue => {
           movingPiles.push({
@@ -895,7 +889,7 @@ const createPileMe = rootElement => {
       },
       onDone: () => {
         if (isLastOne) {
-          pile.isTempDepiled[0] = true;
+          pile.isTempDepiled = true;
           store.dispatch(setClickedPile([]));
           store.dispatch(setClickedPile([pile.id]));
         }
@@ -925,16 +919,16 @@ const createPileMe = rootElement => {
     animator.add(tweener);
   };
 
-  const animateAlpha = (pileGraphics, endValue) => {
+  const animateAlpha = (graphics, endValue) => {
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateNumber,
       endValue,
       getter: () => {
-        return pileGraphics.alpha;
+        return graphics.alpha;
       },
       setter: newValue => {
-        pileGraphics.alpha = newValue;
+        graphics.alpha = newValue;
       }
     });
     animator.add(tweener);
@@ -1014,7 +1008,7 @@ const createPileMe = rootElement => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
-      if (pile.isTempDepiled[0]) {
+      if (pile.isTempDepiled) {
         const length = pile.itemContainer.children.length;
         const temporaryDepileContainer = pile.itemContainer.getChildAt(
           length - 1
@@ -1032,22 +1026,23 @@ const createPileMe = rootElement => {
         if (closeTempDepileEvent) pubSub.unsubscribe(closeTempDepileEvent);
 
         closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
-          if (pile.isTempDepiled[0]) {
+          if (pile.isTempDepiled) {
             pile.itemContainer.removeChildAt(length - 1);
-            pile.isTempDepiled[0] = false;
+            pile.isTempDepiled = false;
             pile.border.clear();
-            pile.isFocus[0] = false;
+            pile.isFocus = false;
             // eslint-disable-next-line no-use-before-define
             handleHighlightPile({ pileId });
+            store.dispatch(setClickedPile([]));
           }
         });
       } else {
         const temporaryDepileContainer = new PIXI.Container();
         pile.itemContainer.addChild(temporaryDepileContainer);
 
-        animateAlpha(pile.pileGraphics, 1);
-        // pile.pileGraphics.alpha = 1;
-        pile.pileGraphics.interactive = true;
+        animateAlpha(pile.graphics, 1);
+        // pile.graphics.alpha = 1;
+        pile.graphics.interactive = true;
 
         const {
           piles,
@@ -1176,11 +1171,11 @@ const createPileMe = rootElement => {
         interpolator: interpolateVector,
         endValue: [centerX, centerY],
         getter: () => {
-          return [pile.pileGraphics.x, pile.pileGraphics.y];
+          return [pile.graphics.x, pile.graphics.y];
         },
         setter: newValue => {
-          pile.pileGraphics.x = newValue[0];
-          pile.pileGraphics.y = newValue[1];
+          pile.graphics.x = newValue[0];
+          pile.graphics.y = newValue[1];
         },
         onDone: () => {
           if (index === pileIds.length - 1) {
@@ -1294,16 +1289,16 @@ const createPileMe = rootElement => {
           temporaryDepile(state.temporaryDepiledPile);
         }
         pileInstances.forEach(otherPile => {
-          animateAlpha(otherPile.pileGraphics, 0);
-          // otherPile.pileGraphics.alpha = 0;
-          otherPile.pileGraphics.interactive = false;
+          animateAlpha(otherPile.graphics, 0.3);
+          // otherPile.graphics.alpha = 0;
+          otherPile.graphics.interactive = false;
         });
         temporaryDepile(newState.temporaryDepiledPile);
       } else {
         pileInstances.forEach(otherPile => {
-          animateAlpha(otherPile.pileGraphics, 1);
-          // otherPile.pileGraphics.alpha = 1;
-          otherPile.pileGraphics.interactive = true;
+          animateAlpha(otherPile.graphics, 1);
+          // otherPile.graphics.alpha = 1;
+          otherPile.graphics.interactive = true;
         });
         temporaryDepile(state.temporaryDepiledPile);
       }
@@ -1312,26 +1307,26 @@ const createPileMe = rootElement => {
     if (state.clickedPile !== newState.clickedPile) {
       if (newState.clickedPile.length !== 0) {
         const newPile = pileInstances.get(newState.clickedPile[0]);
-        if (newPile.isTempDepiled[0]) {
+        if (newPile.isTempDepiled) {
           newPile.drawBorder(3, 0xe87a90);
         } else {
           newPile.drawBorder(2, 0xfeeb77);
         }
-        newPile.isFocus[0] = true;
+        newPile.isFocus = true;
         if (state.clickedPile.length !== 0) {
           if (pileInstances.has(state.clickedPile[0])) {
             const oldPile = pileInstances.get(state.clickedPile[0]);
-            if (!oldPile.isTempDepiled[0]) {
+            if (!oldPile.isTempDepiled) {
               oldPile.border.clear();
-              oldPile.isFocus[0] = false;
+              oldPile.isFocus = false;
             }
           }
         }
       } else if (pileInstances.has(state.clickedPile[0])) {
         const pile = pileInstances.get(state.clickedPile[0]);
-        if (!pile.isTempDepiled[0]) {
+        if (!pile.isTempDepiled) {
           pile.border.clear();
-          pile.isFocus[0] = false;
+          pile.isFocus = false;
         }
       }
       renderRaf();
@@ -1340,7 +1335,7 @@ const createPileMe = rootElement => {
     if (state.scaledPile !== newState.scaledPile) {
       if (state.scaledPile.length !== 0) {
         if (pileInstances.has(state.scaledPile[0])) {
-          const pile = pileInstances.get(state.scaledPile[0]).pileGraphics;
+          const pile = pileInstances.get(state.scaledPile[0]).graphics;
           pile.scale.x = 1;
           pile.scale.y = 1;
           updateBoundingBox(state.scaledPile[0]);
@@ -1377,67 +1372,74 @@ const createPileMe = rootElement => {
 
   let hit;
 
-  const animateMovePile = (sourceId, targetId) => {
-    const source = pileInstances.get(sourceId).pileGraphics;
-    const tweener = createTweener({
-      duration: 250,
-      interpolator: interpolateVector,
-      endValue: [
-        pileInstances.get(targetId).pileGraphics.x,
-        pileInstances.get(targetId).pileGraphics.y
-      ],
-      getter: () => {
-        return [source.x, source.y];
-      },
-      setter: newValue => {
-        source.x = newValue[0];
-        source.y = newValue[1];
-      },
-      onDone: () => {
-        store.dispatch(mergePiles([sourceId, targetId], true));
-        hit = true;
-      }
-    });
-    animator.add(tweener);
-  };
+  // const animateMovePile = (sourceId, targetId) => {
+  //   const source = pileInstances.get(sourceId).graphics;
+  //   const tweener = createTweener({
+  //     duration: 250,
+  //     interpolator: interpolateVector,
+  //     endValue: [
+  //       pileInstances.get(targetId).graphics.x,
+  //       pileInstances.get(targetId).graphics.y
+  //     ],
+  //     getter: () => {
+  //       return [source.x, source.y];
+  //     },
+  //     setter: newValue => {
+  //       source.x = newValue[0];
+  //       source.y = newValue[1];
+  //     },
+  //     onDone: () => {
+  //       store.dispatch(mergePiles([sourceId, targetId], true));
+  //       hit = true;
+  //     }
+  //   });
+  //   animator.add(tweener);
+  // };
 
   const handleDropPile = ({ pileId }) => {
     hit = false;
-    const pile = pileInstances.get(pileId).pileGraphics;
+    const pile = pileInstances.get(pileId);
+    const pileGfx = pile.graphics;
 
-    if (pile.x !== pile.beforeDragX || pile.y !== pile.beforeDragY) {
+    if (
+      pileGfx.x !== pileGfx.beforeDragX ||
+      pileGfx.y !== pileGfx.beforeDragY
+    ) {
       const collidePiles = searchIndex
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        if (!pileInstances.get(collidePiles[0].pileId).isTempDepiled[0]) {
-          animateMovePile(pileId, collidePiles[0].pileId);
-          // store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
-          // hit = true;
+        hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
+        if (hit) {
+          pile.itemContainer.children.forEach(item => {
+            item.tmpAbsX = pileGfx.x;
+            item.tmpAbsY = pileGfx.y;
+          });
+          // animateMovePile(pileId, collidePiles[0].pileId);
+          store.dispatch(mergePiles([pileId, collidePiles[0].pileId], true));
         }
       } else {
         store.dispatch(
           movePiles([
             {
               id: pileId,
-              x: pile.x,
-              y: pile.y
+              x: pileGfx.x,
+              y: pileGfx.y
             }
           ])
         );
       }
     }
-    activePile.removeChildren();
     // if hit = true, then the original pile is destoryed
-    if (hit !== true) {
-      normalPile.addChild(pile);
+    if (!hit) {
+      normalPile.addChild(pileGfx);
     }
   };
 
   const handleDragPile = ({ pileId }) => {
-    const pile = pileInstances.get(pileId).pileGraphics;
+    const pile = pileInstances.get(pileId).graphics;
     activePile.addChild(pile);
   };
 
@@ -1445,7 +1447,7 @@ const createPileMe = rootElement => {
   let newResult = [];
 
   const handleHighlightPile = ({ pileId }) => {
-    if (pileInstances.get(pileId).pileGraphics.scale.x > 1.1) return;
+    if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
@@ -1558,8 +1560,8 @@ const createPileMe = rootElement => {
   //     updateGridMatWithCenter(pile.id);
 
   //     if (center[1] === x && center[0] === y) {
-  //       pile.pileGraphics.x = x * layout.myColWidth;
-  //       pile.pileGraphics.y = y * layout.myRowHeight;
+  //       pile.graphics.x = x * layout.myColWidth;
+  //       pile.graphics.y = y * layout.myRowHeight;
   //     } else {
   //       const distanceMat = ndarray(
   //         new Float32Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
@@ -1568,8 +1570,8 @@ const createPileMe = rootElement => {
 
   //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
   //       console.log(center, closestPos);
-  //       pile.pileGraphics.x = closestPos[1] * layout.myColWidth;
-  //       pile.pileGraphics.y = closestPos[0] * layout.myRowHeight;
+  //       pile.graphics.x = closestPos[1] * layout.myColWidth;
+  //       pile.graphics.y = closestPos[0] * layout.myRowHeight;
   //     }
   //     renderRaf();
   //   })
@@ -1643,12 +1645,12 @@ const createPileMe = rootElement => {
         } else if (event.altKey) {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.pileGraphics.isHover) pile.animateScale();
+            if (pile.graphics.isHover) pile.animateScale();
           });
         } else {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.pileGraphics.isHover)
+            if (pile.graphics.isHover)
               store.dispatch(setClickedPile([result.pileId]));
           });
         }
@@ -1709,8 +1711,8 @@ const createPileMe = rootElement => {
         store.dispatch(setScaledPile([result[0].pileId]));
         const normalizedDeltaY = normalizeWheel(event).pixelY;
         scalePile(result[0].pileId, normalizedDeltaY);
-        const pileGraphics = pileInstances.get(result[0].pileId).pileGraphics;
-        activePile.addChild(pileGraphics);
+        const graphics = pileInstances.get(result[0].pileId).graphics;
+        activePile.addChild(graphics);
       }
     }
   };
@@ -1721,6 +1723,13 @@ const createPileMe = rootElement => {
   };
 
   const contextmenuHandler = event => {
+    const lastMenu = document.getElementById('contextmenu');
+    const lastStyle = document.getElementById('style');
+    if (lastMenu) {
+      rootElement.removeChild(lastMenu);
+      rootElement.removeChild(lastStyle);
+    }
+
     getRelativeMousePosition(event);
 
     if (!event.altKey) {
@@ -1747,7 +1756,7 @@ const createPileMe = rootElement => {
 
         let pile;
         results.forEach(result => {
-          if (pileInstances.get(result.pileId).pileGraphics.isHover) {
+          if (pileInstances.get(result.pileId).graphics.isHover) {
             pile = pileInstances.get(result.pileId);
           }
         });
@@ -1758,7 +1767,7 @@ const createPileMe = rootElement => {
           tempDepileBtn.setAttribute('disabled', '');
           tempDepileBtn.style.opacity = 0.3;
           tempDepileBtn.style.cursor = 'not-allowed';
-        } else if (pile.isTempDepiled[0]) {
+        } else if (pile.isTempDepiled) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.style.opacity = 0.3;
           depileBtn.style.cursor = 'not-allowed';
@@ -1768,7 +1777,7 @@ const createPileMe = rootElement => {
           tempDepileBtn.innerHTML = 'close temp depile';
         }
 
-        if (pile.pileGraphics.scale.x > 1.1) {
+        if (pile.graphics.scale.x > 1.1) {
           scaleBtn.innerHTML = 'scale down';
         }
 
