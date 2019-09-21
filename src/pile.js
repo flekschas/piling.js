@@ -5,6 +5,13 @@ import { interpolateNumber, interpolateVector } from './utils';
 
 const MAX_SCALE = 3;
 
+/**
+ * Factory function to create a pile
+ * @param {object} initialItem - The first item on the pile
+ * @param {function} renderRaf - Render withRaf function
+ * @param {number} id - Pile identifier
+ * @param {object} pubSub - Local pubSub instance
+ */
 const createPile = (initialItem, renderRaf, id, pubSub) => {
   const itemsById = new Map();
   const newItemsById = new Map();

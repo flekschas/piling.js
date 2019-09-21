@@ -1,10 +1,21 @@
 import { cubicInOut } from './utils';
 
+/**
+ *
+ * @param {number} duration - The time duration of animation
+ * @param {number} delay - The delay of animation
+ * @param {function} interpolator - The interpolator function
+ * @param {function} easing - The easing function of animation
+ * @param {object} endValue - The end value of animation
+ * @param {function} getter - The function to get the current value
+ * @param {function} setter - The function to set the new value
+ * @param {function} onDone - The callback function when the animation is done
+ */
 const createTweener = ({
   duration = 300,
   delay = 0,
   interpolator,
-  easing = cubicInOut, // specify default
+  easing = cubicInOut,
   endValue,
   getter,
   setter,

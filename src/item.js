@@ -1,5 +1,12 @@
 import * as PIXI from 'pixi.js';
 
+/**
+ * Factory function to create an item
+ * @param {number} id - Item identifier
+ * @param {object} texture - The PIXI.Texture object of the item
+ * @param {object} preview - The PIXI.Graphics object of the item preview
+ * @param {object} pubSub - Local pubSub instance
+ */
 const createItem = (id, texture, preview, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
