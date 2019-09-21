@@ -92,7 +92,7 @@ export const setItemSizeRange = newItemSizeRange => ({
   payload: { itemSizeRange: newItemSizeRange }
 });
 
-const itemAlignment = setReducer('itemAlignment', 'bottom-right');
+const itemAlignment = setReducer('itemAlignment', ['bottom', 'right']);
 export const setItemAlignment = newItemAlignment => ({
   type: 'SET_ITEM_ALIGNMENT',
   payload: { itemAlignment: newItemAlignment }
