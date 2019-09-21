@@ -10,8 +10,13 @@ const item = [];
 item.push(...dataJson);
 
 pileMe.set('items', item);
-pileMe.set('grid', [10]);
-// pileMe.set('itemAlignment', false);
+
+if (window.location.search) {
+  pileMe.set('grid', [8]);
+  pileMe.set('itemAlignment', false);
+} else pileMe.set('grid', [10]);
+
+// pileMe.set('itemAlignment', ['right']);
 // pileMe.set('itemSizeRange', [0.8, 0.9]);
 // pileMe.set('itemRotated', true);
 // pileMe.set('tempDepileDirection', 'vertical');
