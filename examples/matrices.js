@@ -12,6 +12,7 @@ import peaks from './data/rao-2014-gm12878-chr-22-peaks.json';
 //   ...hex.match(/\w\w/g).map(x => parseInt(x, 16) / 256),
 //   alpha
 // ];
+
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
     ...rgbStr
@@ -21,6 +22,7 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
     alpha
   ];
 };
+
 const numColors = 256;
 const colorMap = new Array(numColors)
   .fill(0)
@@ -35,6 +37,7 @@ const coverRenderer = createMatrixRenderer({
   colorMap: coverColorMap,
   shape: [16, 16]
 });
+
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');

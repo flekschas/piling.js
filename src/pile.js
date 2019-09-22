@@ -41,7 +41,6 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
 
   const destroy = () => {
     graphics.destroy();
-    // cover = null;
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -67,6 +66,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
   };
 
   const drawBorder = (thickness, color) => {
+    // while positioning, do not draw border
     if (isPositioning) return;
     const rect = itemContainer.getBounds();
 
@@ -78,21 +78,21 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     pubSub.publish('updateBBox', id);
 
     border.clear();
+
+    // draw black background
     border.beginFill(0x00000);
     border.drawRect(
-      // eslint-disable-next-line no-use-before-define
       bBox.minX - graphics.x - thickness,
-      // eslint-disable-next-line no-use-before-define
       bBox.minY - graphics.y - thickness,
       rect.width + 2 * thickness,
       rect.height + 2 * thickness
     );
     border.endFill();
+
+    // draw border
     border.lineStyle(thickness, color, 1);
     border.drawRect(
-      // eslint-disable-next-line no-use-before-define
       bBox.minX - graphics.x - thickness,
-      // eslint-disable-next-line no-use-before-define
       bBox.minY - graphics.y - thickness,
       rect.width + 2 * thickness,
       rect.height + 2 * thickness
@@ -103,14 +103,10 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
 
   const onPointerDown = () => {
     graphics.isPointerDown = true;
-    // drawBorder(2, 0xfeeb77);
   };
 
   const onPointerUp = () => {
     graphics.isPointerDown = false;
-    if (graphics.isHover) {
-      // drawBorder(1, 0x91989F);
-    }
   };
 
   const onPointerOver = () => {
@@ -124,7 +120,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     } else {
       drawBorder(1, 0x91989f);
     }
-    // add pubSub subscription for hoverItem
+    // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
       hoverItemSubscriber = pubSub.subscribe('itemOver', handleHoverItem);
       pubSubSubscribers.push(hoverItemSubscriber);
@@ -141,6 +137,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
 
     if (!isFocus) border.clear();
 
+    // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
       pubSub.unsubscribe(hoverItemSubscriber);
       hoverItemSubscriber = undefined;
@@ -154,7 +151,6 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
   };
 
   const onDragStart = event => {
-    // trigger active pile
     pubSub.publish('dragPile', { pileId: id });
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
@@ -167,7 +163,6 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     graphics.isDragging = true;
     graphics.beforeDragX = graphics.x;
     graphics.beforeDragY = graphics.y;
-    // graphics.dragTime = performance.now();
     renderRaf();
   };
 
@@ -239,17 +234,17 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     return Math.random() * (max - min) + min;
   };
 
-  const animatePositionItems = (child, x, y, animator, isLastOne) => {
+  const animatePositionItems = (item, x, y, animator, isLastOne) => {
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => {
-        return [child.x, child.y];
+        return [item.x, item.y];
       },
       setter: newValue => {
-        child.x = newValue[0];
-        child.y = newValue[1];
+        item.x = newValue[0];
+        item.y = newValue[1];
       },
       onDone: () => {
         if (isLastOne) isPositioning = false;
@@ -261,6 +256,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
   const positionItems = (itemAlignment, itemRotated, animator) => {
     isPositioning = true;
     if (hasCover) {
+      // matrix
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
         const padding = item.height * (index + 1);
@@ -269,6 +265,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
         else animatePositionItems(item, 2, -padding, animator, false);
       });
     } else if (itemAlignment) {
+      // image
       newItemsById.forEach((item, index) => {
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
           item.x = item.x + item.tmpAbsX - graphics.x;
@@ -330,13 +327,22 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       if (itemRotated) {
         rotation = getRandomArbitrary(-10, 10);
       }
+      let num = 0;
       newItemsById.forEach((item, index) => {
-        item.x += x;
-        item.y += y;
+        num++;
+        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+          item.x = item.x + item.tmpAbsX - graphics.x;
+          item.y = item.y + item.tmpAbsY - graphics.y;
+          item.tmpAbsX = undefined;
+          item.tmpAbsY = undefined;
+        }
+        itemsById.set(index, item);
+        if (num === newItemsById.size)
+          animatePositionItems(item, x, y, animator, true);
+        else animatePositionItems(item, x, y, animator, false);
         if (rotation) {
           item.angle += rotation;
         }
-        itemsById.set(index, item);
       });
       newItemsById.clear();
     }

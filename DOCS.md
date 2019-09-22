@@ -28,3 +28,19 @@ while(!depilePos)
     currentPos = getClosestPos(distanceMat, currentPos);
 return depilePos
 ```
+
+## Stage Container Structure
+
+**stage**
+
+- lasso container
+  - lasso graphics
+- active pile container
+- normal piles container
+  - pile graphics
+    - hover item container
+    - item container
+    - border container
+- lasso bg container
+  - lasso fill graphics
+- grid graphics

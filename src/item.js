@@ -10,7 +10,7 @@ import * as PIXI from 'pixi.js';
 const createItem = (id, texture, preview, pubSub) => {
   const sprite = new PIXI.Sprite(texture);
 
-  const originalPosition = [0, 0]; // use original position
+  const originalPosition = [0, 0];
 
   const cloneSprite = () => {
     const clonedSprite = new PIXI.Sprite(texture);
