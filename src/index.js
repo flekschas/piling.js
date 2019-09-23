@@ -314,8 +314,13 @@ const createPileMe = rootElement => {
   let layout;
 
   const updateScrollContainer = () => {
-    scrollContainer.style.height = `${layout.myRowHeight * layout.myRowNum +
-      canvas.getBoundingClientRect().height}px`;
+    const finalHeight = Math.round(layout.myRowHeight) * layout.myRowNum;
+    const canvasHeight = canvas.getBoundingClientRect().height;
+    const extraHeight = Math.round(layout.myRowHeight) * 3;
+    scrollContainer.style.height = `${Math.max(
+      0,
+      finalHeight - canvasHeight + extraHeight
+    )}px`;
   };
 
   const initGrid = () => {
@@ -1796,6 +1801,8 @@ const createPileMe = rootElement => {
     updateBoundingBox(pileId);
   };
 
+  let storeUnsubscribor;
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -1819,7 +1826,7 @@ const createPileMe = rootElement => {
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
     pubSub.subscribe('updateBBox', handleUpdateBBox);
 
-    store.subscribe(updated);
+    storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
 
@@ -1828,8 +1835,6 @@ const createPileMe = rootElement => {
     canvas.style.position = 'sticky';
     canvas.style.top = '0px';
     canvas.style.left = '0px';
-
-    scrollContainer.style.marginTop = `-100%`;
 
     const { width, height } = canvas.getBoundingClientRect();
 
@@ -1856,11 +1861,13 @@ const createPileMe = rootElement => {
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
 
-    root.destroy(false);
     renderer.destroy(true);
-    store.unsubscribe(updated);
 
-    rootElement.removeChild(canvas);
+    if (storeUnsubscribor) {
+      storeUnsubscribor();
+      storeUnsubscribor = undefined;
+    }
+
     rootElement.removeChild(scrollContainer);
 
     pubSub.clear();

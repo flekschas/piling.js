@@ -20,7 +20,7 @@ export const loadImage = (src, isCrossOrigin = false) =>
 
 const renderImage = image => PIXI.Texture.from(image);
 
-const imageRenderer = sources =>
+const createImageRenderer = () => sources =>
   Promise.all(
     sources.map(src => {
       const isCrossOrigin = true;
@@ -36,4 +36,4 @@ const imageRenderer = sources =>
     })
   );
 
-export default imageRenderer;
+export default createImageRenderer;
