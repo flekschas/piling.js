@@ -2,6 +2,8 @@
 
 A general framework and library for visual piling. The library currently supports piling of images and matrix visualizations but can be easily customized with your own render.
 
+<img src = './examples/demo.gif' >
+
 ### Interactions:
 - **Create a pile or merge piles:**
   - Drag one item/pile and drop it on another with your mouse.
@@ -37,6 +39,25 @@ import createPileJs from 'pile.js';
 ```
 
 **Quick Start**
+
+```javascript
+// import the main library
+import createPileJs from '../src/index';
+// import the predefined image renderer
+import { createImageRenderer } from '../src/renderer';
+// import your data
+import data from './data/photo.json';
+
+// create a pileJs instance
+// 'demo' is the div object which the canvas will be added on
+const pileJs = createPileMe(document.getElementById('demo'));
+
+// set the renderer
+pileJs.set('renderer', imageRenderer);
+// set the items
+pileJs.set('items', data);
+// ...and you are done!
+```
 
 ## Development
 
