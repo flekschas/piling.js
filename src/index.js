@@ -2,9 +2,8 @@ import * as PIXI from 'pixi.js';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
-import withThrottle from 'lodash-es/throttle';
-import { scaleLinear } from 'd3-scale';
 import normalizeWheel from 'normalize-wheel';
+
 import createAnimator from './animator';
 
 import createStore, {
@@ -40,7 +39,9 @@ import {
   isPileInPolygon,
   contextMenuTemplate,
   interpolateVector,
-  interpolateNumber
+  interpolateNumber,
+  scaleLinear,
+  withThrottleAndDebounce
 } from './utils';
 
 import createPile from './pile';
@@ -359,8 +360,6 @@ const createPileMe = rootElement => {
       .domain([min, max])
       .range(range);
 
-    scaleSprite.clamp(true);
-
     renderedItems.forEach(item => {
       const spriteRatio = item.sprite.height / item.sprite.width;
 
@@ -371,6 +370,7 @@ const createPileMe = rootElement => {
         item.sprite.height = scaleSprite(item.sprite.height);
         item.sprite.width = item.sprite.height / spriteRatio;
       }
+
       if (item.preview) {
         const previewRatio = item.preview.height / item.preview.width;
         item.preview.width = scaleSprite(item.preview.width);
@@ -1126,7 +1126,11 @@ const createPileMe = rootElement => {
       }
     }
   };
-  const lassoExtendDb = withThrottle(lassoExtend, LASSO_MIN_DELAY, true);
+  const lassoExtendDb = withThrottleAndDebounce(
+    lassoExtend,
+    LASSO_MIN_DELAY,
+    LASSO_MIN_DELAY
+  );
 
   const findPilesInLasso = lassoPolygon => {
     const bBox = getBBox(lassoPolygon);
