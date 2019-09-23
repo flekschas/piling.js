@@ -5,11 +5,10 @@ const VERSION = require('./version.js');
 
 module.exports = (env, argv) => ({
   entry: {
-    index: './examples/index.js',
-    matrices: './examples/matrices.js'
+    index: './examples/index.js'
   },
   output: {
-    path: `${__dirname}/docs`,
+    path: `${__dirname}/examples-build`,
     publicPath: argv.mode === 'production' ? './' : '/'
   },
   devServer: {
@@ -32,11 +31,6 @@ module.exports = (env, argv) => ({
       template: 'examples/index.html',
       filename: 'index.html',
       chunks: ['index']
-    }),
-    new HtmlWebpackPlugin({
-      template: 'examples/matrices.html',
-      filename: 'matrices.html',
-      chunks: ['matrices']
     }),
     new webpack.DefinePlugin({ VERSION })
   ]

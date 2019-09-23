@@ -27,8 +27,8 @@
     "dist/pile.min.js"
   ],
   "scripts": {
-    "build": "rm -rf dist/*; rollup -c; webpack --config ./webpack.config.js --mode production",
-    "deploy": "gh-pages -d build -t --git git",
+    "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production",
+    "deploy": "gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
     "prepublishOnly": "npm run test",

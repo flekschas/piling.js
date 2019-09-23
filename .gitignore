@@ -19,5 +19,5 @@ dist.zip
 npm-debug.log
 node_modules/*
 
-docs
+examples-build
 stats.html
