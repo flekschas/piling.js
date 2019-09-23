@@ -10,7 +10,7 @@ An array of dictionaries (objects) with two essential properties:
 
 _Note, mixed data types are currently not supported._
 
-```
+```javascript
 // External image data
 {
   id: 001,
@@ -29,7 +29,7 @@ _Note, mixed data types are currently not supported._
 A function that takes as input a `src` property determining the source and
 outputs a promise which resolves to a rendered Pixi Sprite object.
 
-```
+```javascript
 // A very simple image renderer
 const imageRenderer = image =>  new PIXI.Sprite(PIXI.Texture.from(image));
 ```
@@ -40,7 +40,7 @@ A function that takes as input the number of columns and outputs
 another function that takes in as input the position of a 1D ordering and
 outputs the an array of `x` an `y` coordinates.
 
-```
+```javascript
 // The default row-major order
 const rowMajor = cols => index => [
   index % cols,
@@ -73,7 +73,7 @@ const rowMajor = cols => index => [
 
 **Examples:**
 
-```
+```javascript
 import { interpolateRdPu } from 'd3-scale-chromatic';
 import createMatrixRenderer from '../src/matrix-renderer';
 
@@ -107,7 +107,7 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 **Aggregator:** the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
-## Method
+## Methods
 
 #### `pileMe.get(property)`
 
