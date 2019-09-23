@@ -1,21 +1,37 @@
-import createPileMe from '../src/index';
-import imageRenderer from '../src/image-renderer';
-import dataJson from './data/data.json';
+import createPhotoPiles from './photos';
+import createMatrixPiles from './matrices';
 
-const pileMe = createPileMe(document.getElementById('demo'));
+const examplePhotosEl = document.getElementById('photos');
+const exampleMatricesEl = document.getElementById('matrices');
 
-pileMe.set('renderer', imageRenderer);
+let pileJs;
 
-pileMe.set('items', dataJson);
+const createPiles = example => {
+  switch (example) {
+    case 'photos':
+      if (pileJs) pileJs.destroy();
+      exampleMatricesEl.style.display = 'none';
+      examplePhotosEl.style.display = 'block';
+      pileJs = createPhotoPiles(examplePhotosEl);
+      break;
 
-if (window.location.search) {
-  pileMe.set('grid', [15]);
-  pileMe.set('itemAlignment', false);
-} else pileMe.set('grid', [10]);
+    case 'matrices':
+      if (pileJs) pileJs.destroy();
+      examplePhotosEl.style.display = 'none';
+      exampleMatricesEl.style.display = 'block';
+      pileJs = createMatrixPiles(exampleMatricesEl);
+      break;
 
-// pileMe.set('itemAlignment', ['right']);
-// pileMe.set('itemSizeRange', [0.8, 0.9]);
-// pileMe.set('itemRotated', true);
-// pileMe.set('tempDepileDirection', 'vertical');
-// pileMe.set('tempDepileOneDNum', 10);
-// pileMe.set('depileMethod', 'cloestPos');
+    default:
+      console.warn('Unknown example:', example);
+      break;
+  }
+};
+
+const example = document.getElementById('example');
+
+const handleExample = event => createPiles(event.target.value);
+
+example.addEventListener('change', handleExample);
+
+createPiles(example.value);

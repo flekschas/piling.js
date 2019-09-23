@@ -2,9 +2,8 @@ import * as PIXI from 'pixi.js';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
-import withThrottle from 'lodash-es/throttle';
-import { scaleLinear } from 'd3-scale';
 import normalizeWheel from 'normalize-wheel';
+
 import createAnimator from './animator';
 
 import createStore, {
@@ -40,7 +39,9 @@ import {
   isPileInPolygon,
   contextMenuTemplate,
   interpolateVector,
-  interpolateNumber
+  interpolateNumber,
+  scaleLinear,
+  withThrottleAndDebounce
 } from './utils';
 
 import createPile from './pile';
@@ -313,8 +314,13 @@ const createPileMe = rootElement => {
   let layout;
 
   const updateScrollContainer = () => {
-    scrollContainer.style.height = `${layout.myRowHeight * layout.myRowNum +
-      canvas.getBoundingClientRect().height}px`;
+    const finalHeight = Math.round(layout.myRowHeight) * layout.myRowNum;
+    const canvasHeight = canvas.getBoundingClientRect().height;
+    const extraHeight = Math.round(layout.myRowHeight) * 3;
+    scrollContainer.style.height = `${Math.max(
+      0,
+      finalHeight - canvasHeight + extraHeight
+    )}px`;
   };
 
   const initGrid = () => {
@@ -359,8 +365,6 @@ const createPileMe = rootElement => {
       .domain([min, max])
       .range(range);
 
-    scaleSprite.clamp(true);
-
     renderedItems.forEach(item => {
       const spriteRatio = item.sprite.height / item.sprite.width;
 
@@ -371,6 +375,7 @@ const createPileMe = rootElement => {
         item.sprite.height = scaleSprite(item.sprite.height);
         item.sprite.width = item.sprite.height / spriteRatio;
       }
+
       if (item.preview) {
         const previewRatio = item.preview.height / item.preview.width;
         item.preview.width = scaleSprite(item.preview.width);
@@ -1129,7 +1134,11 @@ const createPileMe = rootElement => {
       }
     }
   };
-  const lassoExtendDb = withThrottle(lassoExtend, LASSO_MIN_DELAY, true);
+  const lassoExtendDb = withThrottleAndDebounce(
+    lassoExtend,
+    LASSO_MIN_DELAY,
+    LASSO_MIN_DELAY
+  );
 
   const findPilesInLasso = lassoPolygon => {
     const bBox = getBBox(lassoPolygon);
@@ -1795,6 +1804,8 @@ const createPileMe = rootElement => {
     updateBoundingBox(pileId);
   };
 
+  let storeUnsubscribor;
+
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
@@ -1818,7 +1829,7 @@ const createPileMe = rootElement => {
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
     pubSub.subscribe('updateBBox', handleUpdateBBox);
 
-    store.subscribe(updated);
+    storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
 
@@ -1827,8 +1838,6 @@ const createPileMe = rootElement => {
     canvas.style.position = 'sticky';
     canvas.style.top = '0px';
     canvas.style.left = '0px';
-
-    scrollContainer.style.marginTop = `-100%`;
 
     const { width, height } = canvas.getBoundingClientRect();
 
@@ -1855,11 +1864,13 @@ const createPileMe = rootElement => {
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
 
-    root.destroy(false);
     renderer.destroy(true);
-    store.unsubscribe(updated);
 
-    rootElement.removeChild(canvas);
+    if (storeUnsubscribor) {
+      storeUnsubscribor();
+      storeUnsubscribor = undefined;
+    }
+
     rootElement.removeChild(scrollContainer);
 
     pubSub.clear();

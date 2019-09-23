@@ -4,7 +4,17 @@
   <head>
     <meta charset="utf-8" />
 
-    <title>Pile Me</title>
+    <title>Pile.js Demo</title>
+    <meta
+      name="description"
+      content="Scalable WebGL-based Visual Piling Library"
+    />
+    <meta name="author" content="Xinyi Zhou, Fritz Lekschas" />
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap"
+      rel="stylesheet"
+    />
 
     <style type="text/css">
       html,
@@ -13,23 +23,96 @@
         margin: 0;
         width: 100%;
         height: 100%;
-        font-family: sans-serif;
+        font-family: 'Roboto Condensed', sans-serif;
         text-rendering: optimizeLegibility;
-        color: #888;
+        color: #b480ff;
         background: black;
       }
 
-      #demo {
+      a,
+      a:visited {
+        color: #b480ff;
+      }
+
+      a:hover {
+        color: #ff7ff6;
+      }
+
+      header {
         position: absolute;
         top: 1rem;
         right: 1rem;
+        left: 1rem;
+        height: 3rem;
+        display: flex;
+      }
+
+      h1 {
+        margin: 0 1rem 0 0;
+        padding: 0 0.5rem;
+        font-size: 2rem;
+        line-height: 3rem;
+        color: black;
+        background: #b480ff;
+        border-radius: 0.25rem;
+      }
+
+      header > div {
+        display: flex;
+        flex-grow: 1;
+        flex-direction: column;
+      }
+
+      .container {
+        position: absolute;
+        top: 5rem;
+        right: 1rem;
         bottom: 1rem;
         left: 1rem;
+      }
+
+      #description > * {
+        margin: 0;
+        height: 1.5rem;
+        line-height: 1.5rem;
+      }
+
+      #selection {
+        display: flex;
+        align-items: center;
+      }
+
+      #selection label {
+        margin-right: 0.5rem;
+      }
+
+      #matrices {
+        display: none;
       }
     </style>
   </head>
 
   <body>
-    <div id="demo"></div>
+    <header>
+      <h1>Pile.js</h1>
+      <div id="description">
+        <p>
+          <a href="https://github.com/flekschas/pile.js" target="_blank"
+            >Pile.js</a
+          >
+          is a library for piling visualizations like images, matrices,
+          scatterplots, etc. Pile.js is highly customizable.
+        </p>
+        <div id="selection">
+          <label for="example">Choose an example:</label>
+          <select id="example">
+            <option value="photos">Photos</option>
+            <option value="matrices">Matrices</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <div id="photos" class="container"></div>
+    <div id="matrices" class="container"></div>
   </body>
 </html>
