@@ -5,10 +5,17 @@ import { interpolateNumber, interpolateVector } from './utils';
 
 const MAX_SCALE = 3;
 
-const createPile = (item, renderRaf, id, pubSub) => {
-  const itemIds = new Map();
-  const newItemIds = new Map();
-  const pileGraphics = new PIXI.Graphics();
+/**
+ * Factory function to create a pile
+ * @param {object} initialItem - The first item on the pile
+ * @param {function} renderRaf - Render withRaf function
+ * @param {number} id - Pile identifier
+ * @param {object} pubSub - Local pubSub instance
+ */
+const createPile = (initialItem, renderRaf, id, pubSub) => {
+  const itemsById = new Map();
+  const newItemsById = new Map();
+  const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
@@ -22,17 +29,18 @@ const createPile = (item, renderRaf, id, pubSub) => {
     pileId: id
   };
 
-  const isFocus = [false];
-  const isTempDepiled = [false];
-  const hasCover = [false];
+  let isFocus = false;
+  let isTempDepiled = false;
+  let hasCover = false;
+
+  let isPositioning = false;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
   let hoverItemEndSubscriber;
 
   const destroy = () => {
-    pileGraphics.destroy();
-    // cover = null;
+    graphics.destroy();
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -40,8 +48,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
 
   // eslint-disable-next-line no-shadow
   const handleHoverItem = ({ item }) => {
-    if (isFocus[0]) {
-      if (!pileGraphics.isDragging) {
+    if (isFocus) {
+      if (!graphics.isDragging) {
         const clonedSprite = item.cloneSprite();
         hoverItemContainer.addChild(clonedSprite);
         renderRaf();
@@ -50,8 +58,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const handleHoverItemEnd = () => {
-    console.log('hover out');
-    if (isFocus[0]) {
+    if (isFocus) {
       if (hoverItemContainer.children.length === 2)
         hoverItemContainer.removeChildAt(0);
       renderRaf();
@@ -59,32 +66,34 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const drawBorder = (thickness, color) => {
+    // while positioning, do not draw border
+    if (isPositioning) return;
     const rect = itemContainer.getBounds();
 
-    if (pileGraphics.scale.x !== 1) {
-      rect.width /= pileGraphics.scale.x;
-      rect.height /= pileGraphics.scale.x;
+    if (graphics.scale.x !== 1) {
+      rect.width /= graphics.scale.x;
+      rect.height /= graphics.scale.x;
     }
 
     pubSub.publish('updateBBox', id);
 
     border.clear();
+
+    // draw black background
     border.beginFill(0x00000);
     border.drawRect(
-      // eslint-disable-next-line no-use-before-define
-      bBox.minX - pileGraphics.x - thickness,
-      // eslint-disable-next-line no-use-before-define
-      bBox.minY - pileGraphics.y - thickness,
+      bBox.minX - graphics.x - thickness,
+      bBox.minY - graphics.y - thickness,
       rect.width + 2 * thickness,
       rect.height + 2 * thickness
     );
     border.endFill();
+
+    // draw border
     border.lineStyle(thickness, color, 1);
     border.drawRect(
-      // eslint-disable-next-line no-use-before-define
-      bBox.minX - pileGraphics.x - thickness,
-      // eslint-disable-next-line no-use-before-define
-      bBox.minY - pileGraphics.y - thickness,
+      bBox.minX - graphics.x - thickness,
+      bBox.minY - graphics.y - thickness,
       rect.width + 2 * thickness,
       rect.height + 2 * thickness
     );
@@ -93,21 +102,17 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const onPointerDown = () => {
-    pileGraphics.isPointerDown = true;
-    // drawBorder(2, 0xfeeb77);
+    graphics.isPointerDown = true;
   };
 
   const onPointerUp = () => {
-    pileGraphics.isPointerDown = false;
-    if (pileGraphics.isHover) {
-      // drawBorder(1, 0x91989F);
-    }
+    graphics.isPointerDown = false;
   };
 
   const onPointerOver = () => {
-    pileGraphics.isHover = true;
-    if (isFocus[0]) {
-      if (isTempDepiled[0]) {
+    graphics.isHover = true;
+    if (isFocus) {
+      if (isTempDepiled) {
         drawBorder(3, 0xe87a90);
       } else {
         drawBorder(2, 0xfeeb77);
@@ -115,7 +120,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
     } else {
       drawBorder(1, 0x91989f);
     }
-    // add pubSub subscription for hoverItem
+    // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
       hoverItemSubscriber = pubSub.subscribe('itemOver', handleHoverItem);
       pubSubSubscribers.push(hoverItemSubscriber);
@@ -127,11 +132,12 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const onPointerOut = () => {
-    if (pileGraphics.isDragging) return;
-    pileGraphics.isHover = false;
+    if (graphics.isDragging) return;
+    graphics.isHover = false;
 
-    if (!isFocus[0]) border.clear();
+    if (!isFocus) border.clear();
 
+    // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
       pubSub.unsubscribe(hoverItemSubscriber);
       hoverItemSubscriber = undefined;
@@ -145,41 +151,39 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const onDragStart = event => {
-    // trigger active pile
     pubSub.publish('dragPile', { pileId: id });
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
-    pileGraphics.draggingMouseOffset = [
-      event.data.getLocalPosition(pileGraphics.parent).x - pileGraphics.x,
-      event.data.getLocalPosition(pileGraphics.parent).y - pileGraphics.y
+    graphics.draggingMouseOffset = [
+      event.data.getLocalPosition(graphics.parent).x - graphics.x,
+      event.data.getLocalPosition(graphics.parent).y - graphics.y
     ];
-    pileGraphics.alpha = 1;
-    pileGraphics.isDragging = true;
-    pileGraphics.beforeDragX = pileGraphics.x;
-    pileGraphics.beforeDragY = pileGraphics.y;
-    // pileGraphics.dragTime = performance.now();
+    graphics.alpha = 1;
+    graphics.isDragging = true;
+    graphics.beforeDragX = graphics.x;
+    graphics.beforeDragY = graphics.y;
     renderRaf();
   };
 
   const onDragEnd = () => {
-    if (!pileGraphics.isDragging) return;
-    pileGraphics.alpha = 1;
-    pileGraphics.isDragging = false;
-    pileGraphics.draggingMouseOffset = null;
+    if (!graphics.isDragging) return;
+    graphics.alpha = 1;
+    graphics.isDragging = false;
+    graphics.draggingMouseOffset = null;
     // trigger collision check
     pubSub.publish('dropPile', { pileId: id });
     renderRaf();
   };
 
   const onDragMove = event => {
-    if (pileGraphics.isDragging) {
-      const newPosition = event.data.getLocalPosition(pileGraphics.parent);
+    if (graphics.isDragging) {
+      const newPosition = event.data.getLocalPosition(graphics.parent);
       // remove offset
-      pileGraphics.x = newPosition.x - pileGraphics.draggingMouseOffset[0];
-      pileGraphics.y = newPosition.y - pileGraphics.draggingMouseOffset[1];
+      graphics.x = newPosition.x - graphics.draggingMouseOffset[0];
+      graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
       pubSub.publish('highlightPile', { pileId: id });
-      if (isTempDepiled[0]) {
+      if (isTempDepiled) {
         drawBorder(3, 0xe87a90);
       } else {
         drawBorder(2, 0xfeeb77);
@@ -198,7 +202,7 @@ const createPile = (item, renderRaf, id, pubSub) => {
   const calcBBox = () => {
     // compute bounding box
 
-    const scale = pileGraphics.scale.x;
+    const scale = graphics.scale.x;
 
     let minX = Infinity;
     let minY = Infinity;
@@ -206,8 +210,8 @@ const createPile = (item, renderRaf, id, pubSub) => {
     let maxY = -Infinity;
 
     itemContainer.children.forEach(element => {
-      const x = element.x + pileGraphics.x;
-      const y = element.y + pileGraphics.y;
+      const x = element.x + graphics.x;
+      const y = element.y + graphics.y;
       if (x < minX) minX = x;
       if (y < minY) minY = y;
       if (x + element.width * scale > maxX) maxX = x + element.width * scale;
@@ -230,71 +234,117 @@ const createPile = (item, renderRaf, id, pubSub) => {
     return Math.random() * (max - min) + min;
   };
 
-  const animatePositionItems = (child, x, y, animator) => {
+  const animatePositionItems = (item, x, y, animator, isLastOne) => {
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => {
-        return [child.x, child.y];
+        return [item.x, item.y];
       },
       setter: newValue => {
-        child.x = newValue[0];
-        child.y = newValue[1];
+        item.x = newValue[0];
+        item.y = newValue[1];
+      },
+      onDone: () => {
+        if (isLastOne) isPositioning = false;
       }
     });
     animator.add(tweener);
   };
 
   const positionItems = (itemAlignment, itemRotated, animator) => {
-    if (hasCover[0]) {
-      itemContainer.children.forEach((child, childIndex) => {
-        if (childIndex === itemContainer.children.length - 1) return;
-        const padding = child.height * (childIndex + 1);
-        animatePositionItems(child, 2, -padding, animator);
+    isPositioning = true;
+    if (hasCover) {
+      // matrix
+      itemContainer.children.forEach((item, index) => {
+        if (index === itemContainer.children.length - 1) return;
+        const padding = item.height * (index + 1);
+        if (index === itemContainer.children.length - 2)
+          animatePositionItems(item, 2, -padding, animator, true);
+        else animatePositionItems(item, 2, -padding, animator, false);
       });
     } else if (itemAlignment) {
-      switch (itemAlignment) {
-        case 'top':
-          itemContainer.children.forEach((child, childIndex) => {
-            const padding = childIndex * 5 + 2;
-            animatePositionItems(child, 0, -padding, animator);
-          });
-          break;
-
-        case 'right':
-          itemContainer.children.forEach((child, childIndex) => {
-            const padding = childIndex * 5 + 2;
-            animatePositionItems(child, padding, 0, animator);
-            child.x = padding;
-          });
-          break;
-
-        // bottom-right
-        default: {
-          itemContainer.children.forEach((child, childIndex) => {
-            const padding = childIndex * 5 + 2;
-            animatePositionItems(child, padding, padding, animator);
-          });
+      // image
+      newItemsById.forEach((item, index) => {
+        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+          item.x = item.x + item.tmpAbsX - graphics.x;
+          item.y = item.y + item.tmpAbsY - graphics.y;
+          item.tmpAbsX = undefined;
+          item.tmpAbsY = undefined;
         }
-      }
+        itemsById.set(index, item);
+      });
+      newItemsById.clear();
+      itemContainer.children.forEach((item, index) => {
+        // eslint-disable-next-line no-param-reassign
+        if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
+        const padding = index * 5;
+        let verticalPadding = 0;
+        let horizontalPadding = 0;
+        itemAlignment.forEach(alignment => {
+          switch (alignment) {
+            case 'top':
+              verticalPadding -= padding;
+              break;
+            case 'left':
+              horizontalPadding -= padding;
+              break;
+            case 'bottom':
+              verticalPadding += padding;
+              break;
+            case 'right':
+              horizontalPadding += padding;
+              break;
+            // bottom-right
+            default:
+              verticalPadding += padding;
+              horizontalPadding += padding;
+          }
+        });
+        if (index === itemContainer.children.length - 1)
+          animatePositionItems(
+            item,
+            horizontalPadding + 2,
+            verticalPadding + 2,
+            animator,
+            true
+          );
+        else
+          animatePositionItems(
+            item,
+            horizontalPadding + 2,
+            verticalPadding + 2,
+            animator,
+            false
+          );
+      });
     } else {
       // randomized offset
-      const x = getRandomArbitrary(-10, 10);
-      const y = getRandomArbitrary(-10, 10);
+      const x = getRandomArbitrary(-30, 30);
+      const y = getRandomArbitrary(-30, 30);
       let rotation;
       if (itemRotated) {
         rotation = getRandomArbitrary(-10, 10);
       }
-      newItemIds.forEach((itm, idx) => {
-        itm.x += x;
-        itm.y += y;
-        if (rotation) {
-          itm.angle += rotation;
+      let num = 0;
+      newItemsById.forEach((item, index) => {
+        num++;
+        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+          item.x = item.x + item.tmpAbsX - graphics.x;
+          item.y = item.y + item.tmpAbsY - graphics.y;
+          item.tmpAbsX = undefined;
+          item.tmpAbsY = undefined;
         }
-        itemIds.set(idx, itm);
+        itemsById.set(index, item);
+        if (num === newItemsById.size)
+          animatePositionItems(item, x, y, animator, true);
+        else animatePositionItems(item, x, y, animator, false);
+        if (rotation) {
+          item.angle += rotation;
+        }
       });
-      newItemIds.clear();
+      newItemsById.clear();
     }
   };
 
@@ -303,13 +353,13 @@ const createPile = (item, renderRaf, id, pubSub) => {
     const momentum = Math.sign(wheelDelta) * force;
 
     const newScale = Math.min(
-      Math.max(1, pileGraphics.scale.y * (1 + 0.075 * momentum)),
+      Math.max(1, graphics.scale.y * (1 + 0.075 * momentum)),
       MAX_SCALE
     );
 
     if (newScale > 1) {
-      pileGraphics.scale.x = newScale;
-      pileGraphics.scale.y = newScale;
+      graphics.scale.x = newScale;
+      graphics.scale.y = newScale;
       return true;
     }
     return false;
@@ -332,11 +382,11 @@ const createPile = (item, renderRaf, id, pubSub) => {
       interpolator: interpolateNumber,
       endValue: scaleUp ? 1 : MAX_SCALE,
       getter: () => {
-        return pileGraphics.scale.x;
+        return graphics.scale.x;
       },
       setter: newScale => {
-        pileGraphics.scale.x = newScale;
-        pileGraphics.scale.y = newScale;
+        graphics.scale.x = newScale;
+        graphics.scale.y = newScale;
       },
       onDone: () => {
         pubSub.publish('updateBBox', id);
@@ -347,37 +397,37 @@ const createPile = (item, renderRaf, id, pubSub) => {
   };
 
   const init = () => {
-    pileGraphics.addChild(borderContainer);
-    pileGraphics.addChild(itemContainer);
-    pileGraphics.addChild(hoverItemContainer);
+    graphics.addChild(borderContainer);
+    graphics.addChild(itemContainer);
+    graphics.addChild(hoverItemContainer);
 
-    pileGraphics.interactive = true;
-    pileGraphics.buttonMode = true;
-    pileGraphics.x = 0;
-    pileGraphics.y = 0;
+    graphics.interactive = true;
+    graphics.buttonMode = true;
+    graphics.x = 0;
+    graphics.y = 0;
     // Origin of the items coordinste system relative to the pile
-    item.anchor.set(0);
-    item.x = 2;
-    item.y = 2;
+    initialItem.anchor.set(0);
+    initialItem.x = 2;
+    initialItem.y = 2;
 
     borderContainer.addChild(border);
 
-    pileGraphics
+    graphics
       .on('pointerdown', onPointerDown)
       .on('pointerup', onPointerUp)
       .on('pointerupoutside', onPointerUp)
       .on('pointerover', onPointerOver)
       .on('pointerout', onPointerOut);
 
-    pileGraphics
+    graphics
       .on('pointerdown', onDragStart)
       .on('pointerup', onDragEnd)
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
 
-    itemContainer.addChild(item);
+    itemContainer.addChild(initialItem);
 
-    itemIds.set(id, item);
+    itemsById.set(id, initialItem);
   };
 
   init();
@@ -386,18 +436,33 @@ const createPile = (item, renderRaf, id, pubSub) => {
     destroy,
     drawBorder,
     border,
-    itemIds,
-    newItemIds,
-    pileGraphics,
+    itemsById,
+    newItemsById,
+    graphics,
     itemContainer,
     id,
     bBox,
     calcBBox,
     updateBBox,
-    hasCover,
     positionItems,
-    isFocus,
-    isTempDepiled,
+    get hasCover() {
+      return hasCover;
+    },
+    set hasCover(newHasCover) {
+      hasCover = !!newHasCover;
+    },
+    get isFocus() {
+      return isFocus;
+    },
+    set isFocus(newIsFocus) {
+      isFocus = !!newIsFocus;
+    },
+    get isTempDepiled() {
+      return isTempDepiled;
+    },
+    set isTempDepiled(newIsTempDepiled) {
+      isTempDepiled = !!newIsTempDepiled;
+    },
     scale,
     animateScale,
     animatePositionItems

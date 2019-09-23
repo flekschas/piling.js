@@ -1,5 +1,9 @@
 import withRaf from 'with-raf';
 
+/**
+ * Factory function to create an animator
+ * @param {function} render - Render funtion
+ */
 const createAnimator = render => {
   const tweeners = new Set();
 

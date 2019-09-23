@@ -4,8 +4,6 @@ import { createStore as createReduxStore, combineReducers } from 'redux';
 import createOrderer from './orderer';
 import { camelToConst, deepClone, cubicInOut } from './utils';
 
-// import freeze from 'redux-freeze';
-
 const clone = (value, state) => {
   switch (typeof value) {
     case 'object': {
@@ -67,9 +65,8 @@ export const setCoverAggregator = newCoverAggregator => ({
   payload: { coverAggregator: newCoverAggregator }
 });
 
-const items = setReducer('items', []); // how to update the store
+const items = setReducer('items', []);
 export const setItems = newItems => ({
-  // action to trigger update
   type: 'SET_ITEMS',
   payload: { items: newItems }
 });
@@ -92,7 +89,7 @@ export const setItemSizeRange = newItemSizeRange => ({
   payload: { itemSizeRange: newItemSizeRange }
 });
 
-const itemAlignment = setReducer('itemAlignment', 'bottom-right');
+const itemAlignment = setReducer('itemAlignment', ['bottom', 'right']);
 export const setItemAlignment = newItemAlignment => ({
   type: 'SET_ITEM_ALIGNMENT',
   payload: { itemAlignment: newItemAlignment }
@@ -283,7 +280,6 @@ export const depilePiles = depiledPiles => ({
 
 const createStore = () => {
   const appReducer = combineReducers({
-    // This defines what is on our store
     itemRenderer,
     previewRenderer,
     aggregateRenderer,

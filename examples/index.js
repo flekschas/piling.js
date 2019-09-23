@@ -5,13 +5,15 @@ import dataJson from './data/data.json';
 const pileMe = createPileMe(document.getElementById('demo'));
 
 pileMe.set('renderer', imageRenderer);
-const item = [];
-// for (let i = 0; i < 100; i++)
-item.push(...dataJson);
 
-pileMe.set('items', item);
-pileMe.set('grid', [10]);
-// pileMe.set('itemAlignment', false);
+pileMe.set('items', dataJson);
+
+if (window.location.search) {
+  pileMe.set('grid', [15]);
+  pileMe.set('itemAlignment', false);
+} else pileMe.set('grid', [10]);
+
+// pileMe.set('itemAlignment', ['right']);
 // pileMe.set('itemSizeRange', [0.8, 0.9]);
 // pileMe.set('itemRotated', true);
 // pileMe.set('tempDepileDirection', 'vertical');
