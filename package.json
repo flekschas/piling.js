@@ -1,21 +1,30 @@
 {
-  "name": "pile-me",
+  "name": "pile.js",
   "version": "0.1.0",
   "description": "A WebGL-based Library for Visual Piling/Stacking",
-  "author": "Fritz Lekschas",
+  "author": [
+    {
+      "name": "Xinyi Zhou"
+    },
+    {
+      "name": "Fritz Lekschas",
+      "email": "service@lekschas.de",
+      "url": "https://lekschas.de"
+    }
+  ],
   "keywords": [
-    "scatterplot",
-    "2d",
-    "regl",
+    "piling",
+    "stacking",
+    "visualization",
     "webgl"
   ],
   "license": "MIT",
-  "main": "dist/pile-me.js",
+  "main": "dist/pile.js",
   "module": "src/index.js",
   "files": [
     "src/*",
-    "dist/pile-me.js",
-    "dist/pile-me.min.js"
+    "dist/pile.js",
+    "dist/pile.min.js"
   ],
   "scripts": {
     "build": "rollup -c; webpack --config ./webpack.config.js --mode production",
@@ -97,12 +106,12 @@
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10"
   },
-  "homepage": "https://github.com/flekschas/pile-me",
+  "homepage": "https://github.com/flekschas/pile.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/flekschas/pile-me.git"
+    "url": "git://github.com/flekschas/pile.js.git"
   },
   "bugs": {
-    "url": "https://github.com/flekschas/pile-me/issues"
+    "url": "https://github.com/flekschas/pile.js/issues"
   }
 }
