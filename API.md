@@ -1,6 +1,6 @@
 # API
 
-- [Getting started](#getting-started)
+- [Get started](#get-started)
   - [Examples](#examples)
     - [Image](#image)
     - [Matrix](#matrix)
@@ -20,7 +20,7 @@
     - [Matrix preview aggregator](#matrix-preview-aggregator)
   - [Define your own aggregator](#define-your-own-aggregator)
 
-## Getting started
+## Get started
 
 ### Examples
 
