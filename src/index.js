@@ -517,7 +517,10 @@ const createPileMe = rootElement => {
       const itemSrcs = [];
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
-        pileInstance.itemContainer.addChild(renderedItems.get(itemId).preview);
+        const preview = renderedItems.get(itemId).preview;
+        preview.x = 2;
+        preview.y = 0;
+        pileInstance.itemContainer.addChild(preview);
       });
 
       coverAggregator(itemSrcs)
