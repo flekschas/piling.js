@@ -52,7 +52,7 @@ import createTweener from './tweener';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
-const createPileMe = rootElement => {
+const createPileJs = rootElement => {
   const scrollContainer = document.createElement('div');
 
   const canvas = document.createElement('canvas');
@@ -314,9 +314,9 @@ const createPileMe = rootElement => {
   let layout;
 
   const updateScrollContainer = () => {
-    const finalHeight = Math.round(layout.myRowHeight) * layout.myRowNum;
+    const finalHeight = Math.round(layout.rowHeight) * layout.rowNum;
     const canvasHeight = canvas.getBoundingClientRect().height;
-    const extraHeight = Math.round(layout.myRowHeight) * 3;
+    const extraHeight = Math.round(layout.rowHeight) * 3;
     scrollContainer.style.height = `${Math.max(
       0,
       finalHeight - canvasHeight + extraHeight
@@ -345,7 +345,7 @@ const createPileMe = rootElement => {
     const { itemSizeRange } = store.getState();
     let range;
 
-    const minRange = Math.min(layout.myColWidth, layout.myRowHeight);
+    const minRange = Math.min(layout.colWidth, layout.rowHeight);
 
     // if it's within [0, 1] assume it's relative
     if (
@@ -475,14 +475,14 @@ const createPileMe = rootElement => {
         if (items[id].position) {
           [x, y] = items[id].position;
         } else {
-          const getPosition = orderer(layout.myColNum);
+          const getPosition = orderer(layout.colNum);
           [x, y] = getPosition(id);
         }
 
-        layout.myRowNum = y + 1;
+        layout.rowNum = y + 1;
 
-        x *= layout.myColWidth;
-        y *= layout.myRowHeight;
+        x *= layout.colWidth;
+        y *= layout.rowHeight;
 
         pile.graphics.x += x;
         pile.graphics.y += y;
@@ -522,7 +522,10 @@ const createPileMe = rootElement => {
       const itemSrcs = [];
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
-        pileInstance.itemContainer.addChild(renderedItems.get(itemId).preview);
+        const preview = renderedItems.get(itemId).preview;
+        preview.x = 2;
+        preview.y = 0;
+        pileInstance.itemContainer.addChild(preview);
       });
 
       coverAggregator(itemSrcs)
@@ -592,8 +595,8 @@ const createPileMe = rootElement => {
 
   const updateGridMat = pileId => {
     const mat = ndarray(
-      new Uint16Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
-      [layout.myRowNum, layout.myColNum]
+      new Uint16Array(new Array(layout.colNum * layout.rowNum).fill(0)),
+      [layout.rowNum, layout.olNum]
     );
 
     gridMat = mat;
@@ -602,10 +605,10 @@ const createPileMe = rootElement => {
       if (pile.id === pileId) return;
 
       const bBox = pile.bBox;
-      const minY = Math.floor(bBox.minX / layout.myColWidth);
-      const minX = Math.floor(bBox.minY / layout.myRowHeight);
-      const maxY = Math.floor(bBox.maxX / layout.myColWidth);
-      const maxX = Math.floor(bBox.maxY / layout.myRowHeight);
+      const minY = Math.floor(bBox.minX / layout.colWidth);
+      const minX = Math.floor(bBox.minY / layout.rowHeight);
+      const maxY = Math.floor(bBox.maxX / layout.colWidth);
+      const maxX = Math.floor(bBox.maxY / layout.rowHeight);
       gridMat.set(minX, minY, 1);
       gridMat.set(minX, maxY, 1);
       gridMat.set(maxX, minY, 1);
@@ -715,7 +718,7 @@ const createPileMe = rootElement => {
     // doesn't find an available cell
     if (!depilePos) {
       depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
-      layout.myRowNum += filterRowNum;
+      layout.rowNum += filterRowNum;
       updateScrollContainer();
     }
 
@@ -730,10 +733,9 @@ const createPileMe = rootElement => {
 
     const resultMat = ndarray(
       new Float32Array(
-        (layout.myRowNum - filterRowNum + 1) *
-          (layout.myColNum - filterColNum + 1)
+        (layout.rowNum - filterRowNum + 1) * (layout.colNum - filterColNum + 1)
       ),
-      [layout.myRowNum - filterRowNum + 1, layout.myColNum - filterColNum + 1]
+      [layout.rowNum - filterRowNum + 1, layout.olNum - filterColNum + 1]
     );
 
     convolve(resultMat, gridMat, filter);
@@ -747,10 +749,10 @@ const createPileMe = rootElement => {
     const distanceMat = ndarray(
       new Float32Array(
         new Array(
-          (layout.myRowNum - rowNum + 1) * (layout.myColNum - colNum + 1)
+          (layout.rowNum - rowNum + 1) * (layout.colNum - colNum + 1)
         ).fill(-1)
       ),
-      [layout.myRowNum - rowNum + 1, layout.myColNum - colNum + 1]
+      [layout.rowNum - rowNum + 1, layout.colNum - colNum + 1]
     );
 
     const depilePos = findDepilePos(distanceMat, resultMat, origin, rowNum);
@@ -803,11 +805,9 @@ const createPileMe = rootElement => {
 
     // take the center point of pile as the original pos
     const bBox = pileInstances.get(pileId).bBox;
-    const centerY = Math.floor(
-      (bBox.minX + bBox.maxX) / (layout.myColWidth * 2)
-    );
+    const centerY = Math.floor((bBox.minX + bBox.maxX) / (layout.colWidth * 2));
     const centerX = Math.floor(
-      (bBox.minY + bBox.maxY) / (layout.myRowHeight * 2)
+      (bBox.minY + bBox.maxY) / (layout.rowHeight * 2)
     );
 
     const origin = [centerX, centerY];
@@ -846,7 +846,7 @@ const createPileMe = rootElement => {
         Math.floor((filterRowNum - 1) / 2);
       const y =
         (i % filterColNum) + depilePos[1] - Math.floor((filterColNum - 1) / 2);
-      itemPositions.push([y * layout.myColWidth, x * layout.myRowHeight]);
+      itemPositions.push([y * layout.colWidth, x * layout.rowHeight]);
     }
     // starts from the depiled pile's position
     const depiledPile = {
@@ -998,8 +998,8 @@ const createPileMe = rootElement => {
       let x;
       let y;
       [x, y] = getPosition(index);
-      x *= layout.myColWidth;
-      y *= layout.myRowHeight;
+      x *= layout.colWidth;
+      y *= layout.rowHeight;
       animateTempDepile(clonedSprite, pile, x, y, index === items.length - 1);
     });
   };
@@ -1474,19 +1474,13 @@ const createPileMe = rootElement => {
     if (!isGridShown) {
       gridGfx.clear();
       gridGfx.lineStyle(1, 0x787878, 1);
-      for (let i = 0; i < layout.myColNum; i++) {
-        gridGfx.moveTo(i * layout.myColWidth, 0);
-        gridGfx.lineTo(
-          i * layout.myColWidth,
-          layout.myRowNum * layout.myRowHeight
-        );
+      for (let i = 0; i < layout.colNum; i++) {
+        gridGfx.moveTo(i * layout.colWidth, 0);
+        gridGfx.lineTo(i * layout.colWidth, layout.rowNum * layout.rowHeight);
       }
-      for (let i = 0; i < layout.myRowNum; i++) {
-        gridGfx.moveTo(0, i * layout.myRowHeight);
-        gridGfx.lineTo(
-          layout.myColNum * layout.myColWidth,
-          i * layout.myRowHeight
-        );
+      for (let i = 0; i < layout.rowNum; i++) {
+        gridGfx.moveTo(0, i * layout.rowHeight);
+        gridGfx.lineTo(layout.colNum * layout.colWidth, i * layout.rowHeight);
       }
       isGridShown = true;
     } else {
@@ -1515,32 +1509,32 @@ const createPileMe = rootElement => {
   //   pileInstances.forEach(pile => {
   //     const bBox = pile.bBox;
   //     const centerY = Math.floor(
-  //       (bBox.minX + bBox.maxX) / (layout.myColWidth * 2)
+  //       (bBox.minX + bBox.maxX) / (layout.colWidth * 2)
   //     );
   //     const centerX = Math.floor(
-  //       (bBox.minY + bBox.maxY) / (layout.myRowHeight * 2)
+  //       (bBox.minY + bBox.maxY) / (layout.rowHeight * 2)
   //     );
   //     const center = [centerX, centerY];
 
   //     const { orderer } = store.getState();
-  //     const getPosition = orderer(layout.myColNum);
+  //     const getPosition = orderer(layout.colNum);
   //     const [x, y] = getPosition(pile.id);
 
   //     updateGridMatWithCenter(pile.id);
 
   //     if (center[1] === x && center[0] === y) {
-  //       pile.graphics.x = x * layout.myColWidth;
-  //       pile.graphics.y = y * layout.myRowHeight;
+  //       pile.graphics.x = x * layout.colWidth;
+  //       pile.graphics.y = y * layout.rowHeight;
   //     } else {
   //       const distanceMat = ndarray(
-  //         new Float32Array(new Array(layout.myColNum * layout.myRowNum).fill(0)),
-  //         [layout.myRowNum, layout.myColNum]
+  //         new Float32Array(new Array(layout.colNum * layout.rowNum).fill(0)),
+  //         [layout.rowNum, layout.colNum]
   //       );
 
   //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
   //       console.log(center, closestPos);
-  //       pile.graphics.x = closestPos[1] * layout.myColWidth;
-  //       pile.graphics.y = closestPos[0] * layout.myRowHeight;
+  //       pile.graphics.x = closestPos[1] * layout.colWidth;
+  //       pile.graphics.y = closestPos[0] * layout.rowHeight;
   //     }
   //     renderRaf();
   //   })
@@ -1885,4 +1879,4 @@ const createPileMe = rootElement => {
   };
 };
 
-export default createPileMe;
+export default createPileJs;

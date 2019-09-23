@@ -247,7 +247,10 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
         item.y = newValue[1];
       },
       onDone: () => {
-        if (isLastOne) isPositioning = false;
+        if (isLastOne) {
+          isPositioning = false;
+          pubSub.publish('updateBBox', id);
+        }
       }
     });
     animator.add(tweener);

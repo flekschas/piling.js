@@ -6,36 +6,36 @@
  * @param {number} rowHeight - The height of row
  * @param {number} cellRatio - The ratio of cell height and width
  */
-const createGrid = (canvas, [cols, rows, rowHeight, cellRatio]) => {
+const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
   const { width } = canvas.getBoundingClientRect();
 
-  const myColNum = cols;
-  let myRowNum;
-  const myColWidth = width / cols;
-  let myRowHeight;
-  let myCellRatio; // height = ratio * width
+  const colNum = cols;
+  let rowNum = 0;
+  const colWidth = width / cols;
+  let rowHeight;
+  let cellRatio; // height = ratio * width
 
   if (!+rows && !+rowHeight && !+cellRatio) {
-    myCellRatio = 1;
-    myRowHeight = myColWidth;
+    cellRatio = 1;
+    rowHeight = colWidth;
   } else if (+cellRatio) {
-    myCellRatio = cellRatio;
-    myRowHeight = myCellRatio * myColWidth;
+    cellRatio = newCellRatio;
+    rowHeight = cellRatio * colWidth;
   } else if (+rowHeight) {
-    if (!myRowHeight) myRowHeight = rowHeight;
+    if (!rowHeight) rowHeight = newRowHeight;
   } else if (+rows) {
-    if (!myRowHeight) {
-      myRowNum = rows;
-      myRowHeight = myColWidth;
+    if (!rowHeight) {
+      rowNum = rows;
+      rowHeight = colWidth;
     }
   }
 
   return {
-    myColNum,
-    myRowNum,
-    myColWidth,
-    myRowHeight,
-    myCellRatio
+    colNum,
+    rowNum,
+    colWidth,
+    rowHeight,
+    cellRatio
   };
 };
 
