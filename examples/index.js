@@ -8,7 +8,7 @@ const matricesCreditEl = document.getElementById('matrices-credit');
 
 let pileJs;
 
-const createPiles = example => {
+const createPiles = async example => {
   switch (example) {
     case 'photos':
       if (pileJs) pileJs.destroy();
@@ -16,7 +16,7 @@ const createPiles = example => {
       matricesCreditEl.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
-      pileJs = createPhotoPiles(photosEl);
+      pileJs = await createPhotoPiles(photosEl);
       break;
 
     case 'matrices':
@@ -25,7 +25,7 @@ const createPiles = example => {
       photosCreditEl.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
-      pileJs = createMatrixPiles(matricesEl);
+      pileJs = await createMatrixPiles(matricesEl);
       break;
 
     default:
