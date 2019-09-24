@@ -33,8 +33,8 @@
     "dist/pile-aggregator.min.js"
   ],
   "scripts": {
-    "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production",
-    "deploy": "npm run build; ./copy-example-data.sh; gh-pages -d examples-build -t --git git",
+    "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh",
+    "deploy": "npm run build; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
     "prepublishOnly": "npm run test",
