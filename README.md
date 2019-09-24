@@ -64,7 +64,7 @@ pileJs.set('items', data);
 **Install**
 
 ```bash
-git clone https://github.com/flekschas/pile-me
+git clone https://github.com/flekschas/pile.js
 cd pile-me
 npm ci
 ```
