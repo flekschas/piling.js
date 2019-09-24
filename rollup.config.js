@@ -19,7 +19,12 @@ const bundleConfigurator = (file, plugins = []) => ({
     },
     intro: `var VERSION = ${VERSION};`
   },
-  plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
+  plugins: [
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    ...plugins
+  ],
   external: ['pixi.js', 'regl']
 });
 
@@ -37,7 +42,12 @@ const libConfigurator = (file, plugins = []) => ({
     },
     intro: `var VERSION = ${VERSION};`
   },
-  plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
+  plugins: [
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    ...plugins
+  ],
   external: ['pixi.js']
 });
 
@@ -59,7 +69,12 @@ const rndConfigurator = (file, plugins = []) => ({
     },
     intro: `var VERSION = ${VERSION};`
   },
-  plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
+  plugins: [
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    ...plugins
+  ],
   external: ['pixi.js', 'regl']
 });
 
@@ -75,7 +90,12 @@ const agrConfigurator = (file, plugins = []) => ({
     globals: {},
     intro: `var VERSION = ${VERSION};`
   },
-  plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
+  plugins: [
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    ...plugins
+  ],
   external: []
 });
 
