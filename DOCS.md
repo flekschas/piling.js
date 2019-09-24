@@ -1,4 +1,4 @@
-# DOCS
+# Documentation
 
 ## Depile
 
