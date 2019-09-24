@@ -4,7 +4,7 @@
 const worker = function worker() {
   self.onmessage = function onmessage(e) {
     const src = e.data.src;
-    const newSrc = Object.assign({}, src);
+    const newSrc = { ...src };
 
     try {
       const newData = new Float32Array(src.shape[0]);
