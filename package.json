@@ -24,7 +24,13 @@
   "files": [
     "src/*",
     "dist/pile.js",
-    "dist/pile.min.js"
+    "dist/pile.min.js",
+    "dist/pile-library.js",
+    "dist/pile-library.min.js",
+    "dist/pile-renderer.js",
+    "dist/pile-renderer.min.js",
+    "dist/pile-aggregator.js",
+    "dist/pile-aggregator.min.js"
   ],
   "scripts": {
     "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production",

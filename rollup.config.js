@@ -7,24 +7,45 @@ import visualizer from 'rollup-plugin-visualizer';
 
 const VERSION = require('./version.js');
 
-const libConfigurator = (file, plugins = []) => ({
+const bundleConfigurator = (file, plugins = []) => ({
   input: 'src/index.js',
   output: {
     name: 'createPileJs',
     format: 'umd',
     file,
     globals: {
-      'pub-sub-es': 'createPubSub',
+      'pixi.js': 'PIXI',
+      regl: 'createREGL'
+    },
+    intro: `var VERSION = ${VERSION};`
+  },
+  plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
+  external: ['pixi.js', 'regl']
+});
+
+const bundleDev = bundleConfigurator('dist/pile.js', [filesize()]);
+const bundleProd = bundleConfigurator('dist/pile.js', [terser()]);
+
+const libConfigurator = (file, plugins = []) => ({
+  input: 'src/library.js',
+  output: {
+    name: 'createPileJs',
+    format: 'umd',
+    file,
+    globals: {
       'pixi.js': 'PIXI'
     },
     intro: `var VERSION = ${VERSION};`
   },
   plugins: [resolve(), commonjs({ sourceMap: false }), babel(), ...plugins],
-  external: ['pub-sub-es', 'pixi.js']
+  external: ['pixi.js']
 });
 
-const libDev = libConfigurator('dist/pile.js', [filesize(), visualizer()]);
-const libProd = libConfigurator('dist/pile.js', [terser()]);
+const libDev = libConfigurator('dist/pile-library.js', [
+  filesize(),
+  visualizer()
+]);
+const libProd = libConfigurator('dist/pile-library.js', [terser()]);
 
 const rndConfigurator = (file, plugins = []) => ({
   input: 'src/renderer.js',
@@ -61,4 +82,13 @@ const agrConfigurator = (file, plugins = []) => ({
 const agrDev = agrConfigurator('dist/pile-aggregator.js', [filesize()]);
 const agrProd = agrConfigurator('dist/pile-aggregator.js', [terser()]);
 
-export default [libDev, libProd, rndDev, rndProd, agrDev, agrProd];
+export default [
+  bundleDev,
+  bundleProd,
+  libDev,
+  libProd,
+  rndDev,
+  rndProd,
+  agrDev,
+  agrProd
+];
