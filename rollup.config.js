@@ -29,7 +29,7 @@ const bundleConfigurator = (file, plugins = []) => ({
 });
 
 const bundleDev = bundleConfigurator('dist/pile.js', [filesize()]);
-const bundleProd = bundleConfigurator('dist/pile.js', [terser()]);
+const bundleProd = bundleConfigurator('dist/pile.min.js', [terser()]);
 
 const libConfigurator = (file, plugins = []) => ({
   input: 'src/library.js',
@@ -55,7 +55,7 @@ const libDev = libConfigurator('dist/pile-library.js', [
   filesize(),
   visualizer()
 ]);
-const libProd = libConfigurator('dist/pile-library.js', [terser()]);
+const libProd = libConfigurator('dist/pile-library.min.js', [terser()]);
 
 const rndConfigurator = (file, plugins = []) => ({
   input: 'src/renderer.js',
@@ -79,7 +79,7 @@ const rndConfigurator = (file, plugins = []) => ({
 });
 
 const rndDev = rndConfigurator('dist/pile-renderer.js', [filesize()]);
-const rndProd = rndConfigurator('dist/pile-renderer.js', [terser()]);
+const rndProd = rndConfigurator('dist/pile-renderer.min.js', [terser()]);
 
 const agrConfigurator = (file, plugins = []) => ({
   input: 'src/aggregator.js',
@@ -100,7 +100,7 @@ const agrConfigurator = (file, plugins = []) => ({
 });
 
 const agrDev = agrConfigurator('dist/pile-aggregator.js', [filesize()]);
-const agrProd = agrConfigurator('dist/pile-aggregator.js', [terser()]);
+const agrProd = agrConfigurator('dist/pile-aggregator.min.js', [terser()]);
 
 export default [
   bundleDev,
