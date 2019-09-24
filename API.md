@@ -24,13 +24,29 @@
 
 ### Examples
 
+As a first step for all examples you have to import and instantiate pile.js as follows. The only argument is the dom element you want to render pile.js into.
+
+```javascript
+import createPileJs from 'pile.js';
+const pileJs = createPileMe(document.getElementById('demo'));
+```
+
 #### Image
+
+First, import and instantiate an image renderer and add it to our pileJs library. Then, add images to the library.
+
+```javascript
+import { createImageRenderer } from 'pile.js';
+
+pileJs.set('renderer', createImageRenderer());
+pileJs.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
+```
 
 #### Matrix
 
 ### Data
 
-An array of dictionaries (objects) with one essential property `src`, and other user defined properties:
+An array of objects with one required property `src`, and other optional user-defined properties:
 
 - `src`: the item data. this can be a URL or data object. the only requirement
   is that the renderer understands this object.
