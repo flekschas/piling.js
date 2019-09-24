@@ -78,6 +78,7 @@ _Note, mixed data types are currently not supported._
 | maxValue | number | `1`     |               |
 
 **Notes:**
+
 - `shape` describes the size of matrix, e.g., for a 4 ✖ 5 matrix, `shape` should be `[4, 5]`
 
 **Examples:**
@@ -128,33 +129,34 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 **Properties:**
 
-| Name                     | Type     | Default               | Constraints  | Nullifiable |
-| ------------------------ | -------- | --------------------- | ------------ | ----------- |
-| `'renderer'`             | function |   | see [`renderer`](#renderer)  | `false`     |
-| `'previewRenderer'`      | function |   | see [`renderer`](#renderer)  | `true`      |
-| `'aggregateRenderer'`    | function |   | see [`renderer`](#renderer)  | `true`      |
-| `'coverAggregator'`      | function |   | see [`cover aggregator`](#const-matrixCoverAggregator--createMatrixCoverAggregatoraggregator)       | `true`      |
-| `'previewAggregator'`    | function |   | see [`preview aggregator`](#const-matrixPreviewAggregator--createMatrixPreviewAggregatoraggregator) | `true`      |
-| `'items'`                | array    | `[]`                  | see [`data`](#data) | `false`     |
-| `'orderer'`              | function | row-major             | see [`notes`](#notes) | `true`      |
-| `'grid'`                 | array    | `[]`                  | see [`notes`](#notes) | `false`     |
-| `'itemSizeRange'`        | array    | `[0.5, 0.9]`          | array of two numbers between (0, 1)     | `true`      |
-| `'itemAlignment'`        | array or boolean    | `['bottom', 'right']` | array of strings, including `'top'`, `'left'`, `'bottom'`, `'right'`, or just `false`            | `true`      |
-| `'itemRotated'`          | boolean  | `false`               | `true` or `false`   | `true`      |
-| `'clickedPile'`          | array    | `[]`   | the id of current focused pile          | `true`     |
-| `'scaledPile'`           | array    | `[]`   | the id of current scaled pile           | `true`     |
-| `'depiledPile'`          | array    | `[]`   | the id of the pile to be depiled        | `true`     |
-| `'depileMethod'`         | string   | `'originalPos'`       | `'originalPos'` or `'closestPos'`       | `true`     |
-| `'temporaryDepiledPile'` | array    | `[]`                  | the id of the pile to be temporarily depiled                | `true`     |
-| `'tempDepileDirection'`  | string   | `'horizontal'`        | `'horizontal'` or `'vertical'`          | `true`     |
-| `'tempDepileOneDNum'`    | number   | `6`                   | the maximum number of items to be temporarily depiled in 1D layout              | `true`     |
-| `'easingFunc'`           | function | cubicInOut            | see [`notes`](#notes)                   | `true`      |
-| `'previewSpacing'`       | number   | `0.5`                 | the spacing between 1D previews         | `true`     |
+| Name                     | Type             | Default               | Constraints                                                                                         | Nullifiable |
+| ------------------------ | ---------------- | --------------------- | --------------------------------------------------------------------------------------------------- | ----------- |
+| `'renderer'`             | function         |                       | see [`renderer`](#renderer)                                                                         | `false`     |
+| `'previewRenderer'`      | function         |                       | see [`renderer`](#renderer)                                                                         | `true`      |
+| `'aggregateRenderer'`    | function         |                       | see [`renderer`](#renderer)                                                                         | `true`      |
+| `'coverAggregator'`      | function         |                       | see [`cover aggregator`](#const-matrixCoverAggregator--createMatrixCoverAggregatoraggregator)       | `true`      |
+| `'previewAggregator'`    | function         |                       | see [`preview aggregator`](#const-matrixPreviewAggregator--createMatrixPreviewAggregatoraggregator) | `true`      |
+| `'items'`                | array            | `[]`                  | see [`data`](#data)                                                                                 | `false`     |
+| `'orderer'`              | function         | row-major             | see [`notes`](#notes)                                                                               | `true`      |
+| `'grid'`                 | array            | `[]`                  | see [`notes`](#notes)                                                                               | `false`     |
+| `'itemSizeRange'`        | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                                                 | `true`      |
+| `'itemAlignment'`        | array or boolean | `['bottom', 'right']` | array of strings, including `'top'`, `'left'`, `'bottom'`, `'right'`, or just `false`               | `true`      |
+| `'itemRotated'`          | boolean          | `false`               | `true` or `false`                                                                                   | `true`      |
+| `'clickedPile'`          | array            | `[]`                  | the id of current focused pile                                                                      | `true`      |
+| `'scaledPile'`           | array            | `[]`                  | the id of current scaled pile                                                                       | `true`      |
+| `'depiledPile'`          | array            | `[]`                  | the id of the pile to be depiled                                                                    | `true`      |
+| `'depileMethod'`         | string           | `'originalPos'`       | `'originalPos'` or `'closestPos'`                                                                   | `true`      |
+| `'temporaryDepiledPile'` | array            | `[]`                  | the id of the pile to be temporarily depiled                                                        | `true`      |
+| `'tempDepileDirection'`  | string           | `'horizontal'`        | `'horizontal'` or `'vertical'`                                                                      | `true`      |
+| `'tempDepileOneDNum'`    | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                                  | `true`      |
+| `'easingFunc'`           | function         | cubicInOut            | see [`notes`](#notes)                                                                               | `true`      |
+| `'previewSpacing'`       | number           | `0.5`                 | the spacing between 1D previews                                                                     | `true`      |
 
 #### Notes
 
 - A property is considered nullifiable if it can be unset.
 - `orderer` is the function for positioning piles, the default function is row-major orderer which looks like this:
+
 ```javascript
 // The default row-major order
 
@@ -162,13 +164,12 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 // another function that takes in as input the position of a 1D ordering and
 // outputs the an array of `x` an `y` coordinates.
 
-const rowMajor = cols => index => [
-  index % cols,
-  Math.floor(index / cols)
-];
+const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
 ```
+
 - `grid` is an array of numbers that defines a grid, the array can have at most 4 numbers in this particular order: `[num of columns, num of rows, height of a row, ratio of a cell]`, or at least 1 number: `[num of columns]`
 - `easingFunc` is the easing function for animation, the default function is `cubicInOut` which looks like this:
+
 ```javascript
 const cubicInOut = t => {
   t *= 2;
@@ -176,6 +177,7 @@ const cubicInOut = t => {
   return p;
 };
 ```
+
 #### `pileJs.destroy()`
 
 Destroys the pile-me instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
@@ -189,10 +191,11 @@ Render the root PIXI container with request animation frame.
 Subscribe to an event.
 `eventName` needs to be one of these [events](#events).
 `eventHandler` is a callback function which looks like this:
+
 ```javascript
-const eventHandler = (eventData) => { 
+const eventHandler = eventData => {
   // handle event here
-}
+};
 ```
 
 #### `pileJs.unsubscribe(eventName, eventHandler)`
@@ -200,12 +203,12 @@ const eventHandler = (eventData) => {
 Unsubscribe from an event. See [events](#events) for all the events.
 
 ### Events
- 
- | Name         | Event Data       | Description                          | 
- |--------------|------------------|--------------------------------------|
- | `'dropPile'` | `{pileId}`       | Published when drop a pile           |
- | `'dragPile'` | `{pileId}`       | Published when start dragging a pile |
- | `'highlightPile'` | `{pileId}`  | Published while dragging a pile      |
+
+| Name              | Event Data | Description                          |
+| ----------------- | ---------- | ------------------------------------ |
+| `'dropPile'`      | `{pileId}` | Published when drop a pile           |
+| `'dragPile'`      | `{pileId}` | Published when start dragging a pile |
+| `'highlightPile'` | `{pileId}` | Published while dragging a pile      |
 
 ## Renderers
 

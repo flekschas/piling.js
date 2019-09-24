@@ -83,7 +83,7 @@ export const setGrid = newGrid => ({
   payload: { grid: newGrid }
 });
 
-const itemSizeRange = setReducer('itemSizeRange', [0.5, 0.9]);
+const itemSizeRange = setReducer('itemSizeRange', [0.7, 0.9]);
 export const setItemSizeRange = newItemSizeRange => ({
   type: 'SET_ITEM_SIZE_RANGE',
   payload: { itemSizeRange: newItemSizeRange }

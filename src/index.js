@@ -345,7 +345,7 @@ const createPileJs = rootElement => {
     const { itemSizeRange } = store.getState();
     let range;
 
-    const minRange = Math.min(layout.colWidth, layout.rowHeight);
+    const minRange = Math.min(layout.colWidth - 4, layout.rowHeight - 4);
 
     // if it's within [0, 1] assume it's relative
     if (
