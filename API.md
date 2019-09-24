@@ -239,18 +239,22 @@ Unsubscribe from an event. See [events](#events) for all the events.
 A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source and outputs promises which resolve to Pixi Texture objects.
 
 ```javascript
-// An example
-const renderer = sources => {
+// The actual renderer
+const renderCustomTexture = (src, properties) => {
+  // A complicated function that turns the src into a PIXI texture object
+  return PIXI.Texture.from(...);
+}
+
+// Factory function
+const createCustomRenderer = properties => sources => {
   Promise.all(
     sources.map(src => {
       return new Promise((resolve, reject) => {
-        // generate texture here
-          .then(texture => {
-            resolve(PIXI.Texture.from(texture))
-          })
-          .catch(error => {
-            reject(error);
-          });
+        const texture = renderCustomTexture(src, properties);
+        
+        if (!texture) reject(new Error('Could not render texture'));
+        
+        resolve(texture);
       });
     });
   )
