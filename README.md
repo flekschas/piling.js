@@ -2,7 +2,13 @@
   Pile.js
 </h1>
 
-<br />
+<div align="center">
+  
+  **A general framework and library for visual piling.**
+  
+</div>
+
+<br/>
 
 <div align="center">
   
@@ -15,21 +21,9 @@
   
 </div>
 
-<div align="center">
-  
-  **A general framework and library for visual piling.**
-  
-</div>
-
 <div align="center"><img src = './examples/demo.gif' ></div>
 
-
-
-# Pile.js
-
-A general framework and library for visual piling. The library currently supports piling of images and matrix visualizations but can be easily customized with your own render.
-
-<img src = './examples/demo.gif' >
+The library currently supports piling of images and matrix visualizations but can be easily customized with your own render.
 
 ### Interactions:
 - **Create a pile or merge piles:**
