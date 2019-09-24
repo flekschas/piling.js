@@ -1,8 +1,10 @@
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 
-const examplePhotosEl = document.getElementById('photos');
-const exampleMatricesEl = document.getElementById('matrices');
+const photosEl = document.getElementById('photos');
+const matricesEl = document.getElementById('matrices');
+const photosCreditEl = document.getElementById('photos-credit');
+const matricesCreditEl = document.getElementById('matrices-credit');
 
 let pileJs;
 
@@ -10,16 +12,20 @@ const createPiles = example => {
   switch (example) {
     case 'photos':
       if (pileJs) pileJs.destroy();
-      exampleMatricesEl.style.display = 'none';
-      examplePhotosEl.style.display = 'block';
-      pileJs = createPhotoPiles(examplePhotosEl);
+      matricesEl.style.display = 'none';
+      matricesCreditEl.style.display = 'none';
+      photosEl.style.display = 'block';
+      photosCreditEl.style.display = 'block';
+      pileJs = createPhotoPiles(photosEl);
       break;
 
     case 'matrices':
       if (pileJs) pileJs.destroy();
-      examplePhotosEl.style.display = 'none';
-      exampleMatricesEl.style.display = 'block';
-      pileJs = createMatrixPiles(exampleMatricesEl);
+      photosEl.style.display = 'none';
+      photosCreditEl.style.display = 'none';
+      matricesEl.style.display = 'block';
+      matricesCreditEl.style.display = 'block';
+      pileJs = createMatrixPiles(matricesEl);
       break;
 
     default:

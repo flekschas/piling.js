@@ -18,7 +18,7 @@
 
     <style type="text/css">
       * {
-         vbox-sizing: border-box;
+        vbox-sizing: border-box;
       }
 
       ::selection {
@@ -43,7 +43,8 @@
         color: white;
       }
 
-      a:hover {
+      a:hover,
+      .credits a:hover {
         color: #ff7ff6;
       }
 
@@ -80,6 +81,15 @@
         left: 1rem;
       }
 
+      .credits {
+        margin-left: 0.5rem;
+      }
+
+      .credits,
+      .credits a {
+        color: #808080;
+      }
+
       #description > * {
         margin: 0;
         height: 1.5rem;
@@ -95,7 +105,8 @@
         margin-right: 0.5rem;
       }
 
-      #matrices {
+      #matrices,
+      #matrices-credit {
         display: none;
       }
     </style>
@@ -110,7 +121,7 @@
             >Pile.js</a
           >
           is a library for piling visualizations like images, matrices,
-          scatterplots, etc. Pile.js is highly customizable.
+          scatterplots, etc. Pile.js is highly data-agnostic and customizable.
         </p>
         <div id="selection">
           <label for="example">Choose an example:</label>
@@ -118,6 +129,22 @@
             <option value="photos">Photos</option>
             <option value="matrices">Matrices</option>
           </select>
+          <div class="credits">
+            <em id="photos-credit">
+              (From
+              <a
+                href="https://www.kaggle.com/prasunroy/natural-images"
+                target="_blank"
+                >Roy et al., 2018</a
+              >)
+            </em>
+            <em id="matrices-credit">
+              (From
+              <a href="http://hipiler.higlass.io" target="_blank"
+                >Lekschas et al., 2018</a
+              >)
+            </em>
+          </div>
         </div>
       </div>
     </header>
