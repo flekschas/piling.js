@@ -43,7 +43,9 @@ const createItem = (id, texture, preview, pubSub) => {
   sprite.on('pointerover', onPointerOver).on('pointerout', onPointerOut);
 
   if (preview) {
-    preview.on('pointerover', onPointerOver).on('pointerout', onPointerOut);
+    preview.previewContainer
+      .on('pointerover', onPointerOver)
+      .on('pointerout', onPointerOut);
   }
 
   const self = {

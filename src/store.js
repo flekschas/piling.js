@@ -151,7 +151,7 @@ export const setEasingFunc = newEasingFunc => ({
   payload: { easingFunc: newEasingFunc }
 });
 
-const previewSpacing = setReducer('previewSpacing', 0.5);
+const previewSpacing = setReducer('previewSpacing', 2);
 export const setPreviewSpacing = newPreviewSpacing => ({
   type: 'SET_PREVIEW_SPACING',
   payload: { previewSpacing: newPreviewSpacing }

@@ -52,15 +52,21 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       if (!graphics.isDragging) {
         const clonedSprite = item.cloneSprite();
         hoverItemContainer.addChild(clonedSprite);
+        if (item.preview) {
+          item.preview.drawBg(0xffffff);
+        }
         renderRaf();
       }
     }
   };
 
-  const handleHoverItemEnd = () => {
+  const handleHoverItemEnd = ({ item }) => {
     if (isFocus) {
       if (hoverItemContainer.children.length === 2)
         hoverItemContainer.removeChildAt(0);
+      if (item.preview) {
+        item.preview.drawBg(0x000000);
+      }
       renderRaf();
     }
   };
@@ -126,7 +132,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       pubSubSubscribers.push(hoverItemSubscriber);
     }
     if (!hoverItemEndSubscriber) {
-      hoverItemEndSubscriber = pubSub.subscribe('itemOver', handleHoverItemEnd);
+      hoverItemEndSubscriber = pubSub.subscribe('itemOut', handleHoverItemEnd);
       pubSubSubscribers.push(hoverItemEndSubscriber);
     }
   };
@@ -256,16 +262,23 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     animator.add(tweener);
   };
 
-  const positionItems = (itemAlignment, itemRotated, animator) => {
+  const positionItems = (itemAlignment, itemRotated, animator, spacing) => {
     isPositioning = true;
     if (hasCover) {
       // matrix
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
-        const padding = item.height * (index + 1);
+        const padding = (item.height + spacing) * (index + 1);
         if (index === itemContainer.children.length - 2)
-          animatePositionItems(item, 2, -padding, animator, true);
-        else animatePositionItems(item, 2, -padding, animator, false);
+          animatePositionItems(item, 2 - spacing / 2, -padding, animator, true);
+        else
+          animatePositionItems(
+            item,
+            2 - spacing / 2,
+            -padding,
+            animator,
+            false
+          );
       });
     } else if (itemAlignment) {
       // image
@@ -333,16 +346,23 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       let num = 0;
       newItemsById.forEach((item, index) => {
         num++;
+        let paddingX;
+        let paddingY;
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+          paddingX = item.x + x;
+          paddingY = item.y + y;
           item.x = item.x + item.tmpAbsX - graphics.x;
           item.y = item.y + item.tmpAbsY - graphics.y;
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
+        } else {
+          paddingX = getRandomArbitrary(-30, 30);
+          paddingY = getRandomArbitrary(-30, 30);
         }
         itemsById.set(index, item);
         if (num === newItemsById.size)
-          animatePositionItems(item, x, y, animator, true);
-        else animatePositionItems(item, x, y, animator, false);
+          animatePositionItems(item, paddingX, paddingY, animator, true);
+        else animatePositionItems(item, paddingX, paddingY, animator, false);
         if (rotation) {
           item.angle += rotation;
         }
