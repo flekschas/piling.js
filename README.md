@@ -21,7 +21,11 @@
   
 </div>
 
-<div align="center"><img src="./examples/demo.gif"></div>
+<div align="center">
+  
+  ![Preview](https://user-images.githubusercontent.com/932103/65613151-8107e980-df83-11e9-86bf-72be591fe284.gif)
+  
+</div>
 
 Pile.js currently supports visual piling of images and matrix visualizations but can be easily customized with your own render.
 
