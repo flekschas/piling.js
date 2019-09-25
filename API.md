@@ -34,7 +34,7 @@ const pileJs = createPileMe(document.getElementById('demo'));
 
 #### Image
 
-First, import and instantiate an image renderer and add it to our pileJs library. Then, add images to the library.
+First, import and instantiate an [image renderer](#image-renderer) and add it to our pileJs library. Then, add images to the library.
 
 ```javascript
 import { createImageRenderer } from 'pile.js';
@@ -45,6 +45,8 @@ pileJs.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
 
 #### Matrix
 
+First, import and instantiate the renderers and aggregators. See [matrix renderer](#matrix-renderer) and [aggregators](#aggregators) for more information.
+
 ```javascript
 import { createMatrixRenderer } from 'pile.js';
 import {
@@ -52,24 +54,23 @@ import {
   createMatrixPreviewAggregator
 } from 'pile.js';
 
-const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
-const coverRenderer = createMatrixRenderer({
-  colorMap: coverColorMap,
-  shape: [16, 16]
-});
-
-const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
+const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
+const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
+```
 
+Then add the renderers and aggregators to our pileJs library. Finally add the matrix data to the library.
+
+```javascript
 pileJs.set('renderer', matrixRenderer);
-pileJs.set('itemRenderer', matrixRenderer);
+pileJs.set('aggregateRenderer', matrixRenderer);
 pileJs.set('previewRenderer', previewRenderer);
-pileJs.set('aggregateRenderer', coverRenderer);
+
 pileJs.set('coverAggregator', matrixCoverAggregator);
 pileJs.set('previewAggregator', matrixPreviewAggregator);
-pileJs.set('items', peaks);
-pileJs.set('grid', [10]);
+
+pileJs.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
 ```
 
 ### Data
@@ -90,7 +91,7 @@ _Note, mixed data types are currently not supported._
 
 // Matrix data
 {
-  src: [[3, 2, 1], [2, 3, 2], [1, 2, 3]],
+  src: [3, 2, 1, 2, 3, 2, 1, 2, 3],
   shape: [3, 3],
   dataType: float32
 }
@@ -102,13 +103,17 @@ _Note, mixed data types are currently not supported._
 
 #### `const pileJs = createPileJs(rootElement);`
 
-**Returns:** a new pile.js instance.
+**Returns:** a new pileJs instance.
 
 **rootElement:** the div object which the canvas will be added on.
 
+#### `const imageRenderer = createImageRenderer();`
+
+**Renturns:** a new image renderer.
+
 #### `const matrixRenderer = createMatrixRenderer(properties);`
 
-**Returns:** a new matrix renderer instance.
+**Returns:** a new matrix renderer.
 
 **Arguments:** `properties` is an object of key-value pairs. The list of all understood properties is given below.
 
@@ -129,7 +134,7 @@ _Note, mixed data types are currently not supported._
 
 ```javascript
 import { interpolateRdPu } from 'd3-scale-chromatic';
-import createMatrixRenderer from '../src/matrix-renderer';
+import createMatrixRenderer from 'pile.js';
 
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
@@ -151,13 +156,13 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 #### `const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);`
 
-**Returns:** a new matrix cover aggregator instance.
+**Returns:** a new matrix cover aggregator.
 
 **Aggregator:** the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
 #### `const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);`
 
-**Returns:** a new matrix preview aggregator instance.
+**Returns:** a new matrix preview aggregator.
 
 **Aggregator:** the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
@@ -224,7 +229,7 @@ const cubicInOut = t => {
 
 #### `pileJs.destroy()`
 
-Destroys the pile-me instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
+Destroys the pileJs instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
 
 #### `pileJs.render()`
 
@@ -256,15 +261,92 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Renderers
 
+A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source, and outputs promises which resolve to **Pixi Texture objects**.
+
 ### Predefined renderers
+
+We currently provide predefined renderers of images and matrices. You can just import the facture function from our library.
 
 #### Image renderer
 
+##### Constructor:
+
+```javascript
+const imageRenderer = createImageRenderer();
+```
+
+##### Add to pileJs library:
+
+```javascript
+pileJs.set('renderer', imageRenderer);
+```
+
+**Note:** currently our image renderer can only render from image URL, which means the `src` property in your [data](#data) need to be a string of the image URL.
+
 #### Matrix renderer
+
+##### Constructor:
+
+```javascript
+const matrixRenderer = createMatrixRenderer(properties);
+```
+
+**`Properties`** is an object of key-value pairs. The list of all understood properties is given below.
+
+| Name     | Type   | Default | Constraints   |
+| -------- | ------ | ------- | ------------- |
+| colorMap | array  |         | Array of rgba |
+| shape    | array  |         | Matrix shape  |
+| minValue | number | `0`     |               |
+| maxValue | number | `1`     |               |
+
+**Note:**
+
+- `shape` describes the size of matrix, e.g., for a 4 ✖ 5 matrix, `shape` should be `[4, 5]`
+
+**Examples:**
+
+```javascript
+import { interpolateRdPu } from 'd3-scale-chromatic';
+import createMatrixRenderer from 'pile.js';
+
+const rgbStr2rgba = (rgbStr, alpha = 1) => {
+  return [
+    ...rgbStr
+      .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+      .slice(1, 4)
+      .map(x => parseInt(x, 10) / 256),
+    alpha
+  ];
+};
+const numColors = 256;
+const colorMap = new Array(numColors)
+  .fill(0)
+  .map((x, i) => rgbStr2rgba(interpolateRdPu(i / numColors)));
+
+const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
+```
+
+**Note:**
+
+You can pass in different color map or shape to create different matrix renderers for matrix aggregation and matrix preview, so that the pile will have an aggregation of all the matrices on the pile cover, and matrix previews on top of the aggregation. 
+
+But to have aggregations and previews, you also need to have [aggregators](#aggregators) for them.
+
+##### Add to pileJs library:
+
+```javascript
+// for all the matrices
+pileJs.set('renderer', matrixRenderer);
+// for the aggregation of a pile
+pileJs.set('aggregateRenderer', matrixRenderer);
+// for the matrix preview
+pileJs.set('previewRenderer', previewRenderer);
+```
 
 ### Define your own renderer
 
-A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source and outputs promises which resolve to Pixi Texture objects.
+If you want to define your own renderer to render your own data, you can do something as follows:
 
 ```javascript
 // The actual renderer
