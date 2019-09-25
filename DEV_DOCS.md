@@ -4,7 +4,7 @@
 
 ## Depile
 
-...
+The pseudocode for finding the closest available cell for de-piling.
 
 **input:**
 
@@ -35,7 +35,7 @@ return depilePos
 
 ## PIXI.js Screengraph
 
-...
+The `stage` is the root PIXI container that we render everything on.
 
 - stage
   - lasso container
