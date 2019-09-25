@@ -47,6 +47,7 @@ import {
 import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
+import createPreview from './preview';
 import createTweener from './tweener';
 
 const convolve = require('ndarray-convolve');
@@ -377,36 +378,12 @@ const createPileJs = rootElement => {
       }
 
       if (item.preview) {
-        const previewRatio = item.preview.height / item.preview.width;
-        item.preview.width = scaleSprite(item.preview.width);
-        item.preview.height = item.preview.width * previewRatio;
+        const previewSprite = item.preview.previewSprite;
+        const previewRatio = previewSprite.height / previewSprite.width;
+        previewSprite.width = item.sprite.width;
+        previewSprite.height = previewSprite.width * previewRatio;
       }
     });
-  };
-
-  const createPreview = previewTexture => {
-    if (previewTexture) {
-      const preview = new PIXI.Graphics();
-      preview.clear();
-      preview.beginFill(0x000000);
-      preview.drawRect(
-        0,
-        0,
-        previewTexture.width,
-        previewTexture.height + store.getState().previewSpacing
-      );
-      preview.endFill();
-
-      const previewSprite = new PIXI.Sprite(previewTexture);
-      preview.addChild(previewSprite);
-
-      preview.interactive = true;
-      preview.buttonMode = true;
-
-      return preview;
-    }
-
-    return null;
   };
 
   const lassoContainer = new PIXI.Container();
@@ -444,9 +421,14 @@ const createPileJs = rootElement => {
     return Promise.all([renderItems, renderPreviews]).then(
       ([newRenderedItems, newRenderedPreviews]) => {
         newRenderedItems.forEach((renderedItem, index) => {
-          const preview = createPreview(newRenderedPreviews[index]);
+          let preview = null;
+          if (newRenderedPreviews[index]) {
+            preview = createPreview(
+              newRenderedPreviews[index],
+              store.getState().previewSpacing
+            );
+          }
           const newItem = createItem(index, renderedItem, preview, pubSub);
-          renderedItems.set(index, newItem);
           renderedItems.set(index, newItem);
           const pile = createPile(newItem.sprite, renderRaf, index, pubSub);
           pileInstances.set(index, pile);
@@ -507,7 +489,12 @@ const createPileJs = rootElement => {
 
     pileInstances
       .get(pileId)
-      .positionItems(itemAlignment, itemRotated, animator);
+      .positionItems(
+        itemAlignment,
+        itemRotated,
+        animator,
+        store.getState().previewSpacing
+      );
   };
 
   const updatePreviewAndCover = (pile, pileInstance) => {
@@ -522,7 +509,7 @@ const createPileJs = rootElement => {
       const itemSrcs = [];
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
-        const preview = renderedItems.get(itemId).preview;
+        const preview = renderedItems.get(itemId).preview.previewContainer;
         preview.x = 2;
         preview.y = 0;
         pileInstance.itemContainer.addChild(preview);
@@ -555,6 +542,13 @@ const createPileJs = rootElement => {
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pile, pileInstance);
         } else {
+          if (pile.items.length === 1) {
+            pileInstance.itemsById.clear();
+            pileInstance.itemsById.set(
+              pile.items[0],
+              renderedItems.get(pile.items[0]).sprite
+            );
+          }
           pile.items.forEach(itemId => {
             pileInstance.itemContainer.addChild(
               renderedItems.get(itemId).sprite
