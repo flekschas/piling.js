@@ -11,12 +11,7 @@ const createPhotoPiles = async element => {
   pileJs.set('renderer', imageRenderer);
   pileJs.set('items', data);
 
-  if (window.location.search) {
-    pileJs.set('grid', [15]);
-    pileJs.set('itemAlignment', false);
-  } else {
-    pileJs.set('grid', [10]);
-  }
+  pileJs.set('grid', [10]);
 
   return pileJs;
 };

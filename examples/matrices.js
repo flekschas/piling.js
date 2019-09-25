@@ -43,7 +43,6 @@ const createMatrixPiles = async element => {
   const pileJs = createPileJs(element);
 
   pileJs.set('renderer', matrixRenderer);
-  pileJs.set('itemRenderer', matrixRenderer);
   pileJs.set('previewRenderer', previewRenderer);
   pileJs.set('aggregateRenderer', coverRenderer);
   pileJs.set('coverAggregator', matrixCoverAggregator);

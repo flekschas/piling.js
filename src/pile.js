@@ -268,7 +268,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       // matrix
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
-        const padding = (item.height + spacing) * (index + 1);
+        const padding = (item.height + spacing / 2) * (index + 1);
         if (index === itemContainer.children.length - 2)
           animatePositionItems(item, 2 - spacing / 2, -padding, animator, true);
         else

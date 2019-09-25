@@ -96,9 +96,6 @@ const createPileJs = rootElement => {
       case 'renderer':
         return state.itemRenderer;
 
-      case 'itemRenderer':
-        return state.itemRenderer;
-
       case 'previewRenderer':
         return state.previewRenderer;
 
@@ -170,10 +167,6 @@ const createPileJs = rootElement => {
 
     switch (property) {
       case 'renderer':
-        actions.push(setItemRenderer(value));
-        break;
-
-      case 'itemRenderer':
         actions.push(setItemRenderer(value));
         break;
 
@@ -382,6 +375,7 @@ const createPileJs = rootElement => {
         const previewRatio = previewSprite.height / previewSprite.width;
         previewSprite.width = item.sprite.width;
         previewSprite.height = previewSprite.width * previewRatio;
+        item.preview.drawBg(0x000000);
       }
     });
   };
