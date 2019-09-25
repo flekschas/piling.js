@@ -269,19 +269,19 @@ We currently provide predefined renderers of images and matrices. You can just i
 
 #### Image renderer
 
-**Import:**
+- **Import:**
 
 ```javascript
 import { createImageRenderer } from 'pile.js';
 ```
 
-**Constructor:**
+- **Constructor:**
 
 ```javascript
 const imageRenderer = createImageRenderer();
 ```
 
-**Add to pileJs library:**
+- **Add to pileJs library:**
 
 ```javascript
 pileJs.set('renderer', imageRenderer);
@@ -291,13 +291,13 @@ _Note:_ currently our image renderer can only render from image URL, which means
 
 #### Matrix renderer
 
-**Import:**
+- **Import:**
 
 ```javascript
 import { createMatrixRenderer } from 'pile.js';
 ```
 
-**Constructor:**
+- **Constructor:**
 
 ```javascript
 const matrixRenderer = createMatrixRenderer(properties);
@@ -343,7 +343,7 @@ You can pass in different color map or shape to create different matrix renderer
 
 But to have aggregations and previews, you also need to have [aggregators](#aggregators) for them.
 
-**Add to pileJs library:**
+- **Add to pileJs library:**
 
 ```javascript
 // for all the matrices
@@ -395,13 +395,13 @@ We currently provide predefined aggregators for matrices and matrix previews. Yo
 
 The aggregator for all the matrices on a pile, it will be shown on the cover of the pile.
 
-**Import:**
+- **Import:**
 
 ```javascript
 import { createMatrixCoverAggregator } from 'pile.js';
 ```
 
-**Constructor:**
+- **Constructor:**
 
 ```javascript
 const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);
@@ -409,7 +409,7 @@ const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);
 
 **`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
-**Add to pileJs library:**
+- **Add to pileJs library:**
 
 ```javascript
   pileJs.set('coverAggregator', matrixCoverAggregator);
@@ -419,12 +419,12 @@ const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);
 
 The 1D preview aggregator for each matrix on a pile, it will be shown on top of the pile cover.
 
-**Import:**
+- **Import:**
 ```javascript
 import { createMatrixPreviewAggregator } from 'pile.js';
 ```
 
-**Constructor:**
+- **Constructor:**
 
 ```javascript
 const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
@@ -432,7 +432,7 @@ const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
 
 **`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
-**Add to pileJs library:**
+- **Add to pileJs library:**
 
 ```javascript
   pileJs.set('previewAggregator', matrixPreviewAggregator);
