@@ -8,8 +8,6 @@ import {
   createMatrixPreviewAggregator
 } from '../src/aggregator';
 
-import peaks from './data/rao-2014-gm12878-chr-22-peaks.json';
-
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
     ...rgbStr
@@ -20,7 +18,10 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
   ];
 };
 
-const createMatrixPiles = element => {
+const createMatrixPiles = async element => {
+  const response = await fetch('data/rao-2014-gm12878-chr-22-peaks.json');
+  const data = await response.json();
+
   const numColors = 256;
   const colorMap = new Array(numColors)
     .fill(0)
@@ -47,7 +48,7 @@ const createMatrixPiles = element => {
   pileJs.set('aggregateRenderer', coverRenderer);
   pileJs.set('coverAggregator', matrixCoverAggregator);
   pileJs.set('previewAggregator', matrixPreviewAggregator);
-  pileJs.set('items', peaks);
+  pileJs.set('items', data);
   pileJs.set('grid', [10]);
 
   return pileJs;

@@ -71,6 +71,7 @@ pileJs.set('previewAggregator', matrixPreviewAggregator);
 pileJs.set('items', peaks);
 pileJs.set('grid', [10]);
 ```
+
 ### Data
 
 An array of objects with one required property `src`, and other optional user-defined properties:
@@ -193,7 +194,7 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 | `'tempDepileDirection'`  | string           | `'horizontal'`        | `'horizontal'` or `'vertical'`                                                                      | `true`      |
 | `'tempDepileOneDNum'`    | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                                  | `true`      |
 | `'easingFunc'`           | function         | cubicInOut            | see [`notes`](#notes)                                                                               | `true`      |
-| `'previewSpacing'`       | number           | `2`                 | the spacing between 1D previews                                                                     | `true`      |
+| `'previewSpacing'`       | number           | `2`                   | the spacing between 1D previews                                                                     | `true`      |
 
 #### Notes
 
@@ -266,18 +267,22 @@ Unsubscribe from an event. See [events](#events) for all the events.
 A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source and outputs promises which resolve to Pixi Texture objects.
 
 ```javascript
-// An example
-const renderer = sources => {
+// The actual renderer
+const renderCustomTexture = (src, properties) => {
+  // A complicated function that turns the src into a PIXI texture object
+  return PIXI.Texture.from(...);
+}
+
+// Factory function
+const createCustomRenderer = properties => sources => {
   Promise.all(
     sources.map(src => {
       return new Promise((resolve, reject) => {
-        // generate texture here
-          .then(texture => {
-            resolve(PIXI.Texture.from(texture))
-          })
-          .catch(error => {
-            reject(error);
-          });
+        const texture = renderCustomTexture(src, properties);
+
+        if (!texture) reject(new Error('Could not render texture'));
+
+        resolve(texture);
       });
     });
   )
@@ -295,6 +300,7 @@ const renderer = sources => {
 ### Define your own aggregator
 
 ## Interactions
+
 - **Create a pile or merge piles:**
   - Drag one item/pile and drop it on another with your mouse.
   - Click on the background and drag your mouse to draw a lasso. All items/piles within the lasso will be merged into one pile.
@@ -307,8 +313,8 @@ const renderer = sources => {
   - While pressing <kbd>SHIFT</kbd>, click on a pile to de-pile it.
   - Right click on a pile to open the context menu. Click on <kbd>depile</kbd> button to de-pile.
 - **Scale a pile:**
-  - While pressing <kbd>ALT</kbd>, click on a pile to automatically scale it up. 
-  - While pressing <kbd>ALT</kbd>, click on a scaled-up pile to automatically scale it down. 
+  - While pressing <kbd>ALT</kbd>, click on a pile to automatically scale it up.
+  - While pressing <kbd>ALT</kbd>, click on a scaled-up pile to automatically scale it down.
   - While pressing <kbd>ALT</kbd>, hover on a pile and scroll to manually scale it. Then click on the background to automatically scale it down.
   - Right click on a pile to open the context menu. Click on <kbd>scale up</kbd> button to automatically scale the pile up.
   - Right click on a scaled-up pile to open the context menu. Click on <kbd>scale donw</kbd> button to automatically scale the pile down.

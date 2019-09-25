@@ -1,8 +1,10 @@
 {
   "presets": ["@babel/preset-env"],
   "plugins": [
+    ["@babel/transform-runtime"],
     ["@babel/plugin-transform-regenerator", {
       "asyncGenerators": true,
+      "regenerators": true,
       "generators": true,
       "async": true
     }]
