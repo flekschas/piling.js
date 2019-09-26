@@ -14,45 +14,49 @@
     - [Image renderer](#image-renderer)
     - [Matrix renderer](#matrix-renderer)
   - [Define your own renderer](#define-your-own-renderer)
+  - [Add renderers to piling.js library](#add-renderers-to-pilingjs-library)
 - [Aggregators](#aggregators)
   - [Predefined aggregators](#predefined-aggregators)
     - [Matrix cover aggregator](#matrix-cover-aggregator)
     - [Matrix preview aggregator](#matrix-preview-aggregator)
   - [Define your own aggregator](#define-your-own-aggregator)
+  - [Add aggregators to piling.js library](#add-aggregators-to-pilingjs-library)
 - [Interactions](#interactions)
 
-## Get started
+# Get started
 
-### Examples
+## Examples
 
-As a first step for all examples you have to import and instantiate pile.js as follows. The only argument is the dom element you want to render pile.js into.
+As a first step for all examples you have to import and instantiate piling.js as follows. The only argument is the dom element you want to render piling.js into.
 
 ```javascript
-import createPileJs from 'pile.js';
-const pileJs = createPileMe(document.getElementById('demo'));
+import createPilingJs from 'piling.js';
+const piling = createPilingJs(document.getElementById('demo'));
 ```
 
-#### Image
+### Image
 
-First, import and instantiate an [image renderer](#image-renderer) and add it to our pileJs library. Then, add images to the library.
+First, import and instantiate an [image renderer](#image-renderer) and add it to our piling.js library. Then, add images to the library.
 
 ```javascript
-import { createImageRenderer } from 'pile.js';
+import { createImageRenderer } from 'piling.js';
 
-pileJs.set('renderer', createImageRenderer());
-pileJs.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
+piling.set('renderer', createImageRenderer());
+piling.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
 ```
 
-#### Matrix
+### Matrix
 
-First, import and instantiate the renderers and aggregators. See [matrix renderer](#matrix-renderer) and [aggregators](#aggregators) for more information.
+First, import and instantiate [matrix renderers](#matrix-renderer).
+
+For matrices, you can have the aggregation and 1D previews of them when pile them up. So also import and instantiate [aggregators](#aggregators) here, and use mean value as the method of aggregation.
 
 ```javascript
-import { createMatrixRenderer } from 'pile.js';
+import { createMatrixRenderer } from 'piling.js';
 import {
   createMatrixCoverAggregator,
   createMatrixPreviewAggregator
-} from 'pile.js';
+} from 'piling.js';
 
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
@@ -60,20 +64,20 @@ const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
 ```
 
-Then add the renderers and aggregators to our pileJs library. Finally add the matrix data to the library.
+Then add the renderers and aggregators to our piling.js library. Finally add the matrix data to the library.
 
 ```javascript
-pileJs.set('renderer', matrixRenderer);
-pileJs.set('aggregateRenderer', matrixRenderer);
-pileJs.set('previewRenderer', previewRenderer);
+piling.set('renderer', matrixRenderer);
+piling.set('aggregateRenderer', matrixRenderer);
+piling.set('previewRenderer', previewRenderer);
 
-pileJs.set('coverAggregator', matrixCoverAggregator);
-pileJs.set('previewAggregator', matrixPreviewAggregator);
+piling.set('coverAggregator', matrixCoverAggregator);
+piling.set('previewAggregator', matrixPreviewAggregator);
 
-pileJs.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
+piling.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
 ```
 
-### Data
+## Data
 
 An array of objects with one required property `src`, and other optional user-defined properties:
 
@@ -97,82 +101,23 @@ _Note, mixed data types are currently not supported._
 }
 ```
 
-## Library API
+# Library API
 
-### Constructors
+## Constructors
 
-#### `const pileJs = createPileJs(rootElement);`
+#### `const piling = createPilingJs(rootElement);`
 
-**Returns:** a new pileJs instance.
+**Returns:** a new piling instance.
 
 **rootElement:** the div object which the canvas will be added on.
 
-#### `const imageRenderer = createImageRenderer();`
-
-**Renturns:** a new image renderer.
-
-#### `const matrixRenderer = createMatrixRenderer(properties);`
-
-**Returns:** a new matrix renderer.
-
-**Arguments:** `properties` is an object of key-value pairs. The list of all understood properties is given below.
-
-**Properties:**
-
-| Name     | Type   | Default | Constraints   |
-| -------- | ------ | ------- | ------------- |
-| colorMap | array  |         | Array of rgba |
-| shape    | array  |         | Matrix shape  |
-| minValue | number | `0`     |               |
-| maxValue | number | `1`     |               |
-
-**Notes:**
-
-- `shape` describes the size of matrix, e.g., for a 4 ✖ 5 matrix, `shape` should be `[4, 5]`
-
-**Examples:**
-
-```javascript
-import { interpolateRdPu } from 'd3-scale-chromatic';
-import { createMatrixRenderer } from 'pile.js';
-
-const rgbStr2rgba = (rgbStr, alpha = 1) => {
-  return [
-    ...rgbStr
-      .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
-      .slice(1, 4)
-      .map(x => parseInt(x, 10) / 256),
-    alpha
-  ];
-};
-const numColors = 256;
-const colorMap = new Array(numColors)
-  .fill(0)
-  .map((x, i) => rgbStr2rgba(interpolateRdPu((numColors - i) / numColors)));
-colorMap[0] = [0, 0, 0, 0];
-
-const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
-```
-
-#### `const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);`
-
-**Returns:** a new matrix cover aggregator.
-
-**Aggregator:** the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
-
-#### `const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);`
-
-**Returns:** a new matrix preview aggregator.
-
-**Aggregator:** the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
-
 ## Methods
 
-#### `pileJs.get(property)`
+#### `piling.get(property)`
 
-**Returns:** one of the properties documented in [`set()`](#pileJssetproperty-value)
+**Returns:** one of the properties documented in [`set()`](#pilingsetproperty-value)
 
-#### `pileJs.set(property, value)`
+#### `piling.set(property, value)`
 
 **Arguments:** a pair of `property` and `value` is a key-value pair. The list of all understood properties is given below.
 
@@ -180,15 +125,15 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 | Name                     | Type             | Default               | Constraints                                                                                         | Nullifiable |
 | ------------------------ | ---------------- | --------------------- | --------------------------------------------------------------------------------------------------- | ----------- |
-| `'renderer'`             | function         |                       | see [`renderer`](#renderer)                                                                         | `false`     |
-| `'previewRenderer'`      | function         |                       | see [`renderer`](#renderer)                                                                         | `true`      |
-| `'aggregateRenderer'`    | function         |                       | see [`renderer`](#renderer)                                                                         | `true`      |
-| `'coverAggregator'`      | function         |                       | see [`cover aggregator`](#const-matrixCoverAggregator--createMatrixCoverAggregatoraggregator)       | `true`      |
-| `'previewAggregator'`    | function         |                       | see [`preview aggregator`](#const-matrixPreviewAggregator--createMatrixPreviewAggregatoraggregator) | `true`      |
-| `'items'`                | array            | `[]`                  | see [`data`](#data)                                                                                 | `false`     |
-| `'orderer'`              | function         | row-major             | see [`notes`](#notes)                                                                               | `true`      |
-| `'grid'`                 | array            | `[]`                  | see [`notes`](#notes)                                                                               | `false`     |
-| `'itemSizeRange'`        | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                                                 | `true`      |
+| `'renderer'`             | function         |      | see [`renderers`](#renderers) | `false`     |
+| `'previewRenderer'`      | function         |      | see [`renderers`](#renderers) | `true`      |
+| `'aggregateRenderer'`    | function         |      | see [`renderers`](#renderers) | `true`      |
+| `'coverAggregator'`      | function         |      | see [`aggregators`](#aggregators) | `true`      |
+| `'previewAggregator'`    | function         |      | see [`aggregators`](#aggregators) | `true`      |
+| `'items'`                | array            | `[]` | see [`data`](#data)      | `false`     |
+| `'orderer'`              | function         | row-major  | see [`notes`](#notes)      | `true`      |
+| `'grid'`                 | array            | `[]` | see [`notes`](#notes)  | `false`     |
+| `'itemSizeRange'`        | array            | `[0.7, 0.9]`  | array of two numbers between (0, 1)  | `true`      |
 | `'itemAlignment'`        | array or boolean | `['bottom', 'right']` | array of strings, including `'top'`, `'left'`, `'bottom'`, `'right'`, or just `false`               | `true`      |
 | `'itemRotated'`          | boolean          | `false`               | `true` or `false`                                                                                   | `true`      |
 | `'clickedPile'`          | array            | `[]`                  | the id of current focused pile                                                                      | `true`      |
@@ -227,15 +172,15 @@ const cubicInOut = t => {
 };
 ```
 
-#### `pileJs.destroy()`
+#### `piling.destroy()`
 
-Destroys the pileJs instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
+Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
 
-#### `pileJs.render()`
+#### `piling.render()`
 
-Render the root PIXI container with request animation frame.
+Render the root PIXI container.
 
-#### `pileJs.subscribe(eventName, eventHandler)`
+#### `piling.subscribe(eventName, eventHandler)`
 
 Subscribe to an event.
 `eventName` needs to be one of these [events](#events).
@@ -247,11 +192,11 @@ const eventHandler = eventData => {
 };
 ```
 
-#### `pileJs.unsubscribe(eventName, eventHandler)`
+#### `piling.unsubscribe(eventName, eventHandler)`
 
 Unsubscribe from an event. See [events](#events) for all the events.
 
-### Events
+## Events
 
 | Name              | Event Data | Description                          |
 | ----------------- | ---------- | ------------------------------------ |
@@ -259,51 +204,40 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | `'dragPile'`      | `{pileId}` | Published when start dragging a pile |
 | `'highlightPile'` | `{pileId}` | Published while dragging a pile      |
 
-## Renderers
+# Renderers
 
-A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source, and outputs promises which resolve to **Pixi Texture objects**.
+A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source, and outputs promises which resolve to [Pixi Texture objects](http://pixijs.download/release/docs/PIXI.Texture.html).
 
-### Predefined renderers
+## Predefined renderers
 
-We currently provide predefined renderers of images and matrices. You can just import the factory function from our library.
+We provide 3 types of predefined renderers:
+- `renderer`: render all the items.
+- `aggregateRenderer`: render the aggregation of a pile.
+- `previewRenderer`: render the preview of an item.
 
-#### Image renderer
+Currently we support rendering for images and matrices. You can just import the factory function from our library.
 
-- **Import:**
+### Image renderer
+
+**Constructor:**
 
 ```javascript
-import { createImageRenderer } from 'pile.js';
-```
-
-- **Constructor:**
-
-```javascript
+import { createImageRenderer } from 'piling.js';
 const imageRenderer = createImageRenderer();
-```
-
-- **Add to pileJs library:**
-
-```javascript
-pileJs.set('renderer', imageRenderer);
 ```
 
 _Note:_ currently our image renderer can only render from image URL, which means the `src` property in your [data](#data) need to be a string of the image URL.
 
-#### Matrix renderer
+### Matrix renderer
 
-- **Import:**
-
-```javascript
-import { createMatrixRenderer } from 'pile.js';
-```
-
-- **Constructor:**
+**Constructor:**
 
 ```javascript
+import { createMatrixRenderer } from 'piling.js';
 const matrixRenderer = createMatrixRenderer(properties);
 ```
 
-**`Properties`** is an object of key-value pairs. The list of all understood properties is given below.
+- **`Properties`** is an object of key-value pairs. The list of all understood properties is given below.
 
 | Name     | Type   | Default | Constraints   |
 | -------- | ------ | ------- | ------------- |
@@ -314,11 +248,11 @@ const matrixRenderer = createMatrixRenderer(properties);
 
 _Note:_ `shape` describes the size of matrix, e.g., for a 4 ✖ 5 matrix, `shape` should be `[4, 5]`
 
-Examples:
+**Examples:**
 
 ```javascript
 import { interpolateRdPu } from 'd3-scale-chromatic';
-import createMatrixRenderer from 'pile.js';
+import createMatrixRenderer from 'piling.js';
 
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
@@ -339,22 +273,25 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 _Note:_
 
-You can pass in different color map or shape to create different matrix renderers for matrix aggregation and matrix preview, so that the pile will have an aggregation of all the matrices on the pile cover, and matrix previews on top of the aggregation. 
+You can pass in different color map or shape to create `aggregateRender` for matrix aggregation and `previewRender` for matrix preview, so that the pile will have an aggregation of all the matrices on the pile cover, and matrix previews on top of the aggregation. 
+
+For example:
+```javascript
+const aggregateColorMap = new Array(numColors)
+  .fill(0)
+  .map((x, i) => rgbStr2rgba(interpolateOrRd((numColors - i) / numColors)));
+
+const aggregateRenderer = createMatrixRenderer({
+  colorMap: aggregateColorMap,
+  shape: [16, 16]
+});
+
+const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
+```
 
 But to have aggregations and previews, you also need to have [aggregators](#aggregators) for them.
 
-- **Add to pileJs library:**
-
-```javascript
-// for all the matrices
-pileJs.set('renderer', matrixRenderer);
-// for the aggregation of a pile
-pileJs.set('aggregateRenderer', matrixRenderer);
-// for the matrix preview
-pileJs.set('previewRenderer', previewRenderer);
-```
-
-### Define your own renderer
+## Define your own renderer
 
 If you want to define your own renderer to render your own data, you can do something as follows:
 
@@ -380,65 +317,58 @@ const createCustomRenderer = properties => sources => {
   )
 };
 ```
+## Add renderers to piling.js library
 
-## Aggregators
+Call [set](#pilingsetproperty-value) method to add renderers to the library.
+
+```javascript
+// for all the items
+piling.set('renderer', matrixRenderer); // the same for imageRenderer
+
+// for the aggregation of a pile
+piling.set('aggregateRenderer', aggregateRenderer);
+
+// for the item preview
+piling.set('previewRenderer', previewRenderer);
+```
+
+# Aggregators
 
 Aggregators are used for aggregation of piles and items.
 
 An aggregator should be a function that takes as input an array of the value of `src` property in your data that determining the source, and output promises which resolve to an array of aggregated source value that can be passed to the [renderers](#renderers).
 
-### Predefined aggregators
+## Predefined aggregators
 
 We currently provide predefined aggregators for matrices and matrix previews. You can just import the factory function from our library.
 
-#### Matrix cover aggregator
+### Matrix cover aggregator
 
 The aggregator for all the matrices on a pile, it will be shown on the cover of the pile.
 
-- **Import:**
+**Constructor:**
 
 ```javascript
-import { createMatrixCoverAggregator } from 'pile.js';
-```
-
-- **Constructor:**
-
-```javascript
+import { createMatrixCoverAggregator } from 'piling.js';
 const matrixCoverAggregator = createMatrixCoverAggregator(aggregator);
 ```
 
-**`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
+- **`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
-- **Add to pileJs library:**
-
-```javascript
-  pileJs.set('coverAggregator', matrixCoverAggregator);
-```
-
-#### Matrix preview aggregator
+### Matrix preview aggregator
 
 The 1D preview aggregator for each matrix on a pile, it will be shown on top of the pile cover.
 
-- **Import:**
-```javascript
-import { createMatrixPreviewAggregator } from 'pile.js';
-```
-
-- **Constructor:**
+**Constructor:**
 
 ```javascript
+import { createMatrixPreviewAggregator } from 'piling.js';
 const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
 ```
 
-**`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
+- **`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
 
-- **Add to pileJs library:**
-
-```javascript
-  pileJs.set('previewAggregator', matrixPreviewAggregator);
-```
-
-### Define your own aggregator
+## Define your own aggregator
 
 If you want to define your own aggregator, you can do something as follows:
 
@@ -465,7 +395,16 @@ const createCustomAggregator = aggregagtor => sources => {
 };
 ```
 
-## Interactions
+## Add aggregators to piling.js library
+
+Call [set](#pilingsetproperty-value) method to add aggregators to the library.
+
+```javascript
+  piling.set('coverAggregator', coverAggregator);
+  piling.set('previewAggregator', previewAggregator);
+```
+
+# Interactions
 
 - **Create a pile or merge piles:**
   - Drag one item/pile and drop it on another with your mouse.
