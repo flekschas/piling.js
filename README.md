@@ -15,7 +15,7 @@
   [![Docs](https://img.shields.io/badge/docs-📖-7fcaff.svg?style=flat-square&color=7fd4ff)](https://github.com/flekschas/piling.js/blob/master/DOCS.md)
   [![NPM Version](https://img.shields.io/npm/v/piling.js.svg?style=flat-square&color=7f99ff)](https://npmjs.org/package/piling.js)
   [![Build Status](https://img.shields.io/travis/flekschas/piling.js?color=a17fff&style=flat-square)](https://travis-ci.org/flekschas/piling.js/)
-  [![File Size](https://img.shields.io/bundlephobia/minzip/piling.js?style=flat-square&color=e17fff&label=gzipped%20size)](https://unpkg.com/piling.js)
+  [![File Size](http://img.badgesize.io/https://unpkg.com/piling.js/dist/piling.min.js?compression=gzip&style=flat-square&color=e17fff)](https://unpkg.com/piling.min.js)
   [![Code Style Prettier](https://img.shields.io/badge/code%20style-prettier-ff7fe1.svg?style=flat-square)](https://github.com/prettier/prettier#readme)
   [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://flekschas.github.io/piling.js/)
   
