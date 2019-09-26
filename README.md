@@ -1,10 +1,10 @@
 <h1 align="center">
-  Pile.js
+  Piling.js
 </h1>
 
 <div align="center">
   
-  **A general framework and library for visual piling.**
+  **A general framework and library for visual piling/stacking.**
   
 </div>
 
@@ -12,12 +12,12 @@
 
 <div align="center">
   
-  [![Docs](https://img.shields.io/badge/docs-📖-7fcaff.svg?style=flat-square&color=7fd4ff)](https://github.com/flekschas/pile.js/blob/master/DOCS.md)
-  [![NPM Version](https://img.shields.io/npm/v/pile.js.svg?style=flat-square&color=7f99ff)](https://npmjs.org/package/pile.js)
-  [![Build Status](https://img.shields.io/travis/flekschas/pile.js?color=a17fff&style=flat-square)](https://travis-ci.org/flekschas/pile.js/)
-  [![File Size](https://img.shields.io/bundlephobia/minzip/pile.js?style=flat-square&color=e17fff&label=gzipped%20size)](https://unpkg.com/pile.js)
+  [![Docs](https://img.shields.io/badge/docs-📖-7fcaff.svg?style=flat-square&color=7fd4ff)](https://github.com/flekschas/piling.js/blob/master/DOCS.md)
+  [![NPM Version](https://img.shields.io/npm/v/piling.js.svg?style=flat-square&color=7f99ff)](https://npmjs.org/package/piling.js)
+  [![Build Status](https://img.shields.io/travis/flekschas/piling.js?color=a17fff&style=flat-square)](https://travis-ci.org/flekschas/piling.js/)
+  [![File Size](https://img.shields.io/bundlephobia/minzip/piling.js?style=flat-square&color=e17fff&label=gzipped%20size)](https://unpkg.com/piling.js)
   [![Code Style Prettier](https://img.shields.io/badge/code%20style-prettier-ff7fe1.svg?style=flat-square)](https://github.com/prettier/prettier#readme)
-  [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://flekschas.github.io/pile.js/)
+  [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://flekschas.github.io/piling.js/)
   
 </div>
 
@@ -27,37 +27,31 @@
   
 </div>
 
-Pile.js currently supports visual piling of images and matrix visualizations but can be easily customized with your own render.
+piling.js currently supports visual piling of images and matrix visualizations but can be easily customized with your own render.
 
 ## Get Started
-
-**Import**
-
-```javascript
-import createPileJs from 'pile.js';
-```
 
 **Quick Start**
 
 ```javascript
 // import the main library
-import createPileJs from 'pile.js';
+import createPilingJs from 'piling.js';
 // import the predefined image renderer
-import { createImageRenderer } from 'pile.js';
+import { createImageRenderer } from 'piling.js';
 
 // define your data
 const data = [{ src: 'http://example.com/my-fancy-photo.png' }];
 
-// create pile.js
-// 'demo' is the dom element which pile.js will be rendered on
-const pileJs = createPileMe(document.getElementById('demo'));
+// create piling.js
+// 'demo' is the dom element which piling.js will be rendered on
+const piling = createPilingJs(document.getElementById('demo'));
 
 // set the renderer
-pileJs.set('renderer', imageRenderer);
+piling.set('renderer', createImageRenderer());
 // set the items
-pileJs.set('items', data);
+piling.set('items', data);
 // set the number of columns to 10
-pileJs.set('grid', [10]);
+piling.set('grid', [10]);
 // ...and you are done!
 ```
 
@@ -66,7 +60,7 @@ pileJs.set('grid', [10]);
 **Install**
 
 ```bash
-git clone https://github.com/flekschas/pile.js
+git clone https://github.com/flekschas/piling.js
 cd pile-me
 npm ci
 ```

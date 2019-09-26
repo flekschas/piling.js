@@ -1,5 +1,5 @@
 {
-  "name": "pile.js",
+  "name": "piling.js",
   "version": "0.1.0",
   "description": "A WebGL-based Library for Visual Piling/Stacking",
   "author": [
@@ -19,18 +19,18 @@
     "webgl"
   ],
   "license": "MIT",
-  "main": "dist/pile.js",
+  "main": "dist/piling.js",
   "module": "src/index.js",
   "files": [
     "src/*",
-    "dist/pile.js",
-    "dist/pile.min.js",
-    "dist/pile-library.js",
-    "dist/pile-library.min.js",
-    "dist/pile-renderer.js",
-    "dist/pile-renderer.min.js",
-    "dist/pile-aggregator.js",
-    "dist/pile-aggregator.min.js"
+    "dist/piling.js",
+    "dist/piling.min.js",
+    "dist/piling-library.js",
+    "dist/piling-library.min.js",
+    "dist/piling-renderer.js",
+    "dist/piling-renderer.min.js",
+    "dist/piling-aggregator.js",
+    "dist/piling-aggregator.min.js"
   ],
   "scripts": {
     "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh",
@@ -116,12 +116,12 @@
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.1"
   },
-  "homepage": "https://github.com/flekschas/pile.js",
+  "homepage": "https://github.com/flekschas/piling.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/flekschas/pile.js.git"
+    "url": "git://github.com/flekschas/piling.js.git"
   },
   "bugs": {
-    "url": "https://github.com/flekschas/pile.js/issues"
+    "url": "https://github.com/flekschas/piling.js/issues"
   }
 }

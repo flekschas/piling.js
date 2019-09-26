@@ -1,6 +1,6 @@
-import createPileJs from './library';
+import createPilingJs from './library';
 
 export * from './aggregator';
 export * from './renderer';
 
-export default createPileJs;
+export default createPilingJs;

@@ -53,7 +53,7 @@ import createTweener from './tweener';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
-const createPileJs = rootElement => {
+const createPilingJs = rootElement => {
   const scrollContainer = document.createElement('div');
 
   const canvas = document.createElement('canvas');
@@ -1867,4 +1867,4 @@ const createPileJs = rootElement => {
   };
 };
 
-export default createPileJs;
+export default createPilingJs;

@@ -19,7 +19,7 @@ deploy:
     on:
       branch: master
       tags: true
-      repo: flekschas/pile.js
+      repo: flekschas/piling.js
   - provider: npm
     skip_cleanup: true
     email: service@lekschas.de
@@ -28,4 +28,4 @@ deploy:
     on:
       branch: master
       tags: true
-      repo: flekschas/pile.js
+      repo: flekschas/piling.js

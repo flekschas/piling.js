@@ -10,7 +10,7 @@ const VERSION = require('./version.js');
 const bundleConfigurator = (file, plugins = []) => ({
   input: 'src/index.js',
   output: {
-    name: 'createPileJs',
+    name: 'createPilingJs',
     format: 'umd',
     file,
     globals: {
@@ -28,13 +28,13 @@ const bundleConfigurator = (file, plugins = []) => ({
   external: ['pixi.js', 'regl']
 });
 
-const bundleDev = bundleConfigurator('dist/pile.js', [filesize()]);
-const bundleProd = bundleConfigurator('dist/pile.min.js', [terser()]);
+const bundleDev = bundleConfigurator('dist/piling.js', [filesize()]);
+const bundleProd = bundleConfigurator('dist/piling.min.js', [terser()]);
 
 const libConfigurator = (file, plugins = []) => ({
   input: 'src/library.js',
   output: {
-    name: 'createPileJs',
+    name: 'createPilingJs',
     format: 'umd',
     file,
     globals: {
@@ -51,16 +51,16 @@ const libConfigurator = (file, plugins = []) => ({
   external: ['pixi.js']
 });
 
-const libDev = libConfigurator('dist/pile-library.js', [
+const libDev = libConfigurator('dist/piling-library.js', [
   filesize(),
   visualizer()
 ]);
-const libProd = libConfigurator('dist/pile-library.min.js', [terser()]);
+const libProd = libConfigurator('dist/piling-library.min.js', [terser()]);
 
 const rndConfigurator = (file, plugins = []) => ({
   input: 'src/renderer.js',
   output: {
-    name: 'pileJsRenderer',
+    name: 'pilingJsRenderer',
     format: 'umd',
     file,
     globals: {
@@ -78,13 +78,13 @@ const rndConfigurator = (file, plugins = []) => ({
   external: ['pixi.js', 'regl']
 });
 
-const rndDev = rndConfigurator('dist/pile-renderer.js', [filesize()]);
-const rndProd = rndConfigurator('dist/pile-renderer.min.js', [terser()]);
+const rndDev = rndConfigurator('dist/piling-renderer.js', [filesize()]);
+const rndProd = rndConfigurator('dist/piling-renderer.min.js', [terser()]);
 
 const agrConfigurator = (file, plugins = []) => ({
   input: 'src/aggregator.js',
   output: {
-    name: 'pileJsAggregator',
+    name: 'pilingJsAggregator',
     format: 'umd',
     file,
     globals: {},
@@ -99,8 +99,8 @@ const agrConfigurator = (file, plugins = []) => ({
   external: []
 });
 
-const agrDev = agrConfigurator('dist/pile-aggregator.js', [filesize()]);
-const agrProd = agrConfigurator('dist/pile-aggregator.min.js', [terser()]);
+const agrDev = agrConfigurator('dist/piling-aggregator.js', [filesize()]);
+const agrProd = agrConfigurator('dist/piling-aggregator.min.js', [terser()]);
 
 export default [
   bundleDev,
