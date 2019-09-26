@@ -31,6 +31,12 @@ piling.js currently supports visual piling of images and matrix visualizations b
 
 ## Get Started
 
+**Install**
+
+```bash
+npm install piling.js
+```
+
 **Quick Start**
 
 ```javascript
