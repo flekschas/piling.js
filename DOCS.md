@@ -47,20 +47,24 @@ piling.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
 
 ### Matrix
 
-First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you also need to instantiate an aggregate renderer and a preview renderer here. See [matrix renderer](#matrix-renderer) for more information.
+First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you can also instantiate an aggregate renderer and a preview renderer here. (See [matrix renderer](#matrix-renderer) for more information.)
+
+```javascript
+import { createMatrixRenderer } from 'piling.js';
+
+const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
+const aggregateRenderer = createMatrixRenderer({ colorMap: aggregateColorMap, shape: [3, 3]});
+const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
+```
 
 Then, you need aggregators for the aggregation and previews. So import and instantiate [aggregators](#aggregators), and you can use mean value as the method of aggregation.
 
 ```javascript
-import { createMatrixRenderer } from 'piling.js';
 import {
   createMatrixCoverAggregator,
   createMatrixPreviewAggregator
 } from 'piling.js';
 
-const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
-const aggregateRenderer = createMatrixRenderer({ colorMap: aggregateColorMap, shape: [3, 3]});
-const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
 ```
