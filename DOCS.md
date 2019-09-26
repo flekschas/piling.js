@@ -47,9 +47,9 @@ piling.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
 
 ### Matrix
 
-First, import and instantiate [matrix renderers](#matrix-renderer).
+First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you also need to instantiate an aggregate renderer and a preview renderer here. See [matrix renderer](#matrix-renderer) for more information.
 
-For matrices, you can have the aggregation and 1D previews of them when pile them up. So also import and instantiate [aggregators](#aggregators) here, and use mean value as the method of aggregation.
+Then, you need aggregators for the aggregation and previews. So import and instantiate [aggregators](#aggregators), and you can use mean value as the method of aggregation.
 
 ```javascript
 import { createMatrixRenderer } from 'piling.js';
@@ -59,6 +59,7 @@ import {
 } from 'piling.js';
 
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
+const aggregateRenderer = createMatrixRenderer({ colorMap: aggregateColorMap, shape: [3, 3]});
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
 const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
@@ -68,7 +69,7 @@ Then add the renderers and aggregators to our piling.js library. Finally add the
 
 ```javascript
 piling.set('renderer', matrixRenderer);
-piling.set('aggregateRenderer', matrixRenderer);
+piling.set('aggregateRenderer', aggregateRenderer);
 piling.set('previewRenderer', previewRenderer);
 
 piling.set('coverAggregator', matrixCoverAggregator);
@@ -215,7 +216,7 @@ We provide 3 types of predefined renderers:
 - `aggregateRenderer`: render the aggregation of a pile.
 - `previewRenderer`: render the preview of an item.
 
-Currently we support rendering for images and matrices. You can just import the factory function from our library.
+Currently we support rendering for [images](#image-renderer) and [matrices](#matrix-renderer). You can just import the factory function from our library.
 
 ### Image renderer
 
@@ -340,7 +341,7 @@ An aggregator should be a function that takes as input an array of the value of 
 
 ## Predefined aggregators
 
-We currently provide predefined aggregators for matrices and matrix previews. You can just import the factory function from our library.
+We currently provide predefined aggregators for [matrices](#matrix-cover-aggregator) and [matrix previews](#matrix-preview-aggregator). You can just import the factory function from our library.
 
 ### Matrix cover aggregator
 
