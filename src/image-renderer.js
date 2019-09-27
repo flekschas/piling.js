@@ -24,15 +24,7 @@ const createImageRenderer = () => sources =>
   Promise.all(
     sources.map(src => {
       const isCrossOrigin = true;
-      return new Promise((resolve, reject) => {
-        loadImage(src, isCrossOrigin)
-          .then(image => {
-            resolve(renderImage(image));
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+      return loadImage(src, isCrossOrigin).then(image => renderImage(image));
     })
   );
 
