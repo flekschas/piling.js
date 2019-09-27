@@ -1,7 +1,7 @@
 /* eslint-disable import/no-duplicates */
 import { interpolateOrRd, interpolateRdPu } from 'd3-scale-chromatic';
 
-import createPileJs from '../src/index';
+import createPilingJs from '../src/index';
 import { createMatrixRenderer } from '../src/renderer';
 import {
   createMatrixCoverAggregator,
@@ -40,17 +40,17 @@ const createMatrixPiles = async element => {
   const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
   const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
-  const pileJs = createPileJs(element);
+  const pilingJs = createPilingJs(element);
 
-  pileJs.set('renderer', matrixRenderer);
-  pileJs.set('previewRenderer', previewRenderer);
-  pileJs.set('aggregateRenderer', coverRenderer);
-  pileJs.set('coverAggregator', matrixCoverAggregator);
-  pileJs.set('previewAggregator', matrixPreviewAggregator);
-  pileJs.set('items', data);
-  pileJs.set('grid', [10]);
+  pilingJs.set('renderer', matrixRenderer);
+  pilingJs.set('previewRenderer', previewRenderer);
+  pilingJs.set('aggregateRenderer', coverRenderer);
+  pilingJs.set('coverAggregator', matrixCoverAggregator);
+  pilingJs.set('previewAggregator', matrixPreviewAggregator);
+  pilingJs.set('items', data);
+  pilingJs.set('grid', [10]);
 
-  return pileJs;
+  return pilingJs;
 };
 
 export default createMatrixPiles;
