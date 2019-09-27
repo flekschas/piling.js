@@ -1815,6 +1815,7 @@ const createPilingJs = rootElement => {
     rootElement.style.overflowX = 'hidden';
     rootElement.style.overflowY = 'auto';
     canvas.style.position = 'sticky';
+    canvas.style.display = 'block';
     canvas.style.top = '0px';
     canvas.style.left = '0px';
 
