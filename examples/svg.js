@@ -1,0 +1,36 @@
+import createPilingJs from '../src/index';
+import { createSvgRenderer } from '../src/renderer';
+
+const SVG_START =
+  '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">';
+const SVG_END = '</svg>';
+
+const createRandomLinePlot = () => {
+  const x1 = 50 + Math.random() * 50;
+  const y1 = 100 - Math.random() * 100;
+  const x2 = 50 + Math.random() * 50;
+  const y2 = Math.random() * (100 - y1);
+  return [
+    SVG_START,
+    `<path d="M 0 100 C ${x1} ${y1}, ${x2} ${y2}, 100 0" stroke="white" fill="transparent"/>`,
+    SVG_END
+  ].join('');
+};
+
+const createSvgPiles = element => {
+  const svgRenderer = createSvgRenderer();
+  const piling = createPilingJs(element);
+
+  const data = new Array(100)
+    .fill(0)
+    .map(() => ({ src: createRandomLinePlot() }));
+
+  piling.set('renderer', svgRenderer);
+  piling.set('items', data);
+  piling.set('itemAlignment', ['top', 'bottom', 'left', 'right']);
+  piling.set('grid', [10]);
+
+  return piling;
+};
+
+export default createSvgPiles;

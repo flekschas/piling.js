@@ -148,7 +148,9 @@
       }
 
       #matrices,
-      #matrices-credit {
+      #matrices-credit,
+      #svg,
+      #svg-credit {
         display: none;
       }
     </style>
@@ -163,13 +165,14 @@
             Piling.js
           </a>
           is a library for piling visualizations like images, matrices,
-          scatterplots, etc. Piling.js is highly data-agnostic and customizable.
+          scatterplots, etc. Piling.js is data-agnostic and highly customizable.
         </p>
         <div id="selection">
           <label for="example">Choose an example:</label>
           <select id="example">
             <option value="photos">Photos</option>
             <option value="matrices">Matrices</option>
+            <option value="svg">Lines (SVG)</option>
           </select>
           <div class="credits">
             <em id="photos-credit">
@@ -186,11 +189,13 @@
                 >Lekschas et al., 2018</a
               >)
             </em>
+            <em id="svg-credit">(Lines are generated randomly.)</em>
           </div>
         </div>
       </div>
     </header>
     <div id="photos" class="container"></div>
     <div id="matrices" class="container"></div>
+    <div id="svg" class="container"></div>
   </body>
 </html>
