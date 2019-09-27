@@ -21,45 +21,50 @@
   
 </div>
 
-<div align="center">
+<div id="teaser-matrices" align="center">
   
   ![Preview](https://user-images.githubusercontent.com/932103/65613151-8107e980-df83-11e9-86bf-72be591fe284.gif)
   
 </div>
 
-piling.js currently supports visual piling of images and matrix visualizations but can be easily customized with your own render.
+piling.js currently supports visual piling of [images](#quick-start) and [matrix visualizations](#teaser-matrices) but can be easily customized with your own render.
 
 ## Get Started
 
-**Install**
+#### Install
 
 ```bash
 npm install piling.js
 ```
 
-**Quick Start**
+#### Quick Start
+
+Let's pile some natural images
 
 ```javascript
-// import the main library
+// import the piling.js library
 import createPilingJs from 'piling.js';
 // import the predefined image renderer
 import { createImageRenderer } from 'piling.js';
 
-// define your data
-const data = [{ src: 'http://example.com/my-fancy-photo.png' }];
+// define your dataset
+const data = [{ src: 'http://example.com/my-fancy-photo.png' }, ...];
 
-// create piling.js
-// 'demo' is the dom element which piling.js will be rendered on
+// instantiate the piling.js library
+// 'demo' is the dom element which piling.js will be rendered in
 const piling = createPilingJs(document.getElementById('demo'));
 
-// set the renderer
+// set the main renderer to the an instance of the image renderer
 piling.set('renderer', createImageRenderer());
-// set the items
+// add the dataset
 piling.set('items', data);
-// set the number of columns to 10
+// and finally set the number of columns to 10
 piling.set('grid', [10]);
-// ...and you are done!
 ```
+
+Et voilà 🎉
+
+![teaser-natural-images](https://user-images.githubusercontent.com/932103/65775958-24d1d080-e10f-11e9-8d12-5aaf6f760228.gif)
 
 ## Development
 
