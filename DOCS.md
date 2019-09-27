@@ -107,7 +107,7 @@ _Note, mixed data types are currently not supported._
   src: {
     data: [3.1, 2.0, 1.1, 2.1, 3.2, 2.3, 1.0, 2.0, 3.1],
     shape: [3, 3],
-    dataType: 'float32'
+    dtype: 'float32'
   }
 }
 
@@ -268,6 +268,16 @@ const svgRenderer = createSvgRenderer(properties);
 ```javascript
 import { createMatrixRenderer } from 'piling.js';
 const matrixRenderer = createMatrixRenderer(properties);
+```
+
+**Src/Data:** The matrix renderer requires that an item provides a src object of the following form:
+
+```javascript
+{
+  data: [1, 2, 3, 4],
+  shape: [2, 2],
+  dtype: 'float32'
+}
 ```
 
 **Properties** is an object of key-value pairs. The list of all understood properties is given below.
