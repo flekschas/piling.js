@@ -130,26 +130,26 @@ _Note, mixed data types are currently not supported._
 
 | Name                     | Type             | Default               | Constraints                                                                                         | Nullifiable |
 | ------------------------ | ---------------- | --------------------- | --------------------------------------------------------------------------------------------------- | ----------- |
-| `'renderer'`             | function         |      | see [`renderers`](#renderers) | `false`     |
-| `'previewRenderer'`      | function         |      | see [`renderers`](#renderers) | `true`      |
-| `'aggregateRenderer'`    | function         |      | see [`renderers`](#renderers) | `true`      |
-| `'coverAggregator'`      | function         |      | see [`aggregators`](#aggregators) | `true`      |
-| `'previewAggregator'`    | function         |      | see [`aggregators`](#aggregators) | `true`      |
-| `'items'`                | array            | `[]` | see [`data`](#data)      | `false`     |
-| `'orderer'`              | function         | row-major  | see [`notes`](#notes)      | `true`      |
-| `'grid'`                 | array            | `[]` | see [`notes`](#notes)  | `false`     |
-| `'itemSizeRange'`        | array            | `[0.7, 0.9]`  | array of two numbers between (0, 1)  | `true`      |
-| `'itemAlignment'`        | array or boolean | `['bottom', 'right']` | array of strings, including `'top'`, `'left'`, `'bottom'`, `'right'`, or just `false`               | `true`      |
-| `'itemRotated'`          | boolean          | `false`               | `true` or `false`                                                                                   | `true`      |
-| `'clickedPile'`          | array            | `[]`                  | the id of current focused pile                                                                      | `true`      |
-| `'scaledPile'`           | array            | `[]`                  | the id of current scaled pile                                                                       | `true`      |
-| `'depiledPile'`          | array            | `[]`                  | the id of the pile to be depiled                                                                    | `true`      |
-| `'depileMethod'`         | string           | `'originalPos'`       | `'originalPos'` or `'closestPos'`                                                                   | `true`      |
-| `'temporaryDepiledPile'` | array            | `[]`                  | the id of the pile to be temporarily depiled                                                        | `true`      |
-| `'tempDepileDirection'`  | string           | `'horizontal'`        | `'horizontal'` or `'vertical'`                                                                      | `true`      |
-| `'tempDepileOneDNum'`    | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                                  | `true`      |
-| `'easingFunc'`           | function         | cubicInOut            | see [`notes`](#notes)                                                                               | `true`      |
-| `'previewSpacing'`       | number           | `2`                   | the spacing between 1D previews                                                                     | `true`      |
+| aggregateRenderer    | function         |      | see [`renderers`](#renderers) | `true`      |
+| clickedPile          | array            | `[]`                  | the id of current focused pile                                                                      | `true`      |
+| coverAggregator      | function         |      | see [`aggregators`](#aggregators) | `true`      |
+| depiledPile          | array            | `[]`                  | the id of the pile to be depiled                                                                    | `true`      |
+| depileMethod         | string           | `'originalPos'`       | `'originalPos'` or `'closestPos'`                                                                   | `true`      |
+| easingFunc           | function         | cubicInOut            | see [`notes`](#notes)                                                                               | `true`      |
+| grid                 | array            | `[]` | see [`notes`](#notes)  | `false`     |
+| itemAlignment        | array or boolean | `['bottom', 'right']` | array of strings, including `'top'`, `'left'`, `'bottom'`, `'right'`, or just `false`               | `true`      |
+| itemRotated          | boolean          | `false`               | `true` or `false`                                                                                   | `true`      |
+| items                | array            | `[]` | see [`data`](#data)      | `false`     |
+| itemSizeRange        | array            | `[0.7, 0.9]`  | array of two numbers between (0, 1)  | `true`      |
+| orderer              | function         | row-major  | see [`notes`](#notes)      | `true`      |
+| previewAggregator    | function         |      | see [`aggregators`](#aggregators) | `true`      |
+| previewRenderer      | function         |      | see [`renderers`](#renderers) | `true`      |
+| previewSpacing       | number           | `2`                   | the spacing between 1D previews                                                                     | `true`      |
+| renderer             | function         |      | see [`renderers`](#renderers) | `false`     |
+| scaledPile           | array            | `[]`                  | the id of current scaled pile                                                                       | `true`      |
+| tempDepileOneDNum    | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                                  | `true`      |
+| tempDepileDirection  | string           | `'horizontal'`        | `'horizontal'` or `'vertical'`                                                                      | `true`      |
+| temporaryDepiledPile | array            | `[]`                  | the id of the pile to be temporarily depiled                                                        | `true`      |
 
 #### Notes
 
@@ -205,9 +205,9 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 | Name              | Event Data | Description                          |
 | ----------------- | ---------- | ------------------------------------ |
-| `'dropPile'`      | `{pileId}` | Published when drop a pile           |
-| `'dragPile'`      | `{pileId}` | Published when start dragging a pile |
-| `'highlightPile'` | `{pileId}` | Published while dragging a pile      |
+| dropPile      | `{pileId}` | Published when drop a pile           |
+| dragPile      | `{pileId}` | Published when start dragging a pile |
+| highlightPile | `{pileId}` | Published while dragging a pile      |
 
 # Renderers
 
