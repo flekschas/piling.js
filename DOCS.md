@@ -324,7 +324,7 @@ const createCustomRenderer = properties => sources => {
 
         resolve(texture);
       });
-    });
+    })
   )
 };
 ```
@@ -401,7 +401,7 @@ const createCustomAggregator = aggregagtor => sources => {
 
         resolve(aggregatedSrc);
       });
-    });
+    })
   )
 };
 ```
