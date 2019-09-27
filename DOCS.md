@@ -110,6 +110,11 @@ _Note, mixed data types are currently not supported._
     dataType: 'float32'
   }
 }
+
+// SVG string
+{
+  src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="80" x2="100" y2="20" stroke="blue" /></svg>'
+}
 ```
 
 # Library API
@@ -237,7 +242,24 @@ import { createImageRenderer } from 'piling.js';
 const imageRenderer = createImageRenderer();
 ```
 
-_Note:_ currently our image renderer can render images from an URL or base64 encoding. I.e., the `src` property in your [data](#data) needs be URL pointing to an image or the base64 encoding of an image.
+**Src/Data:** currently our image renderer can render images from an URL or base64 encoding. I.e., the `src` property in your [data](#data) needs be URL pointing to an image or the base64 encoding of an image.
+
+### SVG renderer
+
+**Constructor:**
+
+```javascript
+import { createSvgRenderer } from 'piling.js';
+const svgRenderer = createSvgRenderer(properties);
+```
+
+**Src/Data:** The SVG renderer can render SVG strings and SVG DOM elements.
+
+**Properties** is an object of key-value pairs. The list of all understood properties is given below.
+
+| Name       | Type   | Default | Constraints                     |
+| ---------- | ------ | ------- | ------------------------------- |
+| background | string |         | A valid CSS background property |
 
 ### Matrix renderer
 
@@ -248,7 +270,7 @@ import { createMatrixRenderer } from 'piling.js';
 const matrixRenderer = createMatrixRenderer(properties);
 ```
 
-- **`Properties`** is an object of key-value pairs. The list of all understood properties is given below.
+**Properties** is an object of key-value pairs. The list of all understood properties is given below.
 
 | Name     | Type   | Default | Constraints   |
 | -------- | ------ | ------- | ------------- |
@@ -257,7 +279,7 @@ const matrixRenderer = createMatrixRenderer(properties);
 | minValue | number | `0`     |               |
 | maxValue | number | `1`     |               |
 
-_Note:_ `shape` describes the size of matrix, e.g., for a 4 ✖ 5 matrix, `shape` should be `[4, 5]`
+_Note:_ `shape` describes the size of matrix, e.g., for a 4x5 matrix, `shape` should be `[4, 5]`
 
 **Examples:**
 
