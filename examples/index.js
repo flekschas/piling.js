@@ -37,7 +37,7 @@ const createPiles = async example => {
       pileJs = await createMatrixPiles(matricesEl);
       break;
 
-    case 'svg':
+    case 'lines':
       if (pileJs) pileJs.destroy();
       photosEl.style.display = 'none';
       photosCreditEl.style.display = 'none';
@@ -56,14 +56,33 @@ const createPiles = async example => {
 
 const exampleEl = document.getElementById('example');
 
-const handleExample = event => createPiles(event.target.value);
-
-exampleEl.addEventListener('change', handleExample);
+exampleEl.addEventListener('change', event => {
+  urlQueryParams.set('example', event.target.value);
+  window.location.search = urlQueryParams.toString();
+});
 
 const example = urlQueryParams.get('example')
-  ? urlQueryParams.get('example').toLowerCase()
+  ? urlQueryParams
+      .get('example')
+      .split(' ')[0]
+      .toLowerCase()
   : null;
 
-if (example) exampleEl.value = example;
+switch (example) {
+  case 'photos':
+    exampleEl.selectedIndex = 0;
+    break;
+
+  case 'matrices':
+    exampleEl.selectedIndex = 1;
+    break;
+
+  case 'lines':
+    exampleEl.selectedIndex = 2;
+    break;
+
+  default:
+  // Nothing
+}
 
 createPiles(exampleEl.value);
