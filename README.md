@@ -27,7 +27,7 @@
   
 </div>
 
-piling.js currently supports visual piling of [images](#quick-start) and [matrix visualizations](#teaser-matrices) but can be easily customized with your own render.
+piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://flekschas.github.io/piling.js/?example=lines), but can easily be customized with your own render.
 
 ## Get Started
 
