@@ -86,23 +86,29 @@ piling.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
 
 An array of objects with one required property `src`, and other optional user-defined properties:
 
-- `src`: the item data. this can be a URL or data object. the only requirement
-  is that the renderer understands this object.
+- `src`: the item data. This can literally be anything. The only requirement
+  is that the renderer understands how to render this data.
 
 _Note, mixed data types are currently not supported._
 
 ```javascript
 // External image data
 {
-  id: 001,
   src: 'https://github.com/test.png'
+}
+
+// A base64-encoded image
+{
+  src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACWUlEQVR4AXTRA5DmMACG4Zxt27Ztm2vbtm3btm3r19m2zdHpu0nW6sxb92mbkEO6x3ssjuc7PvlO4Pn0u8F76XFvte1E8TyWutQYWHo2mqZ58kxv+122QGshVxwqKdgjsEFk4b5lslOzz8RtgXWdMmxr1eBQr8ly4xp0yptr4RN2MWxAJ8DOR/XQUcV1ZQMPEhyPWE8R+jCFOmFtKF/vs/dFE0W/YpuRnX5hh/Scy8OE+mKT52zol4qzh81qZBhIo/vKeccgmb4HSjFnoR0gq9MJcLKNVNpxfAaGyg3GcvtJ7EYa/aqTvpsh5HwQ1sHGKCgpwLMrb/61jglZslnZaM4e15cyEokIGTMQa1cPZch8rbFQd5NFQnY0BIJrePPuDz7+Aaoe30RUeRQMI+W1GDBnpZj4tLUKnK1nvXBr1UJkD+iLEZMJzjuogC53fn5GoaAEoSEWsDu3EfrHl6R0m0aKzNtnjItb1wDTBqGGEOgdWA13wyMwXtmHfRmFL/cn+L1lQ303gEa/Im7bJnCmjsXl2ZPZAzEDCDvmLlmExk2r27rrZLOyGzCVbN9vr64Fzt3LbV16cJ3FvXeXxn4nPKYAO44k+HUDaLKSWgX5ji5Id0lCnF0iK8EmBGmOvqDnC8L8UamvCWVxm/oegVHzhNeOHHkIs5eaYPsBN4gIW8NIwxLBLm7s4VR/F3CKC8DjNGX2CDBktlBiUIgvXj6/gTt3b0Bw+RZqODcRncb5buqWf0XZJCJSVidYqFdg2wHV+bLqzsXGDkkhQv+X3J3nG9/sARLDlxspwgCV8d4y+cSemwAAAABJRU5ErkJggg=='
 }
 
 // Matrix data
 {
-  src: [3, 2, 1, 2, 3, 2, 1, 2, 3],
-  shape: [3, 3],
-  dataType: float32
+  src: {
+    data: [3.1, 2.0, 1.1, 2.1, 3.2, 2.3, 1.0, 2.0, 3.1],
+    shape: [3, 3],
+    dataType: 'float32'
+  }
 }
 ```
 
@@ -231,7 +237,7 @@ import { createImageRenderer } from 'piling.js';
 const imageRenderer = createImageRenderer();
 ```
 
-_Note:_ currently our image renderer can only render from image URL, which means the `src` property in your [data](#data) need to be a string of the image URL.
+_Note:_ currently our image renderer can render images from an URL or base64 encoding. I.e., the `src` property in your [data](#data) needs be URL pointing to an image or the base64 encoding of an image.
 
 ### Matrix renderer
 
