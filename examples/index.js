@@ -1,6 +1,6 @@
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
-import createSvgPiles from './svg';
+import createSvgLinesPiles from './lines';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
@@ -9,43 +9,43 @@ const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 
-let pileJs;
+let piling;
 
 const urlQueryParams = new URLSearchParams(window.location.search);
 
 const createPiles = async example => {
   switch (example) {
     case 'photos':
-      if (pileJs) pileJs.destroy();
+      if (piling) piling.destroy();
       matricesEl.style.display = 'none';
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'none';
       svgCreditEl.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
-      pileJs = await createPhotoPiles(photosEl);
+      piling = await createPhotoPiles(photosEl);
       break;
 
     case 'matrices':
-      if (pileJs) pileJs.destroy();
+      if (piling) piling.destroy();
       photosEl.style.display = 'none';
       photosCreditEl.style.display = 'none';
       svgEl.style.display = 'none';
       svgCreditEl.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
-      pileJs = await createMatrixPiles(matricesEl);
+      piling = await createMatrixPiles(matricesEl);
       break;
 
     case 'lines':
-      if (pileJs) pileJs.destroy();
+      if (piling) piling.destroy();
       photosEl.style.display = 'none';
       photosCreditEl.style.display = 'none';
       matricesEl.style.display = 'none';
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
-      pileJs = await createSvgPiles(svgEl);
+      piling = await createSvgLinesPiles(svgEl);
       break;
 
     default:
