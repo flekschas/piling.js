@@ -58,9 +58,16 @@
       rel="stylesheet"
     />
 
+    <script>
+      window.example = new URLSearchParams(window.location.search)
+        .get('example');
+      window.example = window.example
+        ? window.example.split(' ')[0].toLowerCase() : null;
+    </script>
+
     <style type="text/css">
       * {
-        vbox-sizing: border-box;
+        box-sizing: border-box;
       }
 
       ::selection {
@@ -80,14 +87,29 @@
         background: black;
       }
 
+      body.lines {
+        color: black;
+        background: white;
+      }
+
       a,
       a:visited {
         color: white;
       }
 
+      body.lines a,
+      body.lines a:visited {
+        color: black;
+      }
+
       a:hover,
       .credits a:hover {
         color: #ff7ff6;
+      }
+
+      body.lines a:hover,
+      body.lines .credits a:hover {
+        color: #d900ca;
       }
 
       header {
@@ -107,6 +129,11 @@
         color: black;
         background: white;
         border-radius: 0.25rem;
+      }
+
+      body.lines h1 {
+        color: white;
+        background: black;
       }
 
       header > div {
@@ -157,6 +184,9 @@
   </head>
 
   <body>
+    <script>
+      document.body.setAttribute('class', window.example);
+    </script>
     <header>
       <h1>Piling.js</h1>
       <div id="description">
