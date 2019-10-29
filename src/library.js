@@ -14,7 +14,6 @@ import {
   dist,
   getBBox,
   isPileInPolygon,
-  contextMenuTemplate,
   interpolateVector,
   interpolateNumber,
   scaleLinear,
@@ -26,6 +25,7 @@ import createGrid from './grid';
 import createItem from './item';
 import createPreview from './preview';
 import createTweener from './tweener';
+import createContextMenu from './context-menu';
 
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
@@ -1373,7 +1373,7 @@ const createPilingJs = rootElement => {
     });
   };
 
-  const depileBtnClick = (menu, pileId) => () => {
+  const depileBtnClick = (contextMenuElement, pileId) => () => {
     const { depileMethod } = store.getState();
 
     if (depileMethod === 'originalPos') {
@@ -1382,13 +1382,11 @@ const createPilingJs = rootElement => {
       store.dispatch(createAction.setDepiledPile([pileId]));
     }
     store.dispatch(createAction.setClickedPile([]));
-    menu.style.display = 'none';
-    const style = document.getElementById('style');
-    rootElement.removeChild(style);
-    rootElement.removeChild(menu);
+    contextMenuElement.style.display = 'none';
+    rootElement.removeChild(contextMenuElement);
   };
 
-  const tempDepileBtnClick = (menu, pileId) => () => {
+  const tempDepileBtnClick = (contextMenuElement, pileId) => () => {
     const { piles, temporaryDepiledPile } = store.getState();
     if (piles[pileId].items.length > 1) {
       let temp = [...temporaryDepiledPile];
@@ -1399,14 +1397,12 @@ const createPilingJs = rootElement => {
       }
       store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
     }
-    menu.style.display = 'none';
-    const style = document.getElementById('style');
-    rootElement.removeChild(style);
-    rootElement.removeChild(menu);
+    contextMenuElement.style.display = 'none';
+    rootElement.removeChild(contextMenuElement);
   };
 
   let isGridShown = false;
-  const gridBtnClick = menu => () => {
+  const gridBtnClick = contextMenuElement => () => {
     if (!isGridShown) {
       gridGfx.clear();
       gridGfx.lineStyle(1, 0x787878, 1);
@@ -1423,22 +1419,18 @@ const createPilingJs = rootElement => {
       gridGfx.clear();
       isGridShown = false;
     }
-    menu.style.display = 'none';
-    const style = document.getElementById('style');
-    rootElement.removeChild(style);
-    rootElement.removeChild(menu);
+    contextMenuElement.style.display = 'none';
+    rootElement.removeChild(contextMenuElement);
 
     renderRaf();
   };
 
-  const scaleBtnBtnClick = (menu, pileId) => () => {
+  const scaleBtnBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
     pile.animateScale();
 
-    menu.style.display = 'none';
-    const style = document.getElementById('style');
-    rootElement.removeChild(style);
-    rootElement.removeChild(menu);
+    contextMenuElement.style.display = 'none';
+    rootElement.removeChild(contextMenuElement);
   };
 
   // const alignBtnClick = menu => () => {
@@ -1511,12 +1503,10 @@ const createPilingJs = rootElement => {
   };
 
   const mouseClickHandler = event => {
-    const menu = document.getElementById('contextmenu');
-    const style = document.getElementById('style');
-    if (menu) {
-      rootElement.removeChild(menu);
-      rootElement.removeChild(style);
-    }
+    const contextMenuElement = rootElement.querySelector(
+      '#piling-js-context-menu'
+    );
+    if (contextMenuElement) rootElement.removeChild(contextMenuElement);
 
     getRelativeMousePosition(event);
 
@@ -1622,25 +1612,22 @@ const createPilingJs = rootElement => {
   };
 
   const contextmenuHandler = event => {
-    const lastMenu = document.getElementById('contextmenu');
-    const lastStyle = document.getElementById('style');
-    if (lastMenu) {
-      rootElement.removeChild(lastMenu);
-      rootElement.removeChild(lastStyle);
-    }
+    const lastMenu = rootElement.querySelector('#piling-js-context-menu');
+    if (lastMenu) rootElement.removeChild(lastMenu);
 
     getRelativeMousePosition(event);
 
     if (!event.altKey) {
       event.preventDefault();
 
-      rootElement.insertAdjacentHTML('beforeend', contextMenuTemplate);
-      const menu = document.getElementById('contextmenu');
-      const depileBtn = document.getElementById('depile-button');
-      const tempDepileBtn = document.getElementById('temp-depile-button');
-      const gridBtn = document.getElementById('grid-button');
-      const alignBtn = document.getElementById('align-button');
-      const scaleBtn = document.getElementById('scale-button');
+      const element = createContextMenu();
+      rootElement.appendChild(element);
+
+      const depileBtn = element.querySelector('#depile-button');
+      const tempDepileBtn = element.querySelector('#temp-depile-button');
+      const gridBtn = element.querySelector('#grid-button');
+      const alignBtn = element.querySelector('#align-button');
+      const scaleBtn = element.querySelector('#scale-button');
 
       const results = searchIndex.search({
         minX: mousePosition[0],
@@ -1648,6 +1635,7 @@ const createPilingJs = rootElement => {
         maxX: mousePosition[0] + 1,
         maxY: mousePosition[1] + 1
       });
+
       // click on pile
       if (results.length !== 0) {
         gridBtn.style.display = 'none';
@@ -1680,23 +1668,23 @@ const createPilingJs = rootElement => {
           scaleBtn.innerHTML = 'scale down';
         }
 
-        menu.style.display = 'block';
-        menu.style.left = `${mousePosition[0]}px`;
-        menu.style.top = `${mousePosition[1]}px`;
+        element.style.display = 'block';
+        element.style.left = `${mousePosition[0]}px`;
+        element.style.top = `${mousePosition[1]}px`;
 
         depileBtn.addEventListener(
           'click',
-          depileBtnClick(menu, pile.id),
+          depileBtnClick(element, pile.id),
           false
         );
         tempDepileBtn.addEventListener(
           'click',
-          tempDepileBtnClick(menu, pile.id),
+          tempDepileBtnClick(element, pile.id),
           false
         );
         scaleBtn.addEventListener(
           'click',
-          scaleBtnBtnClick(menu, pile.id),
+          scaleBtnBtnClick(element, pile.id),
           false
         );
       } else {
@@ -1708,18 +1696,18 @@ const createPilingJs = rootElement => {
         if (isGridShown) {
           gridBtn.innerHTML = 'hide grid';
         }
-        menu.style.display = 'block';
-        menu.style.left = `${mousePosition[0]}px`;
-        menu.style.top = `${mousePosition[1]}px`;
+        element.style.display = 'block';
+        element.style.left = `${mousePosition[0]}px`;
+        element.style.top = `${mousePosition[1]}px`;
 
-        gridBtn.addEventListener('click', gridBtnClick(menu), false);
-        // alignBtn.addEventListener('click', alignBtnClick(menu), false);
+        gridBtn.addEventListener('click', gridBtnClick(element), false);
+        // alignBtn.addEventListener('click', alignBtnClick(element), false);
       }
     }
   };
 
   const handleAnimate = tweener => {
-    tweener.setEasing(store.getState().easingFunc);
+    tweener.setEasing(store.getState().easing);
     animator.add(tweener);
   };
 
