@@ -64,6 +64,8 @@ export const createWorker = fn => {
   );
 };
 
+export const capitalize = str => `${str[0].toUpperCase()}${str.slice(1)}`;
+
 /**
  * L2 distance between a pair of 2D points
  * @param   {number}  x1  X coordinate of the first point

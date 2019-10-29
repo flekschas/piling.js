@@ -266,22 +266,22 @@ const piles = (previousState = [], action) => {
 };
 
 // action
-export const initPiles = itemLength => ({
+const initPiles = itemLength => ({
   type: 'INIT_PILES',
   payload: { itemLength }
 });
 
-export const mergePiles = (pileIds, isDropped) => ({
+const mergePiles = (pileIds, isDropped) => ({
   type: 'MERGE_PILES',
   payload: { pileIds, isDropped }
 });
 
-export const movePiles = movingPiles => ({
+const movePiles = movingPiles => ({
   type: 'MOVE_PILES',
   payload: { movingPiles }
 });
 
-export const depilePiles = depiledPiles => ({
+const depilePiles = depiledPiles => ({
   type: 'DEPILE_PILES',
   payload: { piles: depiledPiles }
 });
@@ -339,46 +339,11 @@ const createStore = () => {
 
 export default createStore;
 
-const actions = {
-  setBackgroundColor,
-  setLassoFillColor,
-  setLassoFillOpacity,
-  setLassoStrokeColor,
-  setLassoStrokeOpacity,
-  setLassoStrokeSize,
-  setItemRenderer,
-  setItemOpacity,
-  setPreviewRenderer,
-  setAggregateRenderer,
-  setPreviewAggregator,
-  setCoverAggregator,
-  setItems,
-  setOrderer,
-  setGrid,
-  setItemSizeRange,
-  setItemAlignment,
-  setItemRotated,
-  setClickedPile,
-  setScaledPile,
-  setDepileMethod,
-  setDepiledPile,
-  setTemporaryDepiledPile,
-  setTempDepileDirection,
-  setTempDepileOneDNum,
-  setEasing,
-  setPreviewSpacing,
-  setPileBorderColor,
-  setPileBorderOpacity,
-  setPileBorderColorSelected,
-  setPileBorderOpacitySelected,
-  setPileBorderColorActive,
-  setPileBorderOpacityActive,
-  setPileBackgroundColor,
-  setPileBackgroundOpacity
-};
-
-export {
-  actions,
+export const createAction = {
+  initPiles,
+  mergePiles,
+  movePiles,
+  depilePiles,
   setBackgroundColor,
   setLassoFillColor,
   setLassoFillOpacity,
