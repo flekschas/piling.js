@@ -35,10 +35,52 @@ export const reset = () => ({
   payload: {}
 });
 
+const backgroundColor = setReducer('backgroundColor', 0x000000);
+export const setBackgroundColor = newBackgroundColor => ({
+  type: 'SET_BACKGROUND_COLOR',
+  payload: { backgroundColor: newBackgroundColor }
+});
+
+const lassoFillColor = setReducer('lassoFillColor', 0xffffff);
+export const setLassoFillColor = newLassoFillColor => ({
+  type: 'SET_LASSO_FILL_COLOR',
+  payload: { lassoFillColor: newLassoFillColor }
+});
+
+const lassoFillOpacity = setReducer('lassoFillOpacity', 0.15);
+export const setLassoFillOpacity = newLassoFillOpacity => ({
+  type: 'SET_LASSO_FILL_OPACITY',
+  payload: { lassoFillOpacity: newLassoFillOpacity }
+});
+
+const lassoStrokeColor = setReducer('lassoStrokeColor', 0xffffff);
+export const setLassoStrokeColor = newLassoStrokeColor => ({
+  type: 'SET_LASSO_STROKE_COLOR',
+  payload: { lassoStrokeColor: newLassoStrokeColor }
+});
+
+const lassoStrokeOpacity = setReducer('lassoStrokeOpacity', 0.8);
+export const setLassoStrokeOpacity = newLassoStrokeOpacity => ({
+  type: 'SET_LASSO_STROKE_OPACITY',
+  payload: { lassoStrokeOpacity: newLassoStrokeOpacity }
+});
+
+const lassoStrokeSize = setReducer('lassoStrokeSize', 1);
+export const setLassoStrokeSize = newLassoStrokeSize => ({
+  type: 'SET_LASSO_STROKE_SIZE',
+  payload: { lassoStrokeSize: newLassoStrokeSize }
+});
+
 const itemRenderer = setReducer('itemRenderer');
 export const setItemRenderer = newItemRenderer => ({
   type: 'SET_ITEM_RENDERER',
   payload: { itemRenderer: newItemRenderer }
+});
+
+const itemOpacity = setReducer('itemOpacity', 1.0);
+export const setItemOpacity = newItemOpacity => ({
+  type: 'SET_ITEM_OPACITY',
+  payload: { itemOpacity: newItemOpacity }
 });
 
 const previewRenderer = setReducer('previewRenderer');
@@ -140,21 +182,69 @@ export const setTempDepileDirection = newTempDepileDirection => ({
 });
 
 const tempDepileOneDNum = setReducer('tempDepileOneDNum', 6);
-export const settempDepileOneDNum = newtempDepileOneDNum => ({
+export const setTempDepileOneDNum = newtempDepileOneDNum => ({
   type: 'SET_TEMP_DEPILE_ONE_D_NUM',
   payload: { tempDepileOneDNum: newtempDepileOneDNum }
 });
 
-const easingFunc = setReducer('easingFunc', cubicInOut);
-export const setEasingFunc = newEasingFunc => ({
-  type: 'SET_EASING_FUNC',
-  payload: { easingFunc: newEasingFunc }
+const easing = setReducer('easing', cubicInOut);
+export const setEasing = newEasing => ({
+  type: 'SET_EASING',
+  payload: { easing: newEasing }
 });
 
 const previewSpacing = setReducer('previewSpacing', 2);
 export const setPreviewSpacing = newPreviewSpacing => ({
   type: 'SET_PREVIEW_SPACING',
   payload: { previewSpacing: newPreviewSpacing }
+});
+
+const pileBorderColor = setReducer('pileBorderColor', 0x808080);
+export const setPileBorderColor = newPileBorderColor => ({
+  type: 'SET_PILE_BORDER_COLOR',
+  payload: { pileBorderColor: newPileBorderColor }
+});
+
+const pileBorderOpacity = setReducer('pileBorderOpacity', 1.0);
+export const setPileBorderOpacity = newPileBorderOpacity => ({
+  type: 'SET_PILE_BORDER_OPACITY',
+  payload: { pileBorderOpacity: newPileBorderOpacity }
+});
+
+const pileBorderColorSelected = setReducer('pileBorderColorSelected', 0xeee462);
+export const setPileBorderColorSelected = newPileBorderColorSelected => ({
+  type: 'SET_PILE_BORDER_COLOR_SELECTED',
+  payload: { pileBorderColorSelected: newPileBorderColorSelected }
+});
+
+const pileBorderOpacitySelected = setReducer('pileBorderOpacitySelected', 1.0);
+export const setPileBorderOpacitySelected = newPileBorderOpacitySelected => ({
+  type: 'SET_PILE_BORDER_OPACITY_SELECTED',
+  payload: { pileBorderOpacitySelected: newPileBorderOpacitySelected }
+});
+
+const pileBorderColorActive = setReducer('pileBorderColorActive', 0xffa5da);
+export const setPileBorderColorActive = newPileBorderColorActive => ({
+  type: 'SET_PILE_BORDER_COLOR_ACTIVE',
+  payload: { pileBorderColorActive: newPileBorderColorActive }
+});
+
+const pileBorderOpacityActive = setReducer('pileBorderOpacityActive', 1.0);
+export const setPileBorderOpacityActive = newPileBorderOpacityActive => ({
+  type: 'SET_PILE_BORDER_Opacity_ACTIVE',
+  payload: { pileBorderOpacityActive: newPileBorderOpacityActive }
+});
+
+const pileBackgroundColor = setReducer('pileBackgroundColor', 0x000000);
+export const setPileBackgroundColor = newPileBackgroundColor => ({
+  type: 'SET_PILE_BACKGROUND_COLOR',
+  payload: { pileBackgroundColor: newPileBackgroundColor }
+});
+
+const pileBackgroundOpacity = setReducer('pileBackgroundOpacity', 0.85);
+export const setPileBackgroundOpacity = newPileBackgroundOpacity => ({
+  type: 'SET_PILE_BACKGROUND_OPACITY',
+  payload: { pileBackgroundOpacity: newPileBackgroundOpacity }
 });
 
 // reducer
@@ -280,27 +370,42 @@ export const depilePiles = depiledPiles => ({
 
 const createStore = () => {
   const appReducer = combineReducers({
-    itemRenderer,
-    previewRenderer,
     aggregateRenderer,
-    previewAggregator,
-    coverAggregator,
-    items,
-    piles,
-    orderer,
-    grid,
-    itemSizeRange,
-    itemAlignment,
-    itemRotated,
+    backgroundColor,
     clickedPile,
-    scaledPile,
+    coverAggregator,
     depiledPile,
-    temporaryDepiledPile,
+    depileMethod,
+    easing,
+    grid,
+    itemAlignment,
+    itemOpacity,
+    itemRenderer,
+    itemRotated,
+    items,
+    itemSizeRange,
+    lassoFillColor,
+    lassoFillOpacity,
+    lassoStrokeColor,
+    lassoStrokeOpacity,
+    lassoStrokeSize,
+    orderer,
+    pileBorderColor,
+    pileBorderOpacity,
+    pileBorderColorSelected,
+    pileBorderOpacitySelected,
+    pileBorderColorActive,
+    pileBorderOpacityActive,
+    pileBackgroundColor,
+    pileBackgroundOpacity,
+    piles,
+    previewAggregator,
+    previewRenderer,
+    previewSpacing,
+    scaledPile,
     tempDepileDirection,
     tempDepileOneDNum,
-    easingFunc,
-    depileMethod,
-    previewSpacing
+    temporaryDepiledPile
   });
 
   const rootReducer = (state, action) => {

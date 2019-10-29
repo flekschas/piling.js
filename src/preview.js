@@ -1,22 +1,27 @@
 import * as PIXI from 'pixi.js';
 
-const createPreview = (previewTexture, spacing) => {
+const createPreview = ({ texture, store }) => {
   const previewContainer = new PIXI.Container();
 
   const previewBg = new PIXI.Graphics();
 
-  const previewSprite = new PIXI.Sprite(previewTexture);
-  previewSprite.y = spacing / 2;
-  previewSprite.x = spacing / 2;
+  const previewSprite = new PIXI.Sprite(texture);
+  previewSprite.y = store.getState().previewSpacing / 2;
+  previewSprite.x = store.getState().previewSpacing / 2;
 
-  const drawBg = color => {
+  const drawBg = (color = null, opacity = null) => {
+    // eslint-disable-next-line no-param-reassign
+    color = color || store.getState().pileBackgroundColor;
+    // eslint-disable-next-line no-param-reassign
+    opacity = color || store.getState().pileBackgroundOpacity;
+
     previewBg.clear();
-    previewBg.beginFill(color);
+    previewBg.beginFill(color, opacity);
     previewBg.drawRect(
       0,
       0,
-      previewSprite.width + spacing,
-      previewSprite.height + spacing
+      previewSprite.width + store.getState().previewSpacing,
+      previewSprite.height + store.getState().previewSpacing
     );
     previewBg.endFill();
   };
@@ -27,7 +32,7 @@ const createPreview = (previewTexture, spacing) => {
   previewContainer.interactive = true;
   previewContainer.buttonMode = true;
 
-  drawBg(0x00000);
+  drawBg();
 
   return {
     previewContainer,

@@ -3,16 +3,20 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
-const MAX_SCALE = 3;
+export const MAX_SCALE = 3;
+export const MODE_ACTIVE = 'Active';
+export const MODE_SELECTED = 'Selected';
 
 /**
  * Factory function to create a pile
- * @param {object} initialItem - The first item on the pile
- * @param {function} renderRaf - Render withRaf function
- * @param {number} id - Pile identifier
- * @param {object} pubSub - Local pubSub instance
+ * @param {object}   options - The options
+ * @param {object}   options.initialItem - The first item on the pile
+ * @param {function} options.render - Render withRaf function
+ * @param {number}   options.id - Pile identifier
+ * @param {object}   options.pubSub - Local pubSub instance
+ * @param {object}   options.store - Redux store
  */
-const createPile = (initialItem, renderRaf, id, pubSub) => {
+const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const itemsById = new Map();
   const newItemsById = new Map();
   const graphics = new PIXI.Graphics();
@@ -53,9 +57,9 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
         const clonedSprite = item.cloneSprite();
         hoverItemContainer.addChild(clonedSprite);
         if (item.preview) {
-          item.preview.drawBg(0xffffff);
+          item.preview.drawBg();
         }
-        renderRaf();
+        render();
       }
     }
   };
@@ -65,13 +69,13 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       if (hoverItemContainer.children.length === 2)
         hoverItemContainer.removeChildAt(0);
       if (item.preview) {
-        item.preview.drawBg(0x000000);
+        item.preview.drawBg();
       }
-      renderRaf();
+      render();
     }
   };
 
-  const drawBorder = (thickness, color) => {
+  const drawBorder = (size = 1, mode = '') => {
     // while positioning, do not draw border
     if (isPositioning) return;
     const rect = itemContainer.getBounds();
@@ -83,28 +87,34 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
 
     pubSub.publish('updateBBox', id);
 
+    const state = store.getState();
+
     border.clear();
 
     // draw black background
-    border.beginFill(0x00000);
+    border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
     border.drawRect(
-      bBox.minX - graphics.x - thickness,
-      bBox.minY - graphics.y - thickness,
-      rect.width + 2 * thickness,
-      rect.height + 2 * thickness
+      bBox.minX - graphics.x - size,
+      bBox.minY - graphics.y - size,
+      rect.width + 2 * size,
+      rect.height + 2 * size
     );
     border.endFill();
 
     // draw border
-    border.lineStyle(thickness, color, 1);
+    border.lineStyle(
+      size,
+      state[`pileBorderColor${mode}`],
+      state[`pileBorderOpacity${mode}`]
+    );
     border.drawRect(
-      bBox.minX - graphics.x - thickness,
-      bBox.minY - graphics.y - thickness,
-      rect.width + 2 * thickness,
-      rect.height + 2 * thickness
+      bBox.minX - graphics.x - size,
+      bBox.minY - graphics.y - size,
+      rect.width + 2 * size,
+      rect.height + 2 * size
     );
 
-    renderRaf();
+    render();
   };
 
   const onPointerDown = () => {
@@ -119,12 +129,12 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     graphics.isHover = true;
     if (isFocus) {
       if (isTempDepiled) {
-        drawBorder(3, 0xe87a90);
+        drawBorder(3, 'Active');
       } else {
-        drawBorder(2, 0xfeeb77);
+        drawBorder(2, 'Focus');
       }
     } else {
-      drawBorder(1, 0x91989f);
+      drawBorder();
     }
     // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
@@ -153,7 +163,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       hoverItemEndSubscriber = undefined;
     }
     hoverItemContainer.removeChildren();
-    renderRaf();
+    render();
   };
 
   const onDragStart = event => {
@@ -169,7 +179,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     graphics.isDragging = true;
     graphics.beforeDragX = graphics.x;
     graphics.beforeDragY = graphics.y;
-    renderRaf();
+    render();
   };
 
   const onDragEnd = () => {
@@ -179,7 +189,7 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
     graphics.draggingMouseOffset = null;
     // trigger collision check
     pubSub.publish('dropPile', { pileId: id });
-    renderRaf();
+    render();
   };
 
   const onDragMove = event => {
@@ -190,11 +200,11 @@ const createPile = (initialItem, renderRaf, id, pubSub) => {
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
       pubSub.publish('highlightPile', { pileId: id });
       if (isTempDepiled) {
-        drawBorder(3, 0xe87a90);
+        drawBorder(3, MODE_ACTIVE);
       } else {
-        drawBorder(2, 0xfeeb77);
+        drawBorder(2, MODE_SELECTED);
       }
-      renderRaf();
+      render();
     }
   };
 
