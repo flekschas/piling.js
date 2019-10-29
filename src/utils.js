@@ -287,7 +287,7 @@ export const colorToDecAlpha = (color, defaultAlpha = 1) => {
       const matches = color.match(/(\d+),\s*(\d+),\s*(\d+),?\s*([\d.]+)?/);
       return [
         matches
-          .slice(1, 3)
+          .slice(1, 4)
           // eslint-disable-next-line no-bitwise
           .map((x, i) => +x << (8 * (2 - i)))
           .reduce((x, sum) => sum + x, 0),
