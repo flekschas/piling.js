@@ -30,222 +30,140 @@ const setReducer = (key, defaultValue = null) => {
   };
 };
 
+const setAction = key => {
+  const type = `SET_${camelToConst(key)}`;
+  return newValue => ({ type, payload: { [key]: newValue } });
+};
+
+const setter = (key, defaultValue = null) => [
+  setReducer(key, defaultValue),
+  setAction(key)
+];
+
 export const reset = () => ({
   type: 'RESET',
   payload: {}
 });
 
-const backgroundColor = setReducer('backgroundColor', 0x000000);
-export const setBackgroundColor = newBackgroundColor => ({
-  type: 'SET_BACKGROUND_COLOR',
-  payload: { backgroundColor: newBackgroundColor }
-});
+const [backgroundColor, setBackgroundColor] = setter(
+  'backgroundColor',
+  0x000000
+);
 
-const lassoFillColor = setReducer('lassoFillColor', 0xffffff);
-export const setLassoFillColor = newLassoFillColor => ({
-  type: 'SET_LASSO_FILL_COLOR',
-  payload: { lassoFillColor: newLassoFillColor }
-});
+const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
 
-const lassoFillOpacity = setReducer('lassoFillOpacity', 0.15);
-export const setLassoFillOpacity = newLassoFillOpacity => ({
-  type: 'SET_LASSO_FILL_OPACITY',
-  payload: { lassoFillOpacity: newLassoFillOpacity }
-});
+const [lassoFillOpacity, setLassoFillOpacity] = setter(
+  'lassoFillOpacity',
+  0.15
+);
 
-const lassoStrokeColor = setReducer('lassoStrokeColor', 0xffffff);
-export const setLassoStrokeColor = newLassoStrokeColor => ({
-  type: 'SET_LASSO_STROKE_COLOR',
-  payload: { lassoStrokeColor: newLassoStrokeColor }
-});
+const [lassoStrokeColor, setLassoStrokeColor] = setter(
+  'lassoStrokeColor',
+  0xffffff
+);
 
-const lassoStrokeOpacity = setReducer('lassoStrokeOpacity', 0.8);
-export const setLassoStrokeOpacity = newLassoStrokeOpacity => ({
-  type: 'SET_LASSO_STROKE_OPACITY',
-  payload: { lassoStrokeOpacity: newLassoStrokeOpacity }
-});
+const [lassoStrokeOpacity, setLassoStrokeOpacity] = setter(
+  'lassoStrokeOpacity',
+  0.8
+);
 
-const lassoStrokeSize = setReducer('lassoStrokeSize', 1);
-export const setLassoStrokeSize = newLassoStrokeSize => ({
-  type: 'SET_LASSO_STROKE_SIZE',
-  payload: { lassoStrokeSize: newLassoStrokeSize }
-});
+const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
 
-const itemRenderer = setReducer('itemRenderer');
-export const setItemRenderer = newItemRenderer => ({
-  type: 'SET_ITEM_RENDERER',
-  payload: { itemRenderer: newItemRenderer }
-});
+const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const itemOpacity = setReducer('itemOpacity', 1.0);
-export const setItemOpacity = newItemOpacity => ({
-  type: 'SET_ITEM_OPACITY',
-  payload: { itemOpacity: newItemOpacity }
-});
+const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
 
-const previewRenderer = setReducer('previewRenderer');
-export const setPreviewRenderer = newPreviewRenderer => ({
-  type: 'SET_PREVIEW_RENDERER',
-  payload: { previewRenderer: newPreviewRenderer }
-});
+const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
-const aggregateRenderer = setReducer('aggregateRenderer');
-export const setAggregateRenderer = newAggregateRenderer => ({
-  type: 'SET_AGGREGATE_RENDERER',
-  payload: { aggregateRenderer: newAggregateRenderer }
-});
+const [aggregateRenderer, setAggregateRenderer] = setter('aggregateRenderer');
 
-const previewAggregator = setReducer('previewAggregator');
-export const setPreviewAggregator = newPreviewAggregator => ({
-  type: 'SET_PREVIEW_AGGREGATOR',
-  payload: { previewAggregator: newPreviewAggregator }
-});
+const [previewAggregator, setPreviewAggregator] = setter('previewAggregator');
 
-const coverAggregator = setReducer('coverAggregator');
-export const setCoverAggregator = newCoverAggregator => ({
-  type: 'SET_COVER_AGGREGATOR',
-  payload: { coverAggregator: newCoverAggregator }
-});
+const [coverAggregator, setCoverAggregator] = setter('coverAggregator');
 
-const items = setReducer('items', []);
-export const setItems = newItems => ({
-  type: 'SET_ITEMS',
-  payload: { items: newItems }
-});
+const [items, setItems] = setter('items', []);
 
-const orderer = setReducer('orderer', createOrderer().rowMajor);
-export const setOrderer = newOrderer => ({
-  type: 'SET_ORDERER',
-  payload: { orderer: newOrderer }
-});
+const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
-const grid = setReducer('grid', []);
-export const setGrid = newGrid => ({
-  type: 'SET_GRID',
-  payload: { grid: newGrid }
-});
+const [grid, setGrid] = setter('grid', []);
 
-const itemSizeRange = setReducer('itemSizeRange', [0.7, 0.9]);
-export const setItemSizeRange = newItemSizeRange => ({
-  type: 'SET_ITEM_SIZE_RANGE',
-  payload: { itemSizeRange: newItemSizeRange }
-});
+const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
 
-const itemAlignment = setReducer('itemAlignment', ['bottom', 'right']);
-export const setItemAlignment = newItemAlignment => ({
-  type: 'SET_ITEM_ALIGNMENT',
-  payload: { itemAlignment: newItemAlignment }
-});
+const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
+  'bottom',
+  'right'
+]);
 
-const itemRotated = setReducer('itemRotated', false);
-export const setItemRotated = newItemRotated => ({
-  type: 'SET_ITEM_ROTATED',
-  payload: { itemRotated: newItemRotated }
-});
+const [itemRotated, setItemRotated] = setter('itemRotated', false);
 
-const clickedPile = setReducer('clickedPile', []);
-export const setClickedPile = newClickedPile => ({
-  type: 'SET_CLICKED_PILE',
-  payload: { clickedPile: newClickedPile }
-});
+const [clickedPile, setClickedPile] = setter('clickedPile', []);
 
-const scaledPile = setReducer('scaledPile', []);
-export const setScaledPile = newScaledPile => ({
-  type: 'SET_SCALED_PILE',
-  payload: { scaledPile: newScaledPile }
-});
+const [scaledPile, setScaledPile] = setter('scaledPile', []);
 
 // 'originalPos' and 'closestPos'
-const depileMethod = setReducer('depileMethod', 'originalPos');
-export const setDepileMethod = newDepileMethod => ({
-  type: 'SET_DEPILE_METHOD',
-  payload: { depileMethod: newDepileMethod }
-});
+const [depileMethod, setDepileMethod] = setter('depileMethod', 'originalPos');
 
-const depiledPile = setReducer('depiledPile', []);
-export const setDepiledPile = newDepiledPile => ({
-  type: 'SET_DEPILED_PILE',
-  payload: { depiledPile: newDepiledPile }
-});
+const [depiledPile, setDepiledPile] = setter('depiledPile', []);
 
-const temporaryDepiledPile = setReducer('temporaryDepiledPile', []);
-export const setTemporaryDepiledPile = newTemporaryDepiledPile => ({
-  type: 'SET_TEMPORARY_DEPILED_PILE',
-  payload: { temporaryDepiledPile: newTemporaryDepiledPile }
-});
+const [temporaryDepiledPile, setTemporaryDepiledPile] = setter(
+  'temporaryDepiledPile',
+  []
+);
 
 // 'horizontal' or 'vertical'
-const tempDepileDirection = setReducer('tempDepileDirection', 'horizontal');
-export const setTempDepileDirection = newTempDepileDirection => ({
-  type: 'SET_TEMP_DEPILE_DIRECTION',
-  payload: { tempDepileDirection: newTempDepileDirection }
-});
+const [tempDepileDirection, setTempDepileDirection] = setter(
+  'tempDepileDirection',
+  'horizontal'
+);
 
-const tempDepileOneDNum = setReducer('tempDepileOneDNum', 6);
-export const setTempDepileOneDNum = newtempDepileOneDNum => ({
-  type: 'SET_TEMP_DEPILE_ONE_D_NUM',
-  payload: { tempDepileOneDNum: newtempDepileOneDNum }
-});
+const [tempDepileOneDNum, setTempDepileOneDNum] = setter(
+  'tempDepileOneDNum',
+  6
+);
 
-const easing = setReducer('easing', cubicInOut);
-export const setEasing = newEasing => ({
-  type: 'SET_EASING',
-  payload: { easing: newEasing }
-});
+const [easing, setEasing] = setter('easing', cubicInOut);
 
-const previewSpacing = setReducer('previewSpacing', 2);
-export const setPreviewSpacing = newPreviewSpacing => ({
-  type: 'SET_PREVIEW_SPACING',
-  payload: { previewSpacing: newPreviewSpacing }
-});
+const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
-const pileBorderColor = setReducer('pileBorderColor', 0x808080);
-export const setPileBorderColor = newPileBorderColor => ({
-  type: 'SET_PILE_BORDER_COLOR',
-  payload: { pileBorderColor: newPileBorderColor }
-});
+const [pileBorderColor, setPileBorderColor] = setter(
+  'pileBorderColor',
+  0x808080
+);
 
-const pileBorderOpacity = setReducer('pileBorderOpacity', 1.0);
-export const setPileBorderOpacity = newPileBorderOpacity => ({
-  type: 'SET_PILE_BORDER_OPACITY',
-  payload: { pileBorderOpacity: newPileBorderOpacity }
-});
+const [pileBorderOpacity, setPileBorderOpacity] = setter(
+  'pileBorderOpacity',
+  1.0
+);
 
-const pileBorderColorSelected = setReducer('pileBorderColorSelected', 0xeee462);
-export const setPileBorderColorSelected = newPileBorderColorSelected => ({
-  type: 'SET_PILE_BORDER_COLOR_SELECTED',
-  payload: { pileBorderColorSelected: newPileBorderColorSelected }
-});
+const [pileBorderColorSelected, setPileBorderColorSelected] = setter(
+  'pileBorderColorSelected',
+  0xeee462
+);
 
-const pileBorderOpacitySelected = setReducer('pileBorderOpacitySelected', 1.0);
-export const setPileBorderOpacitySelected = newPileBorderOpacitySelected => ({
-  type: 'SET_PILE_BORDER_OPACITY_SELECTED',
-  payload: { pileBorderOpacitySelected: newPileBorderOpacitySelected }
-});
+const [pileBorderOpacitySelected, setPileBorderOpacitySelected] = setter(
+  'pileBorderOpacitySelected',
+  1.0
+);
 
-const pileBorderColorActive = setReducer('pileBorderColorActive', 0xffa5da);
-export const setPileBorderColorActive = newPileBorderColorActive => ({
-  type: 'SET_PILE_BORDER_COLOR_ACTIVE',
-  payload: { pileBorderColorActive: newPileBorderColorActive }
-});
+const [pileBorderColorActive, setPileBorderColorActive] = setter(
+  'pileBorderColorActive',
+  0xffa5da
+);
 
-const pileBorderOpacityActive = setReducer('pileBorderOpacityActive', 1.0);
-export const setPileBorderOpacityActive = newPileBorderOpacityActive => ({
-  type: 'SET_PILE_BORDER_Opacity_ACTIVE',
-  payload: { pileBorderOpacityActive: newPileBorderOpacityActive }
-});
+const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
+  'pileBorderOpacityActive',
+  1.0
+);
 
-const pileBackgroundColor = setReducer('pileBackgroundColor', 0x000000);
-export const setPileBackgroundColor = newPileBackgroundColor => ({
-  type: 'SET_PILE_BACKGROUND_COLOR',
-  payload: { pileBackgroundColor: newPileBackgroundColor }
-});
+const [pileBackgroundColor, setPileBackgroundColor] = setter(
+  'pileBackgroundColor',
+  0x000000
+);
 
-const pileBackgroundOpacity = setReducer('pileBackgroundOpacity', 0.85);
-export const setPileBackgroundOpacity = newPileBackgroundOpacity => ({
-  type: 'SET_PILE_BACKGROUND_OPACITY',
-  payload: { pileBackgroundOpacity: newPileBackgroundOpacity }
-});
+const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
+  'pileBackgroundOpacity',
+  0.85
+);
 
 // reducer
 const piles = (previousState = [], action) => {
@@ -420,3 +338,80 @@ const createStore = () => {
 };
 
 export default createStore;
+
+const actions = {
+  setBackgroundColor,
+  setLassoFillColor,
+  setLassoFillOpacity,
+  setLassoStrokeColor,
+  setLassoStrokeOpacity,
+  setLassoStrokeSize,
+  setItemRenderer,
+  setItemOpacity,
+  setPreviewRenderer,
+  setAggregateRenderer,
+  setPreviewAggregator,
+  setCoverAggregator,
+  setItems,
+  setOrderer,
+  setGrid,
+  setItemSizeRange,
+  setItemAlignment,
+  setItemRotated,
+  setClickedPile,
+  setScaledPile,
+  setDepileMethod,
+  setDepiledPile,
+  setTemporaryDepiledPile,
+  setTempDepileDirection,
+  setTempDepileOneDNum,
+  setEasing,
+  setPreviewSpacing,
+  setPileBorderColor,
+  setPileBorderOpacity,
+  setPileBorderColorSelected,
+  setPileBorderOpacitySelected,
+  setPileBorderColorActive,
+  setPileBorderOpacityActive,
+  setPileBackgroundColor,
+  setPileBackgroundOpacity
+};
+
+export {
+  actions,
+  setBackgroundColor,
+  setLassoFillColor,
+  setLassoFillOpacity,
+  setLassoStrokeColor,
+  setLassoStrokeOpacity,
+  setLassoStrokeSize,
+  setItemRenderer,
+  setItemOpacity,
+  setPreviewRenderer,
+  setAggregateRenderer,
+  setPreviewAggregator,
+  setCoverAggregator,
+  setItems,
+  setOrderer,
+  setGrid,
+  setItemSizeRange,
+  setItemAlignment,
+  setItemRotated,
+  setClickedPile,
+  setScaledPile,
+  setDepileMethod,
+  setDepiledPile,
+  setTemporaryDepiledPile,
+  setTempDepileDirection,
+  setTempDepileOneDNum,
+  setEasing,
+  setPreviewSpacing,
+  setPileBorderColor,
+  setPileBorderOpacity,
+  setPileBorderColorSelected,
+  setPileBorderOpacitySelected,
+  setPileBorderColorActive,
+  setPileBorderOpacityActive,
+  setPileBackgroundColor,
+  setPileBackgroundOpacity
+};
