@@ -1,6 +1,6 @@
 # Next
 
-- Added the following properties that are settable via `.set(property, value)`:
+- Add properties for setting various colors via `.set(property, value)`:
   - `backgroundColor`
   - `lassoFillColor`
   - `lassoFillOpacity`
@@ -15,6 +15,8 @@
   - `pileBorderOpacityActive`
   - `pileBackgroundColor`
   - `pileBackgroundOpacity`
+- Add `pileContextMenuItems` property to define custom context menu items.
+- Redesign default context menu
 
 ## v0.2.0
 
