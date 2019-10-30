@@ -3,8 +3,7 @@ import styleToCss from 'style-object-to-css-string';
 const STYLES_ROOT = {
   position: 'absolute',
   zIndex: 2,
-  display: 'none',
-  backgroundColor: '#fff'
+  display: 'none'
 };
 
 const STYLES_UL = {
@@ -12,6 +11,7 @@ const STYLES_UL = {
   padding: 0,
   margin: 0,
   borderRadius: '0.25rem',
+  backgroundColor: 'white',
   boxShadow:
     '0 0 0 1px rgba(0, 0, 0, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 2px 6px 0 rgba(0, 0, 0, 0.075)'
 };
