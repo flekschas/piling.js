@@ -139,7 +139,7 @@ _Note, mixed data types are currently not supported._
 
 **Properties:**
 
-| Name                      | Type             | Default               | Constraints                                                                           | Nullifiable |
+| Name                      | Type             | Default               | Constraints                                                                           | Unsettable  |
 | ------------------------- | ---------------- | --------------------- | ------------------------------------------------------------------------------------- | ----------- |
 | aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                         | `true`      |
 | backgroundColor           | string or int    | `0x000000`            |                                                                                       | `false`     |
@@ -154,19 +154,20 @@ _Note, mixed data types are currently not supported._
 | items                     | array            | `[]`                  | see [`data`](#data)                                                                   | `false`     |
 | itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                                   | `true`      |
 | lassoFillColor            | string or int    | `0xffffff`            |                                                                                       | `false`     |
-| lassoFillOpacity          | float            | `0.15`                | Must be in [`0`,`1`]                                                                  | `false`     |
+| lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                                  | `false`     |
 | lassoStrokeColor          | string or int    | `0xffffff`            |                                                                                       | `false`     |
-| lassoStrokeOpacity        | float            | `0.8`                 | Must be in [`0`,`1`]                                                                  | `false`     |
-| lassoStrokeSize           | int              | `1`                   | Must be greater or equal than `1`                                                     | `false`     |
+| lassoStrokeOpacity        | float            | `0.8`                 | must be in [`0`,`1`]                                                                  | `false`     |
+| lassoStrokeSize           | int              | `1`                   | must be greater or equal than `1`                                                     | `false`     |
 | orderer                   | function         | row-major             | see [`notes`](#notes)                                                                 | `true`      |
 | pileBorderColor           | string or int    | `0x808080`            |                                                                                       | `false`     |
-| pileBorderOpacity         | float            | `1.0`                 | Must be in [`0`,`1`]                                                                  | `false`     |
+| pileBorderOpacity         | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
 | pileBorderColorSelected   | string or int    | `0xeee462`            |                                                                                       | `false`     |
-| pileBorderOpacitySelected | float            | `1.0`                 | Must be in [`0`,`1`]                                                                  | `false`     |
+| pileBorderOpacitySelected | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
 | pileBorderColorActive     | string or int    | `0xffa5da`            |                                                                                       | `false`     |
-| pileBorderOpacityActive   | float            | `1.0`                 | Must be in [`0`,`1`]                                                                  | `false`     |
+| pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
 | pileBackgroundColor       | string or int    | `0x000000`            |                                                                                       | `false`     |
-| pileBackgroundOpacity     | float            | `1.0`                 | Must be in [`0`,`1`]                                                                  | `false`     |
+| pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
+| pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                                  | `true`      |
 | previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                                     | `true`      |
 | previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                         | `true`      |
 | previewSpacing            | number           | `2`                   | the spacing between 1D previews                                                       | `true`      |
@@ -176,9 +177,9 @@ _Note, mixed data types are currently not supported._
 | tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                    | `true`      |
 | temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                          | `true`      |
 
-#### Notes
+**Examples and Notes:**
 
-- A property is considered nullifiable if it can be unset via `null`.
+- A property is considered unsettable if its value can be removed.
 - `orderer` is the function for positioning piles, the default function is row-major orderer which looks like this:
 
    ```javascript
@@ -194,32 +195,48 @@ _Note, mixed data types are currently not supported._
 - `grid` is an array of numbers that defines a grid, the array can have at most 4 numbers in this particular order: `[num of columns, num of rows, height of a row, ratio of a cell]`, or at least 1 number: `[num of columns]`
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
-   ```javascript
-   const cubicInOut = t => {
-     t *= 2;
-     const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
-     return p;
-   };
+  ```javascript
+  const cubicInOut = t => {
+    t *= 2;
+    const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
+    return p;
+  };
    ```
 
 - All color properties (like `backgroundColor`, `lassoFillColor`, etc.) support HEX, RGB, and RGBA string and decimal values. E.g.,
 
-   ```javascript
-   piling.set('lassoFillColor', '#ff0000');
-   piling.set('lassoFillColor', 'rgb(255, 0, 0)');
-   piling.set('lassoFillColor', 'rgba(255, 0, 0, 1)');
-   piling.set('lassoFillColor', 0xff0000);
-   ```
+  ```javascript
+  piling.set('lassoFillColor', '#ff0000');
+  piling.set('lassoFillColor', 'rgb(255, 0, 0)');
+  piling.set('lassoFillColor', 'rgba(255, 0, 0, 1)');
+  piling.set('lassoFillColor', 0xff0000);
+  ```
 
   Additionally, all lasso and pile related color properties (like `lassoFillColor`, `pileBorderColor`, etc.) support automatic setting of the opacity. E.g.,
 
-   ```javascript
-   // The following...
-   piling.set('lassoFillColor', 'rgba(255, 0, 0, 0.66)');
-   // ...is a shorthand for...
-   piling.set('lassoFillColor', 'rgb(255, 0, 0)');
-   piling.set('lassoFillOpacity', 0.66);
-   ```
+  ```javascript
+  // The following...
+  piling.set('lassoFillColor', 'rgba(255, 0, 0, 0.66)');
+  // ...is a shorthand for...
+  piling.set('lassoFillColor', 'rgb(255, 0, 0)');
+  piling.set('lassoFillOpacity', 0.66);
+  ```
+
+- `pileContextMenuItems` is an array of objects, which must have a `label` and `callback` property. Optionally, an object can also specify an `id`, which will be assigned to the corresponding button in the context menu, and `keepOpen: true` to not close the context menu after clicking on the corresponding button. The `callback` function is triggered whenever the user clicks on the corresponding button and it receives the pile definition, which contains the pile id, the ids of the items on the pile, and the pile's x and y coordinate.
+
+  ```javascript
+  // Add a custom context menu
+  const myClickHandler = (pile) => {
+   console.log('Hi!', pile);
+   // The log statement could look as follows for example:
+   // Hi!, { id: 5, items: [2, 0, 8], x: 215, y: 8 }
+  };
+  piling.set('pileContextMenuItems', [{
+    id: 'my-click',
+    label: 'Click me!',
+    callback: myClickHandler
+  }]);
+  ```
 
 #### `piling.destroy()`
 
