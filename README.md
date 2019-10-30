@@ -17,7 +17,7 @@
   [![Build Status](https://img.shields.io/travis/flekschas/piling.js?color=a17fff&style=flat-square)](https://travis-ci.org/flekschas/piling.js/)
   [![File Size](http://img.badgesize.io/https://unpkg.com/piling.js/dist/piling.min.js?compression=gzip&style=flat-square&color=e17fff)](https://unpkg.com/piling.min.js)
   [![Code Style Prettier](https://img.shields.io/badge/code%20style-prettier-ff7fe1.svg?style=flat-square)](https://github.com/prettier/prettier#readme)
-  [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://flekschas.github.io/piling.js/)
+  [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://piling.js.org)
   
 </div>
 
@@ -27,7 +27,7 @@
   
 </div>
 
-piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://flekschas.github.io/piling.js/?example=lines), but can easily be customized with your own render.
+piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://piling.js.org/?example=lines), but can easily be customized with your own render.
 
 ## Get Started
 
