@@ -165,6 +165,11 @@ const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
   0.85
 );
 
+const [pileContextMenuItems, setPileContextMenuItems] = setter(
+  'pileContextMenuItems',
+  []
+);
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -316,6 +321,7 @@ const createStore = () => {
     pileBorderOpacityActive,
     pileBackgroundColor,
     pileBackgroundOpacity,
+    pileContextMenuItems,
     piles,
     previewAggregator,
     previewRenderer,
@@ -378,5 +384,6 @@ export const createAction = {
   setPileBorderColorActive,
   setPileBorderOpacityActive,
   setPileBackgroundColor,
-  setPileBackgroundOpacity
+  setPileBackgroundOpacity,
+  setPileContextMenuItems
 };

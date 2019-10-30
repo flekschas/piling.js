@@ -149,6 +149,7 @@ const createPilingJs = rootElement => {
       }
     },
     pileBackgroundOpacity: true,
+    pileContextMenuItems: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -1611,23 +1612,20 @@ const createPilingJs = rootElement => {
     renderRaf();
   };
 
+  const closeContextMenu = () => {
+    const contextMenuElement = rootElement.querySelector(
+      '#piling-js-context-menu'
+    );
+    if (contextMenuElement) rootElement.removeChild(contextMenuElement);
+  };
+
   const contextmenuHandler = event => {
-    const lastMenu = rootElement.querySelector('#piling-js-context-menu');
-    if (lastMenu) rootElement.removeChild(lastMenu);
+    closeContextMenu();
 
     getRelativeMousePosition(event);
 
     if (!event.altKey) {
       event.preventDefault();
-
-      const element = createContextMenu();
-      rootElement.appendChild(element);
-
-      const depileBtn = element.querySelector('#depile-button');
-      const tempDepileBtn = element.querySelector('#temp-depile-button');
-      const gridBtn = element.querySelector('#grid-button');
-      const alignBtn = element.querySelector('#align-button');
-      const scaleBtn = element.querySelector('#scale-button');
 
       const results = searchIndex.search({
         minX: mousePosition[0],
@@ -1636,8 +1634,27 @@ const createPilingJs = rootElement => {
         maxY: mousePosition[1] + 1
       });
 
+      const clickedOnPile = results.length > 0;
+
+      const pileContextMenuItems = clickedOnPile
+        ? store
+            .getState()
+            .pileContextMenuItems.filter(item => item.label && item.callback)
+        : [];
+
+      const element = createContextMenu({
+        customItems: pileContextMenuItems
+      });
+      rootElement.appendChild(element);
+
+      const depileBtn = element.querySelector('#depile-button');
+      const tempDepileBtn = element.querySelector('#temp-depile-button');
+      const gridBtn = element.querySelector('#grid-button');
+      const alignBtn = element.querySelector('#align-button');
+      const scaleBtn = element.querySelector('#scale-button');
+
       // click on pile
-      if (results.length !== 0) {
+      if (clickedOnPile) {
         gridBtn.style.display = 'none';
         alignBtn.style.display = 'none';
 
@@ -1649,18 +1666,14 @@ const createPilingJs = rootElement => {
         });
         if (pile && pile.itemContainer.children.length === 1) {
           depileBtn.setAttribute('disabled', '');
-          depileBtn.style.opacity = 0.3;
-          depileBtn.style.cursor = 'not-allowed';
+          depileBtn.setAttribute('class', 'inactive');
           tempDepileBtn.setAttribute('disabled', '');
-          tempDepileBtn.style.opacity = 0.3;
-          tempDepileBtn.style.cursor = 'not-allowed';
+          tempDepileBtn.setAttribute('class', 'inactive');
         } else if (pile.isTempDepiled) {
           depileBtn.setAttribute('disabled', '');
-          depileBtn.style.opacity = 0.3;
-          depileBtn.style.cursor = 'not-allowed';
+          depileBtn.setAttribute('class', 'inactive');
           scaleBtn.setAttribute('disabled', '');
-          scaleBtn.style.opacity = 0.3;
-          scaleBtn.style.cursor = 'not-allowed';
+          scaleBtn.setAttribute('class', 'inactive');
           tempDepileBtn.innerHTML = 'close temp depile';
         }
 
@@ -1687,6 +1700,21 @@ const createPilingJs = rootElement => {
           scaleBtnBtnClick(element, pile.id),
           false
         );
+
+        pileContextMenuItems.forEach((item, index) => {
+          const button = item.id
+            ? element.querySelector(`#${item.id}`)
+            : element.querySelector(
+                `#piling-js-context-menu-custom-item-${index}`
+              );
+          button.addEventListener('click', () => {
+            item.callback({
+              id: pile.id,
+              ...store.getState().piles[pile.id]
+            });
+            if (!item.keepOpen) closeContextMenu();
+          });
+        });
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';

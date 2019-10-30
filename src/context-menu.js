@@ -29,14 +29,6 @@ const STYLES_BUTTON = {
   outline: 'none'
 };
 
-const STYLES_FIRST_BUTTON = {
-  borderRadius: '0.25rem 0.25rem 0 0'
-};
-
-const STYLES_LAST_BUTTON = {
-  borderRadius: '0 0 0.25rem 0.25rem'
-};
-
 const STYLES_BUTTON_HOVER = {
   backgroundColor: '#ff7ff6'
 };
@@ -45,17 +37,32 @@ const STYLES_BUTTON_ACTIVE = {
   backgroundColor: '#dd33ff'
 };
 
+const STYLES_BUTTON_INACTIVE = {
+  cursor: 'default',
+  opacity: 0.3,
+  backgroundColor: 'transparent !important'
+};
+
+const STYLES_FIRST_BUTTON = {
+  borderRadius: '0.25rem 0.25rem 0 0'
+};
+
+const STYLES_LAST_BUTTON = {
+  borderRadius: '0 0 0.25rem 0.25rem'
+};
+
 const STYLES = {
   root: STYLES_ROOT,
   ul: STYLES_UL,
   button: STYLES_BUTTON,
   'button:hover': STYLES_BUTTON_HOVER,
   'button:active': STYLES_BUTTON_ACTIVE,
+  'button.inactive': STYLES_BUTTON_INACTIVE,
   'li:first-child > button': STYLES_FIRST_BUTTON,
   'li:last-child > button': STYLES_LAST_BUTTON
 };
 
-const TEMPLATE = `<ul>
+const TEMPLATE = `<ul id="piling-js-context-menu-list">
   <li>
     <button id="depile-button">depile</button>
   </li>
@@ -73,7 +80,11 @@ const TEMPLATE = `<ul>
   </li>
 </ul>`;
 
-const createContextMenu = (template = TEMPLATE, styles = STYLES) => {
+const createContextMenu = ({
+  template = TEMPLATE,
+  styles = STYLES,
+  customItems = []
+} = {}) => {
   const rootElement = document.createElement('nav');
   rootElement.id = 'piling-js-context-menu';
 
@@ -94,6 +105,21 @@ const createContextMenu = (template = TEMPLATE, styles = STYLES) => {
 
   // Add menu
   rootElement.insertAdjacentHTML('beforeend', template);
+
+  // Add custom items
+  const ul = rootElement.querySelector('#piling-js-context-menu-list');
+  customItems.forEach((item, index) => {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+
+    button.textContent = item.label;
+
+    if (item.id) button.id = item.id;
+    else button.id = `piling-js-context-menu-custom-item-${index}`;
+
+    li.appendChild(button);
+    ul.appendChild(li);
+  });
 
   return rootElement;
 };
