@@ -125,6 +125,16 @@ const [easing, setEasing] = setter('easing', cubicInOut);
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
+const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
+  'previewBackgroundColor',
+  0xffffff
+);
+
+const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
+  'previewBackgroundOpacity',
+  0.85
+);
+
 const [pileBorderColor, setPileBorderColor] = setter(
   'pileBorderColor',
   0x808080
@@ -324,6 +334,8 @@ const createStore = () => {
     pileContextMenuItems,
     piles,
     previewAggregator,
+    previewBackgroundColor,
+    previewBackgroundOpacity,
     previewRenderer,
     previewSpacing,
     scaledPile,
@@ -377,6 +389,8 @@ export const createAction = {
   setTempDepileOneDNum,
   setEasing,
   setPreviewSpacing,
+  setPreviewBackgroundColor,
+  setPreviewBackgroundOpacity,
   setPileBorderColor,
   setPileBorderOpacity,
   setPileBorderColorSelected,

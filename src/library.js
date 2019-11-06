@@ -153,6 +153,16 @@ const createPilingJs = rootElement => {
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
+    previewBackgroundColor: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPreviewBackgroundColor(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPreviewBackgroundOpacity(opacity));
+        return actions;
+      }
+    },
+    previewBackgroundOpacity: true,
     renderer: {
       get: 'itemRenderer',
       set: value => [createAction.setItemRenderer(value)]

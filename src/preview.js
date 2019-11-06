@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 
+export const MODE_HOVER = 'hover';
+
 const createPreview = ({ texture, store }) => {
   const previewContainer = new PIXI.Container();
 
@@ -9,11 +11,18 @@ const createPreview = ({ texture, store }) => {
   previewSprite.y = store.getState().previewSpacing / 2;
   previewSprite.x = store.getState().previewSpacing / 2;
 
-  const drawBg = (color = null, opacity = null) => {
-    // eslint-disable-next-line no-param-reassign
-    color = color || store.getState().pileBackgroundColor;
-    // eslint-disable-next-line no-param-reassign
-    opacity = color || store.getState().pileBackgroundOpacity;
+  const drawBg = (mode = '', color = null, opacity = null) => {
+    if (mode === 'hover') {
+      // eslint-disable-next-line no-param-reassign
+      color = color || store.getState().previewBackgroundColor;
+      // eslint-disable-next-line no-param-reassign
+      opacity = color || store.getState().previewBackgroundOpacity;
+    } else if (mode === '') {
+      // eslint-disable-next-line no-param-reassign
+      color = color || store.getState().pileBackgroundColor;
+      // eslint-disable-next-line no-param-reassign
+      opacity = color || store.getState().pileBackgroundOpacity;
+    }
 
     previewBg.clear();
     previewBg.beginFill(color, opacity);

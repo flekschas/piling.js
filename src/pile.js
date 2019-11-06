@@ -3,6 +3,8 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
+import { MODE_HOVER } from './preview';
+
 export const MAX_SCALE = 3;
 export const MODE_ACTIVE = 'Active';
 export const MODE_SELECTED = 'Selected';
@@ -57,7 +59,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         const clonedSprite = item.cloneSprite();
         hoverItemContainer.addChild(clonedSprite);
         if (item.preview) {
-          item.preview.drawBg();
+          item.preview.drawBg(MODE_HOVER);
         }
         render();
       }
@@ -131,7 +133,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       if (isTempDepiled) {
         drawBorder(3, 'Active');
       } else {
-        drawBorder(2, 'Focus');
+        drawBorder(2, 'Selected');
       }
     } else {
       drawBorder();
