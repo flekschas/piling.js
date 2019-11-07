@@ -1160,12 +1160,11 @@ const createPilingJs = rootElement => {
     renderRaf();
   };
 
-  let stateUpdates;
+  const stateUpdates = new Set();
 
   const updated = () => {
     const newState = store.getState();
 
-    stateUpdates = new Set();
     const updates = [];
 
     if (
