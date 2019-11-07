@@ -1363,6 +1363,8 @@ const createPilingJs = rootElement => {
 
   const handleHighlightPile = ({ pileId }) => {
     if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
+    if (store.getState().temporaryDepiledPile.length) return;
+
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
@@ -1579,14 +1581,19 @@ const createPilingJs = rootElement => {
     });
 
     if (result.length !== 0) {
-      if (piles[result[0].pileId].items.length > 1) {
-        let temp = [...temporaryDepiledPile];
-        if (temp.includes(result[0].pileId)) {
-          temp = temp.filter(id => id !== result[0].pileId);
-        } else {
-          temp = [result[0].pileId];
+      if (!store.getState().temporaryDepiledPile.length) {
+        if (piles[result[0].pileId].items.length > 1) {
+          let temp = [...temporaryDepiledPile];
+          if (temp.includes(result[0].pileId)) {
+            temp = temp.filter(id => id !== result[0].pileId);
+          } else {
+            temp = [result[0].pileId];
+          }
+          store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
         }
-        store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
+      } else {
+        store.dispatch(createAction.setTemporaryDepiledPile([]));
+        store.dispatch(createAction.setClickedPile([]));
       }
     } else {
       store.dispatch(createAction.setTemporaryDepiledPile([]));
