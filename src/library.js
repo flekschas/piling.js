@@ -1385,6 +1385,11 @@ const createPilingJs = rootElement => {
     });
   };
 
+  const hideContextMenu = contextMenuElement => {
+    contextMenuElement.style.display = 'none';
+    rootElement.removeChild(contextMenuElement);
+  };
+
   const depileBtnClick = (contextMenuElement, pileId) => () => {
     const { depileMethod } = store.getState();
 
@@ -1394,8 +1399,7 @@ const createPilingJs = rootElement => {
       store.dispatch(createAction.setDepiledPile([pileId]));
     }
     store.dispatch(createAction.setClickedPile([]));
-    contextMenuElement.style.display = 'none';
-    rootElement.removeChild(contextMenuElement);
+    hideContextMenu(contextMenuElement);
   };
 
   const tempDepileBtnClick = (contextMenuElement, pileId) => () => {
@@ -1409,8 +1413,7 @@ const createPilingJs = rootElement => {
       }
       store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
     }
-    contextMenuElement.style.display = 'none';
-    rootElement.removeChild(contextMenuElement);
+    hideContextMenu(contextMenuElement);
   };
 
   let isGridShown = false;
@@ -1431,8 +1434,8 @@ const createPilingJs = rootElement => {
       gridGfx.clear();
       isGridShown = false;
     }
-    contextMenuElement.style.display = 'none';
-    rootElement.removeChild(contextMenuElement);
+
+    hideContextMenu(contextMenuElement);
 
     renderRaf();
   };
@@ -1441,8 +1444,7 @@ const createPilingJs = rootElement => {
     const pile = pileInstances.get(pileId);
     pile.animateScale();
 
-    contextMenuElement.style.display = 'none';
-    rootElement.removeChild(contextMenuElement);
+    hideContextMenu(contextMenuElement);
   };
 
   // const alignBtnClick = menu => () => {
