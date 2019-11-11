@@ -8,9 +8,15 @@ const createPhotoPiles = async element => {
   const response = await fetch('data/photos.json');
   const data = await response.json();
 
-  piling.set('grid', [10]);
-  piling.set('renderer', imageRenderer);
-  piling.set('items', data);
+  // piling.set('grid', [10]);
+  // piling.set('renderer', imageRenderer);
+  // piling.set('items', data);
+
+  piling.set({
+    grid: [10],
+    renderer: imageRenderer,
+    items: data
+  });
 
   return piling;
 };

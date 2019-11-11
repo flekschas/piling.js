@@ -49,7 +49,7 @@ const createPilingJs = rootElement => {
     antialias: true,
     transparent: true,
     resolution: window.devicePixelRatio,
-    autoResize: true
+    autoDensity: true
   });
 
   const root = new PIXI.Container();
@@ -181,22 +181,25 @@ const createPilingJs = rootElement => {
     return undefined;
   };
 
-  const set = (property, value) => {
-    if (properties[property]) {
-      const defaultSetter = v => [
-        createAction[`set${capitalize(property)}`](v)
-      ];
-      const setter = properties[property].set || defaultSetter;
-      if (setter) {
-        setter(value).forEach(action => {
-          store.dispatch(action);
-        });
+  // const set = (property, value) => {
+  const set = configurations => {
+    Object.keys(configurations).forEach(property => {
+      if (properties[property]) {
+        const defaultSetter = v => [
+          createAction[`set${capitalize(property)}`](v)
+        ];
+        const setter = properties[property].set || defaultSetter;
+        if (setter) {
+          setter(configurations[property]).forEach(action => {
+            store.dispatch(action);
+          });
+        } else {
+          console.warn(`Property "${property}" is not settable`);
+        }
       } else {
-        console.warn(`Property "${property}" is not settable`);
+        console.warn(`Unknown property "${property}"`);
       }
-    } else {
-      console.warn(`Unknown property "${property}"`);
-    }
+    });
   };
 
   const render = () => {
@@ -1765,6 +1768,13 @@ const createPilingJs = rootElement => {
     updateBoundingBox(pileId);
   };
 
+  const resizeHandler = () => {
+    renderer.resize(
+      rootElement.getBoundingClientRect().width,
+      rootElement.getBoundingClientRect().height
+    );
+  };
+
   let storeUnsubscribor;
 
   const init = () => {
@@ -1773,6 +1783,7 @@ const createPilingJs = rootElement => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
+    window.addEventListener('resize', resizeHandler, false);
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
@@ -1816,6 +1827,7 @@ const createPilingJs = rootElement => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
+    window.removeEventListener('resize', resizeHandler, false);
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
