@@ -19,7 +19,7 @@ const createRandomLinePlot = () => {
 
 const createSvgLinesPiles = element => {
   const svgRenderer = createSvgRenderer();
-  const piling = createPilingJs(element);
+  const piling = createPilingJs({ element });
 
   const data = new Array(100)
     .fill(0)
