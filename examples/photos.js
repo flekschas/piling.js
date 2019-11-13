@@ -12,6 +12,14 @@ const createPhotoPiles = async element => {
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
 
+  const state = piling.exportState();
+  // console.log(state);
+
+  // state.grid = [12];
+  // state.version = "0.4.0";
+
+  piling.importState(state);
+
   return piling;
 };
 

@@ -6,11 +6,12 @@ import normalizeWheel from 'normalize-wheel';
 
 import createAnimator from './animator';
 
-import createStore, { createAction } from './store';
+import createStore, { overwrite, createAction } from './store';
 
 import {
   capitalize,
   colorToDecAlpha,
+  deepClone,
   dist,
   getBBox,
   isPileInPolygon,
@@ -29,6 +30,8 @@ import createContextMenu from './context-menu';
 
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
+
+const VERSION = require('../version.js');
 
 const createPilingJs = rootElement => {
   const scrollContainer = document.createElement('div');
@@ -1308,6 +1311,24 @@ const createPilingJs = rootElement => {
     state = newState;
   };
 
+  const exportState = () => {
+    const clonedState = deepClone(state);
+    clonedState.version = VERSION;
+    return clonedState;
+  };
+
+  const importState = importedState => {
+    if (importedState.version !== VERSION) {
+      console.warn(
+        `imported state version "${importedState.version}" doesn't match library version "${VERSION}"`
+      );
+      return;
+    }
+    delete importedState.version;
+    store.dispatch(overwrite(importedState));
+    // console.log(state);
+  };
+
   let hit;
 
   const handleDropPile = ({ pileId }) => {
@@ -1842,7 +1863,9 @@ const createPilingJs = rootElement => {
 
   return {
     destroy,
+    exportState,
     get,
+    importState,
     render: renderRaf,
     set,
     subscribe: pubSub.subscribe,

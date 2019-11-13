@@ -45,6 +45,11 @@ export const reset = () => ({
   payload: {}
 });
 
+export const overwrite = newState => ({
+  type: 'OVERWRITE',
+  payload: { newState }
+});
+
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
   0x000000
@@ -347,6 +352,8 @@ const createStore = () => {
   const rootReducer = (state, action) => {
     if (action.type === 'RESET') {
       state = undefined; // eslint-disable-line no-param-reassign
+    } else if (action.type === 'OVERWRITE') {
+      state = action.payload.newState; // eslint-disable-line no-param-reassign
     }
 
     return appReducer(state, action);
