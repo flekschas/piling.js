@@ -31,8 +31,6 @@ import createContextMenu from './context-menu';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
-const VERSION = require('../version.js');
-
 const createPilingJs = rootElement => {
   const scrollContainer = document.createElement('div');
 
