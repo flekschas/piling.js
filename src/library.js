@@ -1630,6 +1630,21 @@ const createPilingJs = rootElement => {
     renderRaf();
   };
 
+  const resizeHandler = () => {
+    const oldColWidth = layout.colWidth;
+    const oldRowHeight = layout.rowHeight;
+    layout.colWidth = rootElement.getBoundingClientRect().width / layout.colNum;
+    layout.rowHeight = layout.colWidth * layout.cellRatio;
+    scaleItems();
+    pileInstances.forEach(pile => {
+      pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
+      pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
+    });
+    createRBush();
+    updateScrollContainer();
+    renderRaf();
+  };
+
   const closeContextMenu = () => {
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
@@ -1773,6 +1788,8 @@ const createPilingJs = rootElement => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
+    window.addEventListener('resize', resizeHandler, false);
+    window.addEventListener('orientationchange', resizeHandler, false);
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
@@ -1816,6 +1833,8 @@ const createPilingJs = rootElement => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
+    window.removeEventListener('resize', resizeHandler, false);
+    window.removeEventListener('orientationchange', resizeHandler, false);
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
