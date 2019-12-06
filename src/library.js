@@ -30,9 +30,7 @@ import createContextMenu from './context-menu';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
-const createPilingJs = constructor => {
-  const rootElement = constructor.element;
-
+const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
 
   const canvas = document.createElement('canvas');
@@ -1821,8 +1819,7 @@ const createPilingJs = constructor => {
       .drawRect(0, 0, width, height)
       .endFill();
 
-    delete constructor.element;
-    set(constructor);
+    set(initOptions);
   };
 
   const destroy = () => {
