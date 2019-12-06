@@ -181,25 +181,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return undefined;
   };
 
-  // const set = (property, value) => {
-  const set = configurations => {
-    Object.keys(configurations).forEach(property => {
-      if (properties[property]) {
-        const defaultSetter = v => [
-          createAction[`set${capitalize(property)}`](v)
-        ];
-        const setter = properties[property].set || defaultSetter;
-        if (setter) {
-          setter(configurations[property]).forEach(action => {
-            store.dispatch(action);
-          });
-        } else {
-          console.warn(`Property "${property}" is not settable`);
-        }
+  const set = (property, value) => {
+    if (properties[property]) {
+      const defaultSetter = v => [
+        createAction[`set${capitalize(property)}`](v)
+      ];
+      const setter = properties[property].set || defaultSetter;
+      if (setter) {
+        setter(value).forEach(action => {
+          store.dispatch(action);
+        });
       } else {
-        console.warn(`Unknown property "${property}"`);
+        console.warn(`Property "${property}" is not settable`);
       }
-    });
+    } else {
+      console.warn(`Unknown property "${property}"`);
+    }
+  };
+
+  const setPublic = (newProperties, newValue) => {
+    if (typeof newProperties === 'string' || newProperties instanceof String) {
+      set(newProperties, newValue);
+    } else {
+      Object.entries(newProperties).forEach((property, v) => set(property, v));
+    }
   };
 
   const render = () => {
@@ -1858,7 +1863,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     destroy,
     get,
     render: renderRaf,
-    set,
+    set: setPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };
