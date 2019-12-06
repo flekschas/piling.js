@@ -40,18 +40,9 @@ const createMatrixPiles = async element => {
   const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
   const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
-  // const pilingJs = createPilingJs({element});
+  const pilingJs = createPilingJs(element);
 
-  // pilingJs.set('renderer', matrixRenderer);
-  // pilingJs.set('previewRenderer', previewRenderer);
-  // pilingJs.set('aggregateRenderer', coverRenderer);
-  // pilingJs.set('coverAggregator', matrixCoverAggregator);
-  // pilingJs.set('previewAggregator', matrixPreviewAggregator);
-  // pilingJs.set('items', data);
-  // pilingJs.set('grid', [10]);
-
-  const pilingJs = createPilingJs({
-    element,
+  pilingJs.set({
     renderer: matrixRenderer,
     previewRenderer,
     aggregateRenderer: coverRenderer,
