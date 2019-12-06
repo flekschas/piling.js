@@ -3,6 +3,7 @@ import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
+import { batchActions } from 'redux-batched-actions';
 
 import createAnimator from './animator';
 
@@ -181,29 +182,41 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return undefined;
   };
 
-  const set = (property, value) => {
+  const set = (property, value, noDispatch = false) => {
+    let actions = [];
+
     if (properties[property]) {
       const defaultSetter = v => [
         createAction[`set${capitalize(property)}`](v)
       ];
       const setter = properties[property].set || defaultSetter;
       if (setter) {
-        setter(value).forEach(action => {
-          store.dispatch(action);
-        });
+        actions = setter(value);
       } else {
         console.warn(`Property "${property}" is not settable`);
       }
     } else {
       console.warn(`Unknown property "${property}"`);
     }
+
+    if (!noDispatch) {
+      actions.forEach(action => store.dispatch(action));
+    }
+
+    return actions;
   };
 
-  const setPublic = (newProperties, newValue) => {
-    if (typeof newProperties === 'string' || newProperties instanceof String) {
-      set(newProperties, newValue);
+  const setPublic = (newProperty, newValue) => {
+    if (typeof newProperty === 'string' || newProperty instanceof String) {
+      set(newProperty, newValue);
     } else {
-      Object.entries(newProperties).forEach((property, v) => set(property, v));
+      store.dispatch(
+        batchActions(
+          Object.entries(newProperty).flatMap(([property, value]) =>
+            set(property, value, true)
+          )
+        )
+      );
     }
   };
 
@@ -1824,7 +1837,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .drawRect(0, 0, width, height)
       .endFill();
 
-    set(initOptions);
+    setPublic(initOptions);
   };
 
   const destroy = () => {
