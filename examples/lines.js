@@ -19,21 +19,22 @@ const createRandomLinePlot = () => {
 
 const createSvgLinesPiles = element => {
   const svgRenderer = createSvgRenderer();
-  const piling = createPilingJs(element);
 
   const data = new Array(100)
     .fill(0)
     .map(() => ({ src: createRandomLinePlot() }));
 
-  piling.set('renderer', svgRenderer);
-  piling.set('items', data);
-  piling.set('itemAlignment', ['top', 'bottom', 'left', 'right']);
-  piling.set('itemOpacity', (item, index, total) => index / total);
-  piling.set('pileBackgroundColor', 'rgba(255, 255, 255, 0.66)');
-  piling.set('backgroundColor', '#ffffff');
-  piling.set('lassoFillColor', '#000000');
-  piling.set('lassoStrokeColor', '#000000');
-  piling.set('grid', [10]);
+  const piling = createPilingJs(element, {
+    renderer: svgRenderer,
+    items: data,
+    itemAlignment: ['top', 'bottom', 'left', 'right'],
+    itemOpacity: (item, index, total) => index / total,
+    pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
+    backgroundColor: '#ffffff',
+    lassoFillColor: '#000000',
+    lassoStrokeColor: '#000000',
+    grid: [10]
+  });
 
   return piling;
 };
