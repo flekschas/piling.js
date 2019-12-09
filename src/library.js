@@ -3,6 +3,7 @@ import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
+import { batchActions } from 'redux-batched-actions';
 
 import createAnimator from './animator';
 
@@ -31,7 +32,7 @@ import createContextMenu from './context-menu';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
-const createPilingJs = rootElement => {
+const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
 
   const canvas = document.createElement('canvas');
@@ -50,7 +51,7 @@ const createPilingJs = rootElement => {
     antialias: true,
     transparent: true,
     resolution: window.devicePixelRatio,
-    autoResize: true
+    autoDensity: true
   });
 
   const root = new PIXI.Container();
@@ -182,21 +183,41 @@ const createPilingJs = rootElement => {
     return undefined;
   };
 
-  const set = (property, value) => {
+  const set = (property, value, noDispatch = false) => {
+    let actions = [];
+
     if (properties[property]) {
       const defaultSetter = v => [
         createAction[`set${capitalize(property)}`](v)
       ];
       const setter = properties[property].set || defaultSetter;
       if (setter) {
-        setter(value).forEach(action => {
-          store.dispatch(action);
-        });
+        actions = setter(value);
       } else {
         console.warn(`Property "${property}" is not settable`);
       }
     } else {
       console.warn(`Unknown property "${property}"`);
+    }
+
+    if (!noDispatch) {
+      actions.forEach(action => store.dispatch(action));
+    }
+
+    return actions;
+  };
+
+  const setPublic = (newProperty, newValue) => {
+    if (typeof newProperty === 'string' || newProperty instanceof String) {
+      set(newProperty, newValue);
+    } else {
+      store.dispatch(
+        batchActions(
+          Object.entries(newProperty).flatMap(([property, value]) =>
+            set(property, value, true)
+          )
+        )
+      );
     }
   };
 
@@ -1784,6 +1805,13 @@ const createPilingJs = rootElement => {
     updateBoundingBox(pileId);
   };
 
+  const resizeHandler = () => {
+    renderer.resize(
+      rootElement.getBoundingClientRect().width,
+      rootElement.getBoundingClientRect().height
+    );
+  };
+
   let storeUnsubscribor;
 
   const init = () => {
@@ -1792,6 +1820,7 @@ const createPilingJs = rootElement => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
+    window.addEventListener('resize', resizeHandler, false);
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
@@ -1826,6 +1855,8 @@ const createPilingJs = rootElement => {
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
+
+    setPublic(initOptions);
   };
 
   const destroy = () => {
@@ -1835,6 +1866,7 @@ const createPilingJs = rootElement => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
+    window.removeEventListener('resize', resizeHandler, false);
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
@@ -1865,7 +1897,7 @@ const createPilingJs = rootElement => {
     get,
     importState,
     render: renderRaf,
-    set,
+    set: setPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };
