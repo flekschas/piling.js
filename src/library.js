@@ -1328,6 +1328,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     state = newState;
+
+    pubSub.publish('update');
   };
 
   const exportState = () => {
@@ -1339,13 +1341,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const importState = importedState => {
     if (importedState.version !== VERSION) {
       console.warn(
-        `imported state version "${importedState.version}" doesn't match library version "${VERSION}"`
+        `The version of the imported state "${importedState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
-      return;
     }
     delete importedState.version;
     store.dispatch(overwrite(importedState));
-    // console.log(state);
   };
 
   let hit;

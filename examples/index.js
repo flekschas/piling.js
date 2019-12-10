@@ -8,10 +8,29 @@ const svgEl = document.getElementById('svg');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
+const undoButton = document.getElementById('undo');
 
 let piling;
 
 const urlQueryParams = new URLSearchParams(window.location.search);
+
+let history = [];
+
+const undoHandler = () => {
+  if (history.length === 0) return;
+
+  piling.importState(history.pop());
+};
+
+undoButton.addEventListener('click', undoHandler);
+
+const updateHandler = () => {
+  undoButton.style.display = 'block';
+
+  history.push(piling.exportState());
+
+  if (history.length > 5) history.shift();
+};
 
 const createPiles = async example => {
   switch (example) {
@@ -23,7 +42,10 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
+      undoButton.style.display = 'none';
       piling = await createPhotoPiles(photosEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
       break;
 
     case 'matrices':
@@ -34,7 +56,10 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
+      undoButton.style.display = 'none';
       piling = await createMatrixPiles(matricesEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
       break;
 
     case 'lines':
@@ -45,7 +70,10 @@ const createPiles = async example => {
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
+      undoButton.style.display = 'none';
       piling = await createSvgLinesPiles(svgEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
       break;
 
     default:
