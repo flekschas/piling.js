@@ -1,5 +1,6 @@
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
+import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 import { camelToConst, deepClone, cubicInOut } from './utils';
@@ -352,7 +353,7 @@ const createStore = () => {
     return appReducer(state, action);
   };
 
-  return createReduxStore(rootReducer);
+  return createReduxStore(enableBatching(rootReducer));
 };
 
 export default createStore;
