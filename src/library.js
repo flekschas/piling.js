@@ -1651,6 +1651,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const resizeHandler = () => {
+    const oldColWidth = layout.colWidth;
+    const oldRowHeight = layout.rowHeight;
+
+    const { width, height } = rootElement.getBoundingClientRect();
+
+    layout.colWidth = width / layout.colNum;
+    layout.rowHeight = layout.colWidth * layout.cellRatio;
+
+    renderer.resize(width, height);
+
+    scaleItems();
+
+    const movingPiles = [];
+
+    pileInstances.forEach(pile => {
+      pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
+      pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
+      movingPiles.push({
+        id: pile.id,
+        x: pile.graphics.x,
+        y: pile.graphics.y
+      });
+    });
+    store.dispatch(createAction.movePiles(movingPiles));
+
+    mask
+      .beginFill(0xffffff)
+      .drawRect(0, 0, width, height)
+      .endFill();
+
+    const { orderer } = store.getState();
+
+    renderedItems.forEach(item => {
+      const getPosition = orderer(layout.colNum);
+      let [x, y] = getPosition(item.id);
+      x *= layout.colWidth;
+      y *= layout.rowHeight;
+      item.originalPosition = [x, y];
+    });
+
+    createRBush();
+    updateScrollContainer();
+    renderRaf();
+  };
+
   const closeContextMenu = () => {
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
@@ -1802,6 +1848,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
     window.addEventListener('resize', resizeHandler, false);
+    window.addEventListener('orientationchange', resizeHandler, false);
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
@@ -1848,6 +1895,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
     window.removeEventListener('resize', resizeHandler, false);
+    window.removeEventListener('orientationchange', resizeHandler, false);
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
