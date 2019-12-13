@@ -7,7 +7,7 @@ import { batchActions } from 'redux-batched-actions';
 
 import createAnimator from './animator';
 
-import createStore, { overwrite, createAction } from './store';
+import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   capitalize,
@@ -358,6 +358,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!items.length || !itemRenderer) return null;
 
+    renderedItems.forEach(item => {
+      item.destroy();
+    });
+    pileInstances.forEach(pile => {
+      pile.destroy();
+    });
     renderedItems.clear();
     pileInstances.clear();
 
@@ -1338,14 +1344,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return clonedState;
   };
 
-  const importState = importedState => {
+  const importState = (importedState, overwriteState = false) => {
     if (importedState.version !== VERSION) {
       console.warn(
         `The version of the imported state "${importedState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
     }
     delete importedState.version;
-    store.dispatch(overwrite(importedState));
+    if (overwriteState) store.dispatch(overwrite(importedState));
+    else {
+      store.dispatch(softOverwrite(importedState));
+    }
   };
 
   let hit;

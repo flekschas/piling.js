@@ -3,7 +3,12 @@ import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
-import { camelToConst, deepClone, cubicInOut } from './utils';
+import {
+  camelToConst,
+  deepClone,
+  cubicInOut,
+  softOverwriteState
+} from './utils';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -48,6 +53,11 @@ export const reset = () => ({
 
 export const overwrite = newState => ({
   type: 'OVERWRITE',
+  payload: { newState }
+});
+
+export const softOverwrite = newState => ({
+  type: 'SOFTOVERWRITE',
   payload: { newState }
 });
 
@@ -355,6 +365,9 @@ const createStore = () => {
       state = undefined; // eslint-disable-line no-param-reassign
     } else if (action.type === 'OVERWRITE') {
       state = action.payload.newState; // eslint-disable-line no-param-reassign
+    } else if (action.type === 'SOFTOVERWRITE') {
+      // eslint-disable-next-line no-param-reassign
+      state = softOverwriteState(deepClone(state), action.payload.newState);
     }
 
     return appReducer(state, action);

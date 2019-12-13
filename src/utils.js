@@ -55,6 +55,38 @@ export const deepClone = source => {
   return extend(target, source);
 };
 
+export const softOverwriteState = (oldState, newState) => {
+  if (newState === null || typeof newState !== 'object') {
+    return newState;
+  }
+
+  if (newState.constructor !== Object && newState.constructor !== Array) {
+    return newState;
+  }
+
+  if (
+    newState.constructor === Date ||
+    newState.constructor === RegExp ||
+    newState.constructor === Function ||
+    newState.constructor === String ||
+    newState.constructor === Number ||
+    newState.constructor === Boolean
+  ) {
+    return new newState.constructor(newState);
+  }
+
+  const out = oldState || new newState.constructor();
+
+  Object.keys(newState).forEach(attr => {
+    out[attr] =
+      out[attr] === newState[attr]
+        ? newState[attr]
+        : softOverwriteState(out[attr], newState[attr]);
+  });
+
+  return out;
+};
+
 export const createWorker = fn => {
   // console.log(fn.toString().match(/^\s*function\s*\(\s*\)\s*\{(([\s\S](?!\}$))*[\s\S])/))
   return new Worker(
