@@ -18,7 +18,8 @@ let history = [];
 
 const undoHandler = () => {
   if (history.length === 0) return;
-
+  // the latest history is actually the current state?
+  history.pop();
   piling.importState(history.pop());
 };
 
