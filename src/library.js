@@ -1832,13 +1832,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     updateBoundingBox(pileId);
   };
 
-  const resizeHandler = () => {
-    renderer.resize(
-      rootElement.getBoundingClientRect().width,
-      rootElement.getBoundingClientRect().height
-    );
-  };
-
   let storeUnsubscribor;
 
   const init = () => {
