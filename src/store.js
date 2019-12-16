@@ -291,6 +291,9 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+    case 'OVERWRITE_PILES': {
+      return [...action.payload.newPiles];
+    }
     default:
       return previousState;
   }
@@ -315,6 +318,11 @@ const movePiles = movingPiles => ({
 const depilePiles = depiledPiles => ({
   type: 'DEPILE_PILES',
   payload: { piles: depiledPiles }
+});
+
+const overwritePiles = newPiles => ({
+  type: 'OVERWRITE_PILES',
+  payload: { newPiles }
 });
 
 const createStore = () => {
@@ -367,7 +375,7 @@ const createStore = () => {
       state = action.payload.newState; // eslint-disable-line no-param-reassign
     } else if (action.type === 'SOFTOVERWRITE') {
       // eslint-disable-next-line no-param-reassign
-      state = softOverwriteState(deepClone(state), action.payload.newState);
+      state = softOverwriteState(state, action.payload.newState);
     }
 
     return appReducer(state, action);
@@ -383,6 +391,7 @@ export const createAction = {
   mergePiles,
   movePiles,
   depilePiles,
+  overwritePiles,
   setBackgroundColor,
   setLassoFillColor,
   setLassoFillOpacity,

@@ -555,6 +555,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       graphics.x = pile.x;
       graphics.y = pile.y;
       updateBoundingBox(id);
+      renderRaf();
     }
   };
 
@@ -1351,6 +1352,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
     }
     delete importedState.version;
+    if (importedState.piles !== store.getState().piles)
+      store.dispatch(createAction.overwritePiles(importedState.piles));
+
     if (overwriteState) store.dispatch(overwrite(importedState));
     else {
       store.dispatch(softOverwrite(importedState));
