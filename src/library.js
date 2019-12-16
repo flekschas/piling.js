@@ -1652,37 +1652,64 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const resizeHandler = () => {
-    const oldColWidth = layout.colWidth;
-    const oldRowHeight = layout.rowHeight;
-
     const { width, height } = rootElement.getBoundingClientRect();
-
-    layout.colWidth = width / layout.colNum;
-    layout.rowHeight = layout.colWidth * layout.cellRatio;
 
     renderer.resize(width, height);
 
-    scaleItems();
+    const oldColWidth = layout.colWidth;
+    const oldRowHeight = layout.rowHeight;
+    const oldColNum = layout.colNum;
 
     const movingPiles = [];
 
-    pileInstances.forEach(pile => {
-      pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
-      pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
-      movingPiles.push({
-        id: pile.id,
-        x: pile.graphics.x,
-        y: pile.graphics.y
+    const { orderer } = store.getState();
+
+    if (+layout.itemSize) {
+      layout.colNum = Math.floor(width / layout.itemSize);
+      pileInstances.forEach(pile => {
+        const numOfRow = Math.floor(pile.graphics.y / oldRowHeight);
+        const numOfCol = Math.floor(pile.graphics.x / oldColWidth);
+        const [extraX, extraY] = [
+          pile.graphics.x - numOfCol * oldColWidth,
+          pile.graphics.y - numOfRow * oldRowHeight
+        ];
+
+        const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
+        const getPosition = orderer(layout.colNum);
+        const [x, y] = getPosition(gridNum);
+
+        pile.graphics.x = x * layout.colWidth + extraX;
+        pile.graphics.y = y * layout.rowHeight + extraY;
+
+        movingPiles.push({
+          id: pile.id,
+          x: pile.graphics.x,
+          y: pile.graphics.y
+        });
       });
-    });
+    } else {
+      layout.colWidth = width / layout.colNum;
+      layout.rowHeight = layout.colWidth * layout.cellRatio;
+
+      pileInstances.forEach(pile => {
+        pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
+        pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
+        movingPiles.push({
+          id: pile.id,
+          x: pile.graphics.x,
+          y: pile.graphics.y
+        });
+      });
+    }
+
+    scaleItems();
+
     store.dispatch(createAction.movePiles(movingPiles));
 
     mask
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
-
-    const { orderer } = store.getState();
 
     renderedItems.forEach(item => {
       const getPosition = orderer(layout.colNum);
