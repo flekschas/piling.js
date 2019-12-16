@@ -86,7 +86,14 @@ const [items, setItems] = setter('items', []);
 
 const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
-const [grid, setGrid] = setter('grid', []);
+const [grid, setGrid] = setter('grid', {
+  itemSize: null,
+  cols: 10,
+  rows: null,
+  rowHeight: null,
+  cellRatio: 1,
+  itemPadding: 0
+});
 
 const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
 
