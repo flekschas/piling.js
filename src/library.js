@@ -401,6 +401,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         stage.addChild(lassoContainer);
         lassoContainer.addChild(lasso);
         renderRaf();
+
+        pubSub.publish('render');
       }
     );
   };
@@ -444,6 +446,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       createRBush();
       updateScrollContainer();
       renderRaf();
+
+      pubSub.publish('render');
     }
   };
 
@@ -1026,6 +1030,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateBoundingBox(pileId);
     });
     renderRaf();
+
+    pubSub.publish('render');
   };
 
   let mousePosition = [0, 0];
@@ -1069,6 +1075,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     lassoFill.beginFill(lassoFillColor, lassoFillOpacity);
     lassoFill.drawPolygon(lassoPosFlat);
     renderRaf();
+
+    pubSub.publish('render');
   };
 
   let mouseDown = false;
@@ -1167,6 +1175,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       lassoFill.clear();
       renderRaf();
       isLasso = false;
+
+      pubSub.publish('render');
     }
     lassoPos = [];
     lassoPosFlat = [];
@@ -1179,6 +1189,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateBoundingBox(pileId);
     }
     renderRaf();
+
+    pubSub.publish('render');
   };
 
   const stateUpdates = new Set();
@@ -1290,6 +1302,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       }
       renderRaf();
+      pubSub.publish('render');
     }
 
     if (state.scaledPile !== newState.scaledPile) {
@@ -1304,6 +1317,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       }
       renderRaf();
+      pubSub.publish('render');
     }
 
     if (state.depileMethod !== newState.depileMethod) {
@@ -1374,20 +1388,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const handleDragPile = ({ pileId }) => {
-    const pile = pileInstances.get(pileId).graphics;
-    activePile.addChild(pile);
+  const handleDragPile = ({ pileId, event }) => {
+    const pile = pileInstances.get(pileId);
+    activePile.addChild(pile.graphics);
+
+    pubSub.publish('pileFocus', { pile, event });
   };
 
   let oldResult = [];
   let newResult = [];
 
-  const handleHighlightPile = ({ pileId }) => {
+  const handleHighlightPile = ({ pileId, event }) => {
     if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
     if (store.getState().temporaryDepiledPile.length) return;
 
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
+
+    const pileFocus = pileInstances.get(pileId);
+    pubSub.publish('pileFocus', { pileFocus, event });
 
     if (oldResult !== []) {
       oldResult.forEach(collidePile => {
@@ -1402,8 +1421,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId);
         pile.drawBorder();
+        if (pile !== pileFocus) {
+          pubSub.publish('pileEnter', { pile, event });
+        }
       }
     });
+  };
+
+  const handleHoverPile = ({ pileId, event }) => {
+    const pile = pileInstances.get(pileId);
+    pubSub.publish('pileEnter', { pile, event });
+  };
+
+  const handleLeavePile = ({ pileId, event }) => {
+    const pile = pileInstances.get(pileId);
+    pubSub.publish('pileLeave', { pile, event });
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -1423,7 +1455,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
-  const tempDepileBtnClick = (contextMenuElement, pileId) => () => {
+  const tempDepileBtnClick = (contextMenuElement, pileId, event) => () => {
     const { piles, temporaryDepiledPile } = store.getState();
     if (piles[pileId].items.length > 1) {
       let temp = [...temporaryDepiledPile];
@@ -1433,6 +1465,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         temp = [pileId];
       }
       store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
+
+      const pile = pileInstances.get(pileId);
+      pubSub.publish('pileActive', { pile, event });
     }
     hideContextMenu(contextMenuElement);
   };
@@ -1459,6 +1494,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
 
     renderRaf();
+    pubSub.publish('render');
   };
 
   const scaleBtnBtnClick = (contextMenuElement, pileId) => () => {
@@ -1574,8 +1610,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.graphics.isHover)
+            if (pile.graphics.isHover) {
               store.dispatch(createAction.setClickedPile([result.pileId]));
+              pubSub.publish('pileSelect', { pile, event });
+            }
           });
         }
       } else {
@@ -1613,6 +1651,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             temp = [result[0].pileId];
           }
           store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
+
+          const pile = pileInstances.get(result[0].pileId);
+          pubSub.publish('pileActive', { pile, event });
         }
       } else {
         store.dispatch(createAction.setTemporaryDepiledPile([]));
@@ -1649,6 +1690,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const mouseScrollHandler = () => {
     stage.y = -rootElement.scrollTop;
     renderRaf();
+    pubSub.publish('render');
   };
 
   const resizeHandler = () => {
@@ -1695,6 +1737,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     createRBush();
     updateScrollContainer();
     renderRaf();
+
+    pubSub.publish('render');
   };
 
   const closeContextMenu = () => {
@@ -1777,7 +1821,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
         tempDepileBtn.addEventListener(
           'click',
-          tempDepileBtnClick(element, pile.id),
+          tempDepileBtnClick(element, pile.id, event),
           false
         );
         scaleBtn.addEventListener(
@@ -1855,6 +1899,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('dropPile', handleDropPile);
     pubSub.subscribe('dragPile', handleDragPile);
     pubSub.subscribe('highlightPile', handleHighlightPile);
+    pubSub.subscribe('hoverPile', handleHoverPile);
+    pubSub.subscribe('leavePile', handleLeavePile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
     pubSub.subscribe('updateBBox', handleUpdateBBox);

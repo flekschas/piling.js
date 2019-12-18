@@ -127,8 +127,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.isPointerDown = false;
   };
 
-  const onPointerOver = () => {
+  const onPointerOver = event => {
     graphics.isHover = true;
+
+    pubSub.publish('hoverPile', { pileId: id, event });
+
     if (isFocus) {
       if (isTempDepiled) {
         drawBorder(3, 'Active');
@@ -149,9 +152,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
-  const onPointerOut = () => {
+  const onPointerOut = event => {
     if (graphics.isDragging) return;
     graphics.isHover = false;
+
+    pubSub.publish('leavePile', { pileId: id, event });
 
     if (!isFocus) border.clear();
 
@@ -169,7 +174,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   };
 
   const onDragStart = event => {
-    pubSub.publish('dragPile', { pileId: id });
+    pubSub.publish('dragPile', { pileId: id, event });
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
@@ -200,7 +205,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       // remove offset
       graphics.x = newPosition.x - graphics.draggingMouseOffset[0];
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
-      pubSub.publish('highlightPile', { pileId: id });
+      pubSub.publish('highlightPile', { pileId: id, event });
       if (isTempDepiled) {
         drawBorder(3, MODE_ACTIVE);
       } else {
