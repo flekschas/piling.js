@@ -1924,6 +1924,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .endFill();
 
     setPublic(initOptions);
+
+    pubSub.publish('init');
   };
 
   const destroy = () => {
