@@ -222,6 +222,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const render = () => {
     renderer.render(root);
+    pubSub.publish('render');
   };
 
   const renderRaf = withRaf(render);
@@ -401,8 +402,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         stage.addChild(lassoContainer);
         lassoContainer.addChild(lasso);
         renderRaf();
-
-        pubSub.publish('render');
       }
     );
   };
@@ -446,8 +445,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       createRBush();
       updateScrollContainer();
       renderRaf();
-
-      pubSub.publish('render');
     }
   };
 
@@ -1030,8 +1027,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateBoundingBox(pileId);
     });
     renderRaf();
-
-    pubSub.publish('render');
   };
 
   let mousePosition = [0, 0];
@@ -1075,8 +1070,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     lassoFill.beginFill(lassoFillColor, lassoFillOpacity);
     lassoFill.drawPolygon(lassoPosFlat);
     renderRaf();
-
-    pubSub.publish('render');
   };
 
   let mouseDown = false;
@@ -1175,8 +1168,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       lassoFill.clear();
       renderRaf();
       isLasso = false;
-
-      pubSub.publish('render');
     }
     lassoPos = [];
     lassoPosFlat = [];
@@ -1189,8 +1180,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateBoundingBox(pileId);
     }
     renderRaf();
-
-    pubSub.publish('render');
   };
 
   const stateUpdates = new Set();
@@ -1302,7 +1291,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       }
       renderRaf();
-      pubSub.publish('render');
     }
 
     if (state.scaledPile !== newState.scaledPile) {
@@ -1317,7 +1305,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       }
       renderRaf();
-      pubSub.publish('render');
     }
 
     if (state.depileMethod !== newState.depileMethod) {
@@ -1494,7 +1481,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
 
     renderRaf();
-    pubSub.publish('render');
   };
 
   const scaleBtnBtnClick = (contextMenuElement, pileId) => () => {
@@ -1690,7 +1676,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const mouseScrollHandler = () => {
     stage.y = -rootElement.scrollTop;
     renderRaf();
-    pubSub.publish('render');
   };
 
   const resizeHandler = () => {
@@ -1737,8 +1722,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     createRBush();
     updateScrollContainer();
     renderRaf();
-
-    pubSub.publish('render');
   };
 
   const closeContextMenu = () => {
