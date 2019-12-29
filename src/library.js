@@ -1023,6 +1023,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else {
           tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
         }
+        pubSub.publish('pileActive', { pile });
       }
       updateBoundingBox(pileId);
     });
@@ -1266,30 +1267,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.clickedPile !== newState.clickedPile) {
-      if (newState.clickedPile.length !== 0) {
-        const newPile = pileInstances.get(newState.clickedPile[0]);
-        if (newPile.isTempDepiled) {
-          newPile.drawBorder(3, MODE_ACTIVE);
-        } else {
-          newPile.drawBorder(2, MODE_SELECTED);
-        }
-        newPile.isFocus = true;
-        if (state.clickedPile.length !== 0) {
-          if (pileInstances.has(state.clickedPile[0])) {
-            const oldPile = pileInstances.get(state.clickedPile[0]);
-            if (!oldPile.isTempDepiled) {
-              oldPile.border.clear();
-              oldPile.isFocus = false;
-            }
-          }
-        }
-      } else if (pileInstances.has(state.clickedPile[0])) {
+      // Unset previously focused pile
+      if (pileInstances.has(state.clickedPile[0])) {
         const pile = pileInstances.get(state.clickedPile[0]);
         if (!pile.isTempDepiled) {
           pile.border.clear();
           pile.isFocus = false;
         }
       }
+
+      // Set newly focused pile if any
+      if (newState.clickedPile.length !== 0) {
+        const pile = pileInstances.get(newState.clickedPile[0]);
+        if (pile.isTempDepiled) {
+          pile.drawBorder(3, MODE_ACTIVE);
+        } else {
+          pile.drawBorder(2, MODE_SELECTED);
+        }
+        pile.isFocus = true;
+        pubSub.publish('pileFocus', { pile });
+      }
+
       renderRaf();
     }
 
@@ -1375,25 +1373,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const handleDragPile = ({ pileId, event }) => {
+  const handleDragPile = ({ pileId, event: sourceEvent }) => {
     const pile = pileInstances.get(pileId);
     activePile.addChild(pile.graphics);
 
-    pubSub.publish('pileFocus', { pile, event });
+    pubSub.publish('pileFocus', { pile, sourceEvent });
   };
 
   let oldResult = [];
   let newResult = [];
 
-  const handleHighlightPile = ({ pileId, event }) => {
+  const handleHighlightPile = ({ pileId, event: sourceEvent }) => {
     if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
     if (store.getState().temporaryDepiledPile.length) return;
 
     oldResult = [...newResult];
     newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
 
-    const pileFocus = pileInstances.get(pileId);
-    pubSub.publish('pileFocus', { pileFocus, event });
+    const focusedPile = pileInstances.get(pileId);
+    pubSub.publish('pileFocus', { pile: focusedPile, sourceEvent });
 
     if (oldResult !== []) {
       oldResult.forEach(collidePile => {
@@ -1408,21 +1406,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId);
         pile.drawBorder();
-        if (pile !== pileFocus) {
-          pubSub.publish('pileEnter', { pile, event });
+        if (pile !== focusedPile) {
+          pubSub.publish('pileEnter', { pile, sourceEvent });
         }
       }
     });
   };
 
-  const handleHoverPile = ({ pileId, event }) => {
+  const handleHoverPile = ({ pileId, event: sourceEvent }) => {
     const pile = pileInstances.get(pileId);
-    pubSub.publish('pileEnter', { pile, event });
+    pubSub.publish('pileEnter', { pile, sourceEvent });
   };
 
-  const handleLeavePile = ({ pileId, event }) => {
+  const handleLeavePile = ({ pileId, event: sourceEvent }) => {
     const pile = pileInstances.get(pileId);
-    pubSub.publish('pileLeave', { pile, event });
+    pubSub.publish('pileLeave', { pile, sourceEvent });
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -1442,7 +1440,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
-  const tempDepileBtnClick = (contextMenuElement, pileId, event) => () => {
+  const tempDepileBtnClick = (contextMenuElement, pileId) => () => {
     const { piles, temporaryDepiledPile } = store.getState();
     if (piles[pileId].items.length > 1) {
       let temp = [...temporaryDepiledPile];
@@ -1452,9 +1450,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         temp = [pileId];
       }
       store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
-
-      const pile = pileInstances.get(pileId);
-      pubSub.publish('pileActive', { pile, event });
     }
     hideContextMenu(contextMenuElement);
   };
@@ -1598,7 +1593,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
               store.dispatch(createAction.setClickedPile([result.pileId]));
-              pubSub.publish('pileSelect', { pile, event });
             }
           });
         }
@@ -1637,9 +1631,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             temp = [result[0].pileId];
           }
           store.dispatch(createAction.setTemporaryDepiledPile([...temp]));
-
-          const pile = pileInstances.get(result[0].pileId);
-          pubSub.publish('pileActive', { pile, event });
         }
       } else {
         store.dispatch(createAction.setTemporaryDepiledPile([]));
