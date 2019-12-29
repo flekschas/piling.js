@@ -36,6 +36,14 @@ const createSvgLinesPiles = element => {
     grid: [10]
   });
 
+  const log = message => () => console.log(message);
+
+  piling.subscribe('pileFocus', log('pileFocus'));
+  piling.subscribe('pileSelect', log('pileSelect'));
+  piling.subscribe('pileActive', log('pileActive'));
+  piling.subscribe('pileEnter', log('pileEnter'));
+  piling.subscribe('pileLeave', log('pileLeave'));
+
   return piling;
 };
 
