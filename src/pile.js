@@ -173,6 +173,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     render();
   };
 
+  let dragMove;
+
   const onDragStart = event => {
     pubSub.publish('dragPile', { pileId: id, event });
 
@@ -186,21 +188,29 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.isDragging = true;
     graphics.beforeDragX = graphics.x;
     graphics.beforeDragY = graphics.y;
+    dragMove = false;
     render();
   };
 
-  const onDragEnd = () => {
+  const onDragEnd = event => {
     if (!graphics.isDragging) return;
     graphics.alpha = 1;
     graphics.isDragging = false;
     graphics.draggingMouseOffset = null;
     // trigger collision check
-    pubSub.publish('dropPile', { pileId: id });
+    pubSub.publish('dropPile', { pileId: id, event });
+    if (dragMove) {
+      pubSub.publish('blurPile', { pileId: id, event });
+    }
     render();
   };
 
   const onDragMove = event => {
     if (graphics.isDragging) {
+      if (!dragMove) {
+        pubSub.publish('focusPile', { pileId: id, event });
+        dragMove = true;
+      }
       const newPosition = event.data.getLocalPosition(graphics.parent);
       // remove offset
       graphics.x = newPosition.x - graphics.draggingMouseOffset[0];
