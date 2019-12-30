@@ -97,7 +97,7 @@ const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
 
 const [itemRotated, setItemRotated] = setter('itemRotated', false);
 
-const [clickedPile, setClickedPile] = setter('clickedPile', []);
+const [clickedPiles, setClickedPiles] = setter('clickedPiles', []);
 
 const [scaledPile, setScaledPile] = setter('scaledPile', []);
 
@@ -106,8 +106,8 @@ const [depileMethod, setDepileMethod] = setter('depileMethod', 'originalPos');
 
 const [depiledPile, setDepiledPile] = setter('depiledPile', []);
 
-const [temporaryDepiledPile, setTemporaryDepiledPile] = setter(
-  'temporaryDepiledPile',
+const [temporaryDepiledPiles, setTemporaryDepiledPiles] = setter(
+  'temporaryDepiledPiles',
   []
 );
 
@@ -306,7 +306,7 @@ const createStore = () => {
   const appReducer = combineReducers({
     aggregateRenderer,
     backgroundColor,
-    clickedPile,
+    clickedPiles,
     coverAggregator,
     depiledPile,
     depileMethod,
@@ -342,7 +342,7 @@ const createStore = () => {
     scaledPile,
     tempDepileDirection,
     tempDepileOneDNum,
-    temporaryDepiledPile
+    temporaryDepiledPiles
   });
 
   const rootReducer = (state, action) => {
@@ -381,11 +381,11 @@ export const createAction = {
   setItemSizeRange,
   setItemAlignment,
   setItemRotated,
-  setClickedPile,
+  setClickedPiles,
   setScaledPile,
   setDepileMethod,
   setDepiledPile,
-  setTemporaryDepiledPile,
+  setTemporaryDepiledPiles,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setEasing,
