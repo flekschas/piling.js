@@ -143,7 +143,7 @@ _Note, mixed data types are currently not supported._
 | ------------------------- | ---------------- | --------------------- | ------------------------------------------------------------------------------------- | ----------- |
 | aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                         | `true`      |
 | backgroundColor           | string or int    | `0x000000`            |                                                                                       | `false`     |
-| clickedPile               | array            | `[]`                  | the id of current focused pile                                                        | `true`      |
+| clickedPiles              | array            | `[]`                  | the id of current focused pile                                                        | `true`      |
 | coverAggregator           | function         |                       | see [`aggregators`](#aggregators)                                                     | `true`      |
 | depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                                      | `true`      |
 | depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                         | `true`      |
@@ -175,7 +175,7 @@ _Note, mixed data types are currently not supported._
 | scaledPile                | array            | `[]`                  | the id of current scaled pile                                                         | `true`      |
 | tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                            | `true`      |
 | tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                    | `true`      |
-| temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                          | `true`      |
+| temporaryDepiledPiles     | array            | `[]`                  | the id of the pile to be temporarily depiled                                          | `true`      |
 
 **Examples and Notes:**
 
@@ -266,9 +266,19 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 | Name              | Event Data | Description                          |
 | ----------------- | ---------- | ------------------------------------ |
-| dropPile      | `{pileId}` | Published when drop a pile           |
-| dragPile      | `{pileId}` | Published when start dragging a pile |
-| highlightPile | `{pileId}` | Published while dragging a pile      |
+| dropPile      | `{pileId}`            | Published when drop a pile                 |
+| dragPile      | `{pileId}`            | Published when start dragging a pile       |
+| highlightPile | `{pileId}`            | Published while dragging a pile            |
+| render        |                       | Published when the data has been rendered  |
+| pileSelect    | `{pile, sourceEvent}` | Published when the user selects a pile     |
+| pileUnselect  | `{pile, sourceEvent}` | Published when the user unselects a pile   |
+| pileFocus     | `{pile, sourceEvent}` | Published when the user focuses a pile     |
+| pileBlur      | `{pile, sourceEvent}` | Published when the user blurs a pile       |
+| pileActive    | `{pile}`              | Published when the user temporarily depiles a pile          |
+| pileInactive  | `{pile}`              | Published when the user closes temporarily depile a pile   |
+| pileEnter     | `{pile, sourceEvent}` | Published when the mouse cursor hovers on a pile            |
+| pileLeave     | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
+
 
 # Renderers
 
