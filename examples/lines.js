@@ -32,8 +32,7 @@ const createSvgLinesPiles = element => {
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000',
-    grid: { cols: 10 }
+    lassoStrokeColor: '#000000'
   });
 
   return piling;

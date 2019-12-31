@@ -77,7 +77,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     depileMethod: true,
     easing: true,
     coverAggregator: true,
-    grid: true,
     itemOpacity: true,
     items: {
       set: value => [
@@ -85,7 +84,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         createAction.initPiles(value.length)
       ]
     },
+    itemSize: true,
     itemSizeRange: true,
+    columns: true,
+    rows: true,
+    rowHeight: true,
+    cellRatio: true,
+    itemPadding: true,
     itemAlignment: true,
     itemRotated: true,
     lassoFillColor: {
@@ -280,9 +285,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const initGrid = () => {
-    const { grid } = store.getState();
+    const {
+      itemSize,
+      columns,
+      rows,
+      rowHeight,
+      cellRatio,
+      itemPadding
+    } = store.getState();
 
-    layout = createGrid(canvas, grid);
+    layout = createGrid(canvas, {
+      itemSize,
+      columns,
+      rows,
+      rowHeight,
+      cellRatio,
+      itemPadding
+    });
     updateScrollContainer();
   };
 
@@ -406,9 +425,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const positionPiles = () => {
-    const { items, orderer, grid } = store.getState();
+    const { items, orderer } = store.getState();
 
-    if (items.length === 0 || !orderer || grid.length === 0) return;
+    if (items.length === 0 || !orderer) return;
 
     const movingPiles = [];
 
@@ -1224,7 +1243,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
-    if (state.grid !== newState.grid) {
+    if (
+      state.itemSize !== newState.itemSize ||
+      state.columns !== newState.columns ||
+      state.rows !== newState.rows ||
+      state.rowHeight !== newState.rowHeight ||
+      state.cellRatio !== newState.cellRatio ||
+      state.itemPadding !== newState.itemPadding
+    ) {
       initGrid();
       stateUpdates.add('layout');
     }
@@ -1903,6 +1929,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
+
+    initGrid();
 
     setPublic(initOptions);
   };

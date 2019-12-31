@@ -2,7 +2,7 @@
  * Factory function to create a grid
  * @param {object} canvas - The canvas instance
  * @param {number} itemSize - The maximum length of either side of an item
- * @param {number} cols - The number of column
+ * @param {number} columns - The number of column
  * @param {number} rows - The number of row
  * @param {number} rowHeight - The height of row
  * @param {number} cellRatio - The ratio of cell height and width
@@ -12,7 +12,7 @@ const createGrid = (
   canvas,
   {
     itemSize = null,
-    cols = 10,
+    columns = 10,
     rows = null,
     rowHeight = null,
     cellRatio = 1,
@@ -21,9 +21,9 @@ const createGrid = (
 ) => {
   const { width } = canvas.getBoundingClientRect();
 
-  let colNum = cols;
+  let colNum = columns;
   let rowNum = 0;
-  let colWidth = width / cols;
+  let colWidth = width / columns;
 
   if (+itemSize) {
     colNum = Math.floor(width / itemSize);

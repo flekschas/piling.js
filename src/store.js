@@ -86,16 +86,14 @@ const [items, setItems] = setter('items', []);
 
 const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
-const [grid, setGrid] = setter('grid', {
-  itemSize: null,
-  cols: 10,
-  rows: null,
-  rowHeight: null,
-  cellRatio: 1,
-  itemPadding: 0
-});
-
+// Grid
+const [itemSize, setItemSize] = setter('itemSize');
 const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
+const [columns, setColumns] = setter('columns', 10);
+const [rows, setRows] = setter('rows');
+const [rowHeight, setRowHeight] = setter('rowHeight');
+const [cellRatio, setCellRatio] = setter('cellRatio', 1);
+const [itemPadding, setItemPadding] = setter('itemPadding', 0);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
@@ -318,13 +316,18 @@ const createStore = () => {
     depiledPile,
     depileMethod,
     easing,
-    grid,
+    itemSize,
+    itemSizeRange,
+    columns,
+    rows,
+    rowHeight,
+    cellRatio,
+    itemPadding,
     itemAlignment,
     itemOpacity,
     itemRenderer,
     itemRotated,
     items,
-    itemSizeRange,
     lassoFillColor,
     lassoFillOpacity,
     lassoStrokeColor,
@@ -384,8 +387,13 @@ export const createAction = {
   setCoverAggregator,
   setItems,
   setOrderer,
-  setGrid,
+  setItemSize,
   setItemSizeRange,
+  setColumns,
+  setRows,
+  setRowHeight,
+  setCellRatio,
+  setItemPadding,
   setItemAlignment,
   setItemRotated,
   setClickedPile,
