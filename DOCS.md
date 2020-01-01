@@ -148,11 +148,16 @@ _Note, mixed data types are currently not supported._
 | depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                                      | `true`      |
 | depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                         | `true`      |
 | easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                                 | `true`      |
-| grid                      | array            | `[]`                  | see [`notes`](#notes)                                                                 | `false`     |
 | itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false`         | `true`      |
 | itemRotated               | boolean          | `false`               | `true` or `false`                                                                     | `true`      |
 | items                     | array            | `[]`                  | see [`data`](#data)                                                                   | `false`     |
+| itemSize                  | int              |                       | number of pixels                                                                      | `true`      |
 | itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                                   | `true`      |
+| columns                   | int              | `10`                  | 
+| rows                      | int              |                       |
+| rowHeight                 | int              |                       |
+| cellRatio                 | float            |                       |
+| itemPadding               | int              |                       |
 | lassoFillColor            | string or int    | `0xffffff`            |                                                                                       | `false`     |
 | lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                                  | `false`     |
 | lassoStrokeColor          | string or int    | `0xffffff`            |                                                                                       | `false`     |
@@ -192,7 +197,10 @@ _Note, mixed data types are currently not supported._
    const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
    ```
 
-- `grid` is an array of numbers that defines a grid, the array can have at most 4 numbers in this particular order: `[num of columns, num of rows, height of a row, ratio of a cell]`, or at least 1 number: `[num of columns]`
+- The following properties to define the _grid_: `itemSize`, `itemPadding`, `columns`, `rows`, `rowHeight`, and `cellRatio`
+
+  One has to at least provide `columns` or `itemSize` to define a grid. If `itemSize` is defined `columns` are ignored.
+
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
   ```javascript
