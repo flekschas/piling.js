@@ -1609,13 +1609,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
               store.dispatch(createAction.setClickedPiles([result.pileId]));
-              pubSub.publish('pileSelect', { pile, sourceEvent: event });
+              pubSub.publish('pileFocus', { pile, sourceEvent: event });
             }
           });
         }
       } else {
         const pile = pileInstances.get(store.getState().clickedPiles[0]);
-        pubSub.publish('pileUnselect', { pile, sourceEvent: event });
+        pubSub.publish('pileBlur', { pile, sourceEvent: event });
         store.dispatch(createAction.setClickedPiles([]));
         store.dispatch(createAction.setScaledPile([]));
       }

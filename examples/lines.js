@@ -40,8 +40,6 @@ const createSvgLinesPiles = element => {
 
   piling.subscribe('pileFocus', log('pileFocus'));
   piling.subscribe('pileBlur', log('pileBlur'));
-  piling.subscribe('pileSelect', log('pileSelect'));
-  piling.subscribe('pileUnselect', log('pileUnselect'));
   piling.subscribe('pileActive', log('pileActive'));
   piling.subscribe('pileInactive', log('pileInactive'));
   piling.subscribe('pileEnter', log('pileEnter'));

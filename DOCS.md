@@ -53,7 +53,10 @@ First, import and instantiate a matrix renderer. If you want to have the aggrega
 import { createMatrixRenderer } from 'piling.js';
 
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
-const aggregateRenderer = createMatrixRenderer({ colorMap: aggregateColorMap, shape: [3, 3]});
+const aggregateRenderer = createMatrixRenderer({
+  colorMap: aggregateColorMap,
+  shape: [3, 3]
+});
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
 ```
 
@@ -139,58 +142,58 @@ _Note, mixed data types are currently not supported._
 
 **Properties:**
 
-| Name                      | Type             | Default               | Constraints                                                                           | Unsettable  |
-| ------------------------- | ---------------- | --------------------- | ------------------------------------------------------------------------------------- | ----------- |
-| aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                         | `true`      |
-| backgroundColor           | string or int    | `0x000000`            |                                                                                       | `false`     |
-| clickedPiles              | array            | `[]`                  | the id of current focused pile                                                        | `true`      |
-| coverAggregator           | function         |                       | see [`aggregators`](#aggregators)                                                     | `true`      |
-| depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                                      | `true`      |
-| depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                         | `true`      |
-| easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                                 | `true`      |
-| grid                      | array            | `[]`                  | see [`notes`](#notes)                                                                 | `false`     |
-| itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false`         | `true`      |
-| itemRotated               | boolean          | `false`               | `true` or `false`                                                                     | `true`      |
-| items                     | array            | `[]`                  | see [`data`](#data)                                                                   | `false`     |
-| itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                                   | `true`      |
-| lassoFillColor            | string or int    | `0xffffff`            |                                                                                       | `false`     |
-| lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                                  | `false`     |
-| lassoStrokeColor          | string or int    | `0xffffff`            |                                                                                       | `false`     |
-| lassoStrokeOpacity        | float            | `0.8`                 | must be in [`0`,`1`]                                                                  | `false`     |
-| lassoStrokeSize           | int              | `1`                   | must be greater or equal than `1`                                                     | `false`     |
-| orderer                   | function         | row-major             | see [`notes`](#notes)                                                                 | `true`      |
-| pileBorderColor           | string or int    | `0x808080`            |                                                                                       | `false`     |
-| pileBorderOpacity         | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
-| pileBorderColorSelected   | string or int    | `0xeee462`            |                                                                                       | `false`     |
-| pileBorderOpacitySelected | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
-| pileBorderColorActive     | string or int    | `0xffa5da`            |                                                                                       | `false`     |
-| pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
-| pileBackgroundColor       | string or int    | `0x000000`            |                                                                                       | `false`     |
-| pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                                  | `false`     |
-| pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                                  | `true`      |
-| previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                                     | `true`      |
-| previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                         | `true`      |
-| previewSpacing            | number           | `2`                   | the spacing between 1D previews                                                       | `true`      |
-| renderer                  | function         |                       | see [`renderers`](#renderers)                                                         | `false`     |
-| scaledPile                | array            | `[]`                  | the id of current scaled pile                                                         | `true`      |
-| tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                            | `true`      |
-| tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout                    | `true`      |
-| temporaryDepiledPiles     | array            | `[]`                  | the id of the pile to be temporarily depiled                                          | `true`      |
+| Name                      | Type             | Default               | Constraints                                                                   | Unsettable |
+| ------------------------- | ---------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
+| aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
+| backgroundColor           | string or int    | `0x000000`            |                                                                               | `false`    |
+| clickedPiles              | array            | `[]`                  | the id of current focused pile                                                | `true`     |
+| coverAggregator           | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
+| depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                              | `true`     |
+| depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
+| easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
+| grid                      | array            | `[]`                  | see [`notes`](#notes)                                                         | `false`    |
+| itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
+| itemRotated               | boolean          | `false`               | `true` or `false`                                                             | `true`     |
+| items                     | array            | `[]`                  | see [`data`](#data)                                                           | `false`    |
+| itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
+| lassoFillColor            | string or int    | `0xffffff`            |                                                                               | `false`    |
+| lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
+| lassoStrokeColor          | string or int    | `0xffffff`            |                                                                               | `false`    |
+| lassoStrokeOpacity        | float            | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
+| lassoStrokeSize           | int              | `1`                   | must be greater or equal than `1`                                             | `false`    |
+| orderer                   | function         | row-major             | see [`notes`](#notes)                                                         | `true`     |
+| pileBorderColor           | string or int    | `0x808080`            |                                                                               | `false`    |
+| pileBorderOpacity         | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorSelected   | string or int    | `0xeee462`            |                                                                               | `false`    |
+| pileBorderOpacitySelected | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorActive     | string or int    | `0xffa5da`            |                                                                               | `false`    |
+| pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBackgroundColor       | string or int    | `0x000000`            |                                                                               | `false`    |
+| pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                          | `true`     |
+| previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
+| previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
+| previewSpacing            | number           | `2`                   | the spacing between 1D previews                                               | `true`     |
+| renderer                  | function         |                       | see [`renderers`](#renderers)                                                 | `false`    |
+| scaledPile                | array            | `[]`                  | the id of current scaled pile                                                 | `true`     |
+| tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
+| tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
+| temporaryDepiledPiles     | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
 
 **Examples and Notes:**
 
 - A property is considered unsettable if its value can be removed.
 - `orderer` is the function for positioning piles, the default function is row-major orderer which looks like this:
 
-   ```javascript
-   // The default row-major order
-   
-   // A function that takes as input the number of columns and outputs
-   // another function that takes in as input the position of a 1D ordering and
-   // outputs the an array of `x` an `y` coordinates.
-   
-   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
-   ```
+  ```javascript
+  // The default row-major order
+
+  // A function that takes as input the number of columns and outputs
+  // another function that takes in as input the position of a 1D ordering and
+  // outputs the an array of `x` an `y` coordinates.
+
+  const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
+  ```
 
 - `grid` is an array of numbers that defines a grid, the array can have at most 4 numbers in this particular order: `[num of columns, num of rows, height of a row, ratio of a cell]`, or at least 1 number: `[num of columns]`
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
@@ -201,7 +204,7 @@ _Note, mixed data types are currently not supported._
     const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
     return p;
   };
-   ```
+  ```
 
 - All color properties (like `backgroundColor`, `lassoFillColor`, etc.) support HEX, RGB, and RGBA string and decimal values. E.g.,
 
@@ -226,16 +229,18 @@ _Note, mixed data types are currently not supported._
 
   ```javascript
   // Add a custom context menu
-  const myClickHandler = (pile) => {
-   console.log('Hi!', pile);
-   // The log statement could look as follows for example:
-   // Hi!, { id: 5, items: [2, 0, 8], x: 215, y: 8 }
+  const myClickHandler = pile => {
+    console.log('Hi!', pile);
+    // The log statement could look as follows for example:
+    // Hi!, { id: 5, items: [2, 0, 8], x: 215, y: 8 }
   };
-  piling.set('pileContextMenuItems', [{
-    id: 'my-click',
-    label: 'Click me!',
-    callback: myClickHandler
-  }]);
+  piling.set('pileContextMenuItems', [
+    {
+      id: 'my-click',
+      label: 'Click me!',
+      callback: myClickHandler
+    }
+  ]);
   ```
 
 #### `piling.destroy()`
@@ -264,21 +269,18 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name              | Event Data | Description                          |
-| ----------------- | ---------- | ------------------------------------ |
-| dropPile      | `{pileId}`            | Published when drop a pile                 |
-| dragPile      | `{pileId}`            | Published when start dragging a pile       |
-| highlightPile | `{pileId}`            | Published while dragging a pile            |
-| render        |                       | Published when the data has been rendered  |
-| pileSelect    | `{pile, sourceEvent}` | Published when the user selects a pile     |
-| pileUnselect  | `{pile, sourceEvent}` | Published when the user unselects a pile   |
-| pileFocus     | `{pile, sourceEvent}` | Published when the user focuses a pile     |
-| pileBlur      | `{pile, sourceEvent}` | Published when the user blurs a pile       |
-| pileActive    | `{pile}`              | Published when the user temporarily depiles a pile          |
-| pileInactive  | `{pile}`              | Published when the user closes temporarily depile a pile   |
-| pileEnter     | `{pile, sourceEvent}` | Published when the mouse cursor hovers on a pile            |
+| Name          | Event Data            | Description                                              |
+| ------------- | --------------------- | -------------------------------------------------------- |
+| dropPile      | `{pileId}`            | Published when drop a pile                               |
+| dragPile      | `{pileId}`            | Published when start dragging a pile                     |
+| highlightPile | `{pileId}`            | Published while dragging a pile                          |
+| render        |                       | Published when the data has been rendered                |
+| pileFocus     | `{pile, sourceEvent}` | Published when the user focuses a pile                   |
+| pileBlur      | `{pile, sourceEvent}` | Published when the user blurs a pile                     |
+| pileActive    | `{pile}`              | Published when the user temporarily depiles a pile       |
+| pileInactive  | `{pile}`              | Published when the user closes temporarily depile a pile |
+| pileEnter     | `{pile, sourceEvent}` | Published when the mouse cursor hovers on a pile         |
 | pileLeave     | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
-
 
 # Renderers
 
@@ -287,6 +289,7 @@ A renderer should be a function that takes as input an array of the value of `sr
 ## Predefined renderers
 
 We provide 3 types of predefined renderers:
+
 - `renderer`: render all the items.
 - `aggregateRenderer`: render the aggregation of a pile.
 - `previewRenderer`: render the preview of an item.
@@ -376,9 +379,10 @@ const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 
 _Note:_
 
-You can pass in different color map or shape to create `aggregateRender` for matrix aggregation and `previewRender` for matrix preview, so that the pile will have an aggregation of all the matrices on the pile cover, and matrix previews on top of the aggregation. 
+You can pass in different color map or shape to create `aggregateRender` for matrix aggregation and `previewRender` for matrix preview, so that the pile will have an aggregation of all the matrices on the pile cover, and matrix previews on top of the aggregation.
 
 For example:
+
 ```javascript
 const aggregateColorMap = new Array(numColors)
   .fill(0)
@@ -420,6 +424,7 @@ const createCustomRenderer = properties => sources => {
   )
 };
 ```
+
 ## Add renderers to piling.js library
 
 Call [set](#pilingsetproperty-value) method to add renderers to the library.
@@ -479,8 +484,8 @@ If you want to define your own aggregator, you can do something as follows:
 // The actual aggregator
 const customAggregateSource = (src, aggregator) => {
   // A function that calculate the aggregation of src
-  return aggregatedSrc
-}
+  return aggregatedSrc;
+};
 
 // Factory function
 const createCustomAggregator = aggregagtor => sources => {
@@ -494,7 +499,7 @@ const createCustomAggregator = aggregagtor => sources => {
         resolve(aggregatedSrc);
       });
     })
-  )
+  );
 };
 ```
 
@@ -503,8 +508,8 @@ const createCustomAggregator = aggregagtor => sources => {
 Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 
 ```javascript
-  piling.set('coverAggregator', coverAggregator);
-  piling.set('previewAggregator', previewAggregator);
+piling.set('coverAggregator', coverAggregator);
+piling.set('previewAggregator', previewAggregator);
 ```
 
 # Interactions
