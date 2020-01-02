@@ -285,6 +285,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const initGrid = () => {
+    let newLayout = false;
+    let oldColWidth;
+    let oldRowHeight;
+    let oldColNum;
+
+    if (renderedItems.size) {
+      newLayout = true;
+      oldColWidth = layout.colWidth;
+      oldRowHeight = layout.rowHeight;
+      oldColNum = layout.colNum;
+    }
+
     const {
       itemSize,
       columns,
@@ -302,6 +314,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       cellRatio,
       itemPadding
     });
+
+    if (newLayout) {
+      // eslint-disable-next-line no-use-before-define
+      updateLayout(oldColWidth, oldRowHeight, oldColNum);
+    }
+
     updateScrollContainer();
   };
 
@@ -359,6 +377,61 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         item.preview.drawBg(0x000000);
       }
     });
+  };
+
+  const updateLayout = (oldColWidth, oldRowHeight, oldColNum) => {
+    const { width, height } = rootElement.getBoundingClientRect();
+
+    const movingPiles = [];
+
+    const { orderer } = store.getState();
+
+    layout.rowNum = Math.ceil(renderedItems.size / layout.colNum);
+    pileInstances.forEach(pile => {
+      const numOfRow = Math.floor(pile.graphics.y / oldRowHeight);
+      const numOfCol = Math.floor(pile.graphics.x / oldColWidth);
+      const [extraX, extraY] = [
+        pile.graphics.x - numOfCol * oldColWidth,
+        pile.graphics.y - numOfRow * oldRowHeight
+      ];
+
+      const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
+      const getPosition = orderer(layout.colNum);
+      const [x, y] = getPosition(gridNum);
+
+      pile.graphics.x = x * layout.colWidth + extraX;
+      pile.graphics.y = y * layout.rowHeight + extraY;
+
+      movingPiles.push({
+        id: pile.id,
+        x: pile.graphics.x,
+        y: pile.graphics.y
+      });
+    });
+
+    scaleItems();
+
+    // if I dispatch this action,
+    // there will be error: maximum call stack size exceeded
+
+    // store.dispatch(createAction.movePiles(movingPiles));
+
+    mask
+      .beginFill(0xffffff)
+      .drawRect(0, 0, width, height)
+      .endFill();
+
+    renderedItems.forEach(item => {
+      const getPosition = orderer(layout.colNum);
+      let [x, y] = getPosition(item.id);
+      x *= layout.colWidth;
+      y *= layout.rowHeight;
+      item.originalPosition = [x, y];
+    });
+
+    createRBush();
+    updateScrollContainer();
+    renderRaf();
   };
 
   const lassoContainer = new PIXI.Container();
