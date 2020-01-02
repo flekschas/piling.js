@@ -3,12 +3,7 @@ import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
-import {
-  camelToConst,
-  deepClone,
-  cubicInOut,
-  softOverwriteState
-} from './utils';
+import { camelToConst, deepClone, cubicInOut, update } from './utils';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -57,7 +52,7 @@ export const overwrite = newState => ({
 });
 
 export const softOverwrite = newState => ({
-  type: 'SOFTOVERWRITE',
+  type: 'SOFT_OVERWRITE',
   payload: { newState }
 });
 
@@ -291,9 +286,6 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
-    case 'OVERWRITE_PILES': {
-      return [...action.payload.newPiles];
-    }
     default:
       return previousState;
   }
@@ -318,11 +310,6 @@ const movePiles = movingPiles => ({
 const depilePiles = depiledPiles => ({
   type: 'DEPILE_PILES',
   payload: { piles: depiledPiles }
-});
-
-const overwritePiles = newPiles => ({
-  type: 'OVERWRITE_PILES',
-  payload: { newPiles }
 });
 
 const createStore = () => {
@@ -373,9 +360,9 @@ const createStore = () => {
       state = undefined; // eslint-disable-line no-param-reassign
     } else if (action.type === 'OVERWRITE') {
       state = action.payload.newState; // eslint-disable-line no-param-reassign
-    } else if (action.type === 'SOFTOVERWRITE') {
+    } else if (action.type === 'SOFT_OVERWRITE') {
       // eslint-disable-next-line no-param-reassign
-      state = softOverwriteState(state, action.payload.newState);
+      state = update(state, action.payload.newState, true);
     }
 
     return appReducer(state, action);
@@ -391,7 +378,6 @@ export const createAction = {
   mergePiles,
   movePiles,
   depilePiles,
-  overwritePiles,
   setBackgroundColor,
   setLassoFillColor,
   setLassoFillOpacity,

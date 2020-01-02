@@ -1345,20 +1345,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return clonedState;
   };
 
-  const importState = (importedState, overwriteState = false) => {
-    if (importedState.version !== VERSION) {
+  const importState = (newState, overwriteState = false) => {
+    if (newState.version !== VERSION) {
       console.warn(
-        `The version of the imported state "${importedState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
+        `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
     }
-    delete importedState.version;
-    if (importedState.piles !== store.getState().piles)
-      store.dispatch(createAction.overwritePiles(importedState.piles));
 
-    if (overwriteState) store.dispatch(overwrite(importedState));
-    else {
-      store.dispatch(softOverwrite(importedState));
-    }
+    delete newState.version;
+
+    if (overwriteState) store.dispatch(overwrite(newState));
+    else store.dispatch(softOverwrite(newState));
   };
 
   let hit;
