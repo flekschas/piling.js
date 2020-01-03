@@ -33,7 +33,6 @@ export const update = (target, source) => {
   Object.keys(source).forEach(key => {
     out[key] = update(target[key], source[key]);
     updated = updated || out[key] !== target[key];
-    if (out[key] !== target[key]) console.log(key, target[key], source[key]);
   });
 
   // In case no property was updated but some were removed `updated` needs to be
