@@ -1335,7 +1335,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     state = newState;
 
-    pubSub.publish('update', { lastAction: store.lastAction });
+    pubSub.publish('update', { action: store.lastAction });
   };
 
   const exportState = () => {

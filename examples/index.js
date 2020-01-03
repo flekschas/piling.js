@@ -32,15 +32,15 @@ const ignoredActions = new Set([
   'SET_CLICKED_PILE'
 ]);
 
-const updateHandler = ({ lastAction }) => {
-  if (ignoredActions.has(lastAction.type)) return;
+const updateHandler = ({ action }) => {
+  if (ignoredActions.has(action.type)) return;
 
   undoButton.style.display = 'block';
 
   const state = piling.exportState();
   history.push(state);
 
-  console.log('Update', lastAction.type, history.length);
+  console.log('Update', action.type, history.length);
 
   if (history.length > 5) history.shift();
 };
