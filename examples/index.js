@@ -18,17 +18,25 @@ let history = [];
 
 const undoHandler = () => {
   if (history.length === 0) return;
-  // the latest history is actually the current state?
+  // Remove the current history
   history.pop();
-  piling.importState(history.pop());
+  piling.importState(history[history.length - 1]);
+  if (history.length === 0) undoButton.style.display = 'none';
 };
 
 undoButton.addEventListener('click', undoHandler);
 
-const updateHandler = () => {
+const ignoredActions = new Set(['OVERWRITE', 'SOFT_OVERWRITE']);
+
+const updateHandler = ({ lastAction }) => {
+  if (ignoredActions.has(lastAction.type)) return;
+
   undoButton.style.display = 'block';
 
-  history.push(piling.exportState());
+  const state = piling.exportState();
+  history.push(state);
+
+  console.log('Update', lastAction.type, history.length);
 
   if (history.length > 5) history.shift();
 };
