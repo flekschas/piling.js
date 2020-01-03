@@ -26,7 +26,11 @@ const undoHandler = () => {
 
 undoButton.addEventListener('click', undoHandler);
 
-const ignoredActions = new Set(['OVERWRITE', 'SOFT_OVERWRITE']);
+const ignoredActions = new Set([
+  'OVERWRITE',
+  'SOFT_OVERWRITE',
+  'SET_CLICKED_PILE'
+]);
 
 const updateHandler = ({ lastAction }) => {
   if (ignoredActions.has(lastAction.type)) return;
