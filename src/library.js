@@ -7,11 +7,12 @@ import { batchActions } from 'redux-batched-actions';
 
 import createAnimator from './animator';
 
-import createStore, { createAction } from './store';
+import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   capitalize,
   colorToDecAlpha,
+  deepClone,
   dist,
   getBBox,
   isPileInPolygon,
@@ -357,6 +358,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!items.length || !itemRenderer) return null;
 
+    renderedItems.forEach(item => {
+      item.destroy();
+    });
+    pileInstances.forEach(pile => {
+      pile.destroy();
+    });
     renderedItems.clear();
     pileInstances.clear();
 
@@ -548,6 +555,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       graphics.x = pile.x;
       graphics.y = pile.y;
       updateBoundingBox(id);
+      renderRaf();
     }
   };
 
@@ -1181,11 +1189,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const stateUpdates = new Set();
-
   const updated = () => {
     const newState = store.getState();
 
+    const stateUpdates = new Set();
     const updates = [];
 
     if (
@@ -1327,6 +1334,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     state = newState;
+
+    pubSub.publish('update', { action: store.lastAction });
+  };
+
+  const exportState = () => {
+    const clonedState = deepClone(state);
+    clonedState.version = VERSION;
+    return clonedState;
+  };
+
+  const importState = (newState, overwriteState = false) => {
+    if (newState.version !== VERSION) {
+      console.warn(
+        `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
+      );
+    }
+
+    delete newState.version;
+
+    if (overwriteState) store.dispatch(overwrite(newState));
+    else store.dispatch(softOverwrite(newState));
   };
 
   let hit;
@@ -1915,7 +1943,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   return {
     destroy,
+    exportState,
     get,
+    importState,
     render: renderRaf,
     set: setPublic,
     subscribe: pubSub.subscribe,

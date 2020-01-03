@@ -59,10 +59,12 @@
     />
 
     <script>
-      window.example = new URLSearchParams(window.location.search)
-        .get('example');
+      window.example = new URLSearchParams(window.location.search).get(
+        'example'
+      );
       window.example = window.example
-        ? window.example.split(' ')[0].toLowerCase() : null;
+        ? window.example.split(' ')[0].toLowerCase()
+        : null;
     </script>
 
     <style type="text/css">
@@ -142,6 +144,12 @@
         flex-direction: column;
       }
 
+      button {
+        background: #bbb;
+        border: 0;
+        border-radius: 0.25rem;
+      }
+
       .container {
         position: absolute;
         top: 5rem;
@@ -178,6 +186,10 @@
       #matrices-credit,
       #svg,
       #svg-credit {
+        display: none;
+      }
+
+      #undo {
         display: none;
       }
     </style>
@@ -223,6 +235,7 @@
           </div>
         </div>
       </div>
+      <button id="undo">Undo</button>
     </header>
     <div id="photos" class="container"></div>
     <div id="matrices" class="container"></div>
