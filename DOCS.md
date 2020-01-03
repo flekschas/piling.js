@@ -135,7 +135,12 @@ _Note, mixed data types are currently not supported._
 
 #### `piling.set(property, value)`
 
-**Arguments:** a pair of `property` and `value` is a key-value pair. The list of all understood properties is given below.
+**Arguments:**
+
+- `property`: Either a string defining the property to be set or an object defining key-value pairs to set multiple properties at once.
+- `value`: If `property` is a string, `value` is the corresponding value. Otherwise, `value` is ignored.
+
+The list of all understood properties is given below.
 
 **Properties:**
 
@@ -178,6 +183,21 @@ _Note, mixed data types are currently not supported._
 | temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                          | `true`      |
 
 **Examples and Notes:**
+
+- To set a single property do:
+
+  ```
+  piling.set('propertyName', value);
+  ```
+  
+  To set multiple values at once do:
+  
+  ```
+  piling.set({
+    propertyNameA: valueA,
+    propertyNameB: valueB,
+  });
+  ```
 
 - A property is considered unsettable if its value can be removed.
 - `orderer` is the function for positioning piles, the default function is row-major orderer which looks like this:
