@@ -1324,6 +1324,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.cellRatio !== newState.cellRatio ||
       state.itemPadding !== newState.itemPadding
     ) {
+      console.log(state.itemSize, newState.itemSize);
       initGrid();
       stateUpdates.add('layout');
     }
@@ -1775,28 +1776,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
         const getPosition = orderer(layout.colNum);
-        const [x, y] = getPosition(gridNum);
+        let [x, y] = getPosition(gridNum);
 
-        pile.graphics.x = x * layout.colWidth + extraX;
-        pile.graphics.y = y * layout.rowHeight + extraY;
+        x = x * layout.colWidth + extraX;
+        y = y * layout.rowHeight + extraY;
 
         movingPiles.push({
           id: pile.id,
-          x: pile.graphics.x,
-          y: pile.graphics.y
+          x,
+          y
         });
       });
     } else {
       layout.colWidth = width / layout.colNum;
       layout.rowHeight = layout.colWidth * layout.cellRatio;
+      let x;
+      let y;
 
       pileInstances.forEach(pile => {
-        pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
-        pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
+        x = (pile.graphics.x / oldColWidth) * layout.colWidth;
+        y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
         movingPiles.push({
           id: pile.id,
-          x: pile.graphics.x,
-          y: pile.graphics.y
+          x,
+          y
         });
       });
     }
