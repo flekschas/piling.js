@@ -72,7 +72,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const properties = {
     aggregateRenderer: true,
     backgroundColor: true,
-    clickedPiles: true,
+    focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
     easing: true,
@@ -851,8 +851,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onDone: () => {
         if (isLastOne) {
           pile.isTempDepiled = true;
-          store.dispatch(createAction.setClickedPiles([]));
-          store.dispatch(createAction.setClickedPiles([pile.id]));
+          store.dispatch(createAction.setFocusedPiles([]));
+          store.dispatch(createAction.setFocusedPiles([pile.id]));
         }
       }
     });
@@ -994,7 +994,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile.isFocus = false;
             // eslint-disable-next-line no-use-before-define
             handleHighlightPile({ pileId });
-            store.dispatch(createAction.setClickedPiles([]));
+            store.dispatch(createAction.setFocusedPiles([]));
           }
         });
         pubSub.publish('pileInactive', { pile });
@@ -1162,7 +1162,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (isLasso) {
       const pilesInLasso = findPilesInLasso(lassoPosFlat);
       if (pilesInLasso.length > 1) {
-        store.dispatch(createAction.setClickedPiles([]));
+        store.dispatch(createAction.setFocusedPiles([]));
         animateMerge(pilesInLasso);
       }
       lasso.closePath();
@@ -1267,10 +1267,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     }
 
-    if (state.clickedPiles !== newState.clickedPiles) {
+    if (state.focusedPiles !== newState.focusedPiles) {
       // Unset previously focused pile
-      if (pileInstances.has(state.clickedPiles[0])) {
-        const pile = pileInstances.get(state.clickedPiles[0]);
+      if (pileInstances.has(state.focusedPiles[0])) {
+        const pile = pileInstances.get(state.focusedPiles[0]);
         if (!pile.isTempDepiled) {
           pile.border.clear();
           pile.isFocus = false;
@@ -1278,14 +1278,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
 
       // Set newly focused pile if any
-      if (newState.clickedPiles.length !== 0) {
-        const pile = pileInstances.get(newState.clickedPiles[0]);
+      if (newState.focusedPiles.length !== 0) {
+        const pile = pileInstances.get(newState.focusedPiles[0]);
         if (pile.isTempDepiled) {
           pile.drawBorder(3, MODE_ACTIVE);
         } else {
           pile.drawBorder(2, MODE_SELECTED);
         }
         pile.isFocus = true;
+        pubSub.publish('pileFocus', { pile });
+      } else {
+        const pile = pileInstances.get(state.focusedPiles[0]);
+        pubSub.publish('pileBlur', { pile });
       }
 
       renderRaf();
@@ -1373,11 +1377,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const handleDragPile = ({ pileId }) => {
-    const pile = pileInstances.get(pileId);
-    activePile.addChild(pile.graphics);
-  };
-
   let oldResult = [];
   let newResult = [];
 
@@ -1405,24 +1404,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const handleFocusPile = ({ pileId, event: sourceEvent }) => {
-    const pile = pileInstances.get(pileId);
-    pubSub.publish('pileFocus', { pile, sourceEvent });
-  };
-
-  const handleBlurPile = ({ pileId, event: sourceEvent }) => {
-    const pile = pileInstances.get(pileId);
-    pubSub.publish('pileBlur', { pile, sourceEvent });
-  };
-
-  const handleHoverPile = ({ pileId, event: sourceEvent }) => {
-    const pile = pileInstances.get(pileId);
-    pubSub.publish('pileEnter', { pile, sourceEvent });
-  };
-
-  const handleLeavePile = ({ pileId, event: sourceEvent }) => {
-    const pile = pileInstances.get(pileId);
-    pubSub.publish('pileLeave', { pile, sourceEvent });
+  const handleDragPile = ({ pileId }) => {
+    activePile.addChild(pileInstances.get(pileId).graphics);
+    handleHighlightPile({ pileId });
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -1438,7 +1422,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else if (depileMethod === 'cloestPos') {
       store.dispatch(createAction.setDepiledPile([pileId]));
     }
-    store.dispatch(createAction.setClickedPiles([]));
+    store.dispatch(createAction.setFocusedPiles([]));
     hideContextMenu(contextMenuElement);
   };
 
@@ -1598,7 +1582,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           } else if (depileMethod === 'cloestPos') {
             store.dispatch(createAction.setDepiledPile([results[0].pileId]));
           }
-          store.dispatch(createAction.setClickedPiles([]));
+          store.dispatch(createAction.setFocusedPiles([]));
         } else if (event.altKey) {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
@@ -1608,15 +1592,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
-              store.dispatch(createAction.setClickedPiles([result.pileId]));
-              pubSub.publish('pileFocus', { pile, sourceEvent: event });
+              store.dispatch(createAction.setFocusedPiles([result.pileId]));
             }
           });
         }
       } else {
-        const pile = pileInstances.get(store.getState().clickedPiles[0]);
-        pubSub.publish('pileBlur', { pile, sourceEvent: event });
-        store.dispatch(createAction.setClickedPiles([]));
+        store.dispatch(createAction.setFocusedPiles([]));
         store.dispatch(createAction.setScaledPile([]));
       }
     }
@@ -1653,11 +1634,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         store.dispatch(createAction.setTemporaryDepiledPiles([]));
-        store.dispatch(createAction.setClickedPiles([]));
+        store.dispatch(createAction.setFocusedPiles([]));
       }
     } else {
       store.dispatch(createAction.setTemporaryDepiledPiles([]));
-      store.dispatch(createAction.setClickedPiles([]));
+      store.dispatch(createAction.setFocusedPiles([]));
     }
   };
 
@@ -1889,13 +1870,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
     canvas.addEventListener('wheel', mouseWheelHandler, false);
 
-    pubSub.subscribe('dropPile', handleDropPile);
-    pubSub.subscribe('dragPile', handleDragPile);
-    pubSub.subscribe('focusPile', handleFocusPile);
-    pubSub.subscribe('blurPile', handleBlurPile);
-    pubSub.subscribe('highlightPile', handleHighlightPile);
-    pubSub.subscribe('hoverPile', handleHoverPile);
-    pubSub.subscribe('leavePile', handleLeavePile);
+    pubSub.subscribe('pileDrag', handleDragPile);
+    pubSub.subscribe('pileDrop', handleDropPile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
     pubSub.subscribe('updateBBox', handleUpdateBBox);

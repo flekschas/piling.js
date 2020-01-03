@@ -97,7 +97,7 @@ const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
 
 const [itemRotated, setItemRotated] = setter('itemRotated', false);
 
-const [clickedPiles, setClickedPiles] = setter('clickedPiles', []);
+const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
 const [scaledPile, setScaledPile] = setter('scaledPile', []);
 
@@ -306,7 +306,7 @@ const createStore = () => {
   const appReducer = combineReducers({
     aggregateRenderer,
     backgroundColor,
-    clickedPiles,
+    focusedPiles,
     coverAggregator,
     depiledPile,
     depileMethod,
@@ -381,7 +381,7 @@ export const createAction = {
   setItemSizeRange,
   setItemAlignment,
   setItemRotated,
-  setClickedPiles,
+  setFocusedPiles,
   setScaledPile,
   setDepileMethod,
   setDepiledPile,

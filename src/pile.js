@@ -130,7 +130,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const onPointerOver = event => {
     graphics.isHover = true;
 
-    pubSub.publish('hoverPile', { pileId: id, event });
+    pubSub.publish('pileEnter', { pileId: id, event });
 
     if (isFocus) {
       if (isTempDepiled) {
@@ -156,7 +156,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (graphics.isDragging) return;
     graphics.isHover = false;
 
-    pubSub.publish('leavePile', { pileId: id, event });
+    pubSub.publish('pileLeave', { pileId: id, event });
 
     if (!isFocus) border.clear();
 
@@ -176,8 +176,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let dragMove;
 
   const onDragStart = event => {
-    pubSub.publish('dragPile', { pileId: id, event });
-
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     graphics.draggingMouseOffset = [
@@ -197,30 +195,32 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.alpha = 1;
     graphics.isDragging = false;
     graphics.draggingMouseOffset = null;
-    // trigger collision check
-    pubSub.publish('dropPile', { pileId: id, event });
+
     if (dragMove) {
-      pubSub.publish('blurPile', { pileId: id, event });
+      // trigger collision check
+      pubSub.publish('pileDrop', { pileId: id, event });
     }
+
     render();
   };
 
   const onDragMove = event => {
     if (graphics.isDragging) {
-      if (!dragMove) {
-        pubSub.publish('focusPile', { pileId: id, event });
-        dragMove = true;
-      }
+      dragMove = true;
+
+      pubSub.publish('pileDrag', { pileId: id, event });
+
       const newPosition = event.data.getLocalPosition(graphics.parent);
       // remove offset
       graphics.x = newPosition.x - graphics.draggingMouseOffset[0];
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
-      pubSub.publish('highlightPile', { pileId: id, event });
+
       if (isTempDepiled) {
         drawBorder(3, MODE_ACTIVE);
       } else {
         drawBorder(2, MODE_SELECTED);
       }
+
       render();
     }
   };
