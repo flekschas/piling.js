@@ -313,6 +313,8 @@ const depilePiles = depiledPiles => ({
 });
 
 const createStore = () => {
+  let lastAction = null;
+
   const appReducer = combineReducers({
     aggregateRenderer,
     backgroundColor,
@@ -356,6 +358,8 @@ const createStore = () => {
   });
 
   const rootReducer = (state, action) => {
+    lastAction = action;
+
     if (action.type === 'RESET') {
       state = undefined; // eslint-disable-line no-param-reassign
     } else if (action.type === 'OVERWRITE') {
@@ -368,7 +372,15 @@ const createStore = () => {
     return appReducer(state, action);
   };
 
-  return createReduxStore(enableBatching(rootReducer));
+  const reduxStore = createReduxStore(enableBatching(rootReducer));
+
+  reduxStore.lastAction = () => lastAction;
+
+  Object.defineProperty(reduxStore, 'lastAction', {
+    get: () => lastAction
+  });
+
+  return reduxStore;
 };
 
 export default createStore;
