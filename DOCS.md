@@ -138,7 +138,12 @@ _Note, mixed data types are currently not supported._
 
 #### `piling.set(property, value)`
 
-**Arguments:** a pair of `property` and `value` is a key-value pair. The list of all understood properties is given below.
+**Arguments:**
+
+- `property`: Either a string defining the property to be set or an object defining key-value pairs to set multiple properties at once.
+- `value`: If `property` is a string, `value` is the corresponding value. Otherwise, `value` is ignored.
+
+The list of all understood properties is given below.
 
 **Properties:**
 
@@ -181,6 +186,21 @@ _Note, mixed data types are currently not supported._
 | temporaryDepiledPiles     | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
 
 **Examples and Notes:**
+
+- To set a single property do:
+
+  ```
+  piling.set('propertyName', value);
+  ```
+
+  To set multiple values at once do:
+
+  ```
+  piling.set({
+    propertyNameA: valueA,
+    propertyNameB: valueB,
+  });
+  ```
 
 - A property is considered unsettable if its value can be removed.
 - `orderer` is the function for positioning piles, the default function is row-major orderer which looks like this:
@@ -269,17 +289,18 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name          | Event Data            | Description                                              |
-| ------------- | --------------------- | -------------------------------------------------------- |
-| render        |                       | Published when the data has been rendered                |
-| pileEnter     | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile            |
-| pileLeave     | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
-| pileFocus     | `{pile}`              | Published when the user focuses a pile                   |
-| pileBlur      | `{pile}`              | Published when the user blurs a pile                     |
-| pileActive    | `{pile}`              | Published when the user temporarily depiles a pile       |
-| pileInactive  | `{pile}`              | Published when the user closes temporarily depile a pile |
-| pileDrag      | `{pile, sourceEvent}` | Published when a pile is dropped                         |
-| pileDrop      | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
+| Name         | Event Data            | Description                                              |
+| ------------ | --------------------- | -------------------------------------------------------- |
+| render       |                       | Published when the data has been rendered                |
+| update       | `{action}`            | Published when the redux store is updated                |
+| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile            |
+| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
+| pileFocus    | `{pile}`              | Published when the user focuses a pile                   |
+| pileBlur     | `{pile}`              | Published when the user blurs a pile                     |
+| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile       |
+| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile |
+| pileDrag     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
+| pileDrop     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
 
 # Renderers
 
