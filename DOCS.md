@@ -264,11 +264,12 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name              | Event Data | Description                          |
-| ----------------- | ---------- | ------------------------------------ |
-| dropPile      | `{pileId}` | Published when drop a pile           |
-| dragPile      | `{pileId}` | Published when start dragging a pile |
-| highlightPile | `{pileId}` | Published while dragging a pile      |
+| Name          | Event Data | Description                               |
+| ------------- | ---------- | ----------------------------------------- |
+| dropPile      | `{pileId}` | Published when drop a pile                |
+| dragPile      | `{pileId}` | Published when start dragging a pile      |
+| highlightPile | `{pileId}` | Published while dragging a pile           |
+| update        | `{action}` | Published when the redux store is updated |
 
 # Renderers
 
