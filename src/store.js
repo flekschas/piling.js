@@ -3,7 +3,7 @@ import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
-import { camelToConst, deepClone, cubicInOut } from './utils';
+import { camelToConst, deepClone, cubicInOut, update } from './utils';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -44,6 +44,16 @@ const setter = (key, defaultValue = null) => [
 export const reset = () => ({
   type: 'RESET',
   payload: {}
+});
+
+export const overwrite = newState => ({
+  type: 'OVERWRITE',
+  payload: { newState }
+});
+
+export const softOverwrite = newState => ({
+  type: 'SOFT_OVERWRITE',
+  payload: { newState }
 });
 
 const [backgroundColor, setBackgroundColor] = setter(
@@ -102,7 +112,7 @@ const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
 
 const [itemRotated, setItemRotated] = setter('itemRotated', false);
 
-const [clickedPile, setClickedPile] = setter('clickedPile', []);
+const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
 const [scaledPile, setScaledPile] = setter('scaledPile', []);
 
@@ -111,8 +121,8 @@ const [depileMethod, setDepileMethod] = setter('depileMethod', 'originalPos');
 
 const [depiledPile, setDepiledPile] = setter('depiledPile', []);
 
-const [temporaryDepiledPile, setTemporaryDepiledPile] = setter(
-  'temporaryDepiledPile',
+const [temporaryDepiledPiles, setTemporaryDepiledPiles] = setter(
+  'temporaryDepiledPiles',
   []
 );
 
@@ -308,10 +318,12 @@ const depilePiles = depiledPiles => ({
 });
 
 const createStore = () => {
+  let lastAction = null;
+
   const appReducer = combineReducers({
     aggregateRenderer,
     backgroundColor,
-    clickedPile,
+    focusedPiles,
     coverAggregator,
     depiledPile,
     depileMethod,
@@ -352,18 +364,33 @@ const createStore = () => {
     scaledPile,
     tempDepileDirection,
     tempDepileOneDNum,
-    temporaryDepiledPile
+    temporaryDepiledPiles
   });
 
   const rootReducer = (state, action) => {
+    lastAction = action;
+
     if (action.type === 'RESET') {
       state = undefined; // eslint-disable-line no-param-reassign
+    } else if (action.type === 'OVERWRITE') {
+      state = action.payload.newState; // eslint-disable-line no-param-reassign
+    } else if (action.type === 'SOFT_OVERWRITE') {
+      // eslint-disable-next-line no-param-reassign
+      state = update(state, action.payload.newState, true);
     }
 
     return appReducer(state, action);
   };
 
-  return createReduxStore(enableBatching(rootReducer));
+  const reduxStore = createReduxStore(enableBatching(rootReducer));
+
+  reduxStore.lastAction = () => lastAction;
+
+  Object.defineProperty(reduxStore, 'lastAction', {
+    get: () => lastAction
+  });
+
+  return reduxStore;
 };
 
 export default createStore;
@@ -396,11 +423,11 @@ export const createAction = {
   setItemPadding,
   setItemAlignment,
   setItemRotated,
-  setClickedPile,
+  setFocusedPiles,
   setScaledPile,
   setDepileMethod,
   setDepiledPile,
-  setTemporaryDepiledPile,
+  setTemporaryDepiledPiles,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setEasing,

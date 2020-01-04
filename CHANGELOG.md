@@ -1,6 +1,6 @@
 # Next
 
-- Add properties for setting various colors via `.set(property, value)`:
+- Add properties for setting various colors via [`.set()`](DOCS.md#pilingsetproperty-value):
   - `backgroundColor`
   - `lassoFillColor`
   - `lassoFillOpacity`
@@ -16,7 +16,19 @@
   - `pileBackgroundColor`
   - `pileBackgroundOpacity`
 - Add `pileContextMenuItems` property to define custom context menu items.
+- Add `exportState()` and `importState(newState)` to the library instance to allow saving a state and implementing an undo functionality.
+- Add the following [new events](DOCS.md#events):
+  - `update`
+  - `pileEnter`
+  - `pileLeave`
+  - `pileFocus`
+  - `pileBlur`
+  - `pileActive`
+  - `pileInactive`
+  - `pileDrag`
+  - `pileDrop`
 - Redesign default context menu
+- Update grid on browser window resize
 
 ## v0.2.0
 

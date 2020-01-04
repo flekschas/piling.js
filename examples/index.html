@@ -144,6 +144,12 @@
         flex-direction: column;
       }
 
+      button {
+        background: #bbb;
+        border: 0;
+        border-radius: 0.25rem;
+      }
+
       .container {
         position: absolute;
         top: 5rem;
@@ -278,6 +284,10 @@
         display: flex;
         align-items: center;
       }
+
+      #undo {
+        display: none;
+      }
     </style>
   </head>
 
@@ -344,7 +354,9 @@
           />
         </svg>
       </button>
-      <div class="content"></div>
+      <div class="content">
+        <button id="undo">Undo</button>
+      </div>
     </aside>
   </body>
 </html>

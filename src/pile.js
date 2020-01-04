@@ -127,8 +127,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.isPointerDown = false;
   };
 
-  const onPointerOver = () => {
+  const onPointerOver = event => {
     graphics.isHover = true;
+
+    pubSub.publish('pileEnter', { pileId: id, event });
+
     if (isFocus) {
       if (isTempDepiled) {
         drawBorder(3, 'Active');
@@ -149,9 +152,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
-  const onPointerOut = () => {
+  const onPointerOut = event => {
     if (graphics.isDragging) return;
     graphics.isHover = false;
+
+    pubSub.publish('pileLeave', { pileId: id, event });
 
     if (!isFocus) border.clear();
 
@@ -168,9 +173,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     render();
   };
 
-  const onDragStart = event => {
-    pubSub.publish('dragPile', { pileId: id });
+  let dragMove;
 
+  const onDragStart = event => {
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     graphics.draggingMouseOffset = [
@@ -181,31 +186,41 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.isDragging = true;
     graphics.beforeDragX = graphics.x;
     graphics.beforeDragY = graphics.y;
+    dragMove = false;
     render();
   };
 
-  const onDragEnd = () => {
+  const onDragEnd = event => {
     if (!graphics.isDragging) return;
     graphics.alpha = 1;
     graphics.isDragging = false;
     graphics.draggingMouseOffset = null;
-    // trigger collision check
-    pubSub.publish('dropPile', { pileId: id });
+
+    if (dragMove) {
+      // trigger collision check
+      pubSub.publish('pileDrop', { pileId: id, event });
+    }
+
     render();
   };
 
   const onDragMove = event => {
     if (graphics.isDragging) {
+      dragMove = true;
+
+      pubSub.publish('pileDrag', { pileId: id, event });
+
       const newPosition = event.data.getLocalPosition(graphics.parent);
       // remove offset
       graphics.x = newPosition.x - graphics.draggingMouseOffset[0];
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
-      pubSub.publish('highlightPile', { pileId: id });
+
       if (isTempDepiled) {
         drawBorder(3, MODE_ACTIVE);
       } else {
         drawBorder(2, MODE_SELECTED);
       }
+
       render();
     }
   };
