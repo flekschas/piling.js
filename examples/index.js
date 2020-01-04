@@ -122,6 +122,14 @@ createPiles(exampleEl.value).then(pilingLib => {
           nullifiable: true
         },
         {
+          name: 'itemPadding',
+          dtype: 'int',
+          min: 0,
+          max: 64,
+          steps: 8,
+          nullifiable: true
+        },
+        {
           name: 'columns',
           dtype: 'int',
           min: 1,
@@ -218,7 +226,7 @@ createPiles(exampleEl.value).then(pilingLib => {
       input.setAttribute('value', pilingLib.get(field.name));
 
       let isSet;
-      if (field.nullifiable) {
+      if (field.nullifiable || typeof field.nullifiable === 'undefined') {
         isSet = document.createElement('input');
         isSet.setAttribute('type', 'checkbox');
         if (pilingLib.get(field.name) !== null) {
