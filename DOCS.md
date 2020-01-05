@@ -164,7 +164,7 @@ The list of all understood properties is given below.
 | columns                   | int              | `10`                  |
 | rows                      | int              |                       |
 | rowHeight                 | int              |                       |
-| cellRatio                 | float            |                       |
+| cellAspectRatio           | float            |                       |
 | itemPadding               | int              |                       |
 | lassoFillColor            | string or int    | `0xffffff`            |                                                                               | `false`    |
 | lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
@@ -220,7 +220,7 @@ The list of all understood properties is given below.
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
   ```
 
-- The following properties to define the _grid_: `itemSize`, `itemPadding`, `columns`, `rows`, `rowHeight`, and `cellRatio`
+- The following properties to define the _grid_: `itemSize`, `itemPadding`, `columns`, `rows`, `rowHeight`, and `cellAspectRatio`
 
   One has to at least provide `columns` or `itemSize` to define a grid. If `itemSize` is defined `columns` are ignored.
 

@@ -5,7 +5,7 @@
  * @param {number} columns - The number of column
  * @param {number} rows - The number of row
  * @param {number} rowHeight - The height of row
- * @param {number} cellRatio - The ratio of cell height and width
+ * @param {number} cellAspectRatio - The ratio of cell height and width
  * @param {number} itemPadding - The padding between items
  */
 const createGrid = (
@@ -15,7 +15,7 @@ const createGrid = (
     columns = 10,
     rows = null,
     rowHeight = null,
-    cellRatio = 1,
+    cellAspectRatio = 1,
     itemPadding = 0
   } = {}
 ) => {
@@ -32,7 +32,10 @@ const createGrid = (
 
   if (!+rowHeight) {
     // eslint-disable-next-line no-param-reassign
-    rowHeight = cellRatio * colWidth;
+    rowHeight = colWidth / cellAspectRatio;
+  } else {
+    // eslint-disable-next-line no-param-reassign
+    cellAspectRatio = colWidth / rowHeight;
   }
   if (+rows) {
     rowNum = rows;
@@ -44,7 +47,7 @@ const createGrid = (
     rowNum,
     colWidth,
     rowHeight,
-    cellRatio,
+    cellAspectRatio,
     itemPadding
   };
 };
