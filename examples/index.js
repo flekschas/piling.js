@@ -167,8 +167,7 @@ createPiles(exampleEl.value).then(pilingLib => {
           dtype: 'int',
           min: 0,
           max: 64,
-          steps: 8,
-          nullifiable: true
+          steps: 8
         },
         {
           name: 'columns',
@@ -266,10 +265,9 @@ createPiles(exampleEl.value).then(pilingLib => {
 
       input.setAttribute('value', pilingLib.get(field.name));
 
-      let isSet;
-      if (field.nullifiable || typeof field.nullifiable === 'undefined') {
-        isSet = document.createElement('input');
-        isSet.setAttribute('type', 'checkbox');
+      const isSet = document.createElement('input');
+      isSet.setAttribute('type', 'checkbox');
+      if (field.nullifiable) {
         if (pilingLib.get(field.name) !== null) {
           isSet.checked = true;
         }
@@ -282,8 +280,11 @@ createPiles(exampleEl.value).then(pilingLib => {
             value.textContent = '';
           }
         });
-        inputs.appendChild(isSet);
+      } else {
+        isSet.checked = true;
+        isSet.disabled = true;
       }
+      inputs.appendChild(isSet);
 
       input.addEventListener('change', event => {
         if (isSet && isSet.checked) {
