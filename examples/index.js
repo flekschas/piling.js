@@ -23,7 +23,7 @@ const undoHandler = () => {
   // Remove the current history
   history.pop();
   piling.importState(history[history.length - 1]);
-  if (history.length === 0) undoButton.style.display = 'none';
+  if (history.length === 0) undoButton.disabled = true;
 };
 
 undoButton.addEventListener('click', undoHandler);
@@ -37,7 +37,7 @@ const ignoredActions = new Set([
 const updateHandler = ({ action }) => {
   if (ignoredActions.has(action.type)) return;
 
-  undoButton.style.display = 'block';
+  undoButton.disabled = false;
 
   const state = piling.exportState();
   history.push(state);
@@ -57,7 +57,7 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
-      undoButton.style.display = 'none';
+      undoButton.disabled = true;
       piling = await createPhotoPiles(photosEl);
       history = [];
       piling.subscribe('update', updateHandler);
@@ -71,7 +71,7 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
-      undoButton.style.display = 'none';
+      undoButton.disabled = true;
       piling = await createMatrixPiles(matricesEl);
       history = [];
       piling.subscribe('update', updateHandler);
@@ -85,7 +85,7 @@ const createPiles = async example => {
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
-      undoButton.style.display = 'none';
+      undoButton.disabled = true;
       piling = await createSvgLinesPiles(svgEl);
       history = [];
       piling.subscribe('update', updateHandler);

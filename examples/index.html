@@ -232,16 +232,17 @@
         transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
           border-radius 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
           background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
       #options .toggler:hover {
         opacity: 0.4;
       }
 
-      #options .toggler:active,
       #options .toggler:focus {
         outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 127, 246, 0.9);
       }
 
       #options .toggler svg {
@@ -265,6 +266,14 @@
         margin: 0.5rem;
       }
 
+      #options .content h4 {
+        margin: 1rem 0 0.5rem 0;
+      }
+
+      #options .content h4:after {
+        content: ':';
+      }
+
       #options label {
         display: block;
         margin: 0.25rem 0;
@@ -286,7 +295,30 @@
       }
 
       #undo {
-        display: none;
+        position: relative;
+        display: block;
+        width: 100%;
+        line-height: 1.5rem;
+        border-radius: 0.25rem;
+        color: black;
+        border: 1px solid white;
+        background: white;
+        transition: color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          border 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      #undo:focus {
+        outline: none;
+        box-shadow: 0 0 0 1px black, 0 0 0 3px rgba(255, 127, 246, 0.9);
+      }
+
+      #undo:disabled {
+        color: white;
+        background: black;
+        opacity: 0.33;
       }
     </style>
   </head>
@@ -355,7 +387,7 @@
         </svg>
       </button>
       <div class="content">
-        <button id="undo">Undo</button>
+        <button id="undo" disabled="disabled">Undo</button>
       </div>
     </aside>
   </body>
