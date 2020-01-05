@@ -89,7 +89,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     columns: true,
     rows: true,
     rowHeight: true,
-    cellRatio: true,
+    cellAspectRatio: true,
     itemPadding: true,
     itemAlignment: true,
     itemRotated: true,
@@ -302,7 +302,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rows,
       rowHeight,
-      cellRatio,
+      cellAspectRatio,
       itemPadding
     } = store.getState();
 
@@ -311,7 +311,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rows,
       rowHeight,
-      cellRatio,
+      cellAspectRatio,
       itemPadding
     });
 
@@ -1321,7 +1321,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.columns !== newState.columns ||
       state.rows !== newState.rows ||
       state.rowHeight !== newState.rowHeight ||
-      state.cellRatio !== newState.cellRatio ||
+      state.cellAspectRatio !== newState.cellAspectRatio ||
       state.itemPadding !== newState.itemPadding
     ) {
       console.log(state.itemSize, newState.itemSize);
@@ -1789,7 +1789,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     } else {
       layout.colWidth = width / layout.colNum;
-      layout.rowHeight = layout.colWidth * layout.cellRatio;
+      layout.rowHeight = layout.colWidth / layout.cellAspectRatio;
       let x;
       let y;
 

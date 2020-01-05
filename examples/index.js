@@ -144,7 +144,7 @@ createPiles(exampleEl.value).then(pilingLib => {
           nullifiable: true
         },
         {
-          name: 'cellRatio',
+          name: 'cellAspectRatio',
           dtype: 'float',
           nullifiable: true
         }
