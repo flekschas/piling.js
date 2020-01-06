@@ -393,7 +393,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateLayout = (oldColWidth, oldRowHeight, oldColNum) => {
-    const { width, height } = rootElement.getBoundingClientRect();
+    // const { width, height } = rootElement.getBoundingClientRect();
 
     const movingPiles = [];
 
@@ -424,23 +424,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     scaleItems();
 
-    // if I dispatch this action,
-    // there will be error: maximum call stack size exceeded
-
     store.dispatch(createAction.movePiles(movingPiles));
 
-    mask
-      .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
-      .endFill();
-
-    // renderedItems.forEach(item => {
-    //   const getPosition = orderer(layout.colNum);
-    //   let [x, y] = getPosition(item.id);
-    //   x *= layout.colWidth;
-    //   y *= layout.rowHeight;
-    //   item.originalPosition = [x, y];
-    // });
+    // Fritz: not sure what this is used for and it seems to work without
+    // mask
+    //   .beginFill(0xffffff)
+    //   .drawRect(0, 0, width, height)
+    //   .endFill();
 
     createRBush();
     updateScrollContainer();
