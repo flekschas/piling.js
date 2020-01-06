@@ -399,15 +399,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
       const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(gridNum);
+      const [x, y] = getPosition(gridNum);
 
-      x = x * layout.colWidth + extraX;
-      y = y * layout.rowHeight + extraY;
+      pile.graphics.x = x * layout.colWidth + extraX;
+      pile.graphics.y = y * layout.rowHeight + extraY;
 
       movingPiles.push({
         id: pile.id,
-        x,
-        y
+        x: pile.graphics.x,
+        y: pile.graphics.y
       });
     });
 
