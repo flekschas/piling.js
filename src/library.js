@@ -287,17 +287,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const initGrid = () => {
-    let newLayout = false;
-    let oldColWidth;
-    let oldRowHeight;
-    let oldColNum;
+    const {
+      itemSize,
+      columns,
+      rows,
+      rowHeight,
+      cellAspectRatio,
+      itemPadding
+    } = store.getState();
 
-    if (renderedItems.size) {
-      newLayout = true;
-      oldColWidth = layout.colWidth;
-      oldRowHeight = layout.rowHeight;
-      oldColNum = layout.colNum;
-    }
+    layout = createGrid(canvas, {
+      itemSize,
+      columns,
+      rows,
+      rowHeight,
+      cellAspectRatio,
+      itemPadding
+    });
+
+    updateScrollContainer();
+  };
+
+  const updateGrid = () => {
+    const oldColWidth = layout.colWidth;
+    const oldRowHeight = layout.rowHeight;
+    const oldColNum = layout.colNum;
 
     const {
       itemSize,
@@ -317,11 +331,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemPadding
     });
 
-    if (newLayout) {
-      // eslint-disable-next-line no-use-before-define
-      updateLayout(oldColWidth, oldRowHeight, oldColNum);
-    }
-
+    // eslint-disable-next-line no-use-before-define
+    updateLayout(oldColWidth, oldRowHeight, oldColNum);
     updateScrollContainer();
   };
 
@@ -416,20 +427,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // if I dispatch this action,
     // there will be error: maximum call stack size exceeded
 
-    // store.dispatch(createAction.movePiles(movingPiles));
+    store.dispatch(createAction.movePiles(movingPiles));
 
     mask
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
 
-    renderedItems.forEach(item => {
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(item.id);
-      x *= layout.colWidth;
-      y *= layout.rowHeight;
-      item.originalPosition = [x, y];
-    });
+    // renderedItems.forEach(item => {
+    //   const getPosition = orderer(layout.colNum);
+    //   let [x, y] = getPosition(item.id);
+    //   x *= layout.colWidth;
+    //   y *= layout.rowHeight;
+    //   item.originalPosition = [x, y];
+    // });
 
     createRBush();
     updateScrollContainer();
@@ -1335,7 +1346,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.itemPadding !== newState.itemPadding
     ) {
-      initGrid();
+      stateUpdates.add('grid');
       stateUpdates.add('layout');
     }
 
@@ -1439,6 +1450,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     state = newState;
 
     pubSub.publish('update', { action: store.lastAction });
+
+    // Consequential updates that cause new actions to be dispatched
+    if (stateUpdates.has('grid')) {
+      updateGrid();
+    }
   };
 
   const exportState = () => {
