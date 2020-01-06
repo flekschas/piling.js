@@ -529,9 +529,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         x *= layout.colWidth;
         y *= layout.rowHeight;
 
-        x += pile.graphics.x;
-        y += pile.graphics.y;
-
         renderedItems.get(id).originalPosition = [x, y];
 
         movingPiles.push({
