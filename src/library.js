@@ -424,7 +424,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     scaleItems();
 
-    store.dispatch(createAction.movePiles(movingPiles));
+    // Animate pile move
+    movingPiles.forEach(({ id, x, y }, index) => {
+      const pile = pileInstances.get(id);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => {
+          return [pile.graphics.x, pile.graphics.y];
+        },
+        setter: newValue => {
+          pile.graphics.x = newValue[0];
+          pile.graphics.y = newValue[1];
+        },
+        onDone: () => {
+          if (index === pileInstances.size - 1) {
+            store.dispatch(createAction.movePiles(movingPiles));
+          }
+        }
+      });
+      animator.add(tweener);
+    });
 
     // Fritz: not sure what this is used for and it seems to work without
     // mask
