@@ -15,6 +15,7 @@ import {
   deepClone,
   dist,
   getBBox,
+  isFunction,
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
@@ -141,6 +142,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacityActive: true,
+    pileBorderSize: true,
     pileBackgroundColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -152,6 +154,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     pileBackgroundOpacity: true,
     pileContextMenuItems: true,
+    pileOpacity: true,
+    pileScale: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -1192,6 +1196,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const style = (property, callback) => {
+    switch (property) {
+      case 'itemOpacity':
+        store.dispatch(createAction.setItemOpacity(callback));
+        break;
+      case 'pileOpacity':
+        store.dispatch(createAction.setPileOpacity(callback));
+        break;
+      case 'pileScale':
+        store.dispatch(createAction.setPileScale(callback));
+        break;
+      case 'pileBorderSize':
+        store.dispatch(createAction.setPileBorderSize(callback));
+        break;
+      default:
+        break;
+    }
+  };
+
   const updated = () => {
     const newState = store.getState();
 
@@ -1326,6 +1349,50 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.previewSpacing !== newState.previewSpacing) {
       stateUpdates.add('layout');
+    }
+
+    if (state.itemOpacity !== newState.itemOpacity) {
+      if (newState.itemOpacity) {
+        pileInstances.forEach(pile => {
+          pile.itemContainer.children.forEach((item, i) => {
+            item.alpha = isFunction(newState.itemOpacity)
+              ? newState.itemOpacity(item, pile, i)
+              : newState.itemOpacity;
+          });
+        });
+      }
+    }
+
+    if (state.pileOpacity !== newState.pileOpacity) {
+      if (newState.pileOpacity) {
+        pileInstances.forEach((pile, i) => {
+          pile.graphics.alpha = isFunction(newState.pileOpacity)
+            ? newState.pileOpacity(pile, i)
+            : newState.pileOpacity;
+        });
+      }
+    }
+
+    if (state.pileScale !== newState.pileScale) {
+      if (newState.pileScale) {
+        pileInstances.forEach((pile, i) => {
+          pile.graphics.scale.x = isFunction(newState.pileScale)
+            ? newState.pileScale(pile, i)
+            : newState.pileScale;
+          pile.graphics.scale.y = pile.graphics.scale.x;
+        });
+      }
+    }
+
+    if (state.pileBorderSize !== newState.pileBorderSize) {
+      if (newState.pileBorderSize) {
+        pileInstances.forEach((pile, i) => {
+          const borderSize = isFunction(newState.pileBorderSize)
+            ? newState.pileBorderSize(pile, i)
+            : newState.pileBorderSize;
+          pile.drawBorder(borderSize);
+        });
+      }
     }
 
     if (updates.length !== 0) {
@@ -1965,6 +2032,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     importState,
     render: renderRaf,
     set: setPublic,
+    style,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };

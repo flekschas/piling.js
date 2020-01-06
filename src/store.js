@@ -82,7 +82,7 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
+const [itemOpacity, setItemOpacity] = setter('itemOpacity');
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
@@ -176,6 +176,8 @@ const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
   1.0
 );
 
+const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize');
+
 const [pileBackgroundColor, setPileBackgroundColor] = setter(
   'pileBackgroundColor',
   0x000000
@@ -190,6 +192,10 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
   'pileContextMenuItems',
   []
 );
+
+const [pileOpacity, setPileOpacity] = setter('pileOpacity');
+
+const [pileScale, setPileScale] = setter('pileScale');
 
 // reducer
 const piles = (previousState = [], action) => {
@@ -342,10 +348,13 @@ const createStore = () => {
     pileBorderOpacitySelected,
     pileBorderColorActive,
     pileBorderOpacityActive,
+    pileBorderSize,
     pileBackgroundColor,
     pileBackgroundOpacity,
     pileContextMenuItems,
+    pileOpacity,
     piles,
+    pileScale,
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
@@ -425,7 +434,10 @@ export const createAction = {
   setPileBorderOpacitySelected,
   setPileBorderColorActive,
   setPileBorderOpacityActive,
+  setPileBorderSize,
   setPileBackgroundColor,
   setPileBackgroundOpacity,
-  setPileContextMenuItems
+  setPileContextMenuItems,
+  setPileOpacity,
+  setPileScale
 };
