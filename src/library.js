@@ -1514,46 +1514,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
-  // const alignBtnClick = menu => () => {
-  //   pileInstances.forEach(pile => {
-  //     const bBox = pile.bBox;
-  //     const centerY = Math.floor(
-  //       (bBox.minX + bBox.maxX) / (layout.colWidth * 2)
-  //     );
-  //     const centerX = Math.floor(
-  //       (bBox.minY + bBox.maxY) / (layout.rowHeight * 2)
-  //     );
-  //     const center = [centerX, centerY];
-
-  //     const { orderer } = store.getState();
-  //     const getPosition = orderer(layout.colNum);
-  //     const [x, y] = getPosition(pile.id);
-
-  //     updateGridMatWithCenter(pile.id);
-
-  //     if (center[1] === x && center[0] === y) {
-  //       pile.graphics.x = x * layout.colWidth;
-  //       pile.graphics.y = y * layout.rowHeight;
-  //     } else {
-  //       const distanceMat = ndarray(
-  //         new Float32Array(new Array(layout.colNum * layout.rowNum).fill(0)),
-  //         [layout.rowNum, layout.colNum]
-  //       );
-
-  //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
-  //       console.log(center, closestPos);
-  //       pile.graphics.x = closestPos[1] * layout.colWidth;
-  //       pile.graphics.y = closestPos[0] * layout.rowHeight;
-  //     }
-  //     renderRaf();
-  //   })
-
-  //   menu.style.display = 'none';
-  //   const style = document.getElementById('style');
-  //   rootElement.removeChild(style);
-  //   rootElement.removeChild(menu);
-  // }
-
   let mouseDownPosition = [0, 0];
 
   const mouseDownHandler = event => {
