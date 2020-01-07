@@ -100,7 +100,6 @@ const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 const [itemSize, setItemSize] = setter('itemSize');
 const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
 const [columns, setColumns] = setter('columns', 10);
-const [rows, setRows] = setter('rows');
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [itemPadding, setItemPadding] = setter('itemPadding', 0);
@@ -331,7 +330,6 @@ const createStore = () => {
     itemSize,
     itemSizeRange,
     columns,
-    rows,
     rowHeight,
     cellAspectRatio,
     itemPadding,
@@ -417,7 +415,6 @@ export const createAction = {
   setItemSize,
   setItemSizeRange,
   setColumns,
-  setRows,
   setRowHeight,
   setCellAspectRatio,
   setItemPadding,

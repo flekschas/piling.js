@@ -88,7 +88,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     itemSize: true,
     itemSizeRange: true,
     columns: true,
-    rows: true,
     rowHeight: true,
     cellAspectRatio: true,
     itemPadding: true,
@@ -290,7 +289,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       itemSize,
       columns,
-      rows,
       rowHeight,
       cellAspectRatio,
       itemPadding
@@ -299,7 +297,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     layout = createGrid(canvas, {
       itemSize,
       columns,
-      rows,
       rowHeight,
       cellAspectRatio,
       itemPadding
@@ -316,7 +313,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       itemSize,
       columns,
-      rows,
       rowHeight,
       cellAspectRatio,
       itemPadding
@@ -325,7 +321,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     layout = createGrid(canvas, {
       itemSize,
       columns,
-      rows,
       rowHeight,
       cellAspectRatio,
       itemPadding
@@ -393,16 +388,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateLayout = (oldColWidth, oldRowHeight, oldColNum) => {
-    // const { width, height } = rootElement.getBoundingClientRect();
-
     const movingPiles = [];
 
     const { orderer } = store.getState();
 
     layout.rowNum = Math.ceil(renderedItems.size / layout.colNum);
     pileInstances.forEach(pile => {
-      const numOfRow = Math.floor(pile.graphics.y / oldRowHeight);
-      const numOfCol = Math.floor(pile.graphics.x / oldColWidth);
+      const numOfRow = Math.round(pile.graphics.y / oldRowHeight);
+      const numOfCol = Math.round(pile.graphics.x / oldColWidth);
       const [extraX, extraY] = [
         pile.graphics.x - numOfCol * oldColWidth,
         pile.graphics.y - numOfRow * oldRowHeight
@@ -447,12 +440,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
       animator.add(tweener);
     });
-
-    // Fritz: not sure what this is used for and it seems to work without
-    // mask
-    //   .beginFill(0xffffff)
-    //   .drawRect(0, 0, width, height)
-    //   .endFill();
 
     createRBush();
     updateScrollContainer();
@@ -1312,7 +1299,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const newState = store.getState();
 
     const stateUpdates = new Set();
-    const updates = [];
+    const newlyCreatedItems = [];
 
     if (
       state.items !== newState.items ||
@@ -1322,7 +1309,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {
-      updates.push(createItems());
+      newlyCreatedItems.push(createItems());
       stateUpdates.add('piles');
     }
 
@@ -1353,7 +1340,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       state.itemSize !== newState.itemSize ||
       state.columns !== newState.columns ||
-      state.rows !== newState.rows ||
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.itemPadding !== newState.itemPadding
@@ -1451,8 +1437,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
-    if (updates.length !== 0) {
-      Promise.all(updates).then(() => {
+    if (newlyCreatedItems.length !== 0) {
+      Promise.all(newlyCreatedItems).then(() => {
         if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
           positionPiles();
         }

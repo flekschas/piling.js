@@ -3,7 +3,6 @@
  * @param {object} canvas - The canvas instance
  * @param {number} itemSize - The maximum length of either side of an item
  * @param {number} columns - The number of column
- * @param {number} rows - The number of row
  * @param {number} rowHeight - The height of row
  * @param {number} cellAspectRatio - The ratio of cell height and width
  * @param {number} itemPadding - The padding between items
@@ -13,7 +12,6 @@ const createGrid = (
   {
     itemSize = null,
     columns = 10,
-    rows = null,
     rowHeight = null,
     cellAspectRatio = 1,
     itemPadding = 0
@@ -22,7 +20,7 @@ const createGrid = (
   const { width } = canvas.getBoundingClientRect();
 
   let colNum = columns;
-  let rowNum = 0;
+  let rowNum;
   let colWidth = width / columns;
 
   if (+itemSize) {
@@ -36,9 +34,6 @@ const createGrid = (
   } else {
     // eslint-disable-next-line no-param-reassign
     cellAspectRatio = colWidth / rowHeight;
-  }
-  if (+rows) {
-    rowNum = rows;
   }
 
   return {

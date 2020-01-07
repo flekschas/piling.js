@@ -177,13 +177,6 @@ createPiles(exampleEl.value).then(pilingLib => {
           nullifiable: true
         },
         {
-          name: 'rows',
-          dtype: 'int',
-          min: 1,
-          max: 20,
-          nullifiable: true
-        },
-        {
           name: 'rowHeight',
           dtype: 'int',
           min: 16,
