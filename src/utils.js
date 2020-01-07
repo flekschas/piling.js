@@ -4,6 +4,20 @@ export const camelToConst = str =>
     .join('_')
     .toUpperCase();
 
+export const l1Dist = (fromX, fromY, toX, toY) =>
+  Math.abs(fromX - toX) + Math.abs(fromY - toY);
+
+export const l2Dist = (fromX, fromY, toX, toY) =>
+  Math.sqrt((fromX - toX) ** 2 + (fromY - toY) ** 2);
+
+export const l2Norm = vector =>
+  Math.sqrt(vector.reduce((s, v) => s + v ** 2, 0));
+
+export const normalizeVector = vector => {
+  const norm = l2Norm(vector);
+  return [vector[0] / norm, vector[1] / norm];
+};
+
 /**
  * Update the target object by the source object. Besides extending that target
  * object, properties that are not present in the source object.

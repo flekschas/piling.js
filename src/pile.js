@@ -38,8 +38,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let isFocus = false;
   let isTempDepiled = false;
   let hasCover = false;
-
   let isPositioning = false;
+  let cX;
+  let cY;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -230,6 +231,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     bBox.minY = newBBox.minY;
     bBox.maxX = newBBox.maxX;
     bBox.maxY = newBBox.maxY;
+    cX = bBox.minX + (bBox.maxX - bBox.minX) / 2;
+    cY = bBox.minY + (bBox.maxY - bBox.minY) / 2;
   };
 
   const calcBBox = () => {
@@ -480,9 +483,31 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     itemsById.set(id, initialItem);
   };
 
+  const moveTo = (x, y) => {
+    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+      graphics.x = x;
+      graphics.y = y;
+      updateBBox();
+    }
+  };
+
   init();
 
   return {
+    // Properties
+    get x() {
+      return graphics.x;
+    },
+    get cX() {
+      return cX;
+    },
+    get y() {
+      return graphics.y;
+    },
+    get cY() {
+      return cY;
+    },
+    // Methods
     destroy,
     drawBorder,
     border,
@@ -495,6 +520,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     calcBBox,
     updateBBox,
     positionItems,
+    moveTo,
     get hasCover() {
       return hasCover;
     },

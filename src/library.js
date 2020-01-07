@@ -4,6 +4,8 @@ import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
+import convolve from 'ndarray-convolve';
+import ndarray from 'ndarray';
 
 import createAnimator from './animator';
 
@@ -28,9 +30,6 @@ import createItem from './item';
 import createPreview from './preview';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
-
-const convolve = require('ndarray-convolve');
-const ndarray = require('ndarray');
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
@@ -1759,6 +1758,36 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const alignByGrid = () => {
+    const piles = store.getState().piles;
+    const pileMovements = layout.align(pileInstances);
+
+    pileMovements.forEach(({ id, x, y }, index) => {
+      const pile = pileInstances.get(id);
+      // Since `layout.align` moves piles around internally we have to reset
+      // piles to their original position prior to the animation.
+      pile.moveTo(piles[id].x, piles[id].y);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => {
+          return [pile.x, pile.y];
+        },
+        setter: xy => {
+          pile.moveTo(...xy);
+        },
+        onDone: () => {
+          if (index === pileMovements.length - 1) {
+            store.dispatch(createAction.movePiles(pileMovements));
+          }
+        }
+      });
+      animator.add(tweener);
+    });
+  };
+
   const closeContextMenu = () => {
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
@@ -1865,7 +1894,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';
-        alignBtn.style.display = 'none';
         scaleBtn.style.display = 'none';
 
         if (isGridShown) {
@@ -1876,7 +1904,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         element.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(element), false);
-        // alignBtn.addEventListener('click', alignBtnClick(element), false);
+        alignBtn.addEventListener('click', alignByGrid, false);
       }
     }
   };
