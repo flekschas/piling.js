@@ -12,6 +12,7 @@ const createPhotoPiles = async element => {
   piling.set('itemSize', 300);
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
+  piling.set('itemPadding', 10);
 
   return piling;
 };

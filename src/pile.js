@@ -35,6 +35,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     pileId: id
   };
 
+  let cover;
+
   let isFocus = false;
   let isTempDepiled = false;
   let hasCover = false;
@@ -494,6 +496,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     bBox,
     calcBBox,
     updateBBox,
+    cover,
     positionItems,
     get hasCover() {
       return hasCover;

@@ -21,10 +21,13 @@ const createGrid = (
 
   let colNum = columns;
   let rowNum;
-  let colWidth = width / columns;
+  let cellWidth = width / columns;
+  let colWidth = cellWidth - itemPadding * 2;
+  let cellHeight = null;
 
   if (+itemSize) {
-    colNum = Math.floor(width / itemSize);
+    cellWidth = itemSize + itemPadding * 2;
+    colNum = Math.floor(width / cellWidth);
     colWidth = itemSize;
   }
 
@@ -36,12 +39,16 @@ const createGrid = (
     cellAspectRatio = colWidth / rowHeight;
   }
 
+  cellHeight = rowHeight + itemPadding * 2;
+
   return {
     itemSize,
     colNum,
     rowNum,
     colWidth,
     rowHeight,
+    cellWidth,
+    cellHeight,
     cellAspectRatio,
     itemPadding
   };
