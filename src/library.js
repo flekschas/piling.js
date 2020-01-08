@@ -1752,6 +1752,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (contextMenuElement) rootElement.removeChild(contextMenuElement);
   };
 
+  const alignByGridClickHandler = () => {
+    alignByGrid();
+    closeContextMenu();
+  };
+
   const contextmenuHandler = event => {
     closeContextMenu();
 
@@ -1861,7 +1866,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         element.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(element), false);
-        alignBtn.addEventListener('click', alignByGrid, false);
+        alignBtn.addEventListener('click', alignByGridClickHandler, false);
       }
     }
   };
