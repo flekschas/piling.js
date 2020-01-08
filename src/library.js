@@ -1502,6 +1502,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
+  const resetPileBorder = () => {
+    pileInstances.forEach(pile => {
+      if (pile.isFocus) {
+        if (pile.isTempDepiled) {
+          pile.drawBorder(3, 'Active');
+        } else {
+          pile.drawBorder(2, 'Selected');
+        }
+      } else {
+        pile.border.clear();
+      }
+    });
+  };
+
   const exportState = () => {
     const clonedState = deepClone(state);
     clonedState.version = VERSION;
@@ -1519,6 +1533,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (overwriteState) store.dispatch(overwrite(newState));
     else store.dispatch(softOverwrite(newState));
+
+    resetPileBorder();
   };
 
   let hit;

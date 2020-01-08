@@ -307,8 +307,8 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileBlur     | `{pile}`              | Published when the user blurs a pile                     |
 | pileActive   | `{pile}`              | Published when the user temporarily depiles a pile       |
 | pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile |
-| pileDrag     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
-| pileDrop     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
+| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
+| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
 
 # Renderers
 
