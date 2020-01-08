@@ -138,12 +138,6 @@
         background: black;
       }
 
-      header > div {
-        display: flex;
-        flex-grow: 1;
-        flex-direction: column;
-      }
-
       button {
         background: #bbb;
         border: 0;
@@ -167,14 +161,34 @@
         color: #808080;
       }
 
-      #description > * {
+      header #description {
+        position: relative;
+        display: flex;
+        flex-grow: 1;
+        flex-direction: column;
+      }
+
+      #description .wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      #description .wrapper > * {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
         margin: 0;
         height: 1.5rem;
         line-height: 1.5rem;
       }
 
       #selection {
-        display: flex;
+        display: flex !important;
         align-items: center;
       }
 
@@ -202,36 +216,38 @@
     <header>
       <h1>Piling.js</h1>
       <div id="description">
-        <p>
-          <a href="https://github.com/flekschas/piling.js" target="_blank">
-            Piling.js
-          </a>
-          is a library for piling visualizations like images, matrices,
-          scatterplots, etc. Piling.js is data-agnostic and highly customizable.
-        </p>
-        <div id="selection">
-          <label for="example">Choose an example:</label>
-          <select id="example">
-            <option value="photos">Photos (Image)</option>
-            <option value="matrices">Matrices (Array)</option>
-            <option value="lines">Lines (SVG)</option>
-          </select>
-          <div class="credits">
-            <em id="photos-credit">
-              (From
-              <a
-                href="https://www.kaggle.com/prasunroy/natural-images"
-                target="_blank"
-                >Roy et al., 2018</a
-              >)
-            </em>
-            <em id="matrices-credit">
-              (From
-              <a href="http://hipiler.higlass.io" target="_blank"
-                >Lekschas et al., 2018</a
-              >)
-            </em>
-            <em id="svg-credit">(Lines are generated randomly.)</em>
+        <div class="wrapper">
+          <div class="punchline">
+            <a href="https://github.com/flekschas/piling.js" target="_blank">
+              Piling.js
+            </a>
+            is a library for piling visualizations like images, matrices,
+            scatterplots, etc. Piling.js is data-agnostic and highly customizable.
+          </div>
+          <div id="selection">
+            <label for="example">Examples:</label>
+            <select id="example">
+              <option value="photos">Photos (Image)</option>
+              <option value="matrices">Matrices (Array)</option>
+              <option value="lines">Lines (SVG)</option>
+            </select>
+            <div class="credits">
+              <em id="photos-credit">
+                (From
+                <a
+                  href="https://www.kaggle.com/prasunroy/natural-images"
+                  target="_blank"
+                  >Roy et al., 2018</a
+                >)
+              </em>
+              <em id="matrices-credit">
+                (From
+                <a href="http://hipiler.higlass.io" target="_blank"
+                  >Lekschas et al., 2018</a
+                >)
+              </em>
+              <em id="svg-credit">(Randomly generated)</em>
+            </div>
           </div>
         </div>
       </div>
