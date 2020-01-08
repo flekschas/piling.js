@@ -47,6 +47,14 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
   const align = piles => {
     const cells = [];
     const conflicts = [];
+    const pilePositions = new Map();
+    piles.forEach(pile => {
+      pilePositions.set(pile.id, {
+        id: pile.id,
+        cX: pile.cX,
+        cY: pile.cY
+      });
+    });
 
     const assignPileToCell = pile => {
       const i = Math.floor(pile.cX / colWidth);
@@ -55,9 +63,7 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
 
       if (!cells[idx]) cells[idx] = new Set();
 
-      const currentPilesInCell = cells[idx];
-
-      if (currentPilesInCell.size === 1) {
+      if (cells[idx].size === 1) {
         conflicts.push(idx);
       }
 
@@ -67,9 +73,9 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
     };
 
     // 1. We assign every pile to its closest cell
-    const pilePositions = new Map();
-    piles.forEach(pile => {
-      pilePositions.set(pile.id, assignPileToCell(pile));
+    pilePositions.forEach(pile => {
+      const [i, j] = assignPileToCell(pile);
+      pilePositions.set(pile.id, { ...pile, i, j });
     });
 
     // 2. Resolve conflicts
@@ -85,7 +91,7 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
         anchor[1] + cellHeightHalf
       ];
 
-      const conflictingPiles = cells[idx];
+      const conflictingPiles = new Set(cells[idx]);
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
@@ -110,40 +116,48 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
         x = a => Math.max(0, a);
       }
       if (isRightBlocked) {
-        anchor[0] -= cellWidthHalf;
+        anchor[0] += cellWidthHalf;
         x = isLeftBlocked ? () => 0 : a => Math.min(0, a);
       }
       if (isLeftBlocked && isRightBlocked) {
         // To avoid no movement at all we enforce a downward direction
-        y = a => Math.max(1, a);
+        y = () => (isTopBlocked ? 1 : -1);
       }
 
       // 2b. Find the pile that is closest to the anchor
       let d = Infinity;
       let closestPile;
       conflictingPiles.forEach(pileId => {
-        const newD = l1Dist(
-          piles.get(pileId).cX,
-          piles.get(pileId).cY,
-          ...anchor
-        );
+        const pile = piles.get(pileId);
+        const newD = l1Dist(pile.cX, pile.cY, ...anchor);
         if (newD < d) {
           closestPile = pileId;
           d = newD;
         }
       });
 
-      // 2c. Move all piles except for the closest pile to other cells
+      // 2c. Remove the cell assignment of conflicting piles
       conflictingPiles.forEach(pileId => {
         if (pileId === closestPile) return;
 
-        const pile = piles.get(pileId);
+        // Remove pile from cell
+        cells[idx].delete(pileId);
+      });
+
+      // 2d. Move all piles except for the closest pile to other cells
+      conflictingPiles.forEach(pileId => {
+        if (pileId === closestPile) return;
+
+        const pile = pilePositions.get(pileId);
 
         // Move piles in direction from the closest via themselves
-        const direction = normalizeVector([
-          x(pile.cX - piles.get(closestPile).cX + Math.random()),
-          y(pile.cY - piles.get(closestPile).cY + Math.random())
-        ]);
+        let direction = [
+          pile.cX - pilePositions.get(closestPile).cX,
+          pile.cY - pilePositions.get(closestPile).cY
+        ];
+        direction[0] += (Math.sign(direction[0]) || 1) * Math.random();
+        direction[1] += (Math.sign(direction[1]) || 1) * Math.random();
+        direction = normalizeVector([x(direction[0]), y(direction[1])]);
 
         // Move the pile in direction `direction` to the cell border
         // We accomplish this by clipping a line starting at the pile
@@ -156,19 +170,22 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
 
         clip([pile.cX, pile.cY], borderPoint, cellRect);
 
-        // Remove pile from cell
-        cells[idx][pileId] = undefined;
-        delete cells[idx][pileId];
+        // To avoid that the pile is moved back to the same pile we move it a
+        // little bit further
+        borderPoint[0] += Math.sign(direction[0]) * 0.1;
+        borderPoint[1] += Math.sign(direction[1]) * 0.1;
 
         // "Move" pile to the outerPoint, which is now the borderPoint
-        pile.moveTo(borderPoint[0], borderPoint[1]);
+        pile.cX = borderPoint[0];
+        pile.cY = borderPoint[1];
 
         // Assign the pile to a new cell
-        pilePositions.set(pileId, assignPileToCell(pile));
+        const [i, j] = assignPileToCell(pile);
+        pilePositions.set(pileId, { ...pile, i, j });
       });
     }
 
-    return Array.from(pilePositions.entries(), ([id, [i, j]]) => {
+    return Array.from(pilePositions.entries(), ([id, { i, j }]) => {
       const [x, y] = ijToXy(i, j);
       return { id, x, y };
     });
