@@ -168,7 +168,7 @@ const createGrid = (canvas, [cols, rows, newRowHeight, newCellRatio]) => {
       });
     }
 
-    return Array.from(pilePositions.entries()).map(([id, [i, j]]) => {
+    return Array.from(pilePositions.entries(), ([id, [i, j]]) => {
       const [x, y] = ijToXy(i, j);
       return { id, x, y };
     });
