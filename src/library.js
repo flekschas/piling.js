@@ -1716,14 +1716,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const alignByGrid = () => {
-    const piles = store.getState().piles;
     const pileMovements = layout.align(pileInstances);
 
     pileMovements.forEach(({ id, x, y }, index) => {
       const pile = pileInstances.get(id);
-      // Since `layout.align` moves piles around internally we have to reset
-      // piles to their original position prior to the animation.
-      pile.moveTo(piles[id].x, piles[id].y);
       const tweener = createTweener({
         duration: 250,
         delay: 0,
@@ -1738,6 +1734,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         onDone: () => {
           if (index === pileMovements.length - 1) {
             store.dispatch(createAction.movePiles(pileMovements));
+            createRBush();
+            updateScrollContainer();
+            renderRaf();
           }
         }
       });
