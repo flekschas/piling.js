@@ -442,8 +442,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         movingPiles.push({
           id,
-          x: pile.graphics.x,
-          y: pile.graphics.y
+          x: pile.x,
+          y: pile.y
         });
       });
       if (movingPiles.length !== 0)
@@ -740,11 +740,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             ? itemPositions[index]
             : renderedItems.get(itemId).originalPosition,
         getter: () => {
-          return [pile.graphics.x, pile.graphics.y];
+          return [pile.x, pile.y];
         },
-        setter: newValue => {
-          pile.graphics.x = newValue[0];
-          pile.graphics.y = newValue[1];
+        setter: xy => {
+          pile.moveTo(...xy);
         },
         onDone: finalValue => {
           movingPiles.push({
@@ -1149,11 +1148,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         interpolator: interpolateVector,
         endValue: [centerX, centerY],
         getter: () => {
-          return [pile.graphics.x, pile.graphics.y];
+          return [pile.x, pile.y];
         },
-        setter: newValue => {
-          pile.graphics.x = newValue[0];
-          pile.graphics.y = newValue[1];
+        setter: xy => {
+          pile.moveTo(...xy);
         },
         onDone: () => {
           if (index === pileIds.length - 1) {
@@ -1382,10 +1380,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
 
-    if (
-      pileGfx.x !== pileGfx.beforeDragX ||
-      pileGfx.y !== pileGfx.beforeDragY
-    ) {
+    if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
       const collidePiles = searchIndex
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
@@ -1395,8 +1390,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
           pile.itemContainer.children.forEach(item => {
-            item.tmpAbsX = pileGfx.x;
-            item.tmpAbsY = pileGfx.y;
+            item.tmpAbsX = pile.x;
+            item.tmpAbsY = pile.y;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
@@ -1407,8 +1402,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           createAction.movePiles([
             {
               id: pileId,
-              x: pileGfx.x,
-              y: pileGfx.y
+              x: pile.x,
+              y: pile.y
             }
           ])
         );
@@ -1688,12 +1683,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
 
     pileInstances.forEach(pile => {
-      pile.graphics.x = (pile.graphics.x / oldColWidth) * layout.colWidth;
-      pile.graphics.y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
+      pile.moveTo(
+        (pile.x / oldColWidth) * layout.colWidth,
+        (pile.y / oldRowHeight) * layout.rowHeight
+      );
       movingPiles.push({
         id: pile.id,
-        x: pile.graphics.x,
-        y: pile.graphics.y
+        x: pile.x,
+        y: pile.y
       });
     });
     store.dispatch(createAction.movePiles(movingPiles));
