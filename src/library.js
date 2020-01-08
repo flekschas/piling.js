@@ -464,6 +464,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     createRBush();
+
+    const focusedPile = store.getState().focusedPiles[0];
+    if (focusedPile) {
+      pileInstances.get(focusedPile).drawBorder(3, 'Selected');
+    }
+
     updateScrollContainer();
     renderRaf();
   };
@@ -1925,6 +1931,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     createRBush();
+
+    const focusedPile = store.getState().focusedPiles[0];
+    if (focusedPile) {
+      pileInstances.get(focusedPile).drawBorder(3, 'Selected');
+    }
+
     updateScrollContainer();
     renderRaf();
   };
