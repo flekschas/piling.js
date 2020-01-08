@@ -1,5 +1,6 @@
 # Next
 
+- Add functionality to align piles by the grid via the context menu
 - Add properties for setting various colors via [`.set()`](DOCS.md#pilingsetproperty-value):
   - `backgroundColor`
   - `lassoFillColor`
