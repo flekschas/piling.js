@@ -495,32 +495,18 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
   return {
     // Properties
-    get x() {
-      return graphics.x;
-    },
     get cX() {
       return cX;
-    },
-    get y() {
-      return graphics.y;
     },
     get cY() {
       return cY;
     },
-    // Methods
-    destroy,
-    drawBorder,
-    border,
-    itemsById,
-    newItemsById,
-    graphics,
-    itemContainer,
-    id,
-    bBox,
-    calcBBox,
-    updateBBox,
-    positionItems,
-    moveTo,
+    get bBox() {
+      return bBox;
+    },
+    get graphics() {
+      return graphics;
+    },
     get hasCover() {
       return hasCover;
     },
@@ -539,9 +525,27 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
-    scale,
+    get x() {
+      return graphics.x;
+    },
+    get y() {
+      return graphics.y;
+    },
+    // Methods
+    animatePositionItems,
     animateScale,
-    animatePositionItems
+    border,
+    calcBBox,
+    destroy,
+    drawBorder,
+    id,
+    itemContainer,
+    itemsById,
+    moveTo,
+    newItemsById,
+    positionItems,
+    scale,
+    updateBBox
   };
 };
 
