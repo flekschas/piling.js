@@ -428,6 +428,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const coverRatio = pile.cover.height / pile.cover.width;
         pile.cover.width = pile.itemContainer.children[0].width;
         pile.cover.height = coverRatio * pile.cover.width;
+
+        const { itemAlignment, itemRotated } = store.getState();
+
+        pile.positionItems(
+          itemAlignment,
+          itemRotated,
+          animator,
+          store.getState().previewSpacing
+        );
       }
     });
 
@@ -1912,6 +1921,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const coverRatio = pile.cover.height / pile.cover.width;
         pile.cover.width = pile.itemContainer.children[0].width;
         pile.cover.height = coverRatio * pile.cover.width;
+
+        const { itemAlignment, itemRotated } = store.getState();
+
+        pile.positionItems(
+          itemAlignment,
+          itemRotated,
+          animator,
+          store.getState().previewSpacing
+        );
       }
     });
 
