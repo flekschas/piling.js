@@ -1365,9 +1365,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.pileOpacity !== newState.pileOpacity) {
       if (newState.pileOpacity) {
-        pileInstances.forEach((pile, i) => {
+        pileInstances.forEach(pile => {
           pile.graphics.alpha = isFunction(newState.pileOpacity)
-            ? newState.pileOpacity(pile, i)
+            ? newState.pileOpacity(pile)
             : newState.pileOpacity;
         });
       }
@@ -1375,9 +1375,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.pileScale !== newState.pileScale) {
       if (newState.pileScale) {
-        pileInstances.forEach((pile, i) => {
+        pileInstances.forEach(pile => {
           pile.graphics.scale.x = isFunction(newState.pileScale)
-            ? newState.pileScale(pile, i)
+            ? newState.pileScale(pile)
             : newState.pileScale;
           pile.graphics.scale.y = pile.graphics.scale.x;
         });
@@ -1386,11 +1386,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.pileBorderSize !== newState.pileBorderSize) {
       if (newState.pileBorderSize) {
-        pileInstances.forEach((pile, i) => {
+        pileInstances.forEach(pile => {
           const borderSize = isFunction(newState.pileBorderSize)
-            ? newState.pileBorderSize(pile, i)
+            ? newState.pileBorderSize(pile)
             : newState.pileBorderSize;
-          pile.drawBorder(borderSize);
+          if (borderSize) {
+            pile.drawBorder(borderSize);
+          }
         });
       }
     }
