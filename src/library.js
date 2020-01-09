@@ -1829,7 +1829,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
 
         element.style.display = 'block';
-        element.style.left = `${mousePosition[0]}px`;
+
+        const { width } = element.getBoundingClientRect();
+        if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
+          element.style.left = `${mousePosition[0] - width}px`;
+        } else {
+          element.style.left = `${mousePosition[0]}px`;
+        }
         element.style.top = `${mousePosition[1]}px`;
 
         depileBtn.addEventListener(
@@ -1872,7 +1878,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           gridBtn.innerHTML = 'hide grid';
         }
         element.style.display = 'block';
-        element.style.left = `${mousePosition[0]}px`;
+
+        const { width } = element.getBoundingClientRect();
+        if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
+          element.style.left = `${mousePosition[0] - width}px`;
+        } else {
+          element.style.left = `${mousePosition[0]}px`;
+        }
         element.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(element), false);
