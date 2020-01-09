@@ -1647,16 +1647,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let isGridShown = false;
   const gridBtnClick = contextMenuElement => () => {
+    const height =
+      scrollContainer.getBoundingClientRect().height +
+      canvas.getBoundingClientRect().height;
+    const { width } = canvas.getBoundingClientRect();
+
     if (!isGridShown) {
       gridGfx.clear();
       gridGfx.lineStyle(1, 0x787878, 1);
-      for (let i = 0; i < layout.colNum; i++) {
-        gridGfx.moveTo(i * layout.colWidth, 0);
-        gridGfx.lineTo(i * layout.colWidth, layout.rowNum * layout.rowHeight);
+      for (let i = 1; i < layout.colNum + 1; i++) {
+        gridGfx.moveTo(i * layout.cellWidth, 0);
+        gridGfx.lineTo(i * layout.cellWidth, height);
       }
-      for (let i = 0; i < layout.rowNum; i++) {
-        gridGfx.moveTo(0, i * layout.rowHeight);
-        gridGfx.lineTo(layout.colNum * layout.colWidth, i * layout.rowHeight);
+      for (let i = 1; i < layout.rowNum + 3; i++) {
+        gridGfx.moveTo(0, i * layout.cellHeight);
+        gridGfx.lineTo(width, i * layout.cellHeight);
       }
       isGridShown = true;
     } else {
