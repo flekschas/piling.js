@@ -27,8 +27,19 @@
   - `pileInactive`
   - `pileDrag`
   - `pileDrop`
+- Change the grid layout properties from a nested object called `grid` to the following individual properties that you can set with [`.set()`](DOCS.md#pilingsetproperty-value):
+  - `itemSize`
+  - `itemPadding`
+  - `columns`
+  - `rowHeight`
+  - `cellAspectRatio`
+
+  Their precedence is as follows:
+  - `columns` < `itemSize`
+  - `cellAspectRatio` < `rowHeight`
+
+- Update the grid layout on browser window resize
 - Redesign default context menu
-- Update grid on browser window resize
 
 ## v0.2.0
 

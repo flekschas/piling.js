@@ -49,7 +49,8 @@ const createMatrixPiles = async element => {
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
-    grid: [10]
+    columns: 12,
+    itemPadding: 30
   });
 
   return pilingJs;

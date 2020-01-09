@@ -83,6 +83,7 @@
         margin: 0;
         width: 100%;
         height: 100%;
+        overflow: hidden;
         font-family: 'Roboto Condensed', sans-serif;
         text-rendering: optimizeLegibility;
         color: white;
@@ -150,6 +151,11 @@
         right: 1rem;
         bottom: 1rem;
         left: 1rem;
+        transition: right 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      body.options-open .container {
+        right: 16rem;
       }
 
       .credits {
@@ -203,8 +209,131 @@
         display: none;
       }
 
+      #options {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 15rem;
+        background: black;
+        border-left: 1px solid #333;
+        color: white;
+        transform: translate(15rem, 0);
+        transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      #options.open {
+        transform: translate(0, 0);
+      }
+
+      body.lines #options .toggler {
+        border-color: black;
+      }
+
+      #options .toggler {
+        position: absolute;
+        display: block;
+        top: 1rem;
+        left: 0;
+        height: 3rem;
+        width: 3rem;
+        padding: 0.5rem;
+        background: black;
+        color: white;
+        border: 1px solid #333;
+        border-radius: 0.25rem;
+        opacity: 0.2;
+        transform: translate(-4rem, 0);
+        transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          border-radius 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      #options .toggler:hover {
+        opacity: 0.4;
+      }
+
+      #options .toggler:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 127, 246, 0.9);
+      }
+
+      #options .toggler svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      #options.open .toggler {
+        opacity: 1;
+        transform: translate(-3rem, 0);
+        border-right: 0;
+        border-radius: 0.25rem 0 0 0.25rem;
+        background: black;
+      }
+
+      body.lines #options.open .toggler {
+        background: black;
+      }
+
+      #options .content {
+        margin: 0.5rem;
+      }
+
+      #options .content h4 {
+        margin: 1rem 0 0.5rem 0;
+      }
+
+      #options .content h4:after {
+        content: ':';
+      }
+
+      #options label {
+        display: block;
+        margin: 0.25rem 0;
+      }
+
+      #options label div {
+        display: block;
+        font-size: 0.8rem;
+      }
+
+      #options .title:after {
+        content: ':';
+        margin-right: 0.25rem;
+      }
+
+      #options .inputs {
+        display: flex;
+        align-items: center;
+      }
+
       #undo {
-        display: none;
+        position: relative;
+        display: block;
+        width: 100%;
+        line-height: 1.5rem;
+        border-radius: 0.25rem;
+        color: black;
+        border: 1px solid white;
+        background: white;
+        transition: color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          border 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+
+      #undo:focus {
+        outline: none;
+        box-shadow: 0 0 0 1px black, 0 0 0 3px rgba(255, 127, 246, 0.9);
+      }
+
+      #undo:disabled {
+        color: white;
+        background: black;
+        opacity: 0.33;
       }
     </style>
   </head>
@@ -213,6 +342,7 @@
     <script>
       document.body.setAttribute('class', window.example);
     </script>
+
     <header>
       <h1>Piling.js</h1>
       <div id="description">
@@ -251,10 +381,31 @@
           </div>
         </div>
       </div>
-      <button id="undo">Undo</button>
     </header>
+
     <div id="photos" class="container"></div>
     <div id="matrices" class="container"></div>
     <div id="svg" class="container"></div>
+
+    <aside id="options">
+      <button id="options-toggler" class="toggler">
+        <svg
+          viewBox="0 0 16 16"
+          xmlns="http://www.w3.org/2000/svg"
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          stroke-linejoin="round"
+          stroke-miterlimit="1.414"
+        >
+          <path
+            d="M9.418 16H6.582c-.32 0-.582-.26-.582-.582v-1.76c-.702-.248-1.344-.624-1.898-1.098l-1.526.88c-.278.162-.635.066-.795-.212L.364 10.772c-.16-.278-.065-.634.213-.795l1.524-.88C2.034 8.74 2 8.375 2 8s.034-.74.1-1.097l-1.524-.88c-.278-.16-.374-.517-.213-.795L1.78 2.772c.16-.278.518-.374.796-.213l1.526.88C4.656 2.966 5.298 2.59 6 2.342V.582C6 .262 6.26 0 6.582 0h2.836c.32 0 .582.26.582.582v1.76c.702.248 1.344.624 1.898 1.098l1.526-.88c.278-.162.635-.066.795.212l1.417 2.456c.16.278.065.634-.213.795l-1.524.88c.066.356.1.722.1 1.097s-.034.74-.1 1.097l1.524.88c.278.16.374.517.213.795l-1.418 2.456c-.16.278-.518.374-.796.213l-1.526-.88c-.554.474-1.196.85-1.898 1.098v1.76c0 .32-.26.582-.582.582zM8 4c2.208 0 4 1.792 4 4s-1.792 4-4 4-4-1.792-4-4 1.792-4 4-4z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+      <div class="content">
+        <button id="undo" disabled="disabled">Undo</button>
+      </div>
+    </aside>
   </body>
 </html>

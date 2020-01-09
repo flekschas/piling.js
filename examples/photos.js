@@ -9,9 +9,10 @@ const createPhotoPiles = async element => {
 
   const piling = createPilingJs(element);
 
-  piling.set('grid', [10]);
+  piling.set('itemSize', 300);
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
+  piling.set('itemPadding', 10);
 
   return piling;
 };
