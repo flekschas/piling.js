@@ -475,7 +475,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileItemStyle = pile => {
     const { itemOpacity } = store.getState();
 
-    pile.itemContainer.children.forEach((item, i) => {
+    pile.items.forEach((item, i) => {
       item.alpha = isFunction(itemOpacity)
         ? itemOpacity(item, pile, i)
         : itemOpacity || 1.0;
@@ -802,7 +802,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const depile = pileId => {
-    const itemNum = pileInstances.get(pileId).itemContainer.children.length;
+    const itemNum = pileInstances.get(pileId).size;
 
     if (itemNum === 1) return;
 
@@ -1016,7 +1016,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const pile = pileInstances.get(pileId);
 
       if (pile.isTempDepiled) {
-        const length = pile.itemContainer.children.length;
+        const length = pile.size;
         const temporaryDepileContainer = pile.itemContainer.getChildAt(
           length - 1
         );
@@ -1419,7 +1419,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (collidePiles.length === 1) {
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
-          pile.itemContainer.children.forEach(item => {
+          pile.items.forEach(item => {
             item.tmpAbsX = pileGfx.x;
             item.tmpAbsY = pileGfx.y;
           });
@@ -1835,7 +1835,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile = pileInstances.get(result.pileId);
           }
         });
-        if (pile && pile.itemContainer.children.length === 1) {
+        if (pile && pile.size === 1) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.setAttribute('class', 'inactive');
           tempDepileBtn.setAttribute('disabled', '');

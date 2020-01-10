@@ -495,6 +495,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     calcBBox,
     updateBBox,
     positionItems,
+    get size() {
+      return itemContainer.children.length;
+    },
+    get items() {
+      return itemContainer.children;
+    },
     get hasCover() {
       return hasCover;
     },

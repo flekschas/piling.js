@@ -13,19 +13,11 @@ const createPhotoPiles = async element => {
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
 
-  piling.set(
-    'itemOpacity',
-    (item, pile, i) =>
-      (pile.itemContainer.children.length - i) /
-      pile.itemContainer.children.length
-  );
+  piling.set('itemOpacity', (item, pile, i) => (pile.size - i) / pile.size);
 
-  piling.set('pileOpacity', pile => 1 / pile.itemContainer.children.length);
+  piling.set('pileOpacity', pile => 1 / pile.size);
 
-  piling.set(
-    'pileScale',
-    pile => 1 + (pile.itemContainer.children.length - 1) / 10
-  );
+  piling.set('pileScale', pile => 1 + (pile.size - 1) / 10);
 
   piling.set('pileBorderSize', () => {
     return null;
