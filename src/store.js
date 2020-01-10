@@ -82,7 +82,7 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [itemOpacity, setItemOpacity] = setter('itemOpacity');
+const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
@@ -176,7 +176,7 @@ const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
   1.0
 );
 
-const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize');
+const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 1);
 
 const [pileBackgroundColor, setPileBackgroundColor] = setter(
   'pileBackgroundColor',
@@ -193,9 +193,9 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
   []
 );
 
-const [pileOpacity, setPileOpacity] = setter('pileOpacity');
+const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
-const [pileScale, setPileScale] = setter('pileScale');
+const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
 // reducer
 const piles = (previousState = [], action) => {

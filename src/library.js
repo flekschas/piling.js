@@ -472,6 +472,38 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
   };
 
+  const updatePileItemStyle = pile => {
+    const { itemOpacity } = store.getState();
+
+    pile.itemContainer.children.forEach((item, i) => {
+      item.alpha = isFunction(itemOpacity)
+        ? itemOpacity(item, pile, i)
+        : itemOpacity || 1.0;
+    });
+  };
+
+  const updatePileStyle = pileId => {
+    const { pileOpacity, pileBorderSize, pileScale } = store.getState();
+
+    if (pileInstances.has(pileId)) {
+      const pile = pileInstances.get(pileId);
+
+      pile.graphics.alpha = isFunction(pileOpacity)
+        ? pileOpacity(pile)
+        : pileOpacity || 1.0;
+
+      pile.graphics.scale.x = isFunction(pileScale)
+        ? pileScale(pile)
+        : pileScale || 1.0;
+      pile.graphics.scale.y = pile.graphics.scale.x;
+
+      const borderSize = isFunction(pileBorderSize)
+        ? pileBorderSize(pile)
+        : pileBorderSize || 1;
+      pile.drawBorder(borderSize);
+    }
+  };
+
   const updatePreviewAndCover = (pile, pileInstance) => {
     const { items, coverAggregator, aggregateRenderer } = store.getState();
     if (pile.items.length === 1) {
@@ -539,6 +571,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
         updateBoundingBox(id);
         pileInstance.border.clear();
+        updatePileItemStyle(pileInstance);
       }
     } else {
       const newPile = createPile({
@@ -551,6 +584,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updateBoundingBox(id);
+      updatePileItemStyle(newPile);
     }
   };
 
@@ -1196,25 +1230,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const style = (property, callback) => {
-    switch (property) {
-      case 'itemOpacity':
-        store.dispatch(createAction.setItemOpacity(callback));
-        break;
-      case 'pileOpacity':
-        store.dispatch(createAction.setPileOpacity(callback));
-        break;
-      case 'pileScale':
-        store.dispatch(createAction.setPileScale(callback));
-        break;
-      case 'pileBorderSize':
-        store.dispatch(createAction.setPileBorderSize(callback));
-        break;
-      default:
-        break;
-    }
-  };
-
   const updated = () => {
     const newState = store.getState();
 
@@ -1242,12 +1257,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
+            updatePileStyle(id);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePileLocation(pile, id);
+            updatePileStyle(id);
           }
         });
       }
@@ -1349,52 +1366,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.previewSpacing !== newState.previewSpacing) {
       stateUpdates.add('layout');
-    }
-
-    if (state.itemOpacity !== newState.itemOpacity) {
-      if (newState.itemOpacity) {
-        pileInstances.forEach(pile => {
-          pile.itemContainer.children.forEach((item, i) => {
-            item.alpha = isFunction(newState.itemOpacity)
-              ? newState.itemOpacity(item, pile, i)
-              : newState.itemOpacity;
-          });
-        });
-      }
-    }
-
-    if (state.pileOpacity !== newState.pileOpacity) {
-      if (newState.pileOpacity) {
-        pileInstances.forEach(pile => {
-          pile.graphics.alpha = isFunction(newState.pileOpacity)
-            ? newState.pileOpacity(pile)
-            : newState.pileOpacity;
-        });
-      }
-    }
-
-    if (state.pileScale !== newState.pileScale) {
-      if (newState.pileScale) {
-        pileInstances.forEach(pile => {
-          pile.graphics.scale.x = isFunction(newState.pileScale)
-            ? newState.pileScale(pile)
-            : newState.pileScale;
-          pile.graphics.scale.y = pile.graphics.scale.x;
-        });
-      }
-    }
-
-    if (state.pileBorderSize !== newState.pileBorderSize) {
-      if (newState.pileBorderSize) {
-        pileInstances.forEach(pile => {
-          const borderSize = isFunction(newState.pileBorderSize)
-            ? newState.pileBorderSize(pile)
-            : newState.pileBorderSize;
-          if (borderSize) {
-            pile.drawBorder(borderSize);
-          }
-        });
-      }
     }
 
     if (updates.length !== 0) {
@@ -2034,7 +2005,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     importState,
     render: renderRaf,
     set: setPublic,
-    style,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };

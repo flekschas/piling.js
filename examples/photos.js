@@ -13,32 +13,23 @@ const createPhotoPiles = async element => {
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
 
-  const handlePileDrop = () => {
-    piling.style(
-      'itemOpacity',
-      (item, pile, i) =>
-        (pile.itemContainer.children.length - i) /
-        pile.itemContainer.children.length
-    );
+  piling.set(
+    'itemOpacity',
+    (item, pile, i) =>
+      (pile.itemContainer.children.length - i) /
+      pile.itemContainer.children.length
+  );
 
-    // piling.style('pileOpacity', pile => 1 / pile.itemContainer.children.length)
+  piling.set('pileOpacity', pile => 1 / pile.itemContainer.children.length);
 
-    piling.style(
-      'pileScale',
-      pile => 1 + (pile.itemContainer.children.length - 1) / 10
-    );
-  };
+  piling.set(
+    'pileScale',
+    pile => 1 + (pile.itemContainer.children.length - 1) / 10
+  );
 
-  const handlePileEnter = ({ pileId }) => {
-    piling.style('pileBorderSize', pileInstance => {
-      if (pileId === pileInstance.id) {
-        return pileInstance.itemContainer.children.length;
-      }
-      return null;
-    });
-  };
-  piling.subscribe('pileDrop', handlePileDrop);
-  piling.subscribe('pileEnter', handlePileEnter);
+  piling.set('pileBorderSize', () => {
+    return null;
+  });
 
   return piling;
 };
