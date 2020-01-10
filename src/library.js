@@ -1652,19 +1652,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       canvas.getBoundingClientRect().height;
     const { width } = canvas.getBoundingClientRect();
 
-    const vLineNum = Math.ceil(width / layout.cellWidth);
-    const hLineNum = Math.ceil(height / layout.cellHeight);
-
     if (!isGridShown) {
       gridGfx.clear();
       gridGfx.lineStyle(1, 0x787878, 1);
-      // vertical lines
-      for (let i = 1; i < vLineNum; i++) {
+      for (let i = 1; i < layout.colNum + 1; i++) {
         gridGfx.moveTo(i * layout.cellWidth, 0);
         gridGfx.lineTo(i * layout.cellWidth, height);
       }
-      // horizontal lines
-      for (let i = 1; i < hLineNum; i++) {
+      for (let i = 1; i < layout.rowNum + 3; i++) {
         gridGfx.moveTo(0, i * layout.cellHeight);
         gridGfx.lineTo(width, i * layout.cellHeight);
       }
