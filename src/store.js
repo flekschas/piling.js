@@ -190,6 +190,9 @@ const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
   0.85
 );
 
+// 'topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center'
+const [pileCellAlign, setPileCellAlign] = setter('pileCellAlign', 'topLeft');
+
 const [pileContextMenuItems, setPileContextMenuItems] = setter(
   'pileContextMenuItems',
   []
@@ -352,6 +355,7 @@ const createStore = () => {
     pileBorderOpacityActive,
     pileBackgroundColor,
     pileBackgroundOpacity,
+    pileCellAlign,
     pileContextMenuItems,
     piles,
     previewAggregator,
@@ -439,5 +443,6 @@ export const createAction = {
   setPileBorderOpacityActive,
   setPileBackgroundColor,
   setPileBackgroundOpacity,
+  setPileCellAlign,
   setPileContextMenuItems
 };
