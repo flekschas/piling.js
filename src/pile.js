@@ -40,7 +40,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let isFocus = false;
   let isTempDepiled = false;
   let hasCover = false;
-
   let isPositioning = false;
   let cX;
   let cY;

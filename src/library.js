@@ -4,6 +4,8 @@ import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
+import convolve from 'ndarray-convolve';
+import ndarray from 'ndarray';
 
 import createAnimator from './animator';
 
@@ -28,9 +30,6 @@ import createItem from './item';
 import createPreview from './preview';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
-
-const convolve = require('ndarray-convolve');
-const ndarray = require('ndarray');
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
@@ -292,6 +291,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     } = store.getState();
 
@@ -300,6 +300,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     });
 
@@ -316,6 +317,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     } = store.getState();
 
@@ -324,6 +326,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     });
 
@@ -388,65 +391,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const getPilePosByCellAlign = (x, y, graphics) => {
-    let posX;
-    let posY;
-
-    const { pileCellAlign } = store.getState();
-
-    switch (pileCellAlign) {
-      case 'topLeft':
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
-      case 'topRight':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth -
-          graphics.width;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
-      case 'bottomLeft':
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight -
-          graphics.height;
-        break;
-      case 'bottomRight':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth -
-          graphics.width;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight -
-          graphics.height;
-        break;
-      case 'center':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth / 2 -
-          graphics.width / 2;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight / 2 -
-          graphics.height / 2;
-        break;
-      default:
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
-    }
-    return [posX, posY];
-  };
-
   const updateLayout = (oldCellWidth, oldCellHeight, oldColNum) => {
     scaleItems();
 
@@ -459,17 +403,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numOfRow = Math.floor(pile.cY / oldCellHeight);
       const numOfCol = Math.floor(pile.cX / oldCellWidth);
 
-      const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(gridNum);
+      const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(cellIndex);
 
-      [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
+      const [x, y] = layout.ijToXy(
+        i,
+        j,
+        pile.graphics.width,
+        pile.graphics.height
+      );
 
-      movingPiles.push({
-        id: pile.id,
-        x,
-        y
-      });
+      movingPiles.push({ id: pile.id, x, y });
     });
 
     pileInstances.forEach(pile => {
@@ -514,10 +459,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     renderedItems.forEach(item => {
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(item.id);
-      [x, y] = getPilePosByCellAlign(x, y, item.sprite);
-      item.originalPosition = [x, y];
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(item.id);
+      item.originalPosition = layout.ijToXy(
+        i,
+        j,
+        item.sprite.width,
+        item.sprite.height
+      );
     });
 
     createRBush();
@@ -609,27 +558,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
-        let x;
-        let y;
+        let i;
+        let j;
         if (items[id].position) {
-          [x, y] = items[id].position;
+          [i, j] = items[id].position;
         } else {
-          const getPosition = orderer(layout.colNum);
-          [x, y] = getPosition(id);
+          const getCellPosition = orderer(layout.colNum);
+          [i, j] = getCellPosition(id);
         }
 
         // Make sure that the there is always one extra row
-        layout.rowNum = Math.max(layout.rowNum, y + 1);
+        layout.rowNum = Math.max(layout.rowNum, j + 1);
 
-        [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
+        const [x, y] = layout.ijToXy(
+          i,
+          j,
+          pile.graphics.width,
+          pile.graphics.height
+        );
 
         renderedItems.get(id).originalPosition = [x, y];
 
-        movingPiles.push({
-          id,
-          x,
-          y
-        });
+        movingPiles.push({ id, x, y });
       });
 
       if (movingPiles.length !== 0) {
@@ -938,11 +888,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             ? itemPositions[index]
             : renderedItems.get(itemId).originalPosition,
         getter: () => {
-          return [pile.graphics.x, pile.graphics.y];
+          return [pile.x, pile.y];
         },
-        setter: newValue => {
-          pile.graphics.x = newValue[0];
-          pile.graphics.y = newValue[1];
+        setter: xy => {
+          pile.moveTo(...xy);
         },
         onDone: finalValue => {
           movingPiles.push({
@@ -1347,11 +1296,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         interpolator: interpolateVector,
         endValue: [centerX, centerY],
         getter: () => {
-          return [pile.graphics.x, pile.graphics.y];
+          return [pile.x, pile.y];
         },
-        setter: newValue => {
-          pile.graphics.x = newValue[0];
-          pile.graphics.y = newValue[1];
+        setter: xy => {
+          pile.moveTo(...xy);
         },
         onDone: () => {
           if (index === pileIds.length - 1) {
@@ -1436,7 +1384,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.columns !== newState.columns ||
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
-      state.itemPadding !== newState.itemPadding
+      state.itemPadding !== newState.itemPadding ||
+      state.pileCellAlign !== newState.pileCellAlign
     ) {
       stateUpdates.add('grid');
       stateUpdates.add('layout');
@@ -1591,10 +1540,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
 
-    if (
-      pileGfx.x !== pileGfx.beforeDragX ||
-      pileGfx.y !== pileGfx.beforeDragY
-    ) {
+    if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
       const collidePiles = searchIndex
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
@@ -1604,8 +1550,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
           pile.itemContainer.children.forEach(item => {
-            item.tmpAbsX = pileGfx.x;
-            item.tmpAbsY = pileGfx.y;
+            item.tmpAbsX = pile.x;
+            item.tmpAbsY = pile.y;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
@@ -1616,8 +1562,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           createAction.movePiles([
             {
               id: pileId,
-              x: pileGfx.x,
-              y: pileGfx.y
+              x: pile.x,
+              y: pile.y
             }
           ])
         );
@@ -1732,46 +1678,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     hideContextMenu(contextMenuElement);
   };
-
-  // const alignBtnClick = menu => () => {
-  //   pileInstances.forEach(pile => {
-  //     const bBox = pile.bBox;
-  //     const centerY = Math.floor(
-  //       (bBox.minX + bBox.maxX) / (layout.colWidth * 2)
-  //     );
-  //     const centerX = Math.floor(
-  //       (bBox.minY + bBox.maxY) / (layout.rowHeight * 2)
-  //     );
-  //     const center = [centerX, centerY];
-
-  //     const { orderer } = store.getState();
-  //     const getPosition = orderer(layout.colNum);
-  //     const [x, y] = getPosition(pile.id);
-
-  //     updateGridMatWithCenter(pile.id);
-
-  //     if (center[1] === x && center[0] === y) {
-  //       pile.graphics.x = x * layout.colWidth;
-  //       pile.graphics.y = y * layout.rowHeight;
-  //     } else {
-  //       const distanceMat = ndarray(
-  //         new Float32Array(new Array(layout.colNum * layout.rowNum).fill(0)),
-  //         [layout.rowNum, layout.colNum]
-  //       );
-
-  //       const closestPos = findDepilePos(distanceMat, gridMat, center, 1);
-  //       console.log(center, closestPos);
-  //       pile.graphics.x = closestPos[1] * layout.colWidth;
-  //       pile.graphics.y = closestPos[0] * layout.rowHeight;
-  //     }
-  //     renderRaf();
-  //   })
-
-  //   menu.style.display = 'none';
-  //   const style = document.getElementById('style');
-  //   rootElement.removeChild(style);
-  //   rootElement.removeChild(menu);
-  // }
 
   let mouseDownPosition = [0, 0];
 
@@ -1952,17 +1858,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const numOfRow = Math.floor(pile.cY / oldCellHeight);
         const numOfCol = Math.floor(pile.cX / oldCellWidth);
 
-        const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
-        const getPosition = orderer(layout.colNum);
-        let [x, y] = getPosition(gridNum);
+        const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
+        const getCellPosition = orderer(layout.colNum);
+        const [i, j] = getCellPosition(cellIndex);
+        const [x, y] = layout.ijToXy(
+          i,
+          j,
+          pile.graphics.width,
+          pile.graphics.height
+        );
 
-        [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
-
-        movingPiles.push({
-          id: pile.id,
-          x,
-          y
-        });
+        movingPiles.push({ id: pile.id, x, y });
       });
     } else {
       layout.cellWidth = width / layout.colNum;
@@ -2008,10 +1914,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .endFill();
 
     renderedItems.forEach(item => {
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(item.id);
-      [x, y] = getPilePosByCellAlign(x, y, item.sprite);
-      item.originalPosition = [x, y];
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(item.id);
+      item.originalPosition = layout.ijToXy(
+        i,
+        j,
+        item.sprite.width,
+        item.sprite.height
+      );
     });
 
     createRBush();
@@ -2025,11 +1935,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const alignByGrid = () => {
+    const pileMovements = layout.align(pileInstances);
+
+    pileMovements.forEach(({ id, x, y }, index) => {
+      const pile = pileInstances.get(id);
+      const tweener = createTweener({
+        duration: 250,
+        delay: 0,
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => {
+          return [pile.x, pile.y];
+        },
+        setter: xy => {
+          pile.moveTo(...xy);
+        },
+        onDone: () => {
+          if (index === pileMovements.length - 1) {
+            store.dispatch(createAction.movePiles(pileMovements));
+            createRBush();
+            updateScrollContainer();
+            renderRaf();
+          }
+        }
+      });
+      animator.add(tweener);
+    });
+  };
+
   const closeContextMenu = () => {
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
     );
     if (contextMenuElement) rootElement.removeChild(contextMenuElement);
+  };
+
+  const alignByGridClickHandler = () => {
+    alignByGrid();
+    closeContextMenu();
   };
 
   const contextmenuHandler = event => {
@@ -2137,7 +2081,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         depileBtn.style.display = 'none';
         tempDepileBtn.style.display = 'none';
-        alignBtn.style.display = 'none';
         scaleBtn.style.display = 'none';
 
         if (isGridShown) {
@@ -2154,7 +2097,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         element.style.top = `${mousePosition[1]}px`;
 
         gridBtn.addEventListener('click', gridBtnClick(element), false);
-        // alignBtn.addEventListener('click', alignBtnClick(element), false);
+        alignBtn.addEventListener('click', alignByGridClickHandler, false);
       }
     }
   };
