@@ -35,11 +35,14 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     pileId: id
   };
 
+  let cover;
+
   let isFocus = false;
   let isTempDepiled = false;
   let hasCover = false;
-
   let isPositioning = false;
+  let cX;
+  let cY;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -230,6 +233,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     bBox.minY = newBBox.minY;
     bBox.maxX = newBBox.maxX;
     bBox.maxY = newBBox.maxY;
+    cX = bBox.minX + (bBox.maxX - bBox.minX) / 2;
+    cY = bBox.minY + (bBox.maxY - bBox.minY) / 2;
   };
 
   const calcBBox = () => {
@@ -480,26 +485,29 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     itemsById.set(id, initialItem);
   };
 
+  const moveTo = (x, y) => {
+    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+      graphics.x = x;
+      graphics.y = y;
+      updateBBox();
+    }
+  };
+
   init();
 
   return {
-    destroy,
-    drawBorder,
-    border,
-    itemsById,
-    newItemsById,
-    graphics,
-    itemContainer,
-    id,
-    bBox,
-    calcBBox,
-    updateBBox,
-    positionItems,
-    get size() {
-      return itemContainer.children.length;
+    // Properties
+    get cX() {
+      return cX;
     },
-    get items() {
-      return itemContainer.children;
+    get cY() {
+      return cY;
+    },
+    get bBox() {
+      return bBox;
+    },
+    get graphics() {
+      return graphics;
     },
     get hasCover() {
       return hasCover;
@@ -519,9 +527,34 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
-    scale,
+    get items() {
+      return itemContainer.children;
+    },
+    get size() {
+      return itemContainer.children.length;
+    },
+    get x() {
+      return graphics.x;
+    },
+    get y() {
+      return graphics.y;
+    },
+    // Methods
+    animatePositionItems,
     animateScale,
-    animatePositionItems
+    border,
+    calcBBox,
+    cover,
+    destroy,
+    drawBorder,
+    id,
+    itemContainer,
+    itemsById,
+    moveTo,
+    newItemsById,
+    positionItems,
+    scale,
+    updateBBox
   };
 };
 

@@ -1,5 +1,12 @@
 # Next
 
+- Add functionality to align piles by the grid via the context menu
+- Add a new property called [`pileCellAlign`](DOCS.md#pilingsetproperty-value) to define where the piles are aligned to, which accepts the following values:
+  - 'topleft'
+  - 'topRight'
+  - 'bottomLeft'
+  - 'bottomRight'
+  - 'center'
 - Add properties for setting various colors via [`.set()`](DOCS.md#pilingsetproperty-value):
   - `backgroundColor`
   - `lassoFillColor`
@@ -27,8 +34,21 @@
   - `pileInactive`
   - `pileDrag`
   - `pileDrop`
+- Change the grid layout properties from a nested object called `grid` to the following individual properties that you can set with [`.set()`](DOCS.md#pilingsetproperty-value):
+
+  - `itemSize`
+  - `itemPadding`
+  - `columns`
+  - `rowHeight`
+  - `cellAspectRatio`
+
+  Their precedence is as follows:
+
+  - `columns` < `itemSize`
+  - `cellAspectRatio` < `rowHeight`
+
+- Update the grid layout on browser window resize
 - Redesign default context menu
-- Update grid on browser window resize
 
 ## v0.2.0
 
