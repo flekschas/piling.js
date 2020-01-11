@@ -96,9 +96,13 @@ const [items, setItems] = setter('items', []);
 
 const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
-const [grid, setGrid] = setter('grid', []);
-
+// Grid
+const [itemSize, setItemSize] = setter('itemSize');
 const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
+const [columns, setColumns] = setter('columns', 10);
+const [rowHeight, setRowHeight] = setter('rowHeight');
+const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
+const [itemPadding, setItemPadding] = setter('itemPadding', 0);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
@@ -185,6 +189,9 @@ const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
   'pileBackgroundOpacity',
   0.85
 );
+
+// 'topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center'
+const [pileCellAlign, setPileCellAlign] = setter('pileCellAlign', 'topLeft');
 
 const [pileContextMenuItems, setPileContextMenuItems] = setter(
   'pileContextMenuItems',
@@ -323,13 +330,17 @@ const createStore = () => {
     depiledPile,
     depileMethod,
     easing,
-    grid,
+    itemSize,
+    itemSizeRange,
+    columns,
+    rowHeight,
+    cellAspectRatio,
+    itemPadding,
     itemAlignment,
     itemOpacity,
     itemRenderer,
     itemRotated,
     items,
-    itemSizeRange,
     lassoFillColor,
     lassoFillOpacity,
     lassoStrokeColor,
@@ -344,6 +355,7 @@ const createStore = () => {
     pileBorderOpacityActive,
     pileBackgroundColor,
     pileBackgroundOpacity,
+    pileCellAlign,
     pileContextMenuItems,
     piles,
     previewAggregator,
@@ -404,8 +416,12 @@ export const createAction = {
   setCoverAggregator,
   setItems,
   setOrderer,
-  setGrid,
+  setItemSize,
   setItemSizeRange,
+  setColumns,
+  setRowHeight,
+  setCellAspectRatio,
+  setItemPadding,
   setItemAlignment,
   setItemRotated,
   setFocusedPiles,
@@ -427,5 +443,6 @@ export const createAction = {
   setPileBorderOpacityActive,
   setPileBackgroundColor,
   setPileBackgroundOpacity,
+  setPileCellAlign,
   setPileContextMenuItems
 };

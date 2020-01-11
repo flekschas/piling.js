@@ -26,7 +26,8 @@ const STYLES_BUTTON = {
   border: 'none',
   backgroundColor: 'transparent',
   cursor: 'pointer',
-  outline: 'none'
+  outline: 'none',
+  whiteSpace: 'nowrap'
 };
 
 const STYLES_BUTTON_HOVER = {

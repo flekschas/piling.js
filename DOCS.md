@@ -151,16 +151,20 @@ The list of all understood properties is given below.
 | ------------------------- | ---------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
 | aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | backgroundColor           | string or int    | `0x000000`            |                                                                               | `false`    |
-| clickedPiles              | array            | `[]`                  | the id of current focused pile                                                | `true`     |
+| clickedPile               | array            | `[]`                  | the id of current focused pile                                                | `true`     |
 | coverAggregator           | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                              | `true`     |
 | depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
 | easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
-| grid                      | array            | `[]`                  | see [`notes`](#notes)                                                         | `false`    |
 | itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | itemRotated               | boolean          | `false`               | `true` or `false`                                                             | `true`     |
 | items                     | array            | `[]`                  | see [`data`](#data)                                                           | `false`    |
+| itemSize                  | int              |                       | number of pixels                                                              | `true`     |
 | itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
+| columns                   | int              | `10`                  | ignored when `itemSize` is defined                                            | `false`    |
+| rowHeight                 | int              |                       |                                                                               | `true`     |
+| cellAspectRatio           | float            |                       | ignored when `rowHeight` is defined                                           | `false`    |
+| itemPadding               | int              |                       |                                                                               | `true`     |
 | lassoFillColor            | string or int    | `0xffffff`            |                                                                               | `false`    |
 | lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
 | lassoStrokeColor          | string or int    | `0xffffff`            |                                                                               | `false`    |
@@ -175,6 +179,7 @@ The list of all understood properties is given below.
 | pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBackgroundColor       | string or int    | `0x000000`            |                                                                               | `false`    |
 | pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileCellAlign             | string           | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
 | pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                          | `true`     |
 | previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
@@ -183,7 +188,7 @@ The list of all understood properties is given below.
 | scaledPile                | array            | `[]`                  | the id of current scaled pile                                                 | `true`     |
 | tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
 | tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
-| temporaryDepiledPiles     | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
+| temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
 
 **Examples and Notes:**
 
@@ -215,7 +220,12 @@ The list of all understood properties is given below.
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
   ```
 
-- `grid` is an array of numbers that defines a grid, the array can have at most 4 numbers in this particular order: `[num of columns, num of rows, height of a row, ratio of a cell]`, or at least 1 number: `[num of columns]`
+- The following properties to define the _grid_: `itemSize`, `itemPadding`, `columns`, `rowHeight`, and `cellAspectRatio`
+
+  One has to at least provide `columns` or `itemSize` to define a grid. If `itemSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
+
+  When `itemSize` is defined, `itemSize` and `itemPadding` add up together to define the cell width. When `itemSize` is undefined, `itemSize` is defined by the derived cell width (given `columns`) minues `itemPadding`!
+
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
   ```javascript

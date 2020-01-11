@@ -35,6 +35,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     pileId: id
   };
 
+  let cover;
+
   let isFocus = false;
   let isTempDepiled = false;
   let hasCover = false;
@@ -536,6 +538,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     animateScale,
     border,
     calcBBox,
+    cover,
     destroy,
     drawBorder,
     id,
