@@ -139,7 +139,7 @@ const createGrid = (
       let d = Infinity;
       let closestPile;
       conflictingPiles.forEach(pileId => {
-        const pile = piles.get(pileId);
+        const pile = pilePositions.get(pileId);
         const newD = l1Dist(pile.cX, pile.cY, ...anchor);
         if (newD < d) {
           closestPile = pileId;
