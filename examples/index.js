@@ -188,6 +188,11 @@ createPiles(exampleEl.value).then(pilingLib => {
           name: 'cellAspectRatio',
           dtype: 'float',
           nullifiable: true
+        },
+        {
+          name: 'pileCellAlign',
+          dtype: 'string',
+          values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
         }
       ]
     }
@@ -205,6 +210,49 @@ createPiles(exampleEl.value).then(pilingLib => {
     int: v => +v,
     float: v => +v,
     string: v => v
+  };
+
+  const createInput = field => {
+    const currentValue = pilingLib.get(field.name);
+
+    if (field.values) {
+      const select = document.createElement('select');
+      field.values.forEach(value => {
+        const option = document.createElement('option');
+        option.setAttribute('value', value);
+        option.textContent = value;
+        if (currentValue === value) option.selected = true;
+        select.appendChild(option);
+      });
+
+      Object.defineProperty(select, 'value', {
+        get: () => select.options[select.selectedIndex].value
+      });
+
+      return select;
+    }
+
+    const input = document.createElement('input');
+    input.setAttribute('type', dtypeToInputType[field.dtype]);
+
+    if (!Number.isNaN(+field.min)) {
+      input.setAttribute('type', 'range');
+      input.setAttribute('min', +field.min);
+    }
+
+    if (!Number.isNaN(+field.max)) {
+      input.setAttribute('type', 'range');
+      input.setAttribute('max', +field.max);
+    }
+
+    if (!Number.isNaN(+field.step)) {
+      input.setAttribute('type', 'range');
+      input.setAttribute('step', +field.step);
+    }
+
+    input.setAttribute('value', currentValue);
+
+    return input;
   };
 
   const optionsContent = document.querySelector('#options .content');
@@ -238,25 +286,7 @@ createPiles(exampleEl.value).then(pilingLib => {
 
       const inputs = document.createElement('inputs');
       inputs.setAttribute('class', 'inputs');
-      const input = document.createElement('input');
-      input.setAttribute('type', dtypeToInputType[field.dtype]);
-
-      if (!Number.isNaN(+field.min)) {
-        input.setAttribute('type', 'range');
-        input.setAttribute('min', +field.min);
-      }
-
-      if (!Number.isNaN(+field.max)) {
-        input.setAttribute('type', 'range');
-        input.setAttribute('max', +field.max);
-      }
-
-      if (!Number.isNaN(+field.step)) {
-        input.setAttribute('type', 'range');
-        input.setAttribute('step', +field.step);
-      }
-
-      input.setAttribute('value', pilingLib.get(field.name));
+      const input = createInput(field);
 
       const isSet = document.createElement('input');
       isSet.setAttribute('type', 'checkbox');
