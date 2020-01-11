@@ -387,63 +387,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const getPilePosByCellAlign = (x, y, graphics) => {
-    let posX;
-    let posY;
-
+  /**
+   * Convert the i,j cell position to an x,y pixel position
+   * @param   {number}  i  Position of the cell on the x-axis
+   * @param   {number}  j  Position of the cell on the y-axis
+   * @param   {number}  width  Width of the pile to be positioned
+   * @param   {number}  height  Height of the pile to be positioned
+   * @return  {array}  Tuple representing the x,y position
+   */
+  const ijToXyPosition = (i, j, width, height) => {
     const { pileCellAlign } = store.getState();
 
+    const topLeft = [
+      i * layout.cellWidth + layout.itemPadding,
+      j * layout.cellHeight + layout.itemPadding
+    ];
+
     switch (pileCellAlign) {
-      case 'topLeft':
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
       case 'topRight':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth -
-          graphics.width;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
+        return [topLeft[0] + layout.colWidth - width, topLeft[1]];
+
       case 'bottomLeft':
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight -
-          graphics.height;
-        break;
+        return [topLeft[0], topLeft[1] + layout.rowHeight - height];
+
       case 'bottomRight':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth -
-          graphics.width;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight -
-          graphics.height;
-        break;
+        return [
+          topLeft[0] + layout.colWidth - width,
+          topLeft[1] + layout.rowHeight - height
+        ];
+
       case 'center':
-        posX =
-          x * layout.cellWidth +
-          layout.itemPadding +
-          layout.colWidth / 2 -
-          graphics.width / 2;
-        posY =
-          y * layout.cellHeight +
-          layout.itemPadding +
-          layout.rowHeight / 2 -
-          graphics.height / 2;
-        break;
+        return [
+          topLeft[0] + (layout.colWidth - width) / 2,
+          topLeft[1] + (layout.rowHeight - height) / 2
+        ];
+
+      case 'topLeft':
       default:
-        posX = x * layout.cellWidth + layout.itemPadding;
-        posY = y * layout.cellHeight + layout.itemPadding;
-        break;
+        return topLeft;
     }
-    return [posX, posY];
   };
 
   const updateLayout = (oldCellWidth, oldCellHeight, oldColNum) => {
@@ -458,17 +440,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numOfRow = Math.floor(pile.cY / oldCellHeight);
       const numOfCol = Math.floor(pile.cX / oldCellWidth);
 
-      const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(gridNum);
+      const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(cellIndex);
 
-      [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
+      const [x, y] = ijToXyPosition(
+        i,
+        j,
+        pile.graphics.width,
+        pile.graphics.height
+      );
 
-      movingPiles.push({
-        id: pile.id,
-        x,
-        y
-      });
+      movingPiles.push({ id: pile.id, x, y });
     });
 
     pileInstances.forEach(pile => {
@@ -513,10 +496,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     renderedItems.forEach(item => {
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(item.id);
-      [x, y] = getPilePosByCellAlign(x, y, item.sprite);
-      item.originalPosition = [x, y];
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(item.id);
+      item.originalPosition = ijToXyPosition(
+        i,
+        j,
+        item.sprite.width,
+        item.sprite.height
+      );
     });
 
     createRBush();
@@ -608,27 +595,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
-        let x;
-        let y;
+        let i;
+        let j;
         if (items[id].position) {
-          [x, y] = items[id].position;
+          [i, j] = items[id].position;
         } else {
-          const getPosition = orderer(layout.colNum);
-          [x, y] = getPosition(id);
+          const getCellPosition = orderer(layout.colNum);
+          [i, j] = getCellPosition(id);
         }
 
         // Make sure that the there is always one extra row
-        layout.rowNum = Math.max(layout.rowNum, y + 1);
+        layout.rowNum = Math.max(layout.rowNum, j + 1);
 
-        [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
+        const [x, y] = ijToXyPosition(
+          i,
+          j,
+          pile.graphics.width,
+          pile.graphics.height
+        );
 
         renderedItems.get(id).originalPosition = [x, y];
 
-        movingPiles.push({
-          id,
-          x,
-          y
-        });
+        movingPiles.push({ id, x, y });
       });
 
       if (movingPiles.length !== 0) {
@@ -1906,17 +1894,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const numOfRow = Math.floor(pile.cY / oldCellHeight);
         const numOfCol = Math.floor(pile.cX / oldCellWidth);
 
-        const gridNum = Math.round(numOfRow * oldColNum + numOfCol);
-        const getPosition = orderer(layout.colNum);
-        let [x, y] = getPosition(gridNum);
+        const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
+        const getCellPosition = orderer(layout.colNum);
+        const [i, j] = getCellPosition(cellIndex);
+        const [x, y] = ijToXyPosition(
+          i,
+          j,
+          pile.graphics.width,
+          pile.graphics.height
+        );
 
-        [x, y] = getPilePosByCellAlign(x, y, pile.graphics);
-
-        movingPiles.push({
-          id: pile.id,
-          x,
-          y
-        });
+        movingPiles.push({ id: pile.id, x, y });
       });
     } else {
       layout.cellWidth = width / layout.colNum;
@@ -1962,10 +1950,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .endFill();
 
     renderedItems.forEach(item => {
-      const getPosition = orderer(layout.colNum);
-      let [x, y] = getPosition(item.id);
-      [x, y] = getPilePosByCellAlign(x, y, item.sprite);
-      item.originalPosition = [x, y];
+      const getCellPosition = orderer(layout.colNum);
+      const [i, j] = getCellPosition(item.id);
+      item.originalPosition = ijToXyPosition(
+        i,
+        j,
+        item.sprite.width,
+        item.sprite.height
+      );
     });
 
     createRBush();
