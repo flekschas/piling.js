@@ -18,6 +18,7 @@ const createGrid = (
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
+    pileCellAlign = 'topLeft',
     itemPadding = 0
   } = {}
 ) => {
@@ -45,15 +46,53 @@ const createGrid = (
 
   cellHeight = rowHeight + itemPadding * 2;
 
-  const cellWidthHalf = colWidth / 2;
-  const cellHeightHalf = rowHeight / 2;
-  const cellDiameter = l2Norm([colWidth, rowHeight]);
+  const cellWidthHalf = cellWidth / 2;
+  const cellHeightHalf = cellHeight / 2;
+  const cellDiameter = l2Norm([cellWidth, cellHeight]);
 
   const ijToIdx = (i, j) => j * colNum + i;
 
   const idxToIj = idx => [idx % colNum, Math.floor(idx / colNum)];
 
-  const ijToXy = (i, j) => [i * colWidth, j * rowHeight];
+  /**
+   * Convert the i,j cell position to an x,y pixel position
+   * @param   {number}  i  Position of the cell on the x-axis
+   * @param   {number}  j  Position of the cell on the y-axis
+   * @param   {number}  width  Width of the pile to be positioned
+   * @param   {number}  height  Height of the pile to be positioned
+   * @return  {array}  Tuple representing the x,y position
+   */
+  const ijToXy = (i, j, pileWidth, pileHeight) => {
+    if (!pileWidth || !pileHeight) {
+      return [i * cellWidth, j * cellHeight];
+    }
+
+    const topLeft = [i * cellWidth + itemPadding, j * cellHeight + itemPadding];
+
+    switch (pileCellAlign) {
+      case 'topRight':
+        return [topLeft[0] + colWidth - pileWidth, topLeft[1]];
+
+      case 'bottomLeft':
+        return [topLeft[0], topLeft[1] + rowHeight - pileHeight];
+
+      case 'bottomRight':
+        return [
+          topLeft[0] + colWidth - pileWidth,
+          topLeft[1] + rowHeight - pileHeight
+        ];
+
+      case 'center':
+        return [
+          topLeft[0] + (colWidth - pileWidth) / 2,
+          topLeft[1] + (rowHeight - pileHeight) / 2
+        ];
+
+      case 'topLeft':
+      default:
+        return topLeft;
+    }
+  };
 
   const align = piles => {
     const cells = [];
@@ -63,7 +102,9 @@ const createGrid = (
       pilePositions.set(pile.id, {
         id: pile.id,
         cX: pile.cX,
-        cY: pile.cY
+        cY: pile.cY,
+        width: pile.graphics.width,
+        height: pile.graphics.height
       });
     });
 
@@ -197,13 +238,18 @@ const createGrid = (
     }
 
     return Array.from(pilePositions.entries(), ([id, { i, j }]) => {
-      const [x, y] = ijToXy(i, j);
+      const [x, y] = ijToXy(
+        i,
+        j,
+        pilePositions.get(id).width,
+        pilePositions.get(id).height
+      );
       return { id, x, y };
     });
   };
 
   return {
-    align,
+    // Properties
     itemSize,
     colNum,
     rowNum,
@@ -212,7 +258,10 @@ const createGrid = (
     cellWidth,
     cellHeight,
     cellAspectRatio,
-    itemPadding
+    itemPadding,
+    // Methods
+    align,
+    ijToXy
   };
 };
 

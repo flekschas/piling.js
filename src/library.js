@@ -291,6 +291,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     } = store.getState();
 
@@ -299,6 +300,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     });
 
@@ -315,6 +317,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     } = store.getState();
 
@@ -323,6 +326,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      pileCellAlign,
       itemPadding
     });
 
@@ -387,47 +391,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  /**
-   * Convert the i,j cell position to an x,y pixel position
-   * @param   {number}  i  Position of the cell on the x-axis
-   * @param   {number}  j  Position of the cell on the y-axis
-   * @param   {number}  width  Width of the pile to be positioned
-   * @param   {number}  height  Height of the pile to be positioned
-   * @return  {array}  Tuple representing the x,y position
-   */
-  const ijToXyPosition = (i, j, width, height) => {
-    const { pileCellAlign } = store.getState();
-
-    const topLeft = [
-      i * layout.cellWidth + layout.itemPadding,
-      j * layout.cellHeight + layout.itemPadding
-    ];
-
-    switch (pileCellAlign) {
-      case 'topRight':
-        return [topLeft[0] + layout.colWidth - width, topLeft[1]];
-
-      case 'bottomLeft':
-        return [topLeft[0], topLeft[1] + layout.rowHeight - height];
-
-      case 'bottomRight':
-        return [
-          topLeft[0] + layout.colWidth - width,
-          topLeft[1] + layout.rowHeight - height
-        ];
-
-      case 'center':
-        return [
-          topLeft[0] + (layout.colWidth - width) / 2,
-          topLeft[1] + (layout.rowHeight - height) / 2
-        ];
-
-      case 'topLeft':
-      default:
-        return topLeft;
-    }
-  };
-
   const updateLayout = (oldCellWidth, oldCellHeight, oldColNum) => {
     scaleItems();
 
@@ -444,7 +407,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const getCellPosition = orderer(layout.colNum);
       const [i, j] = getCellPosition(cellIndex);
 
-      const [x, y] = ijToXyPosition(
+      const [x, y] = layout.ijToXy(
         i,
         j,
         pile.graphics.width,
@@ -498,7 +461,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.forEach(item => {
       const getCellPosition = orderer(layout.colNum);
       const [i, j] = getCellPosition(item.id);
-      item.originalPosition = ijToXyPosition(
+      item.originalPosition = layout.ijToXy(
         i,
         j,
         item.sprite.width,
@@ -607,7 +570,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // Make sure that the there is always one extra row
         layout.rowNum = Math.max(layout.rowNum, j + 1);
 
-        const [x, y] = ijToXyPosition(
+        const [x, y] = layout.ijToXy(
           i,
           j,
           pile.graphics.width,
@@ -1421,7 +1384,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.columns !== newState.columns ||
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
-      state.itemPadding !== newState.itemPadding
+      state.itemPadding !== newState.itemPadding ||
+      state.pileCellAlign !== newState.pileCellAlign
     ) {
       stateUpdates.add('grid');
       stateUpdates.add('layout');
@@ -1897,7 +1861,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
         const getCellPosition = orderer(layout.colNum);
         const [i, j] = getCellPosition(cellIndex);
-        const [x, y] = ijToXyPosition(
+        const [x, y] = layout.ijToXy(
           i,
           j,
           pile.graphics.width,
@@ -1952,7 +1916,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.forEach(item => {
       const getCellPosition = orderer(layout.colNum);
       const [i, j] = getCellPosition(item.id);
-      item.originalPosition = ijToXyPosition(
+      item.originalPosition = layout.ijToXy(
         i,
         j,
         item.sprite.width,
