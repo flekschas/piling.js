@@ -1,5 +1,11 @@
 # Next
 
+- Add a new property called [`pileCellAlign`](DOCS.md#pilingsetproperty-value) to define where the piles are aligned to, which accepts the following values:
+  - 'topleft'
+  - 'topRight'
+  - 'bottomLeft'
+  - 'bottomRight'
+  - 'center'
 - Add properties for setting various colors via [`.set()`](DOCS.md#pilingsetproperty-value):
   - `backgroundColor`
   - `lassoFillColor`

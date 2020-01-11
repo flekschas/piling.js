@@ -179,6 +179,7 @@ The list of all understood properties is given below.
 | pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBackgroundColor       | string or int    | `0x000000`            |                                                                               | `false`    |
 | pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileCellAlign             | string           | `topLeft`         | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                       | `true`     |
 | pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                          | `true`     |
 | previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
