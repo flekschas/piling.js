@@ -50,16 +50,16 @@ import { createImageRenderer } from 'piling.js';
 // define your dataset
 const data = [{ src: 'http://example.com/my-fancy-photo.png' }, ...];
 
-// instantiate the piling.js library
+// instantiate and configure the piling.js library
 // 'demo' is the dom element which piling.js will be rendered in
-const piling = createPilingJs(document.getElementById('demo'));
-
-// set the main renderer to the an instance of the image renderer
-piling.set('renderer', createImageRenderer());
-// add the dataset
-piling.set('items', data);
-// and finally set the number of columns to 10
-piling.set('grid', [10]);
+const piling = createPilingJs(
+  document.getElementById('demo'),    // dom element in which piling.js will be rendered
+  {
+    renderer: createImageRenderer(),  // use the image renderer for rendering
+    items: data,                      // add the images
+    columns: 4                        // set the grid to 4 columns
+  }
+);
 ```
 
 Et voilà 🎉
