@@ -410,13 +410,10 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.scale.y = scale;
   };
 
-  let scaledUp = false;
   let scaleTweener;
+  // eslint-disable-next-line consistent-return
   const scale = (newScale, noAnimate) => {
-    if (!newScale) {
-      // eslint-disable-next-line no-param-reassign
-      newScale = scaledUp ? 1 : MAX_SCALE;
-    }
+    if (Number.isNaN(+newScale)) return getScale();
 
     if (noAnimate) {
       setScale(newScale);
@@ -426,7 +423,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
       const Dt = scaleTweener.getDt();
-      if (Dt < duration && scaledUp) {
+      if (Dt < duration) {
         duration = Dt;
       }
     }
@@ -442,7 +439,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       }
     });
     pubSub.publish('animate', scaleTweener);
-    scaledUp = !scaledUp;
   };
 
   const scaleByWheel = wheelDelta => {
@@ -458,6 +454,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     scale(newScale, true);
 
     return oldScale !== newScale;
+  };
+
+  let scaledUp = false;
+  const scaleToggle = noAnimate => {
+    scale(scaledUp ? 1 : MAX_SCALE, noAnimate);
+    scaledUp = !scaledUp;
   };
 
   const init = () => {
@@ -563,6 +565,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     positionItems,
     scale,
     scaleByWheel,
+    scaleToggle,
     updateBBox
   };
 };

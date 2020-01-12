@@ -1714,7 +1714,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    pile.scale();
+    pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
   };
