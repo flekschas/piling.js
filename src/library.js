@@ -622,7 +622,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pile.items.forEach((item, i) => {
       item.alpha = isFunction(itemOpacity)
         ? itemOpacity(item, pile, i)
-        : itemOpacity || 1.0;
+        : itemOpacity;
     });
   };
 
@@ -631,15 +631,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { pileOpacity, pileBorderSize, pileScale } = store.getState();
 
-    pile.opacity(
-      isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity || 1.0
-    );
+    pile.opacity(isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity);
 
-    pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale || 1.0);
+    pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
 
     const borderSize = isFunction(pileBorderSize)
       ? pileBorderSize(pile)
-      : pileBorderSize || 1;
+      : pileBorderSize;
     pile.drawBorder(borderSize);
   };
 
