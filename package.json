@@ -1,6 +1,6 @@
 {
   "name": "piling.js",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A WebGL-based Library for Visual Piling/Stacking",
   "author": [
     {
@@ -20,17 +20,21 @@
   ],
   "license": "MIT",
   "main": "dist/piling.js",
-  "module": "src/index.js",
+  "module": "dist/piling.esm.js",
   "files": [
     "src/*",
     "dist/piling.js",
     "dist/piling.min.js",
+    "dist/piling.esm.js",
     "dist/piling-library.js",
     "dist/piling-library.min.js",
+    "dist/piling-library.esm.js",
     "dist/piling-renderer.js",
     "dist/piling-renderer.min.js",
+    "dist/piling-renderer.esm.js",
     "dist/piling-aggregator.js",
-    "dist/piling-aggregator.min.js"
+    "dist/piling-aggregator.min.js",
+    "dist/piling-aggregator.esm.js"
   ],
   "scripts": {
     "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",

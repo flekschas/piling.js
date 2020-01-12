@@ -1191,8 +1191,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile.isTempDepiled = false;
             pile.border.clear();
             pile.isFocus = false;
-            // eslint-disable-next-line no-use-before-define
-            handleHighlightPile({ pileId });
             store.dispatch(createAction.setFocusedPiles([]));
           }
         });
@@ -1561,12 +1559,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const exportState = () => {
     const clonedState = deepClone(state);
-    clonedState.version = VERSION;
+    clonedState.version = pkg.version;
     return clonedState;
   };
 
   const importState = (newState, overwriteState = false) => {
-    if (newState.version !== VERSION) {
+    if (newState.version !== pkg.version) {
       console.warn(
         `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
@@ -1605,6 +1603,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           );
         }
       } else {
+        resetPileBorder();
         store.dispatch(
           createAction.movePiles([
             {
