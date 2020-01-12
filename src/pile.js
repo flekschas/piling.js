@@ -3,11 +3,15 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
-import { MODE_HOVER } from './preview';
-
 export const MAX_SCALE = 3;
-export const MODE_ACTIVE = 'Active';
-export const MODE_SELECTED = 'Selected';
+export const MODE_HOVER = Symbol('Hover');
+export const MODE_FOCUS = Symbol('Focus');
+export const MODE_ACTIVE = Symbol('Active');
+
+const modeToString = new Map();
+modeToString.set(MODE_HOVER, 'Hover');
+modeToString.set(MODE_FOCUS, 'Focus');
+modeToString.set(MODE_ACTIVE, 'Active');
 
 /**
  * Factory function to create a pile
@@ -80,46 +84,88 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
-  const drawBorder = (size = 1, mode = '') => {
-    // while positioning, do not draw border
-    if (isPositioning) return;
-    const rect = itemContainer.getBounds();
+  let borderSizeBase = 0;
 
-    if (graphics.scale.x !== 1) {
-      rect.width /= graphics.scale.x;
-      rect.height /= graphics.scale.x;
+  const drawBorder = (size = borderSizeBase, mode = '') => {
+    if (!size) {
+      border.clear();
+    } else {
+      if (isPositioning) {
+        // eslint-disable-next-line no-use-before-define
+        postPilePositionAnimation.set('drawBorder', () => {
+          drawBorder(size, mode);
+        });
+        return;
+      }
+      const rect = itemContainer.getBounds();
+
+      // eslint-disable-next-line no-use-before-define
+      const currentScale = getScale();
+      if (currentScale !== 1) {
+        rect.width /= currentScale;
+        rect.height /= currentScale;
+      }
+
+      pubSub.publish('updateBBox', id);
+
+      const state = store.getState();
+
+      border.clear();
+
+      // draw black background
+      border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
+      border.drawRect(
+        bBox.minX - graphics.x - size,
+        bBox.minY - graphics.y - size,
+        rect.width + 2 * size,
+        rect.height + 2 * size
+      );
+      border.endFill();
+
+      // draw border
+      border.lineStyle(
+        size,
+        state[`pileBorderColor${modeToString.get(mode) || ''}`],
+        state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
+      );
+      border.drawRect(
+        bBox.minX - graphics.x - size,
+        bBox.minY - graphics.y - size,
+        rect.width + 2 * size,
+        rect.height + 2 * size
+      );
     }
 
-    pubSub.publish('updateBBox', id);
-
-    const state = store.getState();
-
-    border.clear();
-
-    // draw black background
-    border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
-    border.drawRect(
-      bBox.minX - graphics.x - size,
-      bBox.minY - graphics.y - size,
-      rect.width + 2 * size,
-      rect.height + 2 * size
-    );
-    border.endFill();
-
-    // draw border
-    border.lineStyle(
-      size,
-      state[`pileBorderColor${mode}`],
-      state[`pileBorderOpacity${mode}`]
-    );
-    border.drawRect(
-      bBox.minX - graphics.x - size,
-      bBox.minY - graphics.y - size,
-      rect.width + 2 * size,
-      rect.height + 2 * size
-    );
-
     render();
+  };
+
+  const getBorderSize = () => borderSizeBase;
+  const setBorderSize = newBorderSize => {
+    borderSizeBase = +newBorderSize;
+    drawBorder();
+  };
+
+  // eslint-disable-next-line consistent-return
+  const borderSize = newBorderSize => {
+    if (Number.isNaN(+newBorderSize)) return getBorderSize();
+
+    setBorderSize(newBorderSize);
+  };
+
+  const blur = () => {
+    drawBorder();
+  };
+
+  const hover = () => {
+    drawBorder(borderSizeBase || 1, MODE_HOVER);
+  };
+
+  const focus = () => {
+    drawBorder(borderSizeBase || 2, MODE_FOCUS);
+  };
+
+  const active = () => {
+    drawBorder(borderSizeBase || 3, MODE_ACTIVE);
   };
 
   const onPointerDown = () => {
@@ -137,12 +183,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     if (isFocus) {
       if (isTempDepiled) {
-        drawBorder(3, 'Active');
+        active();
       } else {
-        drawBorder(2, 'Selected');
+        focus();
       }
     } else {
-      drawBorder();
+      hover();
     }
     // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
@@ -161,7 +207,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     pubSub.publish('pileLeave', { pileId: id, event });
 
-    if (!isFocus) border.clear();
+    if (!isFocus) {
+      blur();
+    }
 
     // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
@@ -219,9 +267,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
 
       if (isTempDepiled) {
-        drawBorder(3, MODE_ACTIVE);
+        active();
       } else {
-        drawBorder(2, MODE_SELECTED);
+        focus();
       }
 
       render();
@@ -308,6 +356,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     pubSub.publish('animate', opacityTweener);
   };
 
+  // Map to store calls for after the pile position animation
+  const postPilePositionAnimation = new Map();
   const animatePositionItems = (item, x, y, animator, isLastOne) => {
     const tweener = createTweener({
       duration: 250,
@@ -323,6 +373,10 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       onDone: () => {
         if (isLastOne) {
           isPositioning = false;
+          postPilePositionAnimation.forEach(fn => {
+            fn();
+          });
+          postPilePositionAnimation.clear();
           pubSub.publish('updateBBox', id);
         }
       }
@@ -590,8 +644,13 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     newItemsById,
     itemContainer,
     // Methods
+    blur,
+    hover,
+    focus,
+    active,
     animatePositionItems,
     border,
+    borderSize,
     calcBBox,
     cover,
     destroy,

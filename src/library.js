@@ -25,7 +25,7 @@ import {
   withThrottleAndDebounce
 } from './utils';
 
-import createPile, { MODE_ACTIVE, MODE_SELECTED } from './pile';
+import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
 import createPreview from './preview';
@@ -635,10 +635,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
 
-    const borderSize = isFunction(pileBorderSize)
-      ? pileBorderSize(pile)
-      : pileBorderSize;
-    pile.drawBorder(borderSize);
+    pile.borderSize(
+      isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
+    );
   };
 
   const updatePreviewAndCover = (pile, pileInstance) => {
@@ -717,7 +716,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           positionItems(id);
         }
         updateBoundingBox(id);
-        pileInstance.border.clear();
+        pileInstance.drawBorder();
         updatePileItemStyle(pileInstance);
       }
     } else {
@@ -1182,7 +1181,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.isTempDepiled) {
             pile.itemContainer.removeChildAt(length - 1);
             pile.isTempDepiled = false;
-            pile.border.clear();
+            pile.drawBorder();
             pile.isFocus = false;
             store.dispatch(createAction.setFocusedPiles([]));
           }
@@ -1469,7 +1468,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (pileInstances.has(state.focusedPiles[0])) {
         const pile = pileInstances.get(state.focusedPiles[0]);
         if (!pile.isTempDepiled) {
-          pile.border.clear();
+          pile.drawBorder();
           pile.isFocus = false;
         }
       }
@@ -1478,9 +1477,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (newState.focusedPiles.length !== 0) {
         const pile = pileInstances.get(newState.focusedPiles[0]);
         if (pile.isTempDepiled) {
-          pile.drawBorder(3, MODE_ACTIVE);
+          pile.active();
         } else {
-          pile.drawBorder(2, MODE_SELECTED);
+          pile.focus();
         }
         pile.isFocus = true;
         pubSub.publish('pileFocus', { pile });
@@ -1544,7 +1543,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.drawBorder(2, 'Selected');
         }
       } else {
-        pile.border.clear();
+        pile.drawBorder();
       }
     });
   };
@@ -1617,7 +1616,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let newResult = [];
 
   const handleHighlightPile = ({ pileId }) => {
-    if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
     if (store.getState().temporaryDepiledPiles.length) return;
 
     oldResult = [...newResult];
@@ -1627,7 +1625,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       oldResult.forEach(collidePile => {
         if (pileInstances.get(collidePile.pileId)) {
           const pile = pileInstances.get(collidePile.pileId);
-          pile.border.clear();
+          pile.blur();
         }
       });
     }
@@ -1635,7 +1633,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     newResult.forEach(collidePile => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId);
-        pile.drawBorder();
+        pile.hover();
       }
     });
   };
