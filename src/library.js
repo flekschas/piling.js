@@ -1153,8 +1153,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile.isTempDepiled = false;
             pile.border.clear();
             pile.isFocus = false;
-            // eslint-disable-next-line no-use-before-define
-            handleHighlightPile({ pileId });
             store.dispatch(createAction.setFocusedPiles([]));
           }
         });
@@ -1565,6 +1563,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           );
         }
       } else {
+        resetPileBorder();
         store.dispatch(
           createAction.movePiles([
             {
