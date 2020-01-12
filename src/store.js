@@ -180,7 +180,7 @@ const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
   1.0
 );
 
-const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 1);
+const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 0);
 
 const [pileBackgroundColor, setPileBackgroundColor] = setter(
   'pileBackgroundColor',
