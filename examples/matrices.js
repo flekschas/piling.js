@@ -1,7 +1,7 @@
 /* eslint-disable import/no-duplicates */
 import { interpolateOrRd, interpolateRdPu } from 'd3-scale-chromatic';
 
-import createPilingJs from '../src/index';
+import createPilingJs from '../src/library';
 import { createMatrixRenderer } from '../src/renderer';
 import {
   createMatrixCoverAggregator,
