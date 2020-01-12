@@ -34,7 +34,6 @@
   ],
   "scripts": {
     "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
-    "rollup": "rm -rf dist/*; rollup -c;",
     "deploy": "npm run build; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
