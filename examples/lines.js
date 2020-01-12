@@ -1,4 +1,4 @@
-import createPilingJs from '../src/index';
+import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
 
 const SVG_START =

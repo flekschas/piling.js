@@ -4,8 +4,8 @@ import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
-import convolve from 'ndarray-convolve';
-import ndarray from 'ndarray';
+// import convolve from 'ndarray-convolve';
+// import ndarray from 'ndarray';
 
 import createAnimator from './animator';
 
@@ -31,6 +31,13 @@ import createItem from './item';
 import createPreview from './preview';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
+
+import pkg from '../package.json';
+
+// We cannot import the following libraries using the normal `import` statement
+// as this blows up the Rollup bundle massively for some reasons...
+const convolve = require('ndarray-convolve');
+const ndarray = require('ndarray');
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
@@ -2238,6 +2245,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   init();
 
   return {
+    // Properties
+    get version() {
+      return pkg.version;
+    },
+    // Methods
     destroy,
     exportState,
     get,

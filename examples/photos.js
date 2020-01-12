@@ -1,4 +1,4 @@
-import createPilingJs from '../src/index';
+import createPilingJs from '../src/library';
 import { createImageRenderer } from '../src/renderer';
 
 const createPhotoPiles = async element => {
