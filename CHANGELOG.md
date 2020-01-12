@@ -1,5 +1,10 @@
 # Next
 
+## v0.4.1
+
+- Include ES modules in npm release
+- Switch `package.json`'s module to ES module
+
 ## v0.4.0
 
 - Add functionality to align piles by the grid via the context menu
