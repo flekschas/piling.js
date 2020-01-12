@@ -626,26 +626,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updatePileStyle = pileId => {
+  const updatePileStyle = pile => {
+    if (!pile) return;
+
     const { pileOpacity, pileBorderSize, pileScale } = store.getState();
 
-    if (pileInstances.has(pileId)) {
-      const pile = pileInstances.get(pileId);
+    pile.graphics.alpha = isFunction(pileOpacity)
+      ? pileOpacity(pile)
+      : pileOpacity || 1.0;
 
-      pile.graphics.alpha = isFunction(pileOpacity)
-        ? pileOpacity(pile)
-        : pileOpacity || 1.0;
+    pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale || 1.0);
 
-      pile.graphics.scale.x = isFunction(pileScale)
-        ? pileScale(pile)
-        : pileScale || 1.0;
-      pile.graphics.scale.y = pile.graphics.scale.x;
-
-      const borderSize = isFunction(pileBorderSize)
-        ? pileBorderSize(pile)
-        : pileBorderSize || 1;
-      pile.drawBorder(borderSize);
-    }
+    const borderSize = isFunction(pileBorderSize)
+      ? pileBorderSize(pile)
+      : pileBorderSize || 1;
+    pile.drawBorder(borderSize);
   };
 
   const updatePreviewAndCover = (pile, pileInstance) => {
@@ -1374,7 +1369,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
-    if (pile.scale(wheelDelta)) {
+    if (pile.scaleByWheel(wheelDelta)) {
       updateBoundingBox(pileId);
     }
     renderRaf();
@@ -1407,14 +1402,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
-            updatePileStyle(id);
+            updatePileStyle(pileInstances.get(id));
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
-            updatePileStyle(id);
+            updatePileStyle(pileInstances.get(id));
           }
         });
       }
@@ -1503,8 +1498,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (state.scaledPile.length !== 0) {
         if (pileInstances.has(state.scaledPile[0])) {
           const pile = pileInstances.get(state.scaledPile[0]).graphics;
-          pile.scale.x = 1;
-          pile.scale.y = 1;
+          pile.scale(1);
           updateBoundingBox(state.scaledPile[0]);
           activePile.removeChildren();
           normalPiles.addChild(pile);
@@ -1718,9 +1712,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const scaleBtnBtnClick = (contextMenuElement, pileId) => () => {
+  const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    pile.animateScale();
+    pile.scale();
 
     hideContextMenu(contextMenuElement);
   };
@@ -2106,7 +2100,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
         scaleBtn.addEventListener(
           'click',
-          scaleBtnBtnClick(element, pile.id),
+          scaleBtnClick(element, pile.id),
           false
         );
 

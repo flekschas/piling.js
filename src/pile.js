@@ -403,31 +403,30 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
-  const scale = wheelDelta => {
-    const force = Math.log(Math.abs(wheelDelta) + 1);
-    const momentum = Math.sign(wheelDelta) * force;
+  const getScale = () => graphics.scale.x;
 
-    const newScale = Math.min(
-      Math.max(1, graphics.scale.y * (1 + 0.075 * momentum)),
-      MAX_SCALE
-    );
-
-    if (newScale > 1) {
-      graphics.scale.x = newScale;
-      graphics.scale.y = newScale;
-      return true;
-    }
-    return false;
+  const setScale = scale => {
+    graphics.scale.x = scale;
+    graphics.scale.y = scale;
   };
 
-  let scaleUp = false;
+  let scaledUp = false;
   let scaleTweener;
-  const animateScale = () => {
+  const scale = (newScale, noAnimate) => {
+    if (!newScale) {
+      // eslint-disable-next-line no-param-reassign
+      newScale = scaledUp ? 1 : MAX_SCALE;
+    }
+
+    if (noAnimate) {
+      setScale(newScale);
+    }
+
     let duration = 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
       const Dt = scaleTweener.getDt();
-      if (Dt < duration && scaleUp) {
+      if (Dt < duration && scaledUp) {
         duration = Dt;
       }
     }
@@ -435,20 +434,30 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       duration,
       delay: 0,
       interpolator: interpolateNumber,
-      endValue: scaleUp ? 1 : MAX_SCALE,
-      getter: () => {
-        return graphics.scale.x;
-      },
-      setter: newScale => {
-        graphics.scale.x = newScale;
-        graphics.scale.y = newScale;
-      },
+      endValue: newScale,
+      getter: getScale,
+      setter: setScale,
       onDone: () => {
         pubSub.publish('updateBBox', id);
       }
     });
     pubSub.publish('animate', scaleTweener);
-    scaleUp = !scaleUp;
+    scaledUp = !scaledUp;
+  };
+
+  const scaleByWheel = wheelDelta => {
+    const force = Math.log(Math.abs(wheelDelta) + 1);
+    const momentum = Math.sign(wheelDelta) * force;
+
+    const oldScale = getScale();
+    const newScale = Math.min(
+      Math.max(1, oldScale * (1 + 0.075 * momentum)),
+      MAX_SCALE
+    );
+
+    scale(newScale, true);
+
+    return oldScale !== newScale;
   };
 
   const init = () => {
@@ -541,7 +550,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     },
     // Methods
     animatePositionItems,
-    animateScale,
     border,
     calcBBox,
     cover,
@@ -554,6 +562,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     newItemsById,
     positionItems,
     scale,
+    scaleByWheel,
     updateBBox
   };
 };
