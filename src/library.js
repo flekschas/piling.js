@@ -1521,12 +1521,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const exportState = () => {
     const clonedState = deepClone(state);
-    clonedState.version = VERSION;
+    clonedState.version = pkg.version;
     return clonedState;
   };
 
   const importState = (newState, overwriteState = false) => {
-    if (newState.version !== VERSION) {
+    if (newState.version !== pkg.version) {
       console.warn(
         `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
