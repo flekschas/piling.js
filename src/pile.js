@@ -272,6 +272,42 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     return Math.random() * (max - min) + min;
   };
 
+  const getOpacity = () => graphics.alpha;
+  const setOpacity = newOpacity => {
+    graphics.alpha = newOpacity;
+  };
+
+  let opacityTweener;
+  // eslint-disable-next-line consistent-return
+  const opacity = (newOpacity, noAnimate) => {
+    if (Number.isNaN(+newOpacity)) return getOpacity();
+
+    if (noAnimate) {
+      setOpacity(newOpacity);
+    }
+
+    let duration = 250;
+    if (opacityTweener) {
+      pubSub.publish('cancelAnimation', opacityTweener);
+      const Dt = opacityTweener.getDt();
+      if (Dt < duration) {
+        duration = Dt;
+      }
+    }
+    opacityTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateNumber,
+      endValue: newOpacity,
+      getter: getOpacity,
+      setter: setOpacity,
+      onDone: () => {
+        pubSub.publish('updateBBox', id);
+      }
+    });
+    pubSub.publish('animate', opacityTweener);
+  };
+
   const animatePositionItems = (item, x, y, animator, isLastOne) => {
     const tweener = createTweener({
       duration: 250,
@@ -550,6 +586,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     get y() {
       return graphics.y;
     },
+    itemsById,
+    newItemsById,
+    itemContainer,
     // Methods
     animatePositionItems,
     border,
@@ -558,10 +597,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     destroy,
     drawBorder,
     id,
-    itemContainer,
-    itemsById,
     moveTo,
-    newItemsById,
+    opacity,
     positionItems,
     scale,
     scaleByWheel,

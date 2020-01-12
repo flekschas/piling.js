@@ -631,9 +631,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { pileOpacity, pileBorderSize, pileScale } = store.getState();
 
-    pile.graphics.alpha = isFunction(pileOpacity)
-      ? pileOpacity(pile)
-      : pileOpacity || 1.0;
+    pile.opacity(
+      isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity || 1.0
+    );
 
     pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale || 1.0);
 
