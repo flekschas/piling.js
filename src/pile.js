@@ -397,17 +397,16 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       // matrix
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
+
         const padding = (item.height + spacing / 2) * (index + 1);
-        if (index === itemContainer.children.length - 2)
-          animatePositionItems(item, 2 - spacing / 2, -padding, animator, true);
-        else
-          animatePositionItems(
-            item,
-            2 - spacing / 2,
-            -padding,
-            animator,
-            false
-          );
+
+        animatePositionItems(
+          item,
+          2 - spacing / 2,
+          -padding,
+          animator,
+          index === itemContainer.children.length - 2
+        );
       });
     } else if (itemAlignment) {
       // image
@@ -500,9 +499,15 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           paddingY = getRandomArbitrary(-30, 30);
         }
         items.push(item);
-        if (num === newItems.length)
-          animatePositionItems(item, paddingX, paddingY, animator, true);
-        else animatePositionItems(item, paddingX, paddingY, animator, false);
+
+        animatePositionItems(
+          item,
+          paddingX,
+          paddingY,
+          animator,
+          num === newItems.length
+        );
+
         if (rotation) {
           item.angle += rotation;
         }
