@@ -28,9 +28,7 @@ const createSvgLinesPiles = element => {
     renderer: svgRenderer,
     items: data,
     itemAlignment: ['top', 'bottom', 'left', 'right'],
-    itemOpacity: (item, pile) => {
-      return 1 / pile.size;
-    },
+    itemOpacity: (item, pile, i) => (pile.size - i) / pile.size,
     pileScale: pile => 1 + Math.min((pile.size - 1) * 0.2, 2),
     pileBorderSize: pile => pile.size - 1,
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',

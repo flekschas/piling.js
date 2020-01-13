@@ -23,8 +23,8 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = ({ initialItem, render, id, pubSub, store }) => {
-  const items = new Map();
-  const newItems = new Map();
+  const items = [];
+  const newItems = [];
   const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
@@ -404,7 +404,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       });
     } else if (itemAlignment) {
       // image
-      newItems.forEach((item, index) => {
+      newItems.forEach(item => {
         const sprite = item.sprite;
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
           sprite.x = sprite.x + item.tmpAbsX - graphics.x;
@@ -412,9 +412,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
         }
-        items.set(index, item);
+        items.push(item);
       });
-      newItems.clear();
+      newItems.splice(0, newItems.length);
       itemContainer.children.forEach((item, index) => {
         // eslint-disable-next-line no-param-reassign
         if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
@@ -467,7 +467,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         rotation = getRandomArbitrary(-10, 10);
       }
       let num = 0;
-      newItems.forEach((item, index) => {
+      newItems.forEach(item => {
         const sprite = item.sprite;
         num++;
         let paddingX;
@@ -483,15 +483,15 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           paddingX = getRandomArbitrary(-30, 30);
           paddingY = getRandomArbitrary(-30, 30);
         }
-        items.set(index, item);
-        if (num === newItems.size)
+        items.push(item);
+        if (num === newItems.length)
           animatePositionItems(item, paddingX, paddingY, animator, true);
         else animatePositionItems(item, paddingX, paddingY, animator, false);
         if (rotation) {
           item.angle += rotation;
         }
       });
-      newItems.clear();
+      newItems.splice(0, newItems.length);
     }
   };
 
@@ -585,7 +585,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     itemContainer.addChild(initialItem.sprite);
 
-    items.set(id, initialItem);
+    items.push(initialItem);
   };
 
   const moveTo = (x, y) => {

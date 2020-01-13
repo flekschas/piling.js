@@ -648,8 +648,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
       pileInstance.hasCover = false;
       positionItems(pileInstance.id);
-      pileInstance.items.clear();
-      pileInstance.items.set(pile.items[0], renderedItems.get(pile.items[0]));
+      pileInstance.items.splice(0, pileInstance.items.length);
+      pileInstance.items.push(renderedItems.get(pile.items[0]));
     } else {
       const itemSrcs = [];
       let previewWidth;
@@ -667,7 +667,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           previewHeight = preview.height;
         }
         pileInstance.itemContainer.addChild(preview);
-        pileInstance.items.set(itemId, renderedItems.get(itemId));
+        pileInstance.items.push(renderedItems.get(itemId));
       });
 
       coverAggregator(itemSrcs)
@@ -700,18 +700,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           updatePreviewAndCover(pile, pileInstance);
         } else {
           if (pile.items.length === 1) {
-            pileInstance.items.clear();
-            pileInstance.items.set(
-              pile.items[0],
-              renderedItems.get(pile.items[0])
-            );
+            pileInstance.items.splice(0, pileInstance.items.length);
+            pileInstance.items.push(renderedItems.get(pile.items[0]));
           }
           pile.items.forEach(itemId => {
             pileInstance.itemContainer.addChild(
               renderedItems.get(itemId).sprite
             );
-            if (!pileInstance.items.has(itemId)) {
-              pileInstance.newItems.set(itemId, renderedItems.get(itemId));
+            if (!pileInstance.items.includes(renderedItems.get(itemId))) {
+              pileInstance.newItems.push(renderedItems.get(itemId));
             }
           });
           positionItems(id);
