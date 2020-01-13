@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js';
+import createTweener from './tweener';
+import { interpolateNumber } from './utils';
 
 /**
  * Factory function to create an item
@@ -22,6 +24,39 @@ const createItem = (id, texture, preview, pubSub) => {
     clonedSprite.angle = sprite.angle;
 
     return clonedSprite;
+  };
+
+  const getOpacity = () => sprite.alpha;
+  const setOpacity = newOpacity => {
+    sprite.alpha = newOpacity;
+  };
+
+  let opacityTweener;
+  // eslint-disable-next-line consistent-return
+  const opacity = (newOpacity, noAnimate) => {
+    if (Number.isNaN(+newOpacity)) return getOpacity();
+
+    if (noAnimate) {
+      setOpacity(newOpacity);
+    }
+
+    let duration = 250;
+    if (opacityTweener) {
+      pubSub.publish('cancelAnimation', opacityTweener);
+      const Dt = opacityTweener.getDt();
+      if (Dt < duration) {
+        duration = Dt;
+      }
+    }
+    opacityTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateNumber,
+      endValue: newOpacity,
+      getter: getOpacity,
+      setter: setOpacity
+    });
+    pubSub.publish('animate', opacityTweener);
   };
 
   const destroy = () => {};
@@ -51,6 +86,7 @@ const createItem = (id, texture, preview, pubSub) => {
   const self = {
     cloneSprite,
     destroy,
+    opacity,
     sprite,
     preview,
     id,

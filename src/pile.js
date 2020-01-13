@@ -23,8 +23,8 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = ({ initialItem, render, id, pubSub, store }) => {
-  const itemsById = new Map();
-  const newItemsById = new Map();
+  const items = new Map();
+  const newItems = new Map();
   const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
@@ -404,16 +404,17 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       });
     } else if (itemAlignment) {
       // image
-      newItemsById.forEach((item, index) => {
+      newItems.forEach((item, index) => {
+        const sprite = item.sprite;
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          item.x = item.x + item.tmpAbsX - graphics.x;
-          item.y = item.y + item.tmpAbsY - graphics.y;
+          sprite.x = sprite.x + item.tmpAbsX - graphics.x;
+          sprite.y = sprite.y + item.tmpAbsY - graphics.y;
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
         }
-        itemsById.set(index, item);
+        items.set(index, item);
       });
-      newItemsById.clear();
+      newItems.clear();
       itemContainer.children.forEach((item, index) => {
         // eslint-disable-next-line no-param-reassign
         if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
@@ -466,30 +467,31 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         rotation = getRandomArbitrary(-10, 10);
       }
       let num = 0;
-      newItemsById.forEach((item, index) => {
+      newItems.forEach((item, index) => {
+        const sprite = item.sprite;
         num++;
         let paddingX;
         let paddingY;
-        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          paddingX = item.x + x;
-          paddingY = item.y + y;
-          item.x = item.x + item.tmpAbsX - graphics.x;
-          item.y = item.y + item.tmpAbsY - graphics.y;
+        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+sprite.tmpAbsY)) {
+          paddingX = sprite.x + x;
+          paddingY = sprite.y + y;
+          sprite.x = sprite.x + item.tmpAbsX - graphics.x;
+          sprite.y = sprite.y + item.tmpAbsY - graphics.y;
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
         } else {
           paddingX = getRandomArbitrary(-30, 30);
           paddingY = getRandomArbitrary(-30, 30);
         }
-        itemsById.set(index, item);
-        if (num === newItemsById.size)
+        items.set(index, item);
+        if (num === newItems.size)
           animatePositionItems(item, paddingX, paddingY, animator, true);
         else animatePositionItems(item, paddingX, paddingY, animator, false);
         if (rotation) {
           item.angle += rotation;
         }
       });
-      newItemsById.clear();
+      newItems.clear();
     }
   };
 
@@ -562,9 +564,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.x = 0;
     graphics.y = 0;
     // Origin of the items coordinste system relative to the pile
-    initialItem.anchor.set(0);
-    initialItem.x = 2;
-    initialItem.y = 2;
+    initialItem.sprite.anchor.set(0);
+    initialItem.sprite.x = 2;
+    initialItem.sprite.y = 2;
 
     borderContainer.addChild(border);
 
@@ -581,9 +583,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
 
-    itemContainer.addChild(initialItem);
+    itemContainer.addChild(initialItem.sprite);
 
-    itemsById.set(id, initialItem);
+    items.set(id, initialItem);
   };
 
   const moveTo = (x, y) => {
@@ -628,9 +630,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
-    get items() {
-      return itemContainer.children;
-    },
+    // get items() {
+    //   return itemContainer.children;
+    // },
     get size() {
       return itemContainer.children.length;
     },
@@ -640,8 +642,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     get y() {
       return graphics.y;
     },
-    itemsById,
-    newItemsById,
+    items,
+    newItems,
     itemContainer,
     // Methods
     blur,

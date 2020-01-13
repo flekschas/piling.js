@@ -542,7 +542,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           const newItem = createItem(index, renderedItem, preview, pubSub);
           renderedItems.set(index, newItem);
           const pile = createPile({
-            initialItem: newItem.sprite,
+            initialItem: newItem,
             render: renderRaf,
             id: index,
             pubSub,
@@ -620,9 +620,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { itemOpacity } = store.getState();
 
     pile.items.forEach((item, i) => {
-      item.alpha = isFunction(itemOpacity)
-        ? itemOpacity(item, pile, i)
-        : itemOpacity;
+      item.opacity(
+        isFunction(itemOpacity) ? itemOpacity(item, pile, i) : itemOpacity
+      );
     });
   };
 
@@ -648,10 +648,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
       pileInstance.hasCover = false;
       positionItems(pileInstance.id);
+      pileInstance.items.clear();
+      pileInstance.items.set(pile.items[0], renderedItems.get(pile.items[0]));
     } else {
       const itemSrcs = [];
       let previewWidth;
       let previewHeight;
+      pileInstance.items.clear();
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
         const preview = renderedItems.get(itemId).preview.previewContainer;
@@ -664,6 +667,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           previewHeight = preview.height;
         }
         pileInstance.itemContainer.addChild(preview);
+        pileInstance.items.set(itemId, renderedItems.get(itemId));
       });
 
       coverAggregator(itemSrcs)
@@ -696,21 +700,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           updatePreviewAndCover(pile, pileInstance);
         } else {
           if (pile.items.length === 1) {
-            pileInstance.itemsById.clear();
-            pileInstance.itemsById.set(
+            pileInstance.items.clear();
+            pileInstance.items.set(
               pile.items[0],
-              renderedItems.get(pile.items[0]).sprite
+              renderedItems.get(pile.items[0])
             );
           }
           pile.items.forEach(itemId => {
             pileInstance.itemContainer.addChild(
               renderedItems.get(itemId).sprite
             );
-            if (!pileInstance.itemsById.has(itemId)) {
-              pileInstance.newItemsById.set(
-                itemId,
-                renderedItems.get(itemId).sprite
-              );
+            if (!pileInstance.items.has(itemId)) {
+              pileInstance.newItems.set(itemId, renderedItems.get(itemId));
             }
           });
           positionItems(id);
@@ -721,7 +722,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     } else {
       const newPile = createPile({
-        initialItem: renderedItems.get(id).sprite,
+        initialItem: renderedItems.get(id),
         render: renderRaf,
         id,
         pubSub,
