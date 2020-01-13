@@ -358,19 +358,26 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
   // Map to store calls for after the pile position animation
   const postPilePositionAnimation = new Map();
-  const animatePositionItems = (item, x, y, animator, isLastOne) => {
+  const animatePositionItems = (itemSprite, x, y, animator, isLastOne) => {
+    const targetScale = itemSprite.tmpTargetScale || itemSprite.scale.x;
+    itemSprite.tmpTargetScale = undefined;
+    delete itemSprite.tmpTargetScale;
+
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateVector,
-      endValue: [x, y],
+      endValue: [x, y, targetScale],
       getter: () => {
-        return [item.x, item.y];
+        return [itemSprite.x, itemSprite.y, itemSprite.scale.x];
       },
       setter: newValue => {
-        item.x = newValue[0];
-        item.y = newValue[1];
+        itemSprite.x = newValue[0];
+        itemSprite.y = newValue[1];
+        itemSprite.scale.x = newValue[2];
+        itemSprite.scale.y = itemSprite.scale.x;
       },
       onDone: () => {
+        itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
           postPilePositionAnimation.forEach(fn => {
@@ -406,12 +413,29 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       // image
       newItems.forEach(item => {
         const sprite = item.sprite;
+
+        // eslint-disable-next-line no-use-before-define
+        const currentScale = getScale();
+        let relItemScale = (item.tmpRelScale || 1) / currentScale;
+
+        sprite.tmpTargetScale = sprite.scale.x;
+        if (!Number.isNaN(+item.tmpRelScale)) {
+          relItemScale = item.tmpRelScale / currentScale;
+          sprite.scale.x *= relItemScale;
+          sprite.scale.y = sprite.scale.x;
+          item.tmpRelScale = undefined;
+          delete item.tmpRelScale;
+        }
+
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          sprite.x = sprite.x + item.tmpAbsX - graphics.x;
-          sprite.y = sprite.y + item.tmpAbsY - graphics.y;
+          sprite.x = (sprite.x + item.tmpAbsX - graphics.x) * relItemScale;
+          sprite.y = (sprite.y + item.tmpAbsY - graphics.y) * relItemScale;
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
+          delete item.tmpAbsX;
+          delete item.tmpAbsY;
         }
+
         items.push(item);
       });
       newItems.splice(0, newItems.length);
@@ -441,22 +465,14 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
               horizontalPadding += padding;
           }
         });
-        if (index === itemContainer.children.length - 1)
-          animatePositionItems(
-            item,
-            horizontalPadding + 2,
-            verticalPadding + 2,
-            animator,
-            true
-          );
-        else
-          animatePositionItems(
-            item,
-            horizontalPadding + 2,
-            verticalPadding + 2,
-            animator,
-            false
-          );
+
+        animatePositionItems(
+          item,
+          horizontalPadding + 2,
+          verticalPadding + 2,
+          animator,
+          index === itemContainer.children.length - 1
+        );
       });
     } else {
       // randomized offset
