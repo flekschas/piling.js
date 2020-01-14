@@ -92,6 +92,9 @@ const createItem = (id, texture, preview, pubSub) => {
 
   const self = {
     // Properties
+    get id() {
+      return id;
+    },
     get x() {
       return sprite.x;
     },
@@ -101,7 +104,6 @@ const createItem = (id, texture, preview, pubSub) => {
     // Methods
     cloneSprite,
     destroy,
-    id,
     moveTo,
     opacity,
     originalPosition,
