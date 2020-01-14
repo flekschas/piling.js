@@ -98,11 +98,11 @@ const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
 // Grid
 const [itemSize, setItemSize] = setter('itemSize');
-const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
+const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 0);
+const [itemPadding, setItemPadding] = setter('itemPadding', 6);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
