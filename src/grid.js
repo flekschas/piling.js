@@ -24,15 +24,15 @@ const createGrid = (
 ) => {
   const { width } = canvas.getBoundingClientRect();
 
-  let colNum = columns;
-  let rowNum;
+  let numColumns = columns;
+  let numRows;
   let columnWidth = width / columns;
   let cellWidth = columnWidth - itemPadding * 2;
   let cellHeight = null;
 
   if (+itemSize) {
     columnWidth = itemSize + itemPadding * 2;
-    colNum = Math.floor(width / columnWidth);
+    numColumns = Math.floor(width / columnWidth);
     cellWidth = itemSize;
   }
 
@@ -56,14 +56,14 @@ const createGrid = (
    * @param   {number}  j  Position on the y-axis
    * @return  {number}  Index of the i,j-th cell
    */
-  const ijToIdx = (i, j) => j * colNum + i;
+  const ijToIdx = (i, j) => j * numColumns + i;
 
   /**
    * Convert an index to the i,j cell position
    * @param   {number}  idx  Index of a cell
    * @return  {array}  Tuple with the i,j cell position
    */
-  const idxToIj = idx => [idx % colNum, Math.floor(idx / colNum)];
+  const idxToIj = idx => [idx % numColumns, Math.floor(idx / numColumns)];
 
   /**
    * Convert the i,j cell position to an x,y pixel position
@@ -161,16 +161,17 @@ const createGrid = (
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
-      const topIdx = idx - colNum;
+      const topIdx = idx - numColumns;
       const isTopBlocked = topIdx < 0 || (cells[topIdx] && cells[topIdx].size);
       const leftIdx = idx - 1;
       const isLeftBlocked =
         leftIdx < 0 ||
-        idx % colNum === 0 ||
+        idx % numColumns === 0 ||
         (cells[leftIdx] && cells[leftIdx].size);
       const rightIdx = idx + 1;
       const isRightBlocked =
-        rightIdx % colNum === 0 || (cells[rightIdx] && cells[rightIdx].size);
+        rightIdx % numColumns === 0 ||
+        (cells[rightIdx] && cells[rightIdx].size);
       let x = a => a;
       let y = a => a;
       if (isTopBlocked) {
@@ -267,14 +268,14 @@ const createGrid = (
     get itemSize() {
       return itemSize;
     },
-    get colNum() {
-      return colNum;
+    get numColumns() {
+      return numColumns;
     },
-    get rowNum() {
-      return rowNum;
+    get numRows() {
+      return numRows;
     },
-    set rowNum(newRowNum) {
-      if (!Number.isNaN(+newRowNum)) rowNum = newRowNum;
+    set numRows(newNumRows) {
+      if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
     get columnWidth() {
       return columnWidth;

@@ -286,7 +286,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let layout;
 
   const updateScrollContainer = () => {
-    const finalHeight = Math.round(layout.rowHeight) * layout.rowNum;
+    const finalHeight = Math.round(layout.rowHeight) * layout.numRows;
     const canvasHeight = canvas.getBoundingClientRect().height;
     const extraHeight = Math.round(layout.rowHeight) * EXTRA_ROWS;
     scrollContainer.style.height = `${Math.max(
@@ -414,16 +414,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { orderer } = store.getState();
 
-    layout.rowNum = Math.ceil(renderedItems.size / layout.colNum);
+    layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
     pileInstances.forEach(pile => {
       const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
       const oldColumnNum = Math.floor(pile.cX / oldLayout.columnWidth);
 
-      const cellIndex = Math.round(oldRowNum * oldLayout.colNum + oldColumnNum);
-      const getCellPosition = orderer(layout.colNum);
+      const cellIndex = Math.round(
+        oldRowNum * oldLayout.numColumns + oldColumnNum
+      );
+      const getCellPosition = orderer(layout.numColumns);
       const [i, j] = getCellPosition(cellIndex);
-
-      if (pile.id === 4) console.log('pile #4', cellIndex, i, j);
 
       const [x, y] = layout.ijToXy(
         i,
@@ -477,7 +477,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     renderedItems.forEach(item => {
-      const getCellPosition = orderer(layout.colNum);
+      const getCellPosition = orderer(layout.numColumns);
       const [i, j] = getCellPosition(item.id);
       item.originalPosition = layout.ijToXy(
         i,
@@ -581,12 +581,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         if (items[id].position) {
           [i, j] = items[id].position;
         } else {
-          const getCellPosition = orderer(layout.colNum);
+          const getCellPosition = orderer(layout.numColumns);
           [i, j] = getCellPosition(id);
         }
 
         // Make sure that the there is always one extra row
-        layout.rowNum = Math.max(layout.rowNum, j + 1);
+        layout.numRows = Math.max(layout.numRows, j + EXTRA_ROWS);
 
         const [x, y] = layout.ijToXy(
           i,
@@ -727,8 +727,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const updateGridMat = pileId => {
     const mat = ndarray(
-      new Uint16Array(new Array(layout.colNum * layout.rowNum).fill(0)),
-      [layout.rowNum, layout.olNum]
+      new Uint16Array(new Array(layout.numColumns * layout.numRows).fill(0)),
+      [layout.numRows, layout.olNum]
     );
 
     gridMat = mat;
@@ -850,7 +850,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // doesn't find an available cell
     if (!depilePos) {
       depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
-      layout.rowNum += filterRowNum;
+      layout.numRows += filterRowNum;
       updateScrollContainer();
     }
 
@@ -865,9 +865,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const resultMat = ndarray(
       new Float32Array(
-        (layout.rowNum - filterRowNum + 1) * (layout.colNum - filterColNum + 1)
+        (layout.numRows - filterRowNum + 1) *
+          (layout.numColumns - filterColNum + 1)
       ),
-      [layout.rowNum - filterRowNum + 1, layout.olNum - filterColNum + 1]
+      [layout.numRows - filterRowNum + 1, layout.olNum - filterColNum + 1]
     );
 
     convolve(resultMat, gridMat, filter);
@@ -881,10 +882,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const distanceMat = ndarray(
       new Float32Array(
         new Array(
-          (layout.rowNum - rowNum + 1) * (layout.colNum - colNum + 1)
+          (layout.numRows - rowNum + 1) * (layout.numColumns - colNum + 1)
         ).fill(-1)
       ),
-      [layout.rowNum - rowNum + 1, layout.colNum - colNum + 1]
+      [layout.numRows - rowNum + 1, layout.numColumns - colNum + 1]
     );
 
     const depilePos = findDepilePos(distanceMat, resultMat, origin, rowNum);
