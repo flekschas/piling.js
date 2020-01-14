@@ -160,13 +160,13 @@ const [pileBorderOpacity, setPileBorderOpacity] = setter(
   1.0
 );
 
-const [pileBorderColorSelected, setPileBorderColorSelected] = setter(
-  'pileBorderColorSelected',
+const [pileBorderColorFocus, setPileBorderColorFocus] = setter(
+  'pileBorderColorFocus',
   0xeee462
 );
 
-const [pileBorderOpacitySelected, setPileBorderOpacitySelected] = setter(
-  'pileBorderOpacitySelected',
+const [pileBorderOpacityFocus, setPileBorderOpacityFocus] = setter(
+  'pileBorderOpacityFocus',
   1.0
 );
 
@@ -355,8 +355,8 @@ const createStore = () => {
     orderer,
     pileBorderColor,
     pileBorderOpacity,
-    pileBorderColorSelected,
-    pileBorderOpacitySelected,
+    pileBorderColorFocus,
+    pileBorderOpacityFocus,
     pileBorderColorActive,
     pileBorderOpacityActive,
     pileBorderSize,
@@ -446,8 +446,8 @@ export const createAction = {
   setPreviewBackgroundOpacity,
   setPileBorderColor,
   setPileBorderOpacity,
-  setPileBorderColorSelected,
-  setPileBorderOpacitySelected,
+  setPileBorderColorFocus,
+  setPileBorderOpacityFocus,
   setPileBorderColorActive,
   setPileBorderOpacityActive,
   setPileBorderSize,
