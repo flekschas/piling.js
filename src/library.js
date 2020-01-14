@@ -345,6 +345,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let scaleSprite;
 
   const scaleItems = () => {
+    if (!renderedItems.size) return;
+
     let min = Infinity;
     let max = 0;
 
@@ -354,10 +356,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (longerBorder < min) min = longerBorder;
     });
 
+    // When `min` is equal to `max`, `scaleSprite` will draw all piles at
+    // `minRange + ((maxRange - minRange) / 2)`, which is not what we want sp
+    // we artificially subscract a small value from `min` to make pile being
+    // drawn at `maxRange`.
+    min -= min === max ? 0.1 : 0;
+
     const { itemSizeRange } = store.getState();
     let range;
 
-    const minRange = Math.min(layout.colWidth - 4, layout.rowHeight - 4);
+    const minRange = Math.min(layout.colWidth, layout.rowHeight);
 
     // if it's within [0, 1] assume it's relative
     if (
