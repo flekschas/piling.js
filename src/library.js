@@ -1899,6 +1899,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         movingPiles.push({ id: pile.id, x, y });
       });
+
+      renderedItems.forEach(item => {
+        const getCellPosition = orderer(layout.colNum);
+        const [i, j] = getCellPosition(item.id);
+        item.originalPosition = layout.ijToXy(
+          i,
+          j,
+          item.sprite.width,
+          item.sprite.height
+        );
+      });
     } else {
       layout.cellWidth = width / layout.colNum;
       layout.colWidth = layout.cellWidth - layout.itemPadding * 2;
@@ -1915,6 +1926,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           x,
           y
         });
+      });
+
+      renderedItems.forEach(item => {
+        x = (item.originalPosition.x / oldCellWidth) * layout.cellWidth;
+        y = (item.originalPosition.y / oldCellHeight) * layout.cellHeight;
+        item.originalPosition = layout.ijToXy(x, y);
       });
     }
 
@@ -1943,17 +1960,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
-
-    renderedItems.forEach(item => {
-      const getCellPosition = orderer(layout.colNum);
-      const [i, j] = getCellPosition(item.id);
-      item.originalPosition = layout.ijToXy(
-        i,
-        j,
-        item.sprite.width,
-        item.sprite.height
-      );
-    });
 
     createRBush();
 
