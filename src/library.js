@@ -14,6 +14,7 @@ import createStore, { overwrite, softOverwrite, createAction } from './store';
 import {
   capitalize,
   colorToDecAlpha,
+  debounce,
   deepClone,
   dist,
   getBBox,
@@ -415,12 +416,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     layout.rowNum = Math.ceil(renderedItems.size / layout.colNum);
     pileInstances.forEach(pile => {
-      const numOfRow = Math.floor(pile.cY / oldLayout.rowHeight);
-      const numOfCol = Math.floor(pile.cX / oldLayout.columnWidth);
+      const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
+      const oldColumnNum = Math.floor(pile.cX / oldLayout.columnWidth);
 
-      const cellIndex = Math.round(numOfRow * oldLayout.colNum + numOfCol);
+      const cellIndex = Math.round(oldRowNum * oldLayout.colNum + oldColumnNum);
       const getCellPosition = orderer(layout.colNum);
       const [i, j] = getCellPosition(cellIndex);
+
+      if (pile.id === 4) console.log('pile #4', cellIndex, i, j);
 
       const [x, y] = layout.ijToXy(
         i,
@@ -1858,98 +1861,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     renderer.resize(width, height);
 
-    const oldColumnWidth = layout.columnWidth;
-    const oldRowHeight = layout.rowHeight;
-    const oldColNum = layout.colNum;
-
-    const movingPiles = [];
-
-    const { orderer } = store.getState();
-
-    scaleItems();
-
-    if (+layout.itemSize) {
-      layout.colNum = Math.floor(width / layout.itemSize);
-      pileInstances.forEach(pile => {
-        const numOfRow = Math.floor(pile.cY / oldRowHeight);
-        const numOfCol = Math.floor(pile.cX / oldColumnWidth);
-
-        const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
-        const getCellPosition = orderer(layout.colNum);
-        const [i, j] = getCellPosition(cellIndex);
-        const [x, y] = layout.ijToXy(
-          i,
-          j,
-          pile.graphics.width,
-          pile.graphics.height
-        );
-
-        movingPiles.push({ id: pile.id, x, y });
-      });
-    } else {
-      layout.columnWidth = width / layout.colNum;
-      layout.cellWidth = layout.columnWidth - layout.itemPadding * 2;
-      layout.rowHeight = layout.columnWidth / layout.cellAspectRatio;
-      layout.cellHeight = layout.rowHeight - layout.itemPadding * 2;
-      let x;
-      let y;
-
-      pileInstances.forEach(pile => {
-        x = (pile.graphics.x / oldColumnWidth) * layout.columnWidth;
-        y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
-        movingPiles.push({
-          id: pile.id,
-          x,
-          y
-        });
-      });
-    }
-
-    pileInstances.forEach(pile => {
-      if (pile.hasCover) {
-        const coverRatio = pile.cover.height / pile.cover.width;
-        pile.cover.width = pile.itemContainer.children[0].width;
-        pile.cover.height = coverRatio * pile.cover.width;
-
-        const { itemAlignment, itemRotated } = store.getState();
-
-        pile.positionItems(
-          itemAlignment,
-          itemRotated,
-          animator,
-          store.getState().previewSpacing
-        );
-      }
-    });
-
-    store.dispatch(createAction.movePiles(movingPiles));
-
     mask
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
 
-    renderedItems.forEach(item => {
-      const getCellPosition = orderer(layout.colNum);
-      const [i, j] = getCellPosition(item.id);
-      item.originalPosition = layout.ijToXy(
-        i,
-        j,
-        item.sprite.width,
-        item.sprite.height
-      );
-    });
-
-    createRBush();
-
-    const focusedPile = store.getState().focusedPiles[0];
-    if (focusedPile) {
-      pileInstances.get(focusedPile).drawBorder(3, 'Selected');
-    }
-
-    updateScrollContainer();
-    renderRaf();
+    updateGrid();
   };
+
+  const resizeHandlerDb = debounce(resizeHandler, 500);
 
   const alignByGrid = () => {
     const pileMovements = layout.align(pileInstances);
@@ -2139,8 +2059,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
-    window.addEventListener('resize', resizeHandler, false);
-    window.addEventListener('orientationchange', resizeHandler, false);
+    window.addEventListener('resize', resizeHandlerDb, false);
+    window.addEventListener('orientationchange', resizeHandlerDb, false);
 
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
@@ -2187,8 +2107,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
-    window.removeEventListener('resize', resizeHandler, false);
-    window.removeEventListener('orientationchange', resizeHandler, false);
+    window.removeEventListener('resize', resizeHandlerDb, false);
+    window.removeEventListener('orientationchange', resizeHandlerDb, false);
 
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
