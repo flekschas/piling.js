@@ -1674,7 +1674,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // vertical lines
       for (let i = 1; i < vLineNum; i++) {
         gridGfx.moveTo(i * layout.columnWidth, 0);
-        gridGfx.lineTo(i * layout.rowWidth, height);
+        gridGfx.lineTo(i * layout.columnWidth, height);
       }
       // horizontal lines
       for (let i = 1; i < hLineNum; i++) {
