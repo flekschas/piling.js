@@ -142,7 +142,15 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const getBorderSize = () => borderSizeBase;
   const setBorderSize = newBorderSize => {
     borderSizeBase = +newBorderSize;
-    drawBorder();
+    // If the cover is not generated yet
+    if (hasCover && !cover) {
+      // eslint-disable-next-line no-use-before-define
+      postPilePositionAnimation.set('drawBorder', () => {
+        drawBorder();
+      });
+    } else {
+      drawBorder();
+    }
   };
 
   // eslint-disable-next-line consistent-return
@@ -427,14 +435,15 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         }
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          sprite.x = (sprite.x + item.tmpAbsX - graphics.x) * relItemScale;
-          sprite.y = (sprite.y + item.tmpAbsY - graphics.y) * relItemScale;
+          item.moveTo(
+            (item.x + item.tmpAbsX - graphics.x) * relItemScale,
+            (item.y + item.tmpAbsY - graphics.y) * relItemScale
+          );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }
-
         items.push(item);
       });
       newItems.splice(0, newItems.length);
@@ -483,17 +492,37 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       }
       let num = 0;
       newItems.forEach(item => {
-        const sprite = item.sprite;
         num++;
+
+        const sprite = item.sprite;
+
+        // eslint-disable-next-line no-use-before-define
+        const currentScale = getScale();
+        let relItemScale = (item.tmpRelScale || 1) / currentScale;
+
+        sprite.tmpTargetScale = sprite.scale.x;
+        if (!Number.isNaN(+item.tmpRelScale)) {
+          relItemScale = item.tmpRelScale / currentScale;
+          sprite.scale.x *= relItemScale;
+          sprite.scale.y = sprite.scale.x;
+          item.tmpRelScale = undefined;
+          delete item.tmpRelScale;
+        }
+
         let paddingX;
         let paddingY;
-        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+sprite.tmpAbsY)) {
-          paddingX = sprite.x + x;
-          paddingY = sprite.y + y;
-          sprite.x = sprite.x + item.tmpAbsX - graphics.x;
-          sprite.y = sprite.y + item.tmpAbsY - graphics.y;
+
+        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+          paddingX = item.x + x;
+          paddingY = item.y + y;
+          item.moveTo(
+            (item.x + item.tmpAbsX - graphics.x) * relItemScale,
+            (item.y + item.tmpAbsY - graphics.y) * relItemScale
+          );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
+          delete item.tmpAbsX;
+          delete item.tmpAbsY;
         } else {
           paddingX = getRandomArbitrary(-30, 30);
           paddingY = getRandomArbitrary(-30, 30);
@@ -501,7 +530,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         items.push(item);
 
         animatePositionItems(
-          item,
+          sprite,
           paddingX,
           paddingY,
           animator,
@@ -509,7 +538,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         );
 
         if (rotation) {
-          item.angle += rotation;
+          item.sprite.angle += rotation;
         }
       });
       newItems.splice(0, newItems.length);
@@ -586,8 +615,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.y = 0;
     // Origin of the items coordinste system relative to the pile
     initialItem.sprite.anchor.set(0);
-    initialItem.sprite.x = 2;
-    initialItem.sprite.y = 2;
+    initialItem.moveTo(2, 2);
 
     borderContainer.addChild(border);
 
@@ -615,6 +643,22 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       graphics.y = y;
       updateBBox();
     }
+  };
+
+  const addItem = (itemInstance, isNewItem = false) => {
+    if (isNewItem) {
+      newItems.push(itemInstance);
+    } else {
+      items.push(itemInstance);
+    }
+  };
+
+  const hasItem = itemInstance => {
+    return items.includes(itemInstance);
+  };
+
+  const removeItems = () => {
+    items.splice(0, items.length);
   };
 
   init();
@@ -651,11 +695,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
-    // get items() {
-    //   return itemContainer.children;
-    // },
     get size() {
-      return itemContainer.children.length;
+      return items.length;
     },
     get x() {
       return graphics.x;
@@ -671,6 +712,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     hover,
     focus,
     active,
+    addItem,
     animatePositionItems,
     border,
     borderSize,
@@ -678,10 +720,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     cover,
     destroy,
     drawBorder,
+    hasItem,
     id,
     moveTo,
     opacity,
     positionItems,
+    removeItems,
     scale,
     scaleByWheel,
     scaleToggle,
