@@ -83,14 +83,30 @@ const createItem = (id, texture, preview, pubSub) => {
       .on('pointerout', onPointerOut);
   }
 
+  const moveTo = (x, y) => {
+    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+      sprite.x = x;
+      sprite.y = y;
+    }
+  };
+
   const self = {
+    // Properties
+    get x() {
+      return sprite.x;
+    },
+    get y() {
+      return sprite.y;
+    },
+    // Methods
     cloneSprite,
     destroy,
-    opacity,
-    sprite,
-    preview,
     id,
-    originalPosition
+    moveTo,
+    opacity,
+    originalPosition,
+    preview,
+    sprite
   };
 
   return self;
