@@ -24,7 +24,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
  */
 const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const items = [];
-  const newItems = [];
+  const itemIndex = new Map();
   const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
@@ -418,7 +418,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       });
     } else if (itemAlignment) {
       // image
-      newItems.forEach(item => {
+      items.forEach(item => {
         const sprite = item.sprite;
 
         // eslint-disable-next-line no-use-before-define
@@ -444,9 +444,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }
-        items.push(item);
       });
-      newItems.splice(0, newItems.length);
+
       itemContainer.children.forEach((item, index) => {
         // eslint-disable-next-line no-param-reassign
         if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
@@ -491,7 +490,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         rotation = getRandomArbitrary(-10, 10);
       }
       let num = 0;
-      newItems.forEach(item => {
+      items.forEach(item => {
         num++;
 
         const sprite = item.sprite;
@@ -527,21 +526,19 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           paddingX = getRandomArbitrary(-30, 30);
           paddingY = getRandomArbitrary(-30, 30);
         }
-        items.push(item);
 
         animatePositionItems(
           sprite,
           paddingX,
           paddingY,
           animator,
-          num === newItems.length
+          num === items.length
         );
 
         if (rotation) {
           item.sprite.angle += rotation;
         }
       });
-      newItems.splice(0, newItems.length);
     }
   };
 
@@ -604,6 +601,30 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     scaledUp = !scaledUp;
   };
 
+  const moveTo = (x, y) => {
+    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+      graphics.x = x;
+      graphics.y = y;
+      updateBBox();
+    }
+  };
+
+  const hasItem = item => itemIndex.has(item.id);
+
+  const addItem = item => {
+    if (hasItem(item)) return;
+
+    items.push(item);
+    itemIndex.set(item.id, item);
+    itemContainer.addChild(item.sprite);
+  };
+
+  const removeItems = () => {
+    itemContainer.removeChildren();
+    items.splice(0, items.length);
+    itemIndex.clear();
+  };
+
   const init = () => {
     graphics.addChild(borderContainer);
     graphics.addChild(itemContainer);
@@ -634,31 +655,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     itemContainer.addChild(initialItem.sprite);
 
-    items.push(initialItem);
-  };
-
-  const moveTo = (x, y) => {
-    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
-      graphics.x = x;
-      graphics.y = y;
-      updateBBox();
-    }
-  };
-
-  const addItem = (itemInstance, isNewItem = false) => {
-    if (isNewItem) {
-      newItems.push(itemInstance);
-    } else {
-      items.push(itemInstance);
-    }
-  };
-
-  const hasItem = itemInstance => {
-    return items.includes(itemInstance);
-  };
-
-  const removeItems = () => {
-    items.splice(0, items.length);
+    addItem(initialItem);
   };
 
   init();
@@ -695,6 +692,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
+    get items() {
+      return [...items];
+    },
     get size() {
       return items.length;
     },
@@ -704,8 +704,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     get y() {
       return graphics.y;
     },
-    items,
-    newItems,
     itemContainer,
     // Methods
     blur,

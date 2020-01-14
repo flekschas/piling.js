@@ -694,21 +694,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pileInstance.destroy();
         pileInstances.delete(id);
       } else {
-        pileInstance.itemContainer.removeChildren();
+        pileInstance.removeItems();
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pile, pileInstance);
         } else {
-          if (pile.items.length === 1) {
-            pileInstance.removeItems();
-            pileInstance.addItem(renderedItems.get(pile.items[0]));
-          }
           pile.items.forEach(itemId => {
-            pileInstance.itemContainer.addChild(
-              renderedItems.get(itemId).sprite
-            );
-            if (!pileInstance.hasItem(renderedItems.get(itemId))) {
-              pileInstance.addItem(renderedItems.get(itemId), true);
-            }
+            pileInstance.addItem(renderedItems.get(itemId));
           });
           positionItems(id);
         }
@@ -1572,8 +1563,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
 
+      console.log('handleDropPile: ', pileId, 'drops onto', collidePiles);
+
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
+        console.log(
+          'handleDropPile: ',
+          pileInstances.get(collidePiles[0].pileId)
+        );
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
           pile.items.forEach(item => {
