@@ -38,6 +38,8 @@ import pkg from '../package.json';
 const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
+const EXTRA_ROWS = 3;
+
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
 
@@ -283,9 +285,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let layout;
 
   const updateScrollContainer = () => {
-    const finalHeight = Math.round(layout.cellHeight) * layout.rowNum;
+    const finalHeight = Math.round(layout.rowHeight) * layout.rowNum;
     const canvasHeight = canvas.getBoundingClientRect().height;
-    const extraHeight = Math.round(layout.rowHeight) * 3;
+    const extraHeight = Math.round(layout.rowHeight) * EXTRA_ROWS;
     scrollContainer.style.height = `${Math.max(
       0,
       finalHeight - canvasHeight + extraHeight
@@ -315,9 +317,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateGrid = () => {
-    const oldCellWidth = layout.cellWidth;
-    const oldCellHeight = layout.cellHeight;
-    const oldColNum = layout.colNum;
+    const oldLayout = layout;
 
     const {
       itemSize,
@@ -338,7 +338,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     // eslint-disable-next-line no-use-before-define
-    updateLayout(oldCellWidth, oldCellHeight, oldColNum);
+    updateLayout(oldLayout, layout);
     updateScrollContainer();
   };
 
@@ -365,7 +365,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { itemSizeRange } = store.getState();
     let range;
 
-    const minRange = Math.min(layout.colWidth, layout.rowHeight);
+    const minRange = Math.min(layout.cellWidth, layout.cellHeight);
 
     // if it's within [0, 1] assume it's relative
     if (
@@ -406,7 +406,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updateLayout = (oldCellWidth, oldCellHeight, oldColNum) => {
+  const updateLayout = oldLayout => {
     scaleItems();
 
     const movingPiles = [];
@@ -415,10 +415,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     layout.rowNum = Math.ceil(renderedItems.size / layout.colNum);
     pileInstances.forEach(pile => {
-      const numOfRow = Math.floor(pile.cY / oldCellHeight);
-      const numOfCol = Math.floor(pile.cX / oldCellWidth);
+      const numOfRow = Math.floor(pile.cY / oldLayout.rowHeight);
+      const numOfCol = Math.floor(pile.cX / oldLayout.columnWidth);
 
-      const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
+      const cellIndex = Math.round(numOfRow * oldLayout.colNum + numOfCol);
       const getCellPosition = orderer(layout.colNum);
       const [i, j] = getCellPosition(cellIndex);
 
@@ -734,9 +734,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (pile.id === pileId) return;
 
       const bBox = pile.bBox;
-      const minY = Math.floor(bBox.minX / layout.colWidth);
+      const minY = Math.floor(bBox.minX / layout.columnWidth);
       const minX = Math.floor(bBox.minY / layout.rowHeight);
-      const maxY = Math.floor(bBox.maxX / layout.colWidth);
+      const maxY = Math.floor(bBox.maxX / layout.columnWidth);
       const maxX = Math.floor(bBox.maxY / layout.rowHeight);
       gridMat.set(minX, minY, 1);
       gridMat.set(minX, maxY, 1);
@@ -933,7 +933,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // take the center point of pile as the original pos
     const bBox = pileInstances.get(pileId).bBox;
-    const centerY = Math.floor((bBox.minX + bBox.maxX) / (layout.colWidth * 2));
+    const centerY = Math.floor(
+      (bBox.minX + bBox.maxX) / (layout.columnWidth * 2)
+    );
     const centerX = Math.floor(
       (bBox.minY + bBox.maxY) / (layout.rowHeight * 2)
     );
@@ -974,7 +976,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         Math.floor((filterRowNum - 1) / 2);
       const y =
         (i % filterColNum) + depilePos[1] - Math.floor((filterColNum - 1) / 2);
-      itemPositions.push([y * layout.colWidth, x * layout.rowHeight]);
+      itemPositions.push([y * layout.columnWidth, x * layout.rowHeight]);
     }
     // starts from the depiled pile's position
     const depiledPile = {
@@ -1126,7 +1128,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       let x;
       let y;
       [x, y] = getPosition(index);
-      x *= layout.colWidth;
+      x *= layout.columnWidth;
       y *= layout.rowHeight;
       animateTempDepile(clonedSprite, pile, x, y, index === items.length - 1);
     });
@@ -1659,21 +1661,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       canvas.getBoundingClientRect().height;
     const { width } = canvas.getBoundingClientRect();
 
-    const vLineNum = Math.ceil(width / layout.cellWidth);
-    const hLineNum = Math.ceil(height / layout.cellHeight);
+    const vLineNum = Math.ceil(width / layout.columnWidth);
+    const hLineNum = Math.ceil(height / layout.rowHeight);
 
     if (!isGridShown) {
       gridGfx.clear();
       gridGfx.lineStyle(1, 0x787878, 1);
       // vertical lines
       for (let i = 1; i < vLineNum; i++) {
-        gridGfx.moveTo(i * layout.cellWidth, 0);
-        gridGfx.lineTo(i * layout.cellWidth, height);
+        gridGfx.moveTo(i * layout.columnWidth, 0);
+        gridGfx.lineTo(i * layout.rowWidth, height);
       }
       // horizontal lines
       for (let i = 1; i < hLineNum; i++) {
-        gridGfx.moveTo(0, i * layout.cellHeight);
-        gridGfx.lineTo(width, i * layout.cellHeight);
+        gridGfx.moveTo(0, i * layout.rowHeight);
+        gridGfx.lineTo(width, i * layout.rowHeight);
       }
       isGridShown = true;
     } else {
@@ -1856,8 +1858,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     renderer.resize(width, height);
 
-    const oldCellWidth = layout.cellWidth;
-    const oldCellHeight = layout.cellHeight;
+    const oldColumnWidth = layout.columnWidth;
+    const oldRowHeight = layout.rowHeight;
     const oldColNum = layout.colNum;
 
     const movingPiles = [];
@@ -1869,8 +1871,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (+layout.itemSize) {
       layout.colNum = Math.floor(width / layout.itemSize);
       pileInstances.forEach(pile => {
-        const numOfRow = Math.floor(pile.cY / oldCellHeight);
-        const numOfCol = Math.floor(pile.cX / oldCellWidth);
+        const numOfRow = Math.floor(pile.cY / oldRowHeight);
+        const numOfCol = Math.floor(pile.cX / oldColumnWidth);
 
         const cellIndex = Math.round(numOfRow * oldColNum + numOfCol);
         const getCellPosition = orderer(layout.colNum);
@@ -1885,16 +1887,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         movingPiles.push({ id: pile.id, x, y });
       });
     } else {
-      layout.cellWidth = width / layout.colNum;
-      layout.colWidth = layout.cellWidth - layout.itemPadding * 2;
-      layout.rowHeight = layout.colWidth / layout.cellAspectRatio;
-      layout.cellHeight = layout.rowHeight + layout.itemPadding * 2;
+      layout.columnWidth = width / layout.colNum;
+      layout.cellWidth = layout.columnWidth - layout.itemPadding * 2;
+      layout.rowHeight = layout.columnWidth / layout.cellAspectRatio;
+      layout.cellHeight = layout.rowHeight - layout.itemPadding * 2;
       let x;
       let y;
 
       pileInstances.forEach(pile => {
-        x = (pile.graphics.x / oldCellWidth) * layout.cellWidth;
-        y = (pile.graphics.y / oldCellHeight) * layout.cellHeight;
+        x = (pile.graphics.x / oldColumnWidth) * layout.columnWidth;
+        y = (pile.graphics.y / oldRowHeight) * layout.rowHeight;
         movingPiles.push({
           id: pile.id,
           x,
