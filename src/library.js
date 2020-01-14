@@ -585,8 +585,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           [i, j] = getCellPosition(id);
         }
 
-        // Make sure that the there is always one extra row
-        layout.numRows = Math.max(layout.numRows, j + EXTRA_ROWS);
+        layout.numRows = j + 1;
 
         const [x, y] = layout.ijToXy(
           i,
