@@ -422,6 +422,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
         const currentScale = getScale();
         let relItemScale = (item.tmpRelScale || 1) / currentScale;
 
+        // When the scale of the source and target pile were different, we need
+        // to equalize the scale.
         sprite.tmpTargetScale = sprite.scale.x;
         if (!Number.isNaN(+item.tmpRelScale)) {
           relItemScale = item.tmpRelScale / currentScale;
@@ -433,8 +435,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
           item.moveTo(
-            (item.x + item.tmpAbsX - graphics.x) * relItemScale,
-            (item.y + item.tmpAbsY - graphics.y) * relItemScale
+            (item.x + item.tmpAbsX - graphics.x) / currentScale,
+            (item.y + item.tmpAbsY - graphics.y) / currentScale
           );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
