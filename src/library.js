@@ -1144,7 +1144,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const pile = pileInstances.get(pileId);
 
       if (pile.isTempDepiled) {
-        const length = pile.size;
+        const length = pile.itemContainer.children.length;
         const temporaryDepileContainer = pile.itemContainer.getChildAt(
           length - 1
         );
