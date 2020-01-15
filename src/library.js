@@ -102,6 +102,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     itemPadding: true,
     itemAlignment: true,
     itemRotated: true,
+    gridColor: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setGridColor(color)];
+        if (opacity !== null)
+          actions.push(createAction.setGridOpacity(opacity));
+        return actions;
+      }
+    },
+    gridOpacity: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -184,6 +194,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       set: value => [createAction.setItemRenderer(value)]
     },
     scaledPile: true,
+    showGrid: true,
     temporaryDepiledPiles: true,
     tempDepileDirection: true,
     tempDepileOneDNum: true
@@ -293,6 +304,39 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       0,
       finalHeight - canvasHeight + extraHeight
     )}px`;
+  };
+
+  let isGridShown = false;
+
+  const drawGrid = () => {
+    const height =
+      scrollContainer.getBoundingClientRect().height +
+      canvas.getBoundingClientRect().height;
+    const { width } = canvas.getBoundingClientRect();
+
+    const vLineNum = Math.ceil(width / layout.columnWidth);
+    const hLineNum = Math.ceil(height / layout.rowHeight);
+
+    const { gridColor, gridOpacity } = store.getState();
+
+    if (!isGridShown) {
+      gridGfx.clear();
+      gridGfx.lineStyle(1, gridColor, gridOpacity);
+      // vertical lines
+      for (let i = 1; i < vLineNum; i++) {
+        gridGfx.moveTo(i * layout.columnWidth, 0);
+        gridGfx.lineTo(i * layout.columnWidth, height);
+      }
+      // horizontal lines
+      for (let i = 1; i < hLineNum; i++) {
+        gridGfx.moveTo(0, i * layout.rowHeight);
+        gridGfx.lineTo(width, i * layout.rowHeight);
+      }
+      isGridShown = true;
+    } else {
+      gridGfx.clear();
+      isGridShown = false;
+    }
   };
 
   const initGrid = () => {
@@ -605,6 +649,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       createRBush();
       updateScrollContainer();
+
+      // Draw grid after init pile position
+      if (store.getState().showGrid) {
+        isGridShown = false;
+        drawGrid();
+      }
       renderRaf();
     }
   };
@@ -1498,6 +1548,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
+    if (state.showGrid !== newState.showGrid) {
+      if (newState.showGrid !== isGridShown) {
+        drawGrid();
+      }
+    }
+
     if (newlyCreatedItems.length !== 0) {
       Promise.all(newlyCreatedItems).then(() => {
         if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
@@ -1657,34 +1713,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
-  let isGridShown = false;
   const gridBtnClick = contextMenuElement => () => {
-    const height =
-      scrollContainer.getBoundingClientRect().height +
-      canvas.getBoundingClientRect().height;
-    const { width } = canvas.getBoundingClientRect();
-
-    const vLineNum = Math.ceil(width / layout.columnWidth);
-    const hLineNum = Math.ceil(height / layout.rowHeight);
-
-    if (!isGridShown) {
-      gridGfx.clear();
-      gridGfx.lineStyle(1, 0x787878, 1);
-      // vertical lines
-      for (let i = 1; i < vLineNum; i++) {
-        gridGfx.moveTo(i * layout.columnWidth, 0);
-        gridGfx.lineTo(i * layout.columnWidth, height);
-      }
-      // horizontal lines
-      for (let i = 1; i < hLineNum; i++) {
-        gridGfx.moveTo(0, i * layout.rowHeight);
-        gridGfx.lineTo(width, i * layout.rowHeight);
-      }
-      isGridShown = true;
-    } else {
-      gridGfx.clear();
-      isGridShown = false;
-    }
+    drawGrid();
 
     hideContextMenu(contextMenuElement);
 
