@@ -24,35 +24,46 @@ const createGrid = (
 ) => {
   const { width } = canvas.getBoundingClientRect();
 
-  let colNum = columns;
-  let rowNum;
-  let cellWidth = width / columns;
-  let colWidth = cellWidth - itemPadding * 2;
+  let numColumns = columns;
+  let numRows;
+  let columnWidth = width / columns;
+  let cellWidth = columnWidth - itemPadding * 2;
   let cellHeight = null;
 
   if (+itemSize) {
-    cellWidth = itemSize + itemPadding * 2;
-    colNum = Math.floor(width / cellWidth);
-    colWidth = itemSize;
+    columnWidth = itemSize + itemPadding * 2;
+    numColumns = Math.floor(width / columnWidth);
+    cellWidth = itemSize;
   }
 
   if (!+rowHeight) {
     // eslint-disable-next-line no-param-reassign
-    rowHeight = colWidth / cellAspectRatio;
+    rowHeight = columnWidth / cellAspectRatio;
   } else {
     // eslint-disable-next-line no-param-reassign
-    cellAspectRatio = colWidth / rowHeight;
+    cellAspectRatio = columnWidth / rowHeight;
   }
 
-  cellHeight = rowHeight + itemPadding * 2;
+  cellHeight = rowHeight - itemPadding * 2;
 
-  const cellWidthHalf = cellWidth / 2;
-  const cellHeightHalf = cellHeight / 2;
-  const cellDiameter = l2Norm([cellWidth, cellHeight]);
+  const columnWidthHalf = columnWidth / 2;
+  const rowHeightHalf = rowHeight / 2;
+  const cellDiameterWithPadding = l2Norm([columnWidthHalf, rowHeightHalf]);
 
-  const ijToIdx = (i, j) => j * colNum + i;
+  /**
+   * Convert an i,j cell position to a linear index
+   * @param   {number}  i  Position on the x-axis
+   * @param   {number}  j  Position on the y-axis
+   * @return  {number}  Index of the i,j-th cell
+   */
+  const ijToIdx = (i, j) => j * numColumns + i;
 
-  const idxToIj = idx => [idx % colNum, Math.floor(idx / colNum)];
+  /**
+   * Convert an index to the i,j cell position
+   * @param   {number}  idx  Index of a cell
+   * @return  {array}  Tuple with the i,j cell position
+   */
+  const idxToIj = idx => [idx % numColumns, Math.floor(idx / numColumns)];
 
   /**
    * Convert the i,j cell position to an x,y pixel position
@@ -67,25 +78,28 @@ const createGrid = (
       return [i * cellWidth, j * cellHeight];
     }
 
-    const topLeft = [i * cellWidth + itemPadding, j * cellHeight + itemPadding];
+    const topLeft = [
+      i * columnWidth + itemPadding,
+      j * rowHeight + itemPadding
+    ];
 
     switch (pileCellAlign) {
       case 'topRight':
-        return [topLeft[0] + colWidth - pileWidth, topLeft[1]];
+        return [topLeft[0] + cellWidth - pileWidth, topLeft[1]];
 
       case 'bottomLeft':
-        return [topLeft[0], topLeft[1] + rowHeight - pileHeight];
+        return [topLeft[0], topLeft[1] + cellHeight - pileHeight];
 
       case 'bottomRight':
         return [
-          topLeft[0] + colWidth - pileWidth,
-          topLeft[1] + rowHeight - pileHeight
+          topLeft[0] + cellWidth - pileWidth,
+          topLeft[1] + cellHeight - pileHeight
         ];
 
       case 'center':
         return [
-          topLeft[0] + (colWidth - pileWidth) / 2,
-          topLeft[1] + (rowHeight - pileHeight) / 2
+          topLeft[0] + (cellWidth - pileWidth) / 2,
+          topLeft[1] + (cellHeight - pileHeight) / 2
         ];
 
       case 'topLeft':
@@ -109,7 +123,7 @@ const createGrid = (
     });
 
     const assignPileToCell = pile => {
-      const i = Math.floor(pile.cX / colWidth);
+      const i = Math.floor(pile.cX / columnWidth);
       const j = Math.floor(pile.cY / rowHeight);
       const idx = ijToIdx(i, j);
 
@@ -134,41 +148,42 @@ const createGrid = (
     while (conflicts.length) {
       const idx = conflicts.shift();
       const anchor = ijToXy(...idxToIj(idx));
-      anchor[0] += cellWidthHalf;
-      anchor[1] += cellHeightHalf;
+      anchor[0] += columnWidthHalf;
+      anchor[1] += rowHeightHalf;
       const cellRect = [
-        anchor[0] - cellWidthHalf,
-        anchor[1] - cellHeightHalf,
-        anchor[0] + cellWidthHalf,
-        anchor[1] + cellHeightHalf
+        anchor[0] - columnWidthHalf,
+        anchor[1] - rowHeightHalf,
+        anchor[0] + columnWidthHalf,
+        anchor[1] + rowHeightHalf
       ];
 
       const conflictingPiles = new Set(cells[idx]);
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
-      const topIdx = idx - colNum;
+      const topIdx = idx - numColumns;
       const isTopBlocked = topIdx < 0 || (cells[topIdx] && cells[topIdx].size);
       const leftIdx = idx - 1;
       const isLeftBlocked =
         leftIdx < 0 ||
-        idx % colNum === 0 ||
+        idx % numColumns === 0 ||
         (cells[leftIdx] && cells[leftIdx].size);
       const rightIdx = idx + 1;
       const isRightBlocked =
-        rightIdx % colNum === 0 || (cells[rightIdx] && cells[rightIdx].size);
+        rightIdx % numColumns === 0 ||
+        (cells[rightIdx] && cells[rightIdx].size);
       let x = a => a;
       let y = a => a;
       if (isTopBlocked) {
-        anchor[1] -= cellHeightHalf;
+        anchor[1] -= rowHeightHalf;
         y = a => Math.max(0, a);
       }
       if (isLeftBlocked) {
-        anchor[0] -= cellWidthHalf;
+        anchor[0] -= columnWidthHalf;
         x = a => Math.max(0, a);
       }
       if (isRightBlocked) {
-        anchor[0] += cellWidthHalf;
+        anchor[0] += columnWidthHalf;
         x = isLeftBlocked ? () => 0 : a => Math.min(0, a);
       }
       if (isLeftBlocked && isRightBlocked) {
@@ -215,8 +230,8 @@ const createGrid = (
         // We accomplish this by clipping a line starting at the pile
         // position that goes outside the cell.
         const outerPoint = [
-          pile.cX + cellDiameter * direction[0],
-          pile.cY + cellDiameter * direction[1]
+          pile.cX + cellDiameterWithPadding * direction[0],
+          pile.cY + cellDiameterWithPadding * direction[1]
         ];
         const borderPoint = [...outerPoint];
 
@@ -250,15 +265,36 @@ const createGrid = (
 
   return {
     // Properties
-    itemSize,
-    colNum,
-    rowNum,
-    colWidth,
-    rowHeight,
-    cellWidth,
-    cellHeight,
-    cellAspectRatio,
-    itemPadding,
+    get itemSize() {
+      return itemSize;
+    },
+    get numColumns() {
+      return numColumns;
+    },
+    get numRows() {
+      return numRows;
+    },
+    set numRows(newNumRows) {
+      if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
+    },
+    get columnWidth() {
+      return columnWidth;
+    },
+    get rowHeight() {
+      return rowHeight;
+    },
+    get cellWidth() {
+      return cellWidth;
+    },
+    get cellHeight() {
+      return cellHeight;
+    },
+    get cellAspectRatio() {
+      return cellAspectRatio;
+    },
+    get itemPadding() {
+      return itemPadding;
+    },
     // Methods
     align,
     ijToXy

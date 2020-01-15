@@ -61,6 +61,12 @@ const [backgroundColor, setBackgroundColor] = setter(
   0x000000
 );
 
+const [gridColor, setGridColor] = setter('gridColor', 0x787878);
+
+const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
+
+const [showGrid, setShowGrid] = setter('showGrid', false);
+
 const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
 
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
@@ -98,11 +104,11 @@ const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
 // Grid
 const [itemSize, setItemSize] = setter('itemSize');
-const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.7, 0.9]);
+const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 0);
+const [itemPadding, setItemPadding] = setter('itemPadding', 6);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
@@ -341,6 +347,8 @@ const createStore = () => {
     columns,
     rowHeight,
     cellAspectRatio,
+    gridColor,
+    gridOpacity,
     itemPadding,
     itemAlignment,
     itemOpacity,
@@ -373,6 +381,7 @@ const createStore = () => {
     previewRenderer,
     previewSpacing,
     scaledPile,
+    showGrid,
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles
@@ -412,6 +421,8 @@ export const createAction = {
   movePiles,
   depilePiles,
   setBackgroundColor,
+  setGridColor,
+  setGridOpacity,
   setLassoFillColor,
   setLassoFillOpacity,
   setLassoStrokeColor,
@@ -435,6 +446,7 @@ export const createAction = {
   setItemRotated,
   setFocusedPiles,
   setScaledPile,
+  setShowGrid,
   setDepileMethod,
   setDepiledPile,
   setTemporaryDepiledPiles,

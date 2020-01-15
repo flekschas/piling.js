@@ -50,8 +50,7 @@ const createMatrixPiles = async element => {
     previewAggregator: matrixPreviewAggregator,
     items: data,
     columns: 12,
-    itemPadding: 30,
-    pileCellAlign: 'topRight'
+    pileCellAlign: 'center'
   });
 
   return pilingJs;

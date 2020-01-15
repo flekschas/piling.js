@@ -156,6 +156,8 @@ The list of all understood properties is given below.
 | depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                              | `true`     |
 | depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
 | easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
+| gridColor                 | string or int    | `0x787878`            |                                                                               | `false`    |
+| gridOpacity               | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | itemRotated               | boolean          | `false`               | `true` or `false`                                                             | `true`     |
 | items                     | array            | `[]`                  | see [`data`](#data)                                                           | `false`    |
@@ -186,6 +188,7 @@ The list of all understood properties is given below.
 | previewSpacing            | number           | `2`                   | the spacing between 1D previews                                               | `true`     |
 | renderer                  | function         |                       | see [`renderers`](#renderers)                                                 | `false`    |
 | scaledPile                | array            | `[]`                  | the id of current scaled pile                                                 | `true`     |
+| showGrid                  | boolean          | `false`               |                                                                               | `false`    |
 | tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
 | tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
 | temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |

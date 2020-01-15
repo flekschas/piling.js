@@ -1,5 +1,20 @@
 # Next
 
+## v0.4.2
+
+- Refactored the grid:
+  - `layout.cellWidth` is now called `layout.columnWidth`
+  - `layout.colWidth` is now called `layout.cellWidth`
+  - `layout.cellHeight` is now called `layout.rowHeight`
+  - `layout.rowHeight` is now called `layout.cellHeight`
+  - `layout.colNum` is now called `layout.numColumns`
+  - `layout.rowNum` is now called `layout.numRows`
+  - All properties but `layout.numRows` are read-only now
+- Simplified `resizeHandler()` and debounced it
+- Changed the default value of `itemSizeRange` from `[0.7, 0.9]` to `[0.5, 1.0]` to make full use of the cell width
+- Changed the default value of `itemPadding` from `0` to `6` to ensure some padding
+- Add `gridColor`, `gridOpacity`, and `showGrid` properties
+
 ## v0.4.1
 
 - Include ES modules in npm release
@@ -26,6 +41,7 @@
   - `pileDrag`
   - `pileDrop`
 - Change the grid layout properties from a nested object called `grid` to the following individual properties that you can set with [`.set()`](DOCS.md#pilingsetproperty-value):
+
   - `itemSize`
   - `itemPadding`
   - `columns`

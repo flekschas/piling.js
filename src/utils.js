@@ -217,6 +217,50 @@ export const interpolateVector = (a, b) => p =>
   a.map((x, i) => interpolateNumber(x, b[i])(p));
 
 /**
+ * Debounce a function call
+ *
+ * @description
+ * Function calls are delayed by `wait` milliseconds and only one out of
+ * multiple function calls is executed.
+ *
+ * @method  debounce
+ * @author  Fritz Lekschas
+ * @date    2017-01-14
+ * @param   {Function}   func       Function to be debounced
+ * @param   {Number}     wait       Number of milliseconds to debounce the
+ *   function call.
+ * @param   {Boolean}    immediate  If `true` function is not debounced.
+ * @return  {Function}             Debounced function.
+ */
+export const debounce = (func, wait, immediate) => {
+  let timeout;
+
+  const debounced = (...args) => {
+    const later = () => {
+      timeout = null;
+      if (!immediate) {
+        func(...args);
+      }
+    };
+
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+
+    if (callNow) {
+      func(...args);
+    }
+  };
+
+  debounce.cancel = () => {
+    clearTimeout(timeout);
+    timeout = null;
+  };
+
+  return debounced;
+};
+
+/**
  * Throttle and debounce a function call
  *
  * Throttling a function call means that the function is called at most every
