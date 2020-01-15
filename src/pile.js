@@ -356,10 +356,10 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       interpolator: interpolateNumber,
       endValue: newOpacity,
       getter: getOpacity,
-      setter: setOpacity,
-      onDone: () => {
-        pubSub.publish('updateBBox', id);
-      }
+      setter: setOpacity
+      // onDone: () => {
+      //   pubSub.publish('updateBBox', id);
+      // }
     });
     pubSub.publish('animate', opacityTweener);
   };
@@ -605,7 +605,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
       graphics.x = x;
       graphics.y = y;
-      updateBBox();
+      // updateBBox();
+      pubSub.publish('updateBBox', id);
     }
   };
 
