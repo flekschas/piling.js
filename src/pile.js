@@ -25,6 +25,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
 const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const items = [];
   const itemIndex = new Map();
+  const newItems = new Set();
   const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
@@ -415,7 +416,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       });
     } else if (itemAlignment) {
       // image
-      items.forEach(item => {
+      newItems.forEach(item => {
         const sprite = item.sprite;
 
         // eslint-disable-next-line no-use-before-define
@@ -477,19 +478,13 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           horizontalPadding + 2,
           verticalPadding + 2,
           animator,
-          index === itemContainer.children.length - 1
+          index === newItems.size - 1
         );
       });
     } else {
-      // randomized offset
-      const x = getRandomArbitrary(-30, 30);
-      const y = getRandomArbitrary(-30, 30);
-      let rotation;
-      if (itemRotated) {
-        rotation = getRandomArbitrary(-10, 10);
-      }
       let num = 0;
-      items.forEach(item => {
+      console.log(newItems);
+      newItems.forEach(item => {
         num++;
 
         const sprite = item.sprite;
@@ -507,38 +502,36 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           delete item.tmpRelScale;
         }
 
-        let paddingX;
-        let paddingY;
+        let offsetX = getRandomArbitrary(-30, 30);
+        let offsetY = getRandomArbitrary(-30, 30);
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          paddingX = item.x + x;
-          paddingY = item.y + y;
+          offsetX += item.x;
+          offsetY += item.y;
           item.moveTo(
-            (item.x + item.tmpAbsX - graphics.x) * relItemScale,
-            (item.y + item.tmpAbsY - graphics.y) * relItemScale
+            (item.x + item.tmpAbsX - graphics.x) / currentScale,
+            (item.y + item.tmpAbsY - graphics.y) / currentScale
           );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
           delete item.tmpAbsX;
           delete item.tmpAbsY;
-        } else {
-          paddingX = getRandomArbitrary(-30, 30);
-          paddingY = getRandomArbitrary(-30, 30);
         }
 
         animatePositionItems(
           sprite,
-          paddingX,
-          paddingY,
+          offsetX,
+          offsetY,
           animator,
-          num === items.length
+          num === newItems.size
         );
 
-        if (rotation) {
-          item.sprite.angle += rotation;
+        if (itemRotated) {
+          item.sprite.angle += getRandomArbitrary(-10, 10);
         }
       });
     }
+    newItems.clear();
   };
 
   const getScale = () => graphics.scale.x;
@@ -614,6 +607,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (hasItem(item)) return;
 
     items.push(item);
+    newItems.add(item);
     itemIndex.set(item.id, item);
     if (hasCover) {
       itemContainer.addChild(item.preview.previewContainer);
@@ -622,10 +616,51 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
+  const removeItem = item => {
+    const itemIdx = items.indexOf(item);
+
+    if (itemIdx >= 0) {
+      items.splice(itemIdx, 1);
+      itemContainer.removeChildAt(itemIdx);
+    }
+
+    itemIndex.delete(item.id);
+  };
+
   const removeItems = () => {
     itemContainer.removeChildren();
     items.splice(0, items.length);
     itemIndex.clear();
+  };
+
+  /**
+   * Set the items to the given list of items.
+   *
+   * @description
+   * This function performs a D3-like enter-update-exit strategy by adding new
+   * items and removing items that were on the pile before but are not present
+   * in `_items`
+   *
+   * @param  {array}  _items  List of items
+   */
+  const setItems = _items => {
+    const outdatedItems = new Map(itemIndex);
+
+    // Add new items
+    _items.forEach(item => {
+      if (hasItem(item)) {
+        // Item already exists so we remove it from `oldItems`
+        outdatedItems.delete(item.id);
+      } else {
+        // Add new items
+        addItem(item);
+      }
+    });
+
+    // Remove all the outdated items
+    outdatedItems.forEach(item => {
+      removeItem(item);
+    });
   };
 
   const init = () => {
@@ -730,6 +765,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     scale,
     scaleByWheel,
     scaleToggle,
+    setItems,
     updateBBox
   };
 };

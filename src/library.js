@@ -750,13 +750,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pileInstance.destroy();
         pileInstances.delete(id);
       } else {
-        pileInstance.removeItems();
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pile, pileInstance);
         } else {
-          pile.items.forEach(itemId => {
-            pileInstance.addItem(renderedItems.get(itemId));
-          });
+          const itemInstances = pile.items.map(itemId =>
+            renderedItems.get(itemId)
+          );
+          pileInstance.setItems(itemInstances);
           positionItems(id);
         }
         updateBoundingBox(id);
