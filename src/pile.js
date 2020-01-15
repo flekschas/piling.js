@@ -478,7 +478,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           horizontalPadding + 2,
           verticalPadding + 2,
           animator,
-          index === newItems.size - 1
+          index === itemContainer.children.length - 1
         );
       });
     } else {
