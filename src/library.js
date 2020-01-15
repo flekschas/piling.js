@@ -1635,7 +1635,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             item.tmpAbsX = pileGfx.x;
             item.tmpAbsY = pileGfx.y;
             item.tmpRelScale = pileGfx.scale.x;
-            item.tmpAbsScale = item.sprite.scale.x * pileGfx.scale.x;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
