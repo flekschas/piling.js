@@ -483,7 +483,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       });
     } else {
       let num = 0;
-      console.log(newItems);
       newItems.forEach(item => {
         num++;
 
