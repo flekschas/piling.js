@@ -645,9 +645,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePreviewAndCover = (pile, pileInstance) => {
     const { items, coverAggregator, aggregateRenderer } = store.getState();
     if (pile.items.length === 1) {
-      pileInstance.itemContainer.addChild(
-        renderedItems.get(pile.items[0]).sprite
-      );
       pileInstance.hasCover = false;
       positionItems(pileInstance.id);
       pileInstance.removeItems();
@@ -666,7 +663,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         if (!previewWidth) {
           previewWidth = preview.width - store.getState().previewSpacing;
         }
-        pileInstance.itemContainer.addChild(preview);
         pileInstance.addItem(renderedItems.get(itemId));
       });
 
@@ -704,7 +700,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           positionItems(id);
         }
         updateBoundingBox(id);
-        // pileInstance.drawBorder();
         updatePileItemStyle(pileInstance);
       }
     } else {

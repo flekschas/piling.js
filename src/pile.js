@@ -616,7 +616,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     items.push(item);
     itemIndex.set(item.id, item);
-    itemContainer.addChild(item.sprite);
+    if (hasCover) {
+      itemContainer.addChild(item.preview.previewContainer);
+    } else {
+      itemContainer.addChild(item.sprite);
+    }
   };
 
   const removeItems = () => {
