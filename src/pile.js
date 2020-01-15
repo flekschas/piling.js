@@ -357,9 +357,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       endValue: newOpacity,
       getter: getOpacity,
       setter: setOpacity
-      // onDone: () => {
-      //   pubSub.publish('updateBBox', id);
-      // }
     });
     pubSub.publish('animate', opacityTweener);
   };
@@ -605,7 +602,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
       graphics.x = x;
       graphics.y = y;
-      // updateBBox();
       pubSub.publish('updateBBox', id);
     }
   };

@@ -281,7 +281,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const deleteSearchIndex = pileId => {
-    console.log('deleteSearchIndex: ', pileId);
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => {
@@ -758,6 +757,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.items.forEach(itemId => {
             pileInstance.addItem(renderedItems.get(itemId));
           });
+          positionItems(id);
         }
         updateBoundingBox(id);
         updatePileItemStyle(pileInstance);
@@ -1627,14 +1627,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .search(pileInstances.get(pileId).calcBBox())
         .filter(collidePile => collidePile.pileId !== pileId);
 
-      console.log('handleDropPile: ', pileId, 'drops onto', collidePiles);
-
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        // console.log(
-        //   'handleDropPile: ',
-        //   pileInstances.get(collidePiles[0].pileId)
-        // );
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
           pile.items.forEach(item => {
