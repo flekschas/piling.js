@@ -65,6 +65,8 @@ const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
 
+const [showGrid, setShowGrid] = setter('showGrid', false);
+
 const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
 
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
@@ -370,6 +372,7 @@ const createStore = () => {
     previewRenderer,
     previewSpacing,
     scaledPile,
+    showGrid,
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles
@@ -434,6 +437,7 @@ export const createAction = {
   setItemRotated,
   setFocusedPiles,
   setScaledPile,
+  setShowGrid,
   setDepileMethod,
   setDepiledPile,
   setTemporaryDepiledPiles,
