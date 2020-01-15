@@ -61,6 +61,10 @@ const [backgroundColor, setBackgroundColor] = setter(
   0x000000
 );
 
+const [gridColor, setGridColor] = setter('gridColor', 0x787878);
+
+const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
+
 const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
 
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
@@ -335,6 +339,8 @@ const createStore = () => {
     columns,
     rowHeight,
     cellAspectRatio,
+    gridColor,
+    gridOpacity,
     itemPadding,
     itemAlignment,
     itemOpacity,
@@ -403,6 +409,8 @@ export const createAction = {
   movePiles,
   depilePiles,
   setBackgroundColor,
+  setGridColor,
+  setGridOpacity,
   setLassoFillColor,
   setLassoFillOpacity,
   setLassoStrokeColor,

@@ -99,6 +99,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     itemPadding: true,
     itemAlignment: true,
     itemRotated: true,
+    gridColor: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setGridColor(color)];
+        if (opacity !== null)
+          actions.push(createAction.setGridOpacity(opacity));
+        return actions;
+      }
+    },
+    gridOpacity: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -1654,9 +1664,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const vLineNum = Math.ceil(width / layout.cellWidth);
     const hLineNum = Math.ceil(height / layout.cellHeight);
 
+    const { gridColor, gridOpacity } = store.getState();
+
     if (!isGridShown) {
       gridGfx.clear();
-      gridGfx.lineStyle(1, 0x787878, 1);
+      gridGfx.lineStyle(1, gridColor, gridOpacity);
       // vertical lines
       for (let i = 1; i < vLineNum; i++) {
         gridGfx.moveTo(i * layout.cellWidth, 0);
