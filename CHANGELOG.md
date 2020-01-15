@@ -13,6 +13,7 @@
 - Simplified `resizeHandler()` and debounced it
 - Changed the default value of `itemSizeRange` from `[0.7, 0.9]` to `[0.5, 1.0]` to make full use of the cell width
 - Changed the default value of `itemPadding` from `0` to `6` to ensure some padding
+- Add `gridColor`, `gridOpacity`, and `showGrid` properties
 
 ## v0.4.1
 
