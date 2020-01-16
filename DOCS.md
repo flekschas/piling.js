@@ -124,11 +124,14 @@ _Note, mixed data types are currently not supported._
 
 ## Constructors
 
-#### `const piling = createPilingJs(rootElement);`
+#### `const piling = createPilingJs(domElement, options = {});`
 
 **Returns:** a new piling instance.
 
-**rootElement:** the div object which the canvas will be added on.
+**Arguments:**
+
+- `domElement`: reference to the DOM element that will host piling.js' canvas
+- `options` (optional): an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for configuration. The [supported properties](#pilingsetproperty-value) are the same as for [`set()`](#pilingsetproperty-value).
 
 ## Methods
 
