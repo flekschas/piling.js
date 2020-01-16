@@ -5,10 +5,11 @@
     - [Image](#image)
     - [Matrix](#matrix)
   - [Data](#data)
-- [Library API](#library-api)
-  - [Constructors](#constructors)
+- [Library](#library)
+  - [Constructor](#constructor)
   - [Methods](#methods)
   - [Events](#events)
+  - [State](#state)
 - [Pile API](#pile-api)
   - [Properties](#pile-properties)
   - [Methods](#pile-methods)
@@ -93,12 +94,14 @@ piling.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
 
 ## Data
 
-An array of objects with one required property `src`, and other optional user-defined properties:
+An array of objects with one required property `src` and other optional user-defined properties:
 
 - `src`: the item data. This can literally be anything. The only requirement
-  is that the renderer understands how to render this data.
+  is that the renderer understands how to render it.
 
-_Note, mixed data types are currently not supported._
+  _Note, mixed data types are currently not supported. I.e., each item is rendered with the same renderer._
+
+**Examples:**
 
 ```javascript
 // External image data
@@ -126,9 +129,9 @@ _Note, mixed data types are currently not supported._
 }
 ```
 
-# Library API
+# Library
 
-## Constructors
+## Constructor
 
 #### `const piling = createPilingJs(rootElement);`
 
@@ -286,26 +289,24 @@ The list of all understood properties is given below.
   ]);
   ```
 
-- `pileBorderSize`, `pileOpacity` and `pileScale` can be set to static float values, or the user can specify a callback function to dynamically style piles. E.g.,
+- `pileBorderSize`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
 
   ```javascript
   // Set to a static number
   piling.set('pileScale', 2.0);
 
   // Set to a callback function
-  piling.set('pileOpacity', pile => 1 / pile.size);
+  piling.set('pileOpacity', pile => 1 / pile.items.length);
   ```
 
-  The signature of the callback function should be as follows:
+  The callback function is evaluated for each pile and receives the current [pile](#pile). The function’s return value is then used to set each pile’s corresponding property. I.e., the function signature is as follows:
 
   ```javascript
-  function (pileInstance) {
+  function (pile) {
     // Do something
     return value;
   }
   ```
-
-  `pileInstance` is the instance of the pile. The function should return the value corresponding to the property. For `pileOpacity`, the value should be within `[0, 1]`. The pile API is described in [Pile API](#pile-api).
 
 - `itemOpacity` can be set to a static float value within `[0, 1]`, or the user can specify a callback function to dynamically style items. E.g.,
 
@@ -314,19 +315,20 @@ The list of all understood properties is given below.
   piling.set('itemOpacity', 0.5);
 
   // Set to a callback function
-  piling.set('itemOpacity', (item, pile, i) => (pile.size - i) / pile.size);
+  piling.set('itemOpacity', (item, i, pile) => (pile.items.length - i) / pile.items.length);
   ```
 
   The signature of the callback function should be as follows:
+  The callback function is evaluated, in order, for each item on every pile and receives the current [item](#item), the item's current index, and [pile](#pile) that the item belongs to. The function’s return value is then used to set the opacity of each pile’s item. I.e., the function signature is as follows:
 
   ```javascript
-    function (itemInstance, pileInstance, itemPosition) {
+    function (item, index, pile) {
       // Do something
       return value;
     }
   ```
 
-  `itemInstance` is the instance of the item, `pileInstance` is the instance of the pile that this item is part of, and `itemPosition` is the position of the item on the pile. The function should return a value within `[0, 1]`. The item API is described in [Item API](#item-api).
+  The function should return a value within `[0, 1]`.
 
 #### `piling.destroy()`
 
@@ -367,130 +369,39 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
 | pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
 
-# Pile API
-
-## Pile properties
-
-| Name          | Type                                                                      | Description                                                 | Read only |
-| ------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------- | --------- |
-| bBox          | see notes                                                                 | The bounding box of the pile                                | `true`    |
-| border        | [PIXI.Graphics](http://pixijs.download/release/docs/PIXI.Graphics.html)   | The bounding box of the pile                                | `true`    |
-| cover         | [PIXI.Sprite](http://pixijs.download/release/docs/PIXI.Sprite.html)       | The cover of the pile if any                                | `true`    |
-| cX            | float                                                                     | The center position of the pile graphics in x-axis          | `true`    |
-| cY            | float                                                                     | The center position of the pile graphics in y-axis          | `true`    |
-| graphics      | [PIXI.Graphics](http://pixijs.download/release/docs/PIXI.Graphics.html)   | The PIXI graphics object of the pile                        | `true`    |
-| hasCover      | boolean                                                                   | Whether the pile has a cover or not                         |           |
-| id            | int                                                                       | The id of the pile                                          | `true`    |
-| isFocus       | boolean                                                                   | Whether the pile is selected by the user or not             |           |
-| isTempDepiled | boolean                                                                   | Whether the pile is temporarily depiled or not              |           |
-| itemContainer | [PIXI.Container](http://pixijs.download/release/docs/PIXI.Container.html) | The item container of the pile which contains items' sprite | `true`    |
-| items         | Array                                                                     | An array of item instances in the pile                      | `true`    |
-| size          | int                                                                       | The number of items in the pile                             | `true`    |
-| x             | float                                                                     | The position of the pile graphics in x-axis                 | `true`    |
-| y             | float                                                                     | The position of the pile graphics in y-axis                 | `true`    |
-
 **Notes:**
 
-- If the property is not read only, it can be set by `pile.property(newProperty)`. E.g.,
+- `action` is the name of the action that triggered the update
+- `pile` is the [state](#state) of the corresponding pile
+- `sourceEvent` is the original browser event that triggered this event
 
-  ```javascript
-  // Set 'hasCover' property to true
-  pile.hasCover(true);
-  ```
+## State
 
-- `bBox` is an object which has the following properties: `minX`, `minY`, `maxX`, `maxY` and `pileId`.
+In the following we describe the most important aspects of the library state. This description focuses on the user-facing aspects, primarily the `pile` and `item` state as these are used by dynamic properties and are returned by [events](#events).
 
-## Pile methods
+#### `state.items`
 
-#### `pile.blur()`
+A list of objects storing the [item data](#data)
 
-Blur pile border.
+**Type:** Array of Objects
 
-#### `pile.hover()`
+**Example:**
 
-Drow pile border when the user is hovering on the pile.
+_See the examples at [#Data](#data)_
 
-#### `pile.focus()`
+#### `state.piles`
 
-Drow pile border when the user select the pile.
+A list of objects with the following properties:
+- `items`: a list of item IDs
+- `x`: the current x position
+- `y`: the current y position
 
-#### `pile.active()`
+**Type:** Array of Objects
 
-Drow pile border when the pile is temporarily depiled.
+**Example:**
 
-#### `pile.addItem(itemInstance)`
-
-Add an item instance to the pile.
-
-#### `pile.hasItem(itemInstance)`
-
-**Returns:** a boolean value of whether the pile has this item instance or not.
-
-#### `pile.removeItems()`
-
-Remove all the item instances in the pile.
-
-#### `pile.borderSize(newBorderSize)`
-
-Set the pile border size to the new value.
-
-#### `pile.opacity(newOpacity, noAnimate)`
-
-Set the pile opacity to the new value. `noAnimate` is a boolean value. If it's `true`, the opacity change will not be animated.
-
-#### `pile.scale(newScale, noAnimate)`
-
-Set the pile scale to the new value. `noAnimate` is a boolean value. If it's `true`, the scale change will not be animated.
-
-#### `pile.calcBBox()`
-
-**Returns:** the newly calculated bounding box of the pile. It's an object that has these properties: `minX`, `minY`, `maxX` and `maxY`.
-
-#### `pile.updateBBox()`
-
-Update the bounding box of the pile.
-
-#### `pile.destroy()`
-
-Destroy the pile instance.
-
-#### `pile.drawBorder(size, mode)`
-
-**Arguments:**
-
-- `size`: an int value of the border size.
-- `mode`: `Hover`, `Focus` or `Active`. Different mode refers to different border color and opacity. See [properties in `.set()`](#pilingsetproperty-value).
-
-#### `pile.moveTo(x, y)`
-
-Move the pile graphics to position `[x, y]`.
-
-# Item API
-
-## Item properties
-
-| Name             | Type                                                                    | Description                                          | Read only |
-| ---------------- | ----------------------------------------------------------------------- | ---------------------------------------------------- | --------- |
-| id               | int                                                                     | The id of the item                                   | `true`    |
-| x                | float                                                                   | The position of the item sprite in x-axis            | `true`    |
-| y                | float                                                                   | The position of the item sprite in y-axis            | `true`    |
-| originalPosition | [float, float]                                                          | The position of the item when it's initially created | `true`    |
-| preview          | [PIXI.Graphics](http://pixijs.download/release/docs/PIXI.Graphics.html) | The preview of the item if any                       | `true`    |
-| sprite           | [PIXI.Sprite](http://pixijs.download/release/docs/PIXI.Sprite.html)     | The PIXI sprite object of the item                   | `true`    |
-
-## Item methods
-
-#### `item.destroy()`
-
-Destroy the item instance.
-
-#### `item.moveTo(x, y)`
-
-Move the item sprite to position `[x, y]`.
-
-#### `item.opacity(newOpacity, noAnimate)`
-
-Set the item opacity to the new value. `noAnimate` is a boolean value. If it's `true`, the opacity change will not be animated.
+```javascript
+````
 
 # Renderers
 
