@@ -741,6 +741,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     get y() {
       return graphics.y;
     },
+    border,
+    cover,
+    id,
     itemContainer,
     // Methods
     blur,
@@ -749,14 +752,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     active,
     addItem,
     animatePositionItems,
-    border,
     borderSize,
     calcBBox,
-    cover,
     destroy,
     drawBorder,
     hasItem,
-    id,
     moveTo,
     opacity,
     positionItems,

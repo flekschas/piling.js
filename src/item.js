@@ -101,14 +101,14 @@ const createItem = (id, texture, preview, pubSub) => {
     get y() {
       return sprite.y;
     },
+    originalPosition,
+    preview,
+    sprite,
     // Methods
     cloneSprite,
     destroy,
     moveTo,
-    opacity,
-    originalPosition,
-    preview,
-    sprite
+    opacity
   };
 
   return self;
