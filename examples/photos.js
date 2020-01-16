@@ -13,7 +13,7 @@ const createPhotoPiles = async element => {
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
 
-  piling.set('pileCellAlign', 'center');
+  piling.set('pileCellAlignment', 'center');
 
   piling.set('pileBorderSize', pile => pile.items.length - 1);
 

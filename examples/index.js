@@ -190,7 +190,7 @@ createPiles(exampleEl.value).then(pilingLib => {
           nullifiable: true
         },
         {
-          name: 'pileCellAlign',
+          name: 'pileCellAlignment',
           dtype: 'string',
           values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
         }

@@ -18,7 +18,7 @@ const createGrid = (
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
-    pileCellAlign = 'topLeft',
+    pileCellAlignment = 'topLeft',
     cellPadding = 0
   } = {}
 ) => {
@@ -83,7 +83,7 @@ const createGrid = (
       j * rowHeight + cellPadding
     ];
 
-    switch (pileCellAlign) {
+    switch (pileCellAlignment) {
       case 'topRight':
         return [topLeft[0] + cellWidth - pileWidth, topLeft[1]];
 

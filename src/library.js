@@ -176,7 +176,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBackgroundOpacity: true,
-    pileCellAlign: true,
+    pileCellAlignment: true,
     pileContextMenuItems: true,
     pileOpacity: true,
     pileScale: true,
@@ -349,7 +349,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
-      pileCellAlign,
+      pileCellAlignment,
       cellPadding
     } = store.getState();
 
@@ -358,7 +358,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
-      pileCellAlign,
+      pileCellAlignment,
       cellPadding
     });
 
@@ -373,7 +373,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
-      pileCellAlign,
+      pileCellAlignment,
       cellPadding
     } = store.getState();
 
@@ -382,7 +382,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
-      pileCellAlign,
+      pileCellAlignment,
       cellPadding
     });
 
@@ -1474,7 +1474,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.cellPadding !== newState.cellPadding ||
-      state.pileCellAlign !== newState.pileCellAlign
+      state.pileCellAlignment !== newState.pileCellAlignment
     ) {
       stateUpdates.add('grid');
       stateUpdates.add('layout');
