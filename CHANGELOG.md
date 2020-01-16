@@ -1,4 +1,6 @@
-# Next
+### Next
+
+## v0.5.0
 
 - Add the following properties for dynamic styling. Each property accepts a float value or a callback function. See [`DOCS.md`](DOCS.md#pilingsetproperty-value) for details.
   - `pileOpacity`
@@ -10,6 +12,8 @@
   - `pileCellAlign` is now called `pileCellAlignment`
   - `itemAlignment` is now called `pileItemAlignment`
   - `itemRotated` is now called `pileItemRotation`
+
+  _[Changes since v0.4.2](https://github.com/flekschas/piling.js/compare/v0.4.2...v0.5.0)_
 
 ## v0.4.2
 
@@ -26,10 +30,14 @@
 - Changed the default value of `itemPadding` from `0` to `6` to ensure some padding
 - Add `gridColor`, `gridOpacity`, and `showGrid` properties
 
+_[Changes since v0.4.1](https://github.com/flekschas/piling.js/compare/v0.4.1...v0.4.2)_
+
 ## v0.4.1
 
 - Include ES modules in npm release
 - Switch `package.json`'s module to ES module
+
+_[Changes since v0.4.0](https://github.com/flekschas/piling.js/compare/v0.4.0...v0.4.1)_
 
 ## v0.4.0
 
