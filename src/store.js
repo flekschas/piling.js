@@ -108,14 +108,17 @@ const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 12);
+const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
-const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
+const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
   'bottom',
   'right'
 ]);
 
-const [itemRotated, setItemRotated] = setter('itemRotated', false);
+const [pileItemRotation, setPileItemRotation] = setter(
+  'pileItemRotation',
+  false
+);
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
@@ -199,7 +202,10 @@ const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
 );
 
 // 'topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center'
-const [pileCellAlign, setPileCellAlign] = setter('pileCellAlign', 'topLeft');
+const [pileCellAlignment, setPileCellAlignment] = setter(
+  'pileCellAlignment',
+  'topLeft'
+);
 
 const [pileContextMenuItems, setPileContextMenuItems] = setter(
   'pileContextMenuItems',
@@ -349,11 +355,11 @@ const createStore = () => {
     cellAspectRatio,
     gridColor,
     gridOpacity,
-    itemPadding,
-    itemAlignment,
+    cellPadding,
+    pileItemAlignment,
     itemOpacity,
     itemRenderer,
-    itemRotated,
+    pileItemRotation,
     items,
     lassoFillColor,
     lassoFillOpacity,
@@ -370,7 +376,7 @@ const createStore = () => {
     pileBorderSize,
     pileBackgroundColor,
     pileBackgroundOpacity,
-    pileCellAlign,
+    pileCellAlignment,
     pileContextMenuItems,
     pileOpacity,
     piles,
@@ -441,9 +447,9 @@ export const createAction = {
   setColumns,
   setRowHeight,
   setCellAspectRatio,
-  setItemPadding,
-  setItemAlignment,
-  setItemRotated,
+  setCellPadding,
+  setPileItemAlignment,
+  setPileItemRotation,
   setFocusedPiles,
   setScaledPile,
   setShowGrid,
@@ -468,5 +474,5 @@ export const createAction = {
   setPileContextMenuItems,
   setPileOpacity,
   setPileScale,
-  setPileCellAlign
+  setPileCellAlignment
 };
