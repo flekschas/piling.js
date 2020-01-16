@@ -115,7 +115,10 @@ const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
   'right'
 ]);
 
-const [itemRotated, setItemRotated] = setter('itemRotated', false);
+const [pileItemRotation, setPileItemRotation] = setter(
+  'pileItemRotation',
+  false
+);
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
@@ -356,7 +359,7 @@ const createStore = () => {
     pileItemAlignment,
     itemOpacity,
     itemRenderer,
-    itemRotated,
+    pileItemRotation,
     items,
     lassoFillColor,
     lassoFillOpacity,
@@ -446,7 +449,7 @@ export const createAction = {
   setCellAspectRatio,
   setCellPadding,
   setPileItemAlignment,
-  setItemRotated,
+  setPileItemRotation,
   setFocusedPiles,
   setScaledPile,
   setShowGrid,

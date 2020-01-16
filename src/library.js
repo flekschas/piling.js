@@ -102,7 +102,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     pileItemAlignment: true,
-    itemRotated: true,
+    pileItemRotation: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -491,11 +491,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           store.getState().previewSpacing;
         pile.cover.height = coverRatio * pile.cover.width;
 
-        const { pileItemAlignment, itemRotated } = store.getState();
+        const { pileItemAlignment, pileItemRotation } = store.getState();
 
         pile.positionItems(
           pileItemAlignment,
-          itemRotated,
+          pileItemRotation,
           animator,
           store.getState().previewSpacing
         );
@@ -666,13 +666,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const positionItems = pileId => {
-    const { pileItemAlignment, itemRotated } = store.getState();
+    const { pileItemAlignment, pileItemRotation } = store.getState();
 
     pileInstances
       .get(pileId)
       .positionItems(
         pileItemAlignment,
-        itemRotated,
+        pileItemRotation,
         animator,
         store.getState().previewSpacing
       );
@@ -1484,7 +1484,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
-    if (state.itemRotated !== newState.itemRotated) {
+    if (state.pileItemRotation !== newState.pileItemRotation) {
       stateUpdates.add('layout');
     }
 

@@ -397,7 +397,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     animator.add(tweener);
   };
 
-  const positionItems = (itemAlignment, itemRotated, animator, spacing) => {
+  const positionItems = (itemAlignment, itemRotation, animator, spacing) => {
     isPositioning = true;
     if (hasCover) {
       // matrix
@@ -525,7 +525,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           num === newItems.size
         );
 
-        if (itemRotated) {
+        if (itemRotation) {
           item.sprite.angle += getRandomArbitrary(-10, 10);
         }
       });
