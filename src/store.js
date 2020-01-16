@@ -108,7 +108,7 @@ const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 6);
+const [itemPadding, setItemPadding] = setter('itemPadding', 12);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
