@@ -393,7 +393,7 @@ _Note:_ `shape` describes the size of matrix, e.g., for a 4x5 matrix, `shape` sh
 import { interpolateRdPu } from 'd3-scale-chromatic';
 import createMatrixRenderer from 'piling.js';
 
-const rgbStr2rgba = (rgbStr, alpha = 1) => {
+const rgbStrToRgba = (rgbStr, alpha = 1) => {
   return [
     ...rgbStr
       .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
@@ -405,7 +405,7 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
 const numColors = 256;
 const colorMap = new Array(numColors)
   .fill(0)
-  .map((x, i) => rgbStr2rgba(interpolateRdPu(i / numColors)));
+  .map((x, i) => rgbStrToRgba(interpolateRdPu(i / numColors)));
 
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
 ```
