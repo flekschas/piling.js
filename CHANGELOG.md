@@ -5,6 +5,11 @@
   - `pileScale`
   - `pileBorderSize`
   - `itemOpacity`
+- Rename the following properties for clarity:
+  - `itemPadding` is now called `cellPadding`
+  - `pileCellAlign` is now called `pileCellAlignment`
+  - `itemAlignment` is now called `pileItemAlignment`
+  - `itemRotated` is now called `pileItemRotation`
 
 ## v0.4.2
 
