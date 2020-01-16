@@ -164,22 +164,22 @@ The list of all understood properties is given below.
 | easing                    | function          | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
 | gridColor                 | string or int     | `0x787878`            |                                                                               | `false`    |
 | gridOpacity               | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| itemAlignment             | array or boolean  | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | itemOpacity               | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
-| itemRotated               | boolean           | `false`               | `true` or `false`                                                             | `true`     |
 | items                     | array             | `[]`                  | see [`data`](#data)                                                           | `false`    |
 | itemSize                  | int               |                       | number of pixels                                                              | `true`     |
 | itemSizeRange             | array             | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
 | columns                   | int               | `10`                  | ignored when `itemSize` is defined                                            | `false`    |
 | rowHeight                 | int               |                       |                                                                               | `true`     |
 | cellAspectRatio           | float             |                       | ignored when `rowHeight` is defined                                           | `false`    |
-| itemPadding               | int               |                       |                                                                               | `true`     |
+| cellPadding               | int               |                       |                                                                               | `true`     |
 | lassoFillColor            | string or int     | `0xffffff`            |                                                                               | `false`    |
 | lassoFillOpacity          | float             | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
 | lassoStrokeColor          | string or int     | `0xffffff`            |                                                                               | `false`    |
 | lassoStrokeOpacity        | float             | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
 | lassoStrokeSize           | int               | `1`                   | must be greater or equal than `1`                                             | `false`    |
 | orderer                   | function          | row-major             | see [`notes`](#notes)                                                         | `true`     |
+| pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
+| pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColor           | string or int     | `0x808080`            |                                                                               | `false`    |
 | pileBorderOpacity         | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColorSelected   | string or int     | `0xeee462`            |                                                                               | `false`    |
@@ -187,10 +187,10 @@ The list of all understood properties is given below.
 | pileBorderColorActive     | string or int     | `0xffa5da`            |                                                                               | `false`    |
 | pileBorderOpacityActive   | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderSize            | float or function | 0                     | see [`notes`](#notes)                                                         | `true`     |
-| pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
-| pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileCellAlign             | string            | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
+| pileCellAlignment         | string            | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
 | pileContextMenuItems      | array             | `[]`                  | see _examples_ below                                                          | `true`     |
+| pileItemAlignment         | array or boolean  | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
+| pileItemRotation          | boolean           | `false`               | `true` or `false`                                                             | `true`     |
 | pileOpacity               | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | pileScale                 | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | previewAggregator         | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
@@ -233,11 +233,11 @@ The list of all understood properties is given below.
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
   ```
 
-- The following properties to define the _grid_: `itemSize`, `itemPadding`, `columns`, `rowHeight`, and `cellAspectRatio`
+- The following properties to define the _grid_: `itemSize`, `cellPadding`, `columns`, `rowHeight`, and `cellAspectRatio`
 
   One has to at least provide `columns` or `itemSize` to define a grid. If `itemSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
 
-  When `itemSize` is defined, `itemSize` and `itemPadding` add up together to define the cell width. When `itemSize` is undefined, `itemSize` is defined by the derived cell width (given `columns`) minues `itemPadding`!
+  When `itemSize` is defined, `itemSize` and `cellPadding` add up together to define the cell width. When `itemSize` is undefined, `itemSize` is defined by the derived cell width (given `columns`) minues `cellPadding`!
 
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
