@@ -1,11 +1,10 @@
 # Next
 
-- Add the following properties to dynamically style piles. The value can be just a float or a callback function which receives `pileInstance`.
+- Add the following properties for dynamic styling. Each property accepts a float value or a callback function. See [`DOCS.md`](DOCS.md#pilingsetproperty-value) for details.
   - `pileOpacity`
   - `pileScale`
   - `pileBorderSize`
-- Add a property `itemOpacity` to dynamically style items. The value can be just a float or a callback function which receives `itemInstance`, `pileInstance` and `itemPosition`.
-- Refactor [pile API](DOCS.md#pile-api) and [item API](DOCS.md#item-api).
+  - `itemOpacity`
 
 ## v0.4.2
 
