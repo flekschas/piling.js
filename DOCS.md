@@ -398,7 +398,15 @@ A list of objects with the following properties:
 **Example:**
 
 ```javascript
-````
+[
+  {
+    items: [5, 12],
+    x: 10,
+    y: 10
+  },
+  ...
+]
+```
 
 # Renderers
 
