@@ -10,12 +10,6 @@
   - [Methods](#methods)
   - [Events](#events)
   - [State](#state)
-- [Pile API](#pile-api)
-  - [Properties](#pile-properties)
-  - [Methods](#pile-methods)
-- [Item API](#item-api)
-  - [Properties](#item-properties)
-  - [Methods](#item-methods)
 - [Renderers](#renderers)
   - [Predefined renderers](#predefined-renderers)
     - [Image renderer](#image-renderer)
@@ -404,7 +398,15 @@ A list of objects with the following properties:
 **Example:**
 
 ```javascript
-````
+[
+  {
+    items: [5, 12],
+    x: 10,
+    y: 10
+  },
+  ...
+]
+```
 
 # Renderers
 
