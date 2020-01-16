@@ -15,6 +15,8 @@ const createPhotoPiles = async element => {
 
   piling.set('pileCellAlign', 'center');
 
+  piling.set('pileBorderSize', pile => pile.items.length - 1);
+
   return piling;
 };
 

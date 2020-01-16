@@ -18,6 +18,7 @@ import {
   deepClone,
   dist,
   getBBox,
+  isFunction,
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
@@ -25,7 +26,7 @@ import {
   withThrottleAndDebounce
 } from './utils';
 
-import createPile, { MODE_ACTIVE, MODE_SELECTED } from './pile';
+import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
 import createPreview from './preview';
@@ -144,16 +145,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacity: true,
-    pileBorderColorSelected: {
+    pileBorderColorFocus: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBorderColorSelected(color)];
+        const actions = [createAction.setPileBorderColorFocus(color)];
         if (opacity !== null)
-          actions.push(createAction.setPileBorderOpacitySelected(opacity));
+          actions.push(createAction.setPileBorderOpacityFocus(opacity));
         return actions;
       }
     },
-    pileBorderOpacitySelected: true,
+    pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -164,6 +165,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacityActive: true,
+    pileBorderSize: true,
     pileBackgroundColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -176,6 +178,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBackgroundOpacity: true,
     pileCellAlign: true,
     pileContextMenuItems: true,
+    pileOpacity: true,
+    pileScale: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -482,7 +486,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileInstances.forEach(pile => {
       if (pile.hasCover) {
         const coverRatio = pile.cover.height / pile.cover.width;
-        pile.cover.width = pile.itemContainer.children[0].width;
+        pile.cover.width =
+          pile.itemContainer.children[0].width -
+          store.getState().previewSpacing;
         pile.cover.height = coverRatio * pile.cover.width;
 
         const { itemAlignment, itemRotated } = store.getState();
@@ -535,7 +541,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const focusedPile = store.getState().focusedPiles[0];
     if (focusedPile) {
-      pileInstances.get(focusedPile).drawBorder(3, 'Selected');
+      pileInstances.get(focusedPile).focus();
     }
 
     updateScrollContainer();
@@ -593,7 +599,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           const newItem = createItem(index, renderedItem, preview, pubSub);
           renderedItems.set(index, newItem);
           const pile = createPile({
-            initialItem: newItem.sprite,
+            initialItem: newItem,
             render: renderRaf,
             id: index,
             pubSub,
@@ -672,30 +678,58 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
   };
 
+  const updatePileItemStyle = pile => {
+    const { items, itemOpacity } = store.getState();
+
+    pile.items.forEach((itemId, i) => {
+      const item = items[itemId];
+      const itemInstance = renderedItems.get(itemId);
+      itemInstance.opacity(
+        isFunction(itemOpacity) ? itemOpacity(item, i, pile) : itemOpacity
+      );
+    });
+  };
+
+  const updatePileStyle = (pile, pileId) => {
+    const pileInstance = pileInstances.get(pileId);
+
+    if (!pileInstance) return;
+
+    const { pileOpacity, pileBorderSize, pileScale } = store.getState();
+
+    pileInstance.opacity(
+      isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
+    );
+
+    pileInstance.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
+
+    pileInstance.borderSize(
+      isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
+    );
+  };
+
   const updatePreviewAndCover = (pile, pileInstance) => {
     const { items, coverAggregator, aggregateRenderer } = store.getState();
     if (pile.items.length === 1) {
-      pileInstance.itemContainer.addChild(
-        renderedItems.get(pile.items[0]).sprite
-      );
       pileInstance.hasCover = false;
       positionItems(pileInstance.id);
+      pileInstance.removeItems();
+      pileInstance.addItem(renderedItems.get(pile.items[0]));
     } else {
       const itemSrcs = [];
       let previewWidth;
-      let previewHeight;
+      pileInstance.removeItems();
+      pileInstance.hasCover = true;
+
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
         const preview = renderedItems.get(itemId).preview.previewContainer;
         preview.x = 2;
         preview.y = 0;
         if (!previewWidth) {
-          previewWidth = preview.width;
+          previewWidth = preview.width - store.getState().previewSpacing;
         }
-        if (!previewHeight) {
-          previewHeight = preview.height;
-        }
-        pileInstance.itemContainer.addChild(preview);
+        pileInstance.addItem(renderedItems.get(itemId));
       });
 
       coverAggregator(itemSrcs)
@@ -709,7 +743,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           cover.height = coverRatio * cover.width;
           pileInstance.cover = cover;
           pileInstance.itemContainer.addChild(cover);
-          pileInstance.hasCover = true;
           positionItems(pileInstance.id);
         });
     }
@@ -723,36 +756,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pileInstance.destroy();
         pileInstances.delete(id);
       } else {
-        pileInstance.itemContainer.removeChildren();
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pile, pileInstance);
         } else {
-          if (pile.items.length === 1) {
-            pileInstance.itemsById.clear();
-            pileInstance.itemsById.set(
-              pile.items[0],
-              renderedItems.get(pile.items[0]).sprite
-            );
-          }
-          pile.items.forEach(itemId => {
-            pileInstance.itemContainer.addChild(
-              renderedItems.get(itemId).sprite
-            );
-            if (!pileInstance.itemsById.has(itemId)) {
-              pileInstance.newItemsById.set(
-                itemId,
-                renderedItems.get(itemId).sprite
-              );
-            }
-          });
+          const itemInstances = pile.items.map(itemId =>
+            renderedItems.get(itemId)
+          );
+          pileInstance.setItems(itemInstances);
           positionItems(id);
         }
         updateBoundingBox(id);
-        pileInstance.border.clear();
+        updatePileItemStyle(pile);
       }
     } else {
       const newPile = createPile({
-        initialItem: renderedItems.get(id).sprite,
+        initialItem: renderedItems.get(id),
         render: renderRaf,
         id,
         pubSub,
@@ -761,6 +779,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updateBoundingBox(id);
+      updatePileItemStyle(pile);
     }
   };
 
@@ -978,7 +997,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const depile = pileId => {
-    const itemNum = pileInstances.get(pileId).itemContainer.children.length;
+    const itemNum = pileInstances.get(pileId).size;
 
     if (itemNum === 1) return;
 
@@ -1214,7 +1233,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.isTempDepiled) {
             pile.itemContainer.removeChildAt(length - 1);
             pile.isTempDepiled = false;
-            pile.border.clear();
+            pile.hover();
             pile.isFocus = false;
             store.dispatch(createAction.setFocusedPiles([]));
           }
@@ -1399,7 +1418,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
-    if (pile.scale(wheelDelta)) {
+    if (pile.scaleByWheel(wheelDelta)) {
       updateBoundingBox(pileId);
     }
     renderRaf();
@@ -1432,12 +1451,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
+            updatePileStyle(pile, id);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
+            updatePileStyle(pile, id);
           }
         });
       }
@@ -1499,7 +1520,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (pileInstances.has(state.focusedPiles[0])) {
         const pile = pileInstances.get(state.focusedPiles[0]);
         if (!pile.isTempDepiled) {
-          pile.border.clear();
+          pile.blur();
           pile.isFocus = false;
         }
       }
@@ -1508,9 +1529,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (newState.focusedPiles.length !== 0) {
         const pile = pileInstances.get(newState.focusedPiles[0]);
         if (pile.isTempDepiled) {
-          pile.drawBorder(3, MODE_ACTIVE);
+          pile.active();
         } else {
-          pile.drawBorder(2, MODE_SELECTED);
+          pile.focus();
         }
         pile.isFocus = true;
         pubSub.publish('pileFocus', { pile });
@@ -1526,8 +1547,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (state.scaledPile.length !== 0) {
         if (pileInstances.has(state.scaledPile[0])) {
           const pile = pileInstances.get(state.scaledPile[0]).graphics;
-          pile.scale.x = 1;
-          pile.scale.y = 1;
+          pile.scale(1);
           updateBoundingBox(state.scaledPile[0]);
           activePile.removeChildren();
           normalPiles.addChild(pile);
@@ -1574,14 +1594,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const resetPileBorder = () => {
     pileInstances.forEach(pile => {
-      if (pile.isFocus) {
-        if (pile.isTempDepiled) {
-          pile.drawBorder(3, 'Active');
-        } else {
-          pile.drawBorder(2, 'Selected');
-        }
-      } else {
-        pile.border.clear();
+      if (!pile.isFocus) {
+        pile.blur();
       }
     });
   };
@@ -1623,9 +1637,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (collidePiles.length === 1) {
         hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
         if (hit) {
-          pile.itemContainer.children.forEach(item => {
-            item.tmpAbsX = pile.x;
-            item.tmpAbsY = pile.y;
+          pile.items.forEach(item => {
+            item.tmpAbsX = pileGfx.x;
+            item.tmpAbsY = pileGfx.y;
+            item.tmpRelScale = pileGfx.scale.x;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
@@ -1654,7 +1669,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let newResult = [];
 
   const handleHighlightPile = ({ pileId }) => {
-    if (pileInstances.get(pileId).graphics.scale.x > 1.1) return;
     if (store.getState().temporaryDepiledPiles.length) return;
 
     oldResult = [...newResult];
@@ -1664,7 +1678,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       oldResult.forEach(collidePile => {
         if (pileInstances.get(collidePile.pileId)) {
           const pile = pileInstances.get(collidePile.pileId);
-          pile.border.clear();
+          pile.blur();
         }
       });
     }
@@ -1672,7 +1686,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     newResult.forEach(collidePile => {
       if (pileInstances.get(collidePile.pileId)) {
         const pile = pileInstances.get(collidePile.pileId);
-        pile.drawBorder();
+        pile.hover();
       }
     });
   };
@@ -1721,9 +1735,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const scaleBtnBtnClick = (contextMenuElement, pileId) => () => {
+  const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    pile.animateScale();
+    pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
   };
@@ -1987,7 +2001,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile = pileInstances.get(result.pileId);
           }
         });
-        if (pile && pile.itemContainer.children.length === 1) {
+        if (pile && pile.size === 1) {
           depileBtn.setAttribute('disabled', '');
           depileBtn.setAttribute('class', 'inactive');
           tempDepileBtn.setAttribute('disabled', '');
@@ -2026,7 +2040,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
         scaleBtn.addEventListener(
           'click',
-          scaleBtnBtnClick(element, pile.id),
+          scaleBtnClick(element, pile.id),
           false
         );
 

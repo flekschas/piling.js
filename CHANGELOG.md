@@ -1,5 +1,11 @@
 # Next
 
+- Add the following properties for dynamic styling. Each property accepts a float value or a callback function. See [`DOCS.md`](DOCS.md#pilingsetproperty-value) for details.
+  - `pileOpacity`
+  - `pileScale`
+  - `pileBorderSize`
+  - `itemOpacity`
+
 ## v0.4.2
 
 - Refactored the grid:
@@ -41,6 +47,7 @@
   - `pileDrag`
   - `pileDrop`
 - Change the grid layout properties from a nested object called `grid` to the following individual properties that you can set with [`.set()`](DOCS.md#pilingsetproperty-value):
+
   - `itemSize`
   - `itemPadding`
   - `columns`

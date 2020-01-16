@@ -5,10 +5,17 @@
     - [Image](#image)
     - [Matrix](#matrix)
   - [Data](#data)
-- [Library API](#library-api)
-  - [Constructors](#constructors)
+- [Library](#library)
+  - [Constructor](#constructor)
   - [Methods](#methods)
   - [Events](#events)
+  - [State](#state)
+- [Pile API](#pile-api)
+  - [Properties](#pile-properties)
+  - [Methods](#pile-methods)
+- [Item API](#item-api)
+  - [Properties](#item-properties)
+  - [Methods](#item-methods)
 - [Renderers](#renderers)
   - [Predefined renderers](#predefined-renderers)
     - [Image renderer](#image-renderer)
@@ -87,12 +94,14 @@ piling.set('items', [{ src: [1, 2, 3, 2, 3, 1, 3, 2, 1]}, ...]);
 
 ## Data
 
-An array of objects with one required property `src`, and other optional user-defined properties:
+An array of objects with one required property `src` and other optional user-defined properties:
 
 - `src`: the item data. This can literally be anything. The only requirement
-  is that the renderer understands how to render this data.
+  is that the renderer understands how to render it.
 
-_Note, mixed data types are currently not supported._
+  _Note, mixed data types are currently not supported. I.e., each item is rendered with the same renderer._
+
+**Examples:**
 
 ```javascript
 // External image data
@@ -120,9 +129,9 @@ _Note, mixed data types are currently not supported._
 }
 ```
 
-# Library API
+# Library
 
-## Constructors
+## Constructor
 
 #### `const piling = createPilingJs(domElement, options = {});`
 
@@ -150,51 +159,55 @@ The list of all understood properties is given below.
 
 **Properties:**
 
-| Name                      | Type             | Default               | Constraints                                                                   | Unsettable |
-| ------------------------- | ---------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
-| aggregateRenderer         | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
-| backgroundColor           | string or int    | `0x000000`            |                                                                               | `false`    |
-| clickedPile               | array            | `[]`                  | the id of current focused pile                                                | `true`     |
-| coverAggregator           | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
-| depiledPile               | array            | `[]`                  | the id of the pile to be depiled                                              | `true`     |
-| depileMethod              | string           | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
-| easing                    | function         | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
-| gridColor                 | string or int    | `0x787878`            |                                                                               | `false`    |
-| gridOpacity               | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| itemAlignment             | array or boolean | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
-| itemRotated               | boolean          | `false`               | `true` or `false`                                                             | `true`     |
-| items                     | array            | `[]`                  | see [`data`](#data)                                                           | `false`    |
-| itemSize                  | int              |                       | number of pixels                                                              | `true`     |
-| itemSizeRange             | array            | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
-| columns                   | int              | `10`                  | ignored when `itemSize` is defined                                            | `false`    |
-| rowHeight                 | int              |                       |                                                                               | `true`     |
-| cellAspectRatio           | float            |                       | ignored when `rowHeight` is defined                                           | `false`    |
-| itemPadding               | int              |                       |                                                                               | `true`     |
-| lassoFillColor            | string or int    | `0xffffff`            |                                                                               | `false`    |
-| lassoFillOpacity          | float            | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
-| lassoStrokeColor          | string or int    | `0xffffff`            |                                                                               | `false`    |
-| lassoStrokeOpacity        | float            | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
-| lassoStrokeSize           | int              | `1`                   | must be greater or equal than `1`                                             | `false`    |
-| orderer                   | function         | row-major             | see [`notes`](#notes)                                                         | `true`     |
-| pileBorderColor           | string or int    | `0x808080`            |                                                                               | `false`    |
-| pileBorderOpacity         | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorSelected   | string or int    | `0xeee462`            |                                                                               | `false`    |
-| pileBorderOpacitySelected | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorActive     | string or int    | `0xffa5da`            |                                                                               | `false`    |
-| pileBorderOpacityActive   | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBackgroundColor       | string or int    | `0x000000`            |                                                                               | `false`    |
-| pileBackgroundOpacity     | float            | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileCellAlign             | string           | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
-| pileContextMenuItems      | array            | `[]`                  | see _examples_ below                                                          | `true`     |
-| previewAggregator         | function         |                       | see [`aggregators`](#aggregators)                                             | `true`     |
-| previewRenderer           | function         |                       | see [`renderers`](#renderers)                                                 | `true`     |
-| previewSpacing            | number           | `2`                   | the spacing between 1D previews                                               | `true`     |
-| renderer                  | function         |                       | see [`renderers`](#renderers)                                                 | `false`    |
-| scaledPile                | array            | `[]`                  | the id of current scaled pile                                                 | `true`     |
-| showGrid                  | boolean          | `false`               |                                                                               | `false`    |
-| tempDepileDirection       | string           | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
-| tempDepileOneDNum         | number           | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
-| temporaryDepiledPile      | array            | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
+| Name                      | Type              | Default               | Constraints                                                                   | Unsettable |
+| ------------------------- | ----------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
+| aggregateRenderer         | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
+| backgroundColor           | string or int     | `0x000000`            |                                                                               | `false`    |
+| clickedPile               | array             | `[]`                  | the id of current focused pile                                                | `true`     |
+| coverAggregator           | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
+| depiledPile               | array             | `[]`                  | the id of the pile to be depiled                                              | `true`     |
+| depileMethod              | string            | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
+| easing                    | function          | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
+| gridColor                 | string or int     | `0x787878`            |                                                                               | `false`    |
+| gridOpacity               | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| itemAlignment             | array or boolean  | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
+| itemOpacity               | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
+| itemRotated               | boolean           | `false`               | `true` or `false`                                                             | `true`     |
+| items                     | array             | `[]`                  | see [`data`](#data)                                                           | `false`    |
+| itemSize                  | int               |                       | number of pixels                                                              | `true`     |
+| itemSizeRange             | array             | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
+| columns                   | int               | `10`                  | ignored when `itemSize` is defined                                            | `false`    |
+| rowHeight                 | int               |                       |                                                                               | `true`     |
+| cellAspectRatio           | float             |                       | ignored when `rowHeight` is defined                                           | `false`    |
+| itemPadding               | int               |                       |                                                                               | `true`     |
+| lassoFillColor            | string or int     | `0xffffff`            |                                                                               | `false`    |
+| lassoFillOpacity          | float             | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
+| lassoStrokeColor          | string or int     | `0xffffff`            |                                                                               | `false`    |
+| lassoStrokeOpacity        | float             | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
+| lassoStrokeSize           | int               | `1`                   | must be greater or equal than `1`                                             | `false`    |
+| orderer                   | function          | row-major             | see [`notes`](#notes)                                                         | `true`     |
+| pileBorderColor           | string or int     | `0x808080`            |                                                                               | `false`    |
+| pileBorderOpacity         | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorSelected   | string or int     | `0xeee462`            |                                                                               | `false`    |
+| pileBorderOpacitySelected | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorActive     | string or int     | `0xffa5da`            |                                                                               | `false`    |
+| pileBorderOpacityActive   | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderSize            | float or function | 0                     | see [`notes`](#notes)                                                         | `true`     |
+| pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
+| pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileCellAlign             | string            | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
+| pileContextMenuItems      | array             | `[]`                  | see _examples_ below                                                          | `true`     |
+| pileOpacity               | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
+| pileScale                 | float or function | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
+| previewAggregator         | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
+| previewRenderer           | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
+| previewSpacing            | number            | `2`                   | the spacing between 1D previews                                               | `true`     |
+| renderer                  | function          |                       | see [`renderers`](#renderers)                                                 | `false`    |
+| scaledPile                | array             | `[]`                  | the id of current scaled pile                                                 | `true`     |
+| showGrid                  | boolean           | `false`               |                                                                               | `false`    |
+| tempDepileDirection       | string            | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
+| tempDepileOneDNum         | number            | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
+| temporaryDepiledPile      | array             | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
 
 **Examples and Notes:**
 
@@ -279,6 +292,47 @@ The list of all understood properties is given below.
   ]);
   ```
 
+- `pileBorderSize`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
+
+  ```javascript
+  // Set to a static number
+  piling.set('pileScale', 2.0);
+
+  // Set to a callback function
+  piling.set('pileOpacity', pile => 1 / pile.items.length);
+  ```
+
+  The callback function is evaluated for each pile and receives the current [pile](#statepiles). The function’s return value is then used to set each pile’s corresponding property. I.e., the function signature is as follows:
+
+  ```javascript
+  function (pile) {
+    // Do something
+    return value;
+  }
+  ```
+
+- `itemOpacity` can be set to a static float value within `[0, 1]`, or the user can specify a callback function to dynamically style items. E.g.,
+
+  ```javascript
+  // Set to a static number
+  piling.set('itemOpacity', 0.5);
+
+  // Set to a callback function
+  piling.set('itemOpacity', (item, i, pile) => (pile.items.length - i) / pile.items.length);
+  ```
+
+  The signature of the callback function should be as follows:
+  The callback function is evaluated, in order, for each item on every pile and receives the current [item](#stateitems), the item's current index, and [pile](#statepiles) that the item belongs to. The function’s return value is then used to set the opacity of each pile’s item. I.e., the function signature is as follows:
+
+  ```javascript
+    function (item, index, pile) {
+      // Do something
+      return value;
+    }
+  ```
+
+  The function should return a value within `[0, 1]`.
+
 #### `piling.destroy()`
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
@@ -317,6 +371,40 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile |
 | pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
 | pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
+
+**Notes:**
+
+- `action` is the name of the action that triggered the update
+- `pile` is the [state](#statepiles) of the corresponding pile
+- `sourceEvent` is the original browser event that triggered this event
+
+## State
+
+In the following we describe the most important aspects of the library state. This description focuses on the user-facing aspects, primarily the `pile` and `item` state as these are used by dynamic properties and are returned by [events](#events).
+
+#### `state.items`
+
+A list of objects storing the [item data](#data)
+
+**Type:** Array of Objects
+
+**Example:**
+
+_See the examples at [#Data](#data)_
+
+#### `state.piles`
+
+A list of objects with the following properties:
+- `items`: a list of item IDs
+- `x`: the current x position
+- `y`: the current y position
+
+**Type:** Array of Objects
+
+**Example:**
+
+```javascript
+````
 
 # Renderers
 

@@ -28,7 +28,7 @@ const createSvgLinesPiles = element => {
     renderer: svgRenderer,
     items: data,
     itemAlignment: ['top', 'bottom', 'left', 'right'],
-    itemOpacity: (item, index, total) => index / total,
+    itemOpacity: (item, i, pile) => 1 / pile.items.length / 2 / 3 + 1 / 3,
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',

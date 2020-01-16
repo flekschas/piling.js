@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-export const MODE_HOVER = 'hover';
+import { MODE_HOVER } from './pile';
 
 const createPreview = ({ texture, store }) => {
   const previewContainer = new PIXI.Container();
@@ -12,7 +12,7 @@ const createPreview = ({ texture, store }) => {
   previewSprite.x = store.getState().previewSpacing / 2;
 
   const drawBg = (mode = '', color = null, opacity = null) => {
-    if (mode === 'hover') {
+    if (mode === MODE_HOVER) {
       // eslint-disable-next-line no-param-reassign
       color = color || store.getState().previewBackgroundColor;
       // eslint-disable-next-line no-param-reassign

@@ -410,3 +410,6 @@ export const colorToDecAlpha = (color, defaultAlpha = 1) => {
 
   return [parseInt(color, 10), defaultAlpha];
 };
+
+export const isFunction = obj =>
+  !!(obj && obj.constructor && obj.call && obj.apply);

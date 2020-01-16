@@ -3,11 +3,15 @@ import * as PIXI from 'pixi.js';
 import createTweener from './tweener';
 import { interpolateNumber, interpolateVector } from './utils';
 
-import { MODE_HOVER } from './preview';
-
 export const MAX_SCALE = 3;
-export const MODE_ACTIVE = 'Active';
-export const MODE_SELECTED = 'Selected';
+export const MODE_HOVER = Symbol('Hover');
+export const MODE_FOCUS = Symbol('Focus');
+export const MODE_ACTIVE = Symbol('Active');
+
+const modeToString = new Map();
+modeToString.set(MODE_HOVER, 'Hover');
+modeToString.set(MODE_FOCUS, 'Focus');
+modeToString.set(MODE_ACTIVE, 'Active');
 
 /**
  * Factory function to create a pile
@@ -19,8 +23,9 @@ export const MODE_SELECTED = 'Selected';
  * @param {object}   options.store - Redux store
  */
 const createPile = ({ initialItem, render, id, pubSub, store }) => {
-  const itemsById = new Map();
-  const newItemsById = new Map();
+  const items = [];
+  const itemIndex = new Map();
+  const newItems = new Set();
   const graphics = new PIXI.Graphics();
   const itemContainer = new PIXI.Container();
   const borderContainer = new PIXI.Container();
@@ -80,46 +85,96 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     }
   };
 
-  const drawBorder = (size = 1, mode = '') => {
-    // while positioning, do not draw border
-    if (isPositioning) return;
-    const rect = itemContainer.getBounds();
+  let borderSizeBase = 0;
 
-    if (graphics.scale.x !== 1) {
-      rect.width /= graphics.scale.x;
-      rect.height /= graphics.scale.x;
+  const drawBorder = (size = borderSizeBase, mode = '') => {
+    if (!size) {
+      border.clear();
+    } else {
+      if (isPositioning) {
+        // eslint-disable-next-line no-use-before-define
+        postPilePositionAnimation.set('drawBorder', () => {
+          drawBorder(size, mode);
+        });
+        return;
+      }
+      const rect = itemContainer.getBounds();
+
+      // eslint-disable-next-line no-use-before-define
+      const currentScale = getScale();
+      if (currentScale !== 1) {
+        rect.width /= currentScale;
+        rect.height /= currentScale;
+      }
+
+      pubSub.publish('updateBBox', id);
+
+      const state = store.getState();
+
+      border.clear();
+
+      // draw black background
+      border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
+      border.drawRect(
+        bBox.minX - graphics.x - size,
+        bBox.minY - graphics.y - size,
+        rect.width + 2 * size,
+        rect.height + 2 * size
+      );
+      border.endFill();
+
+      // draw border
+      border.lineStyle(
+        size,
+        state[`pileBorderColor${modeToString.get(mode) || ''}`],
+        state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
+      );
+      border.drawRect(
+        bBox.minX - graphics.x - size,
+        bBox.minY - graphics.y - size,
+        rect.width + 2 * size,
+        rect.height + 2 * size
+      );
     }
 
-    pubSub.publish('updateBBox', id);
-
-    const state = store.getState();
-
-    border.clear();
-
-    // draw black background
-    border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
-    border.drawRect(
-      bBox.minX - graphics.x - size,
-      bBox.minY - graphics.y - size,
-      rect.width + 2 * size,
-      rect.height + 2 * size
-    );
-    border.endFill();
-
-    // draw border
-    border.lineStyle(
-      size,
-      state[`pileBorderColor${mode}`],
-      state[`pileBorderOpacity${mode}`]
-    );
-    border.drawRect(
-      bBox.minX - graphics.x - size,
-      bBox.minY - graphics.y - size,
-      rect.width + 2 * size,
-      rect.height + 2 * size
-    );
-
     render();
+  };
+
+  const getBorderSize = () => borderSizeBase;
+  const setBorderSize = newBorderSize => {
+    borderSizeBase = +newBorderSize;
+    // If the cover is not generated yet
+    if (hasCover && !cover) {
+      // eslint-disable-next-line no-use-before-define
+      postPilePositionAnimation.set('drawBorder', () => {
+        drawBorder();
+      });
+    } else {
+      drawBorder();
+    }
+  };
+
+  // eslint-disable-next-line consistent-return
+  const borderSize = newBorderSize => {
+    if (Number.isNaN(+newBorderSize)) return getBorderSize();
+
+    setBorderSize(newBorderSize);
+  };
+
+  const blur = () => {
+    drawBorder();
+  };
+
+  const hover = () => {
+    drawBorder(borderSizeBase || 1, MODE_HOVER);
+  };
+
+  const focus = () => {
+    drawBorder(borderSizeBase || 2, MODE_FOCUS);
+  };
+
+  const active = () => {
+    drawBorder(borderSizeBase || 3, MODE_ACTIVE);
   };
 
   const onPointerDown = () => {
@@ -137,12 +192,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     if (isFocus) {
       if (isTempDepiled) {
-        drawBorder(3, 'Active');
+        active();
       } else {
-        drawBorder(2, 'Selected');
+        focus();
       }
     } else {
-      drawBorder();
+      hover();
     }
     // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
@@ -161,7 +216,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
     pubSub.publish('pileLeave', { pileId: id, event });
 
-    if (!isFocus) border.clear();
+    if (!isFocus) {
+      blur();
+    }
 
     // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
@@ -219,9 +276,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       graphics.y = newPosition.y - graphics.draggingMouseOffset[1];
 
       if (isTempDepiled) {
-        drawBorder(3, MODE_ACTIVE);
+        active();
       } else {
-        drawBorder(2, MODE_SELECTED);
+        focus();
       }
 
       render();
@@ -272,21 +329,67 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     return Math.random() * (max - min) + min;
   };
 
-  const animatePositionItems = (item, x, y, animator, isLastOne) => {
+  const getOpacity = () => graphics.alpha;
+  const setOpacity = newOpacity => {
+    graphics.alpha = newOpacity;
+  };
+
+  let opacityTweener;
+  // eslint-disable-next-line consistent-return
+  const opacity = (newOpacity, noAnimate) => {
+    if (Number.isNaN(+newOpacity)) return getOpacity();
+
+    if (noAnimate) {
+      setOpacity(newOpacity);
+    }
+
+    let duration = 250;
+    if (opacityTweener) {
+      pubSub.publish('cancelAnimation', opacityTweener);
+      const Dt = opacityTweener.getDt();
+      if (Dt < duration) {
+        duration = Dt;
+      }
+    }
+    opacityTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateNumber,
+      endValue: newOpacity,
+      getter: getOpacity,
+      setter: setOpacity
+    });
+    pubSub.publish('animate', opacityTweener);
+  };
+
+  // Map to store calls for after the pile position animation
+  const postPilePositionAnimation = new Map();
+  const animatePositionItems = (itemSprite, x, y, animator, isLastOne) => {
+    const targetScale = itemSprite.tmpTargetScale || itemSprite.scale.x;
+    itemSprite.tmpTargetScale = undefined;
+    delete itemSprite.tmpTargetScale;
+
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateVector,
-      endValue: [x, y],
+      endValue: [x, y, targetScale],
       getter: () => {
-        return [item.x, item.y];
+        return [itemSprite.x, itemSprite.y, itemSprite.scale.x];
       },
       setter: newValue => {
-        item.x = newValue[0];
-        item.y = newValue[1];
+        itemSprite.x = newValue[0];
+        itemSprite.y = newValue[1];
+        itemSprite.scale.x = newValue[2];
+        itemSprite.scale.y = itemSprite.scale.x;
       },
       onDone: () => {
+        itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
+          postPilePositionAnimation.forEach(fn => {
+            fn();
+          });
+          postPilePositionAnimation.clear();
           pubSub.publish('updateBBox', id);
         }
       }
@@ -300,30 +403,49 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       // matrix
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
+
         const padding = (item.height + spacing / 2) * (index + 1);
-        if (index === itemContainer.children.length - 2)
-          animatePositionItems(item, 2 - spacing / 2, -padding, animator, true);
-        else
-          animatePositionItems(
-            item,
-            2 - spacing / 2,
-            -padding,
-            animator,
-            false
-          );
+
+        animatePositionItems(
+          item,
+          2 - spacing / 2,
+          -padding,
+          animator,
+          index === itemContainer.children.length - 2
+        );
       });
     } else if (itemAlignment) {
       // image
-      newItemsById.forEach((item, index) => {
+      newItems.forEach(item => {
+        const sprite = item.sprite;
+
+        // eslint-disable-next-line no-use-before-define
+        const currentScale = getScale();
+        let relItemScale = (item.tmpRelScale || 1) / currentScale;
+
+        // When the scale of the source and target pile were different, we need
+        // to equalize the scale.
+        sprite.tmpTargetScale = sprite.scale.x;
+        if (!Number.isNaN(+item.tmpRelScale)) {
+          relItemScale = item.tmpRelScale / currentScale;
+          sprite.scale.x *= relItemScale;
+          sprite.scale.y = sprite.scale.x;
+          item.tmpRelScale = undefined;
+          delete item.tmpRelScale;
+        }
+
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          item.x = item.x + item.tmpAbsX - graphics.x;
-          item.y = item.y + item.tmpAbsY - graphics.y;
+          item.moveTo(
+            (item.x + item.tmpAbsX - graphics.x) / currentScale,
+            (item.y + item.tmpAbsY - graphics.y) / currentScale
+          );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
+          delete item.tmpAbsX;
+          delete item.tmpAbsY;
         }
-        itemsById.set(index, item);
       });
-      newItemsById.clear();
+
       itemContainer.children.forEach((item, index) => {
         // eslint-disable-next-line no-param-reassign
         if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
@@ -350,84 +472,88 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
               horizontalPadding += padding;
           }
         });
-        if (index === itemContainer.children.length - 1)
-          animatePositionItems(
-            item,
-            horizontalPadding + 2,
-            verticalPadding + 2,
-            animator,
-            true
-          );
-        else
-          animatePositionItems(
-            item,
-            horizontalPadding + 2,
-            verticalPadding + 2,
-            animator,
-            false
-          );
+
+        animatePositionItems(
+          item,
+          horizontalPadding + 2,
+          verticalPadding + 2,
+          animator,
+          index === itemContainer.children.length - 1
+        );
       });
     } else {
-      // randomized offset
-      const x = getRandomArbitrary(-30, 30);
-      const y = getRandomArbitrary(-30, 30);
-      let rotation;
-      if (itemRotated) {
-        rotation = getRandomArbitrary(-10, 10);
-      }
       let num = 0;
-      newItemsById.forEach((item, index) => {
+      newItems.forEach(item => {
         num++;
-        let paddingX;
-        let paddingY;
+
+        const sprite = item.sprite;
+
+        // eslint-disable-next-line no-use-before-define
+        const currentScale = getScale();
+        let relItemScale = (item.tmpRelScale || 1) / currentScale;
+
+        sprite.tmpTargetScale = sprite.scale.x;
+        if (!Number.isNaN(+item.tmpRelScale)) {
+          relItemScale = item.tmpRelScale / currentScale;
+          sprite.scale.x *= relItemScale;
+          sprite.scale.y = sprite.scale.x;
+          item.tmpRelScale = undefined;
+          delete item.tmpRelScale;
+        }
+
+        let offsetX = getRandomArbitrary(-30, 30);
+        let offsetY = getRandomArbitrary(-30, 30);
+
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          paddingX = item.x + x;
-          paddingY = item.y + y;
-          item.x = item.x + item.tmpAbsX - graphics.x;
-          item.y = item.y + item.tmpAbsY - graphics.y;
+          offsetX += item.x;
+          offsetY += item.y;
+          item.moveTo(
+            (item.x + item.tmpAbsX - graphics.x) / currentScale,
+            (item.y + item.tmpAbsY - graphics.y) / currentScale
+          );
           item.tmpAbsX = undefined;
           item.tmpAbsY = undefined;
-        } else {
-          paddingX = getRandomArbitrary(-30, 30);
-          paddingY = getRandomArbitrary(-30, 30);
+          delete item.tmpAbsX;
+          delete item.tmpAbsY;
         }
-        itemsById.set(index, item);
-        if (num === newItemsById.size)
-          animatePositionItems(item, paddingX, paddingY, animator, true);
-        else animatePositionItems(item, paddingX, paddingY, animator, false);
-        if (rotation) {
-          item.angle += rotation;
+
+        animatePositionItems(
+          sprite,
+          offsetX,
+          offsetY,
+          animator,
+          num === newItems.size
+        );
+
+        if (itemRotated) {
+          item.sprite.angle += getRandomArbitrary(-10, 10);
         }
       });
-      newItemsById.clear();
     }
+    newItems.clear();
   };
 
-  const scale = wheelDelta => {
-    const force = Math.log(Math.abs(wheelDelta) + 1);
-    const momentum = Math.sign(wheelDelta) * force;
+  const getScale = () => graphics.scale.x;
 
-    const newScale = Math.min(
-      Math.max(1, graphics.scale.y * (1 + 0.075 * momentum)),
-      MAX_SCALE
-    );
-
-    if (newScale > 1) {
-      graphics.scale.x = newScale;
-      graphics.scale.y = newScale;
-      return true;
-    }
-    return false;
+  const setScale = scale => {
+    graphics.scale.x = scale;
+    graphics.scale.y = scale;
   };
 
-  let scaleUp = false;
   let scaleTweener;
-  const animateScale = () => {
+  // eslint-disable-next-line consistent-return
+  const scale = (newScale, noAnimate) => {
+    if (Number.isNaN(+newScale)) return getScale();
+
+    if (noAnimate) {
+      setScale(newScale);
+    }
+
     let duration = 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
       const Dt = scaleTweener.getDt();
-      if (Dt < duration && scaleUp) {
+      if (Dt < duration) {
         duration = Dt;
       }
     }
@@ -435,20 +561,105 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       duration,
       delay: 0,
       interpolator: interpolateNumber,
-      endValue: scaleUp ? 1 : MAX_SCALE,
-      getter: () => {
-        return graphics.scale.x;
-      },
-      setter: newScale => {
-        graphics.scale.x = newScale;
-        graphics.scale.y = newScale;
-      },
+      endValue: newScale,
+      getter: getScale,
+      setter: setScale,
       onDone: () => {
         pubSub.publish('updateBBox', id);
       }
     });
     pubSub.publish('animate', scaleTweener);
-    scaleUp = !scaleUp;
+  };
+
+  const scaleByWheel = wheelDelta => {
+    const force = Math.log(Math.abs(wheelDelta) + 1);
+    const momentum = Math.sign(wheelDelta) * force;
+
+    const oldScale = getScale();
+    const newScale = Math.min(
+      Math.max(1, oldScale * (1 + 0.075 * momentum)),
+      MAX_SCALE
+    );
+
+    scale(newScale, true);
+
+    return oldScale !== newScale;
+  };
+
+  let scaledUp = false;
+  const scaleToggle = noAnimate => {
+    scale(scaledUp ? 1 : MAX_SCALE, noAnimate);
+    scaledUp = !scaledUp;
+  };
+
+  const moveTo = (x, y) => {
+    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+      graphics.x = x;
+      graphics.y = y;
+      pubSub.publish('updateBBox', id);
+    }
+  };
+
+  const hasItem = item => itemIndex.has(item.id);
+
+  const addItem = item => {
+    if (hasItem(item)) return;
+
+    items.push(item);
+    newItems.add(item);
+    itemIndex.set(item.id, item);
+    if (hasCover) {
+      itemContainer.addChild(item.preview.previewContainer);
+    } else {
+      itemContainer.addChild(item.sprite);
+    }
+  };
+
+  const removeItem = item => {
+    const itemIdx = items.indexOf(item);
+
+    if (itemIdx >= 0) {
+      items.splice(itemIdx, 1);
+      itemContainer.removeChildAt(itemIdx);
+    }
+
+    itemIndex.delete(item.id);
+  };
+
+  const removeItems = () => {
+    itemContainer.removeChildren();
+    items.splice(0, items.length);
+    itemIndex.clear();
+  };
+
+  /**
+   * Set the items to the given list of items.
+   *
+   * @description
+   * This function performs a D3-like enter-update-exit strategy by adding new
+   * items and removing items that were on the pile before but are not present
+   * in `_items`
+   *
+   * @param  {array}  _items  List of items
+   */
+  const setItems = _items => {
+    const outdatedItems = new Map(itemIndex);
+
+    // Add new items
+    _items.forEach(item => {
+      if (hasItem(item)) {
+        // Item already exists so we remove it from `oldItems`
+        outdatedItems.delete(item.id);
+      } else {
+        // Add new items
+        addItem(item);
+      }
+    });
+
+    // Remove all the outdated items
+    outdatedItems.forEach(item => {
+      removeItem(item);
+    });
   };
 
   const init = () => {
@@ -461,9 +672,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.x = 0;
     graphics.y = 0;
     // Origin of the items coordinste system relative to the pile
-    initialItem.anchor.set(0);
-    initialItem.x = 2;
-    initialItem.y = 2;
+    initialItem.sprite.anchor.set(0);
+    initialItem.moveTo(2, 2);
 
     borderContainer.addChild(border);
 
@@ -480,17 +690,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
 
-    itemContainer.addChild(initialItem);
+    itemContainer.addChild(initialItem.sprite);
 
-    itemsById.set(id, initialItem);
-  };
-
-  const moveTo = (x, y) => {
-    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
-      graphics.x = x;
-      graphics.y = y;
-      updateBBox();
-    }
+    addItem(initialItem);
   };
 
   init();
@@ -527,27 +729,42 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
+    get items() {
+      return [...items];
+    },
+    get size() {
+      return items.length;
+    },
     get x() {
       return graphics.x;
     },
     get y() {
       return graphics.y;
     },
-    // Methods
-    animatePositionItems,
-    animateScale,
     border,
-    calcBBox,
     cover,
-    destroy,
-    drawBorder,
     id,
     itemContainer,
-    itemsById,
+    // Methods
+    blur,
+    hover,
+    focus,
+    active,
+    addItem,
+    animatePositionItems,
+    borderSize,
+    calcBBox,
+    destroy,
+    drawBorder,
+    hasItem,
     moveTo,
-    newItemsById,
+    opacity,
     positionItems,
+    removeItems,
     scale,
+    scaleByWheel,
+    scaleToggle,
+    setItems,
     updateBBox
   };
 };

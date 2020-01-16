@@ -108,7 +108,7 @@ const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 6);
+const [itemPadding, setItemPadding] = setter('itemPadding', 12);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
@@ -166,13 +166,13 @@ const [pileBorderOpacity, setPileBorderOpacity] = setter(
   1.0
 );
 
-const [pileBorderColorSelected, setPileBorderColorSelected] = setter(
-  'pileBorderColorSelected',
+const [pileBorderColorFocus, setPileBorderColorFocus] = setter(
+  'pileBorderColorFocus',
   0xeee462
 );
 
-const [pileBorderOpacitySelected, setPileBorderOpacitySelected] = setter(
-  'pileBorderOpacitySelected',
+const [pileBorderOpacityFocus, setPileBorderOpacityFocus] = setter(
+  'pileBorderOpacityFocus',
   1.0
 );
 
@@ -185,6 +185,8 @@ const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
   'pileBorderOpacityActive',
   1.0
 );
+
+const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 0);
 
 const [pileBackgroundColor, setPileBackgroundColor] = setter(
   'pileBackgroundColor',
@@ -203,6 +205,10 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
   'pileContextMenuItems',
   []
 );
+
+const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
+
+const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
 // reducer
 const piles = (previousState = [], action) => {
@@ -357,15 +363,18 @@ const createStore = () => {
     orderer,
     pileBorderColor,
     pileBorderOpacity,
-    pileBorderColorSelected,
-    pileBorderOpacitySelected,
+    pileBorderColorFocus,
+    pileBorderOpacityFocus,
     pileBorderColorActive,
     pileBorderOpacityActive,
+    pileBorderSize,
     pileBackgroundColor,
     pileBackgroundOpacity,
     pileCellAlign,
     pileContextMenuItems,
+    pileOpacity,
     piles,
+    pileScale,
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
@@ -449,12 +458,15 @@ export const createAction = {
   setPreviewBackgroundOpacity,
   setPileBorderColor,
   setPileBorderOpacity,
-  setPileBorderColorSelected,
-  setPileBorderOpacitySelected,
+  setPileBorderColorFocus,
+  setPileBorderOpacityFocus,
   setPileBorderColorActive,
   setPileBorderOpacityActive,
+  setPileBorderSize,
   setPileBackgroundColor,
   setPileBackgroundOpacity,
-  setPileCellAlign,
-  setPileContextMenuItems
+  setPileContextMenuItems,
+  setPileOpacity,
+  setPileScale,
+  setPileCellAlign
 };
