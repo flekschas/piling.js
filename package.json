@@ -1,6 +1,6 @@
 {
   "name": "piling.js",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "A WebGL-based Library for Visual Piling/Stacking",
   "author": [
     {
