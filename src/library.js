@@ -100,7 +100,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     columns: true,
     rowHeight: true,
     cellAspectRatio: true,
-    itemPadding: true,
+    cellPadding: true,
     itemAlignment: true,
     itemRotated: true,
     gridColor: {
@@ -350,7 +350,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight,
       cellAspectRatio,
       pileCellAlign,
-      itemPadding
+      cellPadding
     } = store.getState();
 
     layout = createGrid(canvas, {
@@ -359,7 +359,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight,
       cellAspectRatio,
       pileCellAlign,
-      itemPadding
+      cellPadding
     });
 
     updateScrollContainer();
@@ -374,7 +374,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight,
       cellAspectRatio,
       pileCellAlign,
-      itemPadding
+      cellPadding
     } = store.getState();
 
     layout = createGrid(canvas, {
@@ -383,7 +383,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight,
       cellAspectRatio,
       pileCellAlign,
-      itemPadding
+      cellPadding
     });
 
     // eslint-disable-next-line no-use-before-define
@@ -1473,7 +1473,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.columns !== newState.columns ||
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
-      state.itemPadding !== newState.itemPadding ||
+      state.cellPadding !== newState.cellPadding ||
       state.pileCellAlign !== newState.pileCellAlign
     ) {
       stateUpdates.add('grid');

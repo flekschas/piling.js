@@ -108,7 +108,7 @@ const [itemSizeRange, setItemSizeRange] = setter('itemSizeRange', [0.5, 1.0]);
 const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
-const [itemPadding, setItemPadding] = setter('itemPadding', 12);
+const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
 const [itemAlignment, setItemAlignment] = setter('itemAlignment', [
   'bottom',
@@ -349,7 +349,7 @@ const createStore = () => {
     cellAspectRatio,
     gridColor,
     gridOpacity,
-    itemPadding,
+    cellPadding,
     itemAlignment,
     itemOpacity,
     itemRenderer,
@@ -441,7 +441,7 @@ export const createAction = {
   setColumns,
   setRowHeight,
   setCellAspectRatio,
-  setItemPadding,
+  setCellPadding,
   setItemAlignment,
   setItemRotated,
   setFocusedPiles,

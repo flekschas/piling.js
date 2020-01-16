@@ -9,7 +9,7 @@ import { l1Dist, l2Norm, normalizeVector } from './utils';
  * @param {number} columns - The number of column
  * @param {number} rowHeight - The height of row
  * @param {number} cellAspectRatio - The ratio of cell height and width
- * @param {number} itemPadding - The padding between items
+ * @param {number} cellPadding - The padding between items
  */
 const createGrid = (
   canvas,
@@ -19,7 +19,7 @@ const createGrid = (
     rowHeight = null,
     cellAspectRatio = 1,
     pileCellAlign = 'topLeft',
-    itemPadding = 0
+    cellPadding = 0
   } = {}
 ) => {
   const { width } = canvas.getBoundingClientRect();
@@ -27,11 +27,11 @@ const createGrid = (
   let numColumns = columns;
   let numRows;
   let columnWidth = width / columns;
-  let cellWidth = columnWidth - itemPadding * 2;
+  let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
 
   if (+itemSize) {
-    columnWidth = itemSize + itemPadding * 2;
+    columnWidth = itemSize + cellPadding * 2;
     numColumns = Math.floor(width / columnWidth);
     cellWidth = itemSize;
   }
@@ -44,7 +44,7 @@ const createGrid = (
     cellAspectRatio = columnWidth / rowHeight;
   }
 
-  cellHeight = rowHeight - itemPadding * 2;
+  cellHeight = rowHeight - cellPadding * 2;
 
   const columnWidthHalf = columnWidth / 2;
   const rowHeightHalf = rowHeight / 2;
@@ -79,8 +79,8 @@ const createGrid = (
     }
 
     const topLeft = [
-      i * columnWidth + itemPadding,
-      j * rowHeight + itemPadding
+      i * columnWidth + cellPadding,
+      j * rowHeight + cellPadding
     ];
 
     switch (pileCellAlign) {
@@ -292,8 +292,8 @@ const createGrid = (
     get cellAspectRatio() {
       return cellAspectRatio;
     },
-    get itemPadding() {
-      return itemPadding;
+    get cellPadding() {
+      return cellPadding;
     },
     // Methods
     align,

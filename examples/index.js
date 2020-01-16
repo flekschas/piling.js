@@ -163,7 +163,7 @@ createPiles(exampleEl.value).then(pilingLib => {
           nullifiable: true
         },
         {
-          name: 'itemPadding',
+          name: 'cellPadding',
           dtype: 'int',
           min: 0,
           max: 64,
