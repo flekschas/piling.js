@@ -15,15 +15,7 @@ const createPhotoPiles = async element => {
 
   piling.set('pileCellAlign', 'center');
 
-  piling.set('itemOpacity', (item, pile, i) => (pile.size - i) / pile.size);
-
-  piling.set('pileOpacity', pile => 1 / pile.size);
-
-  piling.set('pileScale', pile => 1 + (pile.size - 1) / 10);
-
-  piling.set('pileBorderSize', () => {
-    return null;
-  });
+  piling.set('pileBorderSize', pile => pile.items.length - 1);
 
   return piling;
 };
