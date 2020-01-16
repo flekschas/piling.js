@@ -679,25 +679,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItemStyle = pile => {
-    const { itemOpacity } = store.getState();
+    const { items, itemOpacity } = store.getState();
 
-    pile.items.forEach((item, i) => {
-      item.opacity(
-        isFunction(itemOpacity) ? itemOpacity(item, pile, i) : itemOpacity
+    pile.items.forEach((itemId, i) => {
+      const item = items[itemId];
+      const itemInstance = renderedItems.get(itemId);
+      itemInstance.opacity(
+        isFunction(itemOpacity) ? itemOpacity(item, i, pile) : itemOpacity
       );
     });
   };
 
-  const updatePileStyle = pile => {
-    if (!pile) return;
+  const updatePileStyle = (pile, pileId) => {
+    const pileInstance = pileInstances.get(pileId);
+
+    if (!pileInstance) return;
 
     const { pileOpacity, pileBorderSize, pileScale } = store.getState();
 
-    pile.opacity(isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity);
+    pileInstance.opacity(
+      isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
+    );
 
-    pile.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
+    pileInstance.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
 
-    pile.borderSize(
+    pileInstance.borderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
   };
@@ -760,7 +766,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           positionItems(id);
         }
         updateBoundingBox(id);
-        updatePileItemStyle(pileInstance);
+        updatePileItemStyle(pile);
       }
     } else {
       const newPile = createPile({
@@ -773,7 +779,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updateBoundingBox(id);
-      updatePileItemStyle(newPile);
+      updatePileItemStyle(pile);
     }
   };
 
@@ -1445,14 +1451,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
-            updatePileStyle(pileInstances.get(id));
+            updatePileStyle(pile, id);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
-            updatePileStyle(pileInstances.get(id));
+            updatePileStyle(pile, id);
           }
         });
       }
