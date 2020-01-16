@@ -299,7 +299,7 @@ The list of all understood properties is given below.
   piling.set('pileOpacity', pile => 1 / pile.items.length);
   ```
 
-  The callback function is evaluated for each pile and receives the current [pile](#pile). The function’s return value is then used to set each pile’s corresponding property. I.e., the function signature is as follows:
+  The callback function is evaluated for each pile and receives the current [pile](#statepiles). The function’s return value is then used to set each pile’s corresponding property. I.e., the function signature is as follows:
 
   ```javascript
   function (pile) {
@@ -319,7 +319,7 @@ The list of all understood properties is given below.
   ```
 
   The signature of the callback function should be as follows:
-  The callback function is evaluated, in order, for each item on every pile and receives the current [item](#item), the item's current index, and [pile](#pile) that the item belongs to. The function’s return value is then used to set the opacity of each pile’s item. I.e., the function signature is as follows:
+  The callback function is evaluated, in order, for each item on every pile and receives the current [item](#stateitems), the item's current index, and [pile](#statepiles) that the item belongs to. The function’s return value is then used to set the opacity of each pile’s item. I.e., the function signature is as follows:
 
   ```javascript
     function (item, index, pile) {
@@ -372,7 +372,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 **Notes:**
 
 - `action` is the name of the action that triggered the update
-- `pile` is the [state](#state) of the corresponding pile
+- `pile` is the [state](#statepiles) of the corresponding pile
 - `sourceEvent` is the original browser event that triggered this event
 
 ## State
