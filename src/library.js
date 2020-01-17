@@ -1543,8 +1543,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       renderRaf();
     }
 
-    if (state.scaledPile !== newState.scaledPile) {
-      state.scaledPile
+    if (state.scaledPiles !== newState.scaledPiles) {
+      state.scaledPiles
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
@@ -1554,7 +1554,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           normalPiles.addChild(scaledPileInstance.graphics);
         });
 
-      newState.scaledPile
+      newState.scaledPiles
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
@@ -1746,9 +1746,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
     if (pile.scale() > 1) {
-      store.dispatch(createAction.setScaledPile([]));
+      store.dispatch(createAction.setScaledPiles([]));
     } else {
-      store.dispatch(createAction.setScaledPile([pileId]));
+      store.dispatch(createAction.setScaledPiles([pileId]));
     }
     pile.scaleToggle();
 
@@ -1832,9 +1832,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
               if (pile.scale() > 1) {
-                store.dispatch(createAction.setScaledPile([]));
+                store.dispatch(createAction.setScaledPiles([]));
               } else {
-                store.dispatch(createAction.setScaledPile([result.pileId]));
+                store.dispatch(createAction.setScaledPiles([result.pileId]));
               }
               pile.scaleToggle();
             }
@@ -1849,7 +1849,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setScaledPile([]));
+        store.dispatch(createAction.setScaledPiles([]));
       }
     }
   };
@@ -1906,7 +1906,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (result.length !== 0) {
       if (event.altKey) {
         event.preventDefault();
-        store.dispatch(createAction.setScaledPile([result[0].pileId]));
+        store.dispatch(createAction.setScaledPiles([result[0].pileId]));
         scalePile(result[0].pileId, normalizeWheel(event).pixelY);
       }
     }
