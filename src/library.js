@@ -724,8 +724,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pile.items.forEach(itemId => {
         itemSrcs.push(items[itemId].src);
         const preview = renderedItems.get(itemId).preview.previewContainer;
-        preview.x = 2;
-        preview.y = 0;
         if (!previewWidth) {
           previewWidth = preview.width - store.getState().previewSpacing;
         }
@@ -736,8 +734,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .then(newSrc => aggregateRenderer([newSrc]))
         .then(newCover => {
           const cover = new PIXI.Sprite(newCover[0]);
-          cover.x = 2;
-          cover.y = 2;
           const coverRatio = cover.height / cover.width;
           cover.width = previewWidth;
           cover.height = coverRatio * cover.width;
