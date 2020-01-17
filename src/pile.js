@@ -587,7 +587,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   };
 
   const scaleToggle = noAnimate => {
-    scale(graphics.scale.x > 1.1 ? 1 : MAX_SCALE, noAnimate);
+    scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
   };
 
   const moveTo = (x, y) => {

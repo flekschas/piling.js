@@ -1741,7 +1741,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    if (pile.graphics.scale.x > 1.1) {
+    if (pile.graphics.scale.x > 1) {
       store.dispatch(createAction.setScaledPile([]));
     } else {
       store.dispatch(createAction.setScaledPile([pileId]));
@@ -1827,7 +1827,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
-              if (pile.graphics.scale.x > 1.1) {
+              if (pile.graphics.scale.x > 1) {
                 store.dispatch(createAction.setScaledPile([]));
               } else {
                 store.dispatch(createAction.setScaledPile([result.pileId]));
@@ -1903,8 +1903,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (event.altKey) {
         event.preventDefault();
         store.dispatch(createAction.setScaledPile([result[0].pileId]));
-        const normalizedDeltaY = normalizeWheel(event).pixelY;
-        scalePile(result[0].pileId, normalizedDeltaY);
+        scalePile(result[0].pileId, normalizeWheel(event).pixelY);
       }
     }
   };
