@@ -1640,7 +1640,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.items.forEach(item => {
             item.tmpAbsX = pileGfx.x;
             item.tmpAbsY = pileGfx.y;
-            item.tmpRelScale = pile.contentGraphics.scale.x;
+            item.tmpRelScale = pile.scale();
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
@@ -2014,7 +2014,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           tempDepileBtn.innerHTML = 'close temp depile';
         }
 
-        if (pile.contentGraphics.scale.x > 1.1) {
+        if (pile.scale() > 1.1) {
           scaleBtn.innerHTML = 'scale down';
         }
 
