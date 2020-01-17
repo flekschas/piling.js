@@ -1,5 +1,8 @@
 ### Next
 
+- Add `randomOffsetRange` and `randomRotationRange` properties.
+- Animate item rotation.
+
 ## v0.5.0
 
 - Add the following properties for dynamic styling. Each property accepts a float value or a callback function. See [`DOCS.md`](DOCS.md#pilingsetproperty-value) for details.
