@@ -1,6 +1,7 @@
 ### Next
 
 - Add `randomOffsetRange` and `randomRotationRange` properties
+- Change pile border to be scale invariant
 - Animate item rotation
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
