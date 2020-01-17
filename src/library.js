@@ -1547,10 +1547,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (state.scaledPile.length !== 0) {
         if (pileInstances.has(state.scaledPile[0])) {
           const pile = pileInstances.get(state.scaledPile[0]).graphics;
-          pile.scale(1);
-          updateBoundingBox(state.scaledPile[0]);
           activePile.removeChildren();
           normalPiles.addChild(pile);
+        }
+      }
+      if (newState.scaledPile.length !== 0) {
+        if (pileInstances.has(newState.scaledPile[0])) {
+          const pile = pileInstances.get(newState.scaledPile[0]).graphics;
+          activePile.addChild(pile);
         }
       }
       renderRaf();
@@ -1737,6 +1741,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
+    if (pile.graphics.scale.x > 1.1) {
+      store.dispatch(createAction.setScaledPile([]));
+    } else {
+      store.dispatch(createAction.setScaledPile([pileId]));
+    }
     pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
@@ -1817,7 +1826,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else if (event.altKey) {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.graphics.isHover) pile.animateScale();
+            if (pile.graphics.isHover) {
+              if (pile.graphics.scale.x > 1.1) {
+                store.dispatch(createAction.setScaledPile([]));
+              } else {
+                store.dispatch(createAction.setScaledPile([result.pileId]));
+              }
+              pile.scaleToggle();
+            }
           });
         } else {
           results.forEach(result => {
@@ -1889,8 +1905,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         store.dispatch(createAction.setScaledPile([result[0].pileId]));
         const normalizedDeltaY = normalizeWheel(event).pixelY;
         scalePile(result[0].pileId, normalizedDeltaY);
-        const graphics = pileInstances.get(result[0].pileId).graphics;
-        activePile.addChild(graphics);
       }
     }
   };
