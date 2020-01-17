@@ -122,7 +122,7 @@ const [pileItemRotation, setPileItemRotation] = setter(
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
-const [scaledPile, setScaledPile] = setter('scaledPile', []);
+const [scaledPiles, setScaledPiles] = setter('scaledPiles', []);
 
 // 'originalPos' and 'closestPos'
 const [depileMethod, setDepileMethod] = setter('depileMethod', 'originalPos');
@@ -215,6 +215,16 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
+
+const [randomOffsetRange, setRandomOffsetRange] = setter('randomOffsetRange', [
+  -30,
+  30
+]);
+
+const [
+  randomRotationRange,
+  setRandomRotationRange
+] = setter('randomRotationRange', [-10, 10]);
 
 // reducer
 const piles = (previousState = [], action) => {
@@ -386,7 +396,9 @@ const createStore = () => {
     previewBackgroundOpacity,
     previewRenderer,
     previewSpacing,
-    scaledPile,
+    randomOffsetRange,
+    randomRotationRange,
+    scaledPiles,
     showGrid,
     tempDepileDirection,
     tempDepileOneDNum,
@@ -451,7 +463,7 @@ export const createAction = {
   setPileItemAlignment,
   setPileItemRotation,
   setFocusedPiles,
-  setScaledPile,
+  setScaledPiles,
   setShowGrid,
   setDepileMethod,
   setDepiledPile,
@@ -474,5 +486,7 @@ export const createAction = {
   setPileContextMenuItems,
   setPileOpacity,
   setPileScale,
-  setPileCellAlignment
+  setPileCellAlignment,
+  setRandomOffsetRange,
+  setRandomRotationRange
 };

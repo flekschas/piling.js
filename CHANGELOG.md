@@ -1,5 +1,8 @@
 ### Next
 
+- Add `randomOffsetRange` and `randomRotationRange` properties
+- Animate item rotation
+- Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
 
 ## v0.5.0
@@ -10,6 +13,7 @@
   - `pileBorderSize`
   - `itemOpacity`
 - Rename the following properties for clarity:
+
   - `itemPadding` is now called `cellPadding`
   - `pileCellAlign` is now called `pileCellAlignment`
   - `itemAlignment` is now called `pileItemAlignment`
