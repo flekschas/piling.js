@@ -196,6 +196,8 @@ The list of all understood properties is given below.
 | previewAggregator         | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | previewRenderer           | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | previewSpacing            | number            | `2`                   | the spacing between 1D previews                                               | `true`     |
+| randomOffsetRange         | array             | `[-30, 30]`          | array of two numbers                                                           | `true`     |
+| randomRotationRange       | array             | `[-10, 10]`          | array of two numbers                                                           | `true`     |
 | renderer                  | function          |                       | see [`renderers`](#renderers)                                                 | `false`    |
 | scaledPile                | array             | `[]`                  | the id of current scaled pile                                                 | `true`     |
 | showGrid                  | boolean           | `false`               |                                                                               | `false`    |

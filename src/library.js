@@ -193,6 +193,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBackgroundOpacity: true,
+    randomOffsetRange: true,
+    randomRotationRange: true,
     renderer: {
       get: 'itemRenderer',
       set: value => [createAction.setItemRenderer(value)]
@@ -966,19 +968,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
     items.forEach((itemId, index) => {
       const pile = pileInstances.get(itemId);
+      const item = renderedItems.get(itemId);
       const tweener = createTweener({
         duration: 250,
         delay: 0,
         interpolator: interpolateVector,
-        endValue:
-          itemPositions.length > 0
+        endValue: [
+          ...(itemPositions.length > 0
             ? itemPositions[index]
-            : renderedItems.get(itemId).originalPosition,
+            : item.originalPosition),
+          0
+        ],
         getter: () => {
-          return [pile.x, pile.y];
+          return [pile.x, pile.y, item.sprite.angle];
         },
-        setter: xy => {
-          pile.moveTo(...xy);
+        setter: newValue => {
+          pile.moveTo(newValue[0], newValue[1]);
+          item.sprite.angle = newValue[2];
         },
         onDone: finalValue => {
           movingPiles.push({
