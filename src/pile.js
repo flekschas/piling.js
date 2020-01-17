@@ -26,11 +26,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const items = [];
   const itemIndex = new Map();
   const newItems = new Set();
-  const graphics = new PIXI.Graphics();
+  const graphics = new PIXI.Graphics(); // Root graphics
   const itemContainer = new PIXI.Container();
-  const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const border = new PIXI.Graphics();
+  const contentGraphics = new PIXI.Graphics();
 
   const bBox = {
     minX: null,
@@ -46,6 +46,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let isTempDepiled = false;
   let hasCover = false;
   let isPositioning = false;
+  let isScaling = false;
   let cX;
   let cY;
 
@@ -88,54 +89,49 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let borderSizeBase = 0;
 
   const drawBorder = (size = borderSizeBase, mode = '') => {
-    if (!size) {
-      border.clear();
-    } else {
-      if (isPositioning) {
-        // eslint-disable-next-line no-use-before-define
-        postPilePositionAnimation.set('drawBorder', () => {
-          drawBorder(size, mode);
-        });
-        return;
-      }
-      const rect = itemContainer.getBounds();
+    border.clear();
 
+    if (!size) return;
+
+    if (isPositioning || isScaling) {
       // eslint-disable-next-line no-use-before-define
-      const currentScale = getScale();
-      if (currentScale !== 1) {
-        rect.width /= currentScale;
-        rect.height /= currentScale;
-      }
-
-      pubSub.publish('updateBBox', id);
-
-      const state = store.getState();
-
-      border.clear();
-
-      // draw black background
-      border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
-      border.drawRect(
-        bBox.minX - graphics.x - size,
-        bBox.minY - graphics.y - size,
-        rect.width + 2 * size,
-        rect.height + 2 * size
-      );
-      border.endFill();
-
-      // draw border
-      border.lineStyle(
-        size,
-        state[`pileBorderColor${modeToString.get(mode) || ''}`],
-        state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
-      );
-      border.drawRect(
-        bBox.minX - graphics.x - size,
-        bBox.minY - graphics.y - size,
-        rect.width + 2 * size,
-        rect.height + 2 * size
-      );
+      postPilePositionAnimation.set('drawBorder', () => {
+        drawBorder(size, mode);
+      });
+      return;
     }
+
+    const borderBounds = border.getBounds();
+    const contentBounds = contentGraphics.getBounds();
+
+    pubSub.publish('updateBBox', id);
+
+    const state = store.getState();
+
+    const offset = Math.ceil(size / 2) + 1;
+
+    // draw black background
+    border.beginFill(state.pileBackgroundColor, state.pileBackgroundOpacity);
+    border.drawRect(
+      contentBounds.x - borderBounds.x - offset,
+      contentBounds.y - borderBounds.y - offset,
+      contentBounds.width + 2 * offset,
+      contentBounds.height + 2 * offset
+    );
+    border.endFill();
+
+    // draw border
+    border.lineStyle(
+      size,
+      state[`pileBorderColor${modeToString.get(mode) || ''}`],
+      state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
+    );
+    border.drawRect(
+      contentBounds.x - borderBounds.x - offset,
+      contentBounds.y - borderBounds.y - offset,
+      contentBounds.width + 2 * offset,
+      contentBounds.height + 2 * offset
+    );
 
     render();
   };
@@ -294,10 +290,10 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     cY = bBox.minY + (bBox.maxY - bBox.minY) / 2;
   };
 
+  // compute bounding box
   const calcBBox = () => {
-    // compute bounding box
-
-    const scale = graphics.scale.x;
+    // eslint-disable-next-line no-use-before-define
+    const scale = getScale();
 
     let minX = Infinity;
     let minY = Infinity;
@@ -410,7 +406,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     animator.add(tweener);
   };
 
-  const positionItems = (itemAlignment, itemRotation, animator, spacing) => {
+  const positionItems = (
+    itemAlignment,
+    itemRotation,
+    animator,
+    previewSpacing
+  ) => {
     isPositioning = true;
     let angle = 0;
     if (hasCover) {
@@ -418,11 +419,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       itemContainer.children.forEach((item, index) => {
         if (index === itemContainer.children.length - 1) return;
 
-        const padding = (item.height + spacing / 2) * (index + 1);
+        const padding = (item.height + previewSpacing / 2) * (index + 1);
 
         animatePositionItems(
           item,
-          2 - spacing / 2,
+          -previewSpacing / 2,
           -padding,
           angle,
           animator,
@@ -490,8 +491,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
         animatePositionItems(
           item,
-          horizontalPadding + 2,
-          verticalPadding + 2,
+          horizontalPadding,
+          verticalPadding,
           angle,
           animator,
           index === itemContainer.children.length - 1
@@ -551,11 +552,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     newItems.clear();
   };
 
-  const getScale = () => graphics.scale.x;
+  const getScale = () => contentGraphics.scale.x;
 
   const setScale = scale => {
-    graphics.scale.x = scale;
-    graphics.scale.y = scale;
+    contentGraphics.scale.x = scale;
+    contentGraphics.scale.y = scale;
   };
 
   let scaleTweener;
@@ -567,6 +568,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       setScale(newScale);
     }
 
+    isScaling = true;
     let duration = 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
@@ -583,6 +585,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       getter: getScale,
       setter: setScale,
       onDone: () => {
+        isScaling = false;
+        postPilePositionAnimation.forEach(fn => {
+          fn();
+        });
+        postPilePositionAnimation.clear();
         pubSub.publish('updateBBox', id);
       }
     });
@@ -679,19 +686,16 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   };
 
   const init = () => {
-    graphics.addChild(borderContainer);
-    graphics.addChild(itemContainer);
-    graphics.addChild(hoverItemContainer);
+    graphics.addChild(border);
+    graphics.addChild(contentGraphics);
+
+    contentGraphics.addChild(itemContainer);
+    contentGraphics.addChild(hoverItemContainer);
 
     graphics.interactive = true;
     graphics.buttonMode = true;
     graphics.x = 0;
     graphics.y = 0;
-    // Origin of the items coordinste system relative to the pile
-    initialItem.sprite.anchor.set(0);
-    initialItem.moveTo(2, 2);
-
-    borderContainer.addChild(border);
 
     graphics
       .on('pointerdown', onPointerDown)
@@ -726,6 +730,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     },
     get graphics() {
       return graphics;
+    },
+    get contentGraphics() {
+      return contentGraphics;
     },
     get hasCover() {
       return hasCover;
