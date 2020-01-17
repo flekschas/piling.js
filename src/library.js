@@ -1545,16 +1545,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.scaledPile !== newState.scaledPile) {
       if (state.scaledPile.length !== 0) {
-        if (pileInstances.has(state.scaledPile[0])) {
-          const pile = pileInstances.get(state.scaledPile[0]).graphics;
+        const prevScaledPile = pileInstances.get(state.scaledPile[0]);
+        if (prevScaledPile) {
+          prevScaledPile.scale(1);
+          updateBoundingBox(prevScaledPile.id);
           activePile.removeChildren();
-          normalPiles.addChild(pile);
+          normalPiles.addChild(prevScaledPile.graphics);
         }
       }
       if (newState.scaledPile.length !== 0) {
         if (pileInstances.has(newState.scaledPile[0])) {
-          const pile = pileInstances.get(newState.scaledPile[0]).graphics;
-          activePile.addChild(pile);
+          activePile.addChild(
+            pileInstances.get(newState.scaledPile[0]).graphics
+          );
         }
       }
       renderRaf();
@@ -1741,7 +1744,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    if (pile.graphics.scale.x > 1) {
+    if (pile.scale() > 1) {
       store.dispatch(createAction.setScaledPile([]));
     } else {
       store.dispatch(createAction.setScaledPile([pileId]));
@@ -1827,7 +1830,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
-              if (pile.graphics.scale.x > 1) {
+              if (pile.scale() > 1) {
                 store.dispatch(createAction.setScaledPile([]));
               } else {
                 store.dispatch(createAction.setScaledPile([result.pileId]));
@@ -2027,7 +2030,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           tempDepileBtn.innerHTML = 'close temp depile';
         }
 
-        if (pile.graphics.scale.x > 1.1) {
+        if (pile.scale() > 1) {
           scaleBtn.innerHTML = 'scale down';
         }
 
