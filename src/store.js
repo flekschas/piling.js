@@ -216,6 +216,16 @@ const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
+const [randomOffsetRange, setRandomOffsetRange] = setter('randomOffsetRange', [
+  -30,
+  30
+]);
+
+const [
+  randomRotationRange,
+  setRandomRotationRange
+] = setter('randomRotationRange', [-10, 10]);
+
 // reducer
 const piles = (previousState = [], action) => {
   switch (action.type) {
@@ -386,6 +396,8 @@ const createStore = () => {
     previewBackgroundOpacity,
     previewRenderer,
     previewSpacing,
+    randomOffsetRange,
+    randomRotationRange,
     scaledPiles,
     showGrid,
     tempDepileDirection,
@@ -474,5 +486,7 @@ export const createAction = {
   setPileContextMenuItems,
   setPileOpacity,
   setPileScale,
-  setPileCellAlignment
+  setPileCellAlignment,
+  setRandomOffsetRange,
+  setRandomRotationRange
 };
