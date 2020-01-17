@@ -312,7 +312,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let isGridShown = false;
 
-  const drawGrid = () => {
+  const drawGrid = (toggle = false) => {
     const height =
       scrollContainer.getBoundingClientRect().height +
       canvas.getBoundingClientRect().height;
@@ -323,7 +323,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { gridColor, gridOpacity } = store.getState();
 
-    if (!isGridShown) {
+    if (!isGridShown || (isGridShown && !toggle)) {
       gridGfx.clear();
       gridGfx.lineStyle(1, gridColor, gridOpacity);
       // vertical lines
@@ -336,10 +336,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         gridGfx.moveTo(0, i * layout.rowHeight);
         gridGfx.lineTo(width, i * layout.rowHeight);
       }
-      isGridShown = true;
     } else {
       gridGfx.clear();
-      isGridShown = false;
+    }
+
+    if (toggle) {
+      isGridShown = !isGridShown;
     }
   };
 
@@ -389,6 +391,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
     updateScrollContainer();
+
+    if (isGridShown) {
+      drawGrid();
+    }
   };
 
   let scaleSprite;
@@ -659,7 +665,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // Draw grid after init pile position
       if (store.getState().showGrid) {
         isGridShown = false;
-        drawGrid();
+        drawGrid(true);
       }
       renderRaf();
     }
@@ -1570,7 +1576,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.showGrid !== newState.showGrid) {
       if (newState.showGrid !== isGridShown) {
-        drawGrid();
+        drawGrid(true);
       }
     }
 
@@ -1728,7 +1734,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const gridBtnClick = contextMenuElement => () => {
-    drawGrid();
+    drawGrid(true);
 
     hideContextMenu(contextMenuElement);
 
