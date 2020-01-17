@@ -65,19 +65,19 @@ const STYLES = {
 
 const TEMPLATE = `<ul id="piling-js-context-menu-list">
   <li>
-    <button id="depile-button">depile</button>
+    <button id="depile-button">Depile</button>
   </li>
   <li>
-    <button id="temp-depile-button">temp depile</button>
+    <button id="temp-depile-button">Temp. Depile</button>
   </li>
   <li>
-    <button id="grid-button">show grid</button>
+    <button id="grid-button">Show Grid</button>
   </li>
   <li>
-    <button id="align-button">align by grid</button>
+    <button id="align-button">Align by Grid</button>
   </li>
   <li>
-    <button id="scale-button">scale up</button>
+    <button id="scale-button">Scale Up</button>
   </li>
 </ul>`;
 
