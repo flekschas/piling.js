@@ -1544,22 +1544,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.scaledPile !== newState.scaledPile) {
-      if (state.scaledPile.length !== 0) {
-        const prevScaledPile = pileInstances.get(state.scaledPile[0]);
-        if (prevScaledPile) {
-          prevScaledPile.scale(1);
-          updateBoundingBox(prevScaledPile.id);
+      state.scaledPile
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          scaledPileInstance.scale(1);
+          updateBoundingBox(scaledPileInstance.id);
           activePile.removeChildren();
-          normalPiles.addChild(prevScaledPile.graphics);
-        }
-      }
-      if (newState.scaledPile.length !== 0) {
-        if (pileInstances.has(newState.scaledPile[0])) {
-          activePile.addChild(
-            pileInstances.get(newState.scaledPile[0]).graphics
-          );
-        }
-      }
+          normalPiles.addChild(scaledPileInstance.graphics);
+        });
+
+      newState.scaledPile
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          activePile.addChild(scaledPileInstance.graphics);
+        });
+
       renderRaf();
     }
 
