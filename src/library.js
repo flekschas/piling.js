@@ -193,6 +193,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBackgroundOpacity: true,
+    randomOffsetRange: true,
+    randomRotationRange: true,
     renderer: {
       get: 'itemRenderer',
       set: value => [createAction.setItemRenderer(value)]
@@ -310,8 +312,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     )}px`;
   };
 
-  let isGridShown = false;
-
   const drawGrid = () => {
     const height =
       scrollContainer.getBoundingClientRect().height +
@@ -323,24 +323,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { gridColor, gridOpacity } = store.getState();
 
-    if (!isGridShown) {
-      gridGfx.clear();
-      gridGfx.lineStyle(1, gridColor, gridOpacity);
-      // vertical lines
-      for (let i = 1; i < vLineNum; i++) {
-        gridGfx.moveTo(i * layout.columnWidth, 0);
-        gridGfx.lineTo(i * layout.columnWidth, height);
-      }
-      // horizontal lines
-      for (let i = 1; i < hLineNum; i++) {
-        gridGfx.moveTo(0, i * layout.rowHeight);
-        gridGfx.lineTo(width, i * layout.rowHeight);
-      }
-      isGridShown = true;
-    } else {
-      gridGfx.clear();
-      isGridShown = false;
+    gridGfx.clear();
+    gridGfx.lineStyle(1, gridColor, gridOpacity);
+    // vertical lines
+    for (let i = 1; i < vLineNum; i++) {
+      gridGfx.moveTo(i * layout.columnWidth, 0);
+      gridGfx.lineTo(i * layout.columnWidth, height);
     }
+    // horizontal lines
+    for (let i = 1; i < hLineNum; i++) {
+      gridGfx.moveTo(0, i * layout.rowHeight);
+      gridGfx.lineTo(width, i * layout.rowHeight);
+    }
+  };
+
+  const clearGrid = () => {
+    gridGfx.clear();
   };
 
   const initGrid = () => {
@@ -369,12 +367,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const oldLayout = layout;
 
     const {
-      itemSize,
-      columns,
-      rowHeight,
       cellAspectRatio,
+      cellPadding,
+      columns,
+      itemSize,
       pileCellAlignment,
-      cellPadding
+      rowHeight,
+      showGrid
     } = store.getState();
 
     layout = createGrid(canvas, {
@@ -389,6 +388,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
     updateScrollContainer();
+
+    if (showGrid) {
+      drawGrid();
+    }
   };
 
   let scaleSprite;
@@ -655,12 +658,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       createRBush();
       updateScrollContainer();
-
-      // Draw grid after init pile position
-      if (store.getState().showGrid) {
-        isGridShown = false;
-        drawGrid();
-      }
       renderRaf();
     }
   };
@@ -962,19 +959,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
     items.forEach((itemId, index) => {
       const pile = pileInstances.get(itemId);
+      const item = renderedItems.get(itemId);
       const tweener = createTweener({
         duration: 250,
         delay: 0,
         interpolator: interpolateVector,
-        endValue:
-          itemPositions.length > 0
+        endValue: [
+          ...(itemPositions.length > 0
             ? itemPositions[index]
-            : renderedItems.get(itemId).originalPosition,
+            : item.originalPosition),
+          0
+        ],
         getter: () => {
-          return [pile.x, pile.y];
+          return [pile.x, pile.y, item.sprite.angle];
         },
-        setter: xy => {
-          pile.moveTo(...xy);
+        setter: newValue => {
+          pile.moveTo(newValue[0], newValue[1]);
+          item.sprite.angle = newValue[2];
         },
         onDone: finalValue => {
           movingPiles.push({
@@ -1539,16 +1540,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       renderRaf();
     }
 
-    if (state.scaledPile !== newState.scaledPile) {
-      if (state.scaledPile.length !== 0) {
-        if (pileInstances.has(state.scaledPile[0])) {
-          const pile = pileInstances.get(state.scaledPile[0]).graphics;
-          pile.scale(1);
-          updateBoundingBox(state.scaledPile[0]);
+    if (state.scaledPiles !== newState.scaledPiles) {
+      state.scaledPiles
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          scaledPileInstance.scale(1);
+          updateBoundingBox(scaledPileInstance.id);
           activePile.removeChildren();
-          normalPiles.addChild(pile);
-        }
-      }
+          normalPiles.addChild(scaledPileInstance.graphics);
+        });
+
+      newState.scaledPiles
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          activePile.addChild(scaledPileInstance.graphics);
+        });
+
       renderRaf();
     }
 
@@ -1565,9 +1574,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.showGrid !== newState.showGrid) {
-      if (newState.showGrid !== isGridShown) {
-        drawGrid();
-      }
+      if (newState.showGrid) drawGrid();
+      else clearGrid();
     }
 
     if (newlyCreatedItems.length !== 0) {
@@ -1723,8 +1731,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
-  const gridBtnClick = contextMenuElement => () => {
-    drawGrid();
+  const toggleGridBtnClick = contextMenuElement => () => {
+    const { showGrid } = store.getState();
+
+    store.dispatch(createAction.setShowGrid(!showGrid));
 
     hideContextMenu(contextMenuElement);
 
@@ -1733,6 +1743,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
+    if (pile.scale() > 1) {
+      store.dispatch(createAction.setScaledPiles([]));
+    } else {
+      store.dispatch(createAction.setScaledPiles([pileId]));
+    }
     pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
@@ -1813,7 +1828,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else if (event.altKey) {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.graphics.isHover) pile.animateScale();
+            if (pile.graphics.isHover) {
+              if (pile.scale() > 1) {
+                store.dispatch(createAction.setScaledPiles([]));
+              } else {
+                store.dispatch(createAction.setScaledPiles([result.pileId]));
+              }
+              pile.scaleToggle();
+            }
           });
         } else {
           results.forEach(result => {
@@ -1825,7 +1847,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setScaledPile([]));
+        store.dispatch(createAction.setScaledPiles([]));
       }
     }
   };
@@ -1882,11 +1904,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (result.length !== 0) {
       if (event.altKey) {
         event.preventDefault();
-        store.dispatch(createAction.setScaledPile([result[0].pileId]));
-        const normalizedDeltaY = normalizeWheel(event).pixelY;
-        scalePile(result[0].pileId, normalizedDeltaY);
-        const graphics = pileInstances.get(result[0].pileId).graphics;
-        activePile.addChild(graphics);
+        store.dispatch(createAction.setScaledPiles([result[0].pileId]));
+        scalePile(result[0].pileId, normalizeWheel(event).pixelY);
       }
     }
   };
@@ -1957,124 +1976,126 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     getRelativeMousePosition(event);
 
-    if (!event.altKey) {
-      event.preventDefault();
+    if (event.altKey) return;
 
-      const results = searchIndex.search({
-        minX: mousePosition[0],
-        minY: mousePosition[1],
-        maxX: mousePosition[0] + 1,
-        maxY: mousePosition[1] + 1
+    const { pileContextMenuItems, showGrid } = store.getState();
+
+    event.preventDefault();
+
+    const results = searchIndex.search({
+      minX: mousePosition[0],
+      minY: mousePosition[1],
+      maxX: mousePosition[0] + 1,
+      maxY: mousePosition[1] + 1
+    });
+
+    const clickedOnPile = results.length > 0;
+
+    const element = createContextMenu({
+      customItems: pileContextMenuItems.filter(
+        item => item.label && item.callback
+      )
+    });
+    rootElement.appendChild(element);
+
+    const depileBtn = element.querySelector('#depile-button');
+    const tempDepileBtn = element.querySelector('#temp-depile-button');
+    const toggleGridBtn = element.querySelector('#grid-button');
+    const alignBtn = element.querySelector('#align-button');
+    const scaleBtn = element.querySelector('#scale-button');
+
+    // click on pile
+    if (clickedOnPile) {
+      toggleGridBtn.style.display = 'none';
+      alignBtn.style.display = 'none';
+
+      let pile;
+      results.forEach(result => {
+        if (pileInstances.get(result.pileId).graphics.isHover) {
+          pile = pileInstances.get(result.pileId);
+        }
       });
-
-      const clickedOnPile = results.length > 0;
-
-      const pileContextMenuItems = clickedOnPile
-        ? store
-            .getState()
-            .pileContextMenuItems.filter(item => item.label && item.callback)
-        : [];
-
-      const element = createContextMenu({
-        customItems: pileContextMenuItems
-      });
-      rootElement.appendChild(element);
-
-      const depileBtn = element.querySelector('#depile-button');
-      const tempDepileBtn = element.querySelector('#temp-depile-button');
-      const gridBtn = element.querySelector('#grid-button');
-      const alignBtn = element.querySelector('#align-button');
-      const scaleBtn = element.querySelector('#scale-button');
-
-      // click on pile
-      if (clickedOnPile) {
-        gridBtn.style.display = 'none';
-        alignBtn.style.display = 'none';
-
-        let pile;
-        results.forEach(result => {
-          if (pileInstances.get(result.pileId).graphics.isHover) {
-            pile = pileInstances.get(result.pileId);
-          }
-        });
-        if (pile && pile.size === 1) {
-          depileBtn.setAttribute('disabled', '');
-          depileBtn.setAttribute('class', 'inactive');
-          tempDepileBtn.setAttribute('disabled', '');
-          tempDepileBtn.setAttribute('class', 'inactive');
-        } else if (pile.isTempDepiled) {
-          depileBtn.setAttribute('disabled', '');
-          depileBtn.setAttribute('class', 'inactive');
-          scaleBtn.setAttribute('disabled', '');
-          scaleBtn.setAttribute('class', 'inactive');
-          tempDepileBtn.innerHTML = 'close temp depile';
-        }
-
-        if (pile.scale() > 1.1) {
-          scaleBtn.innerHTML = 'scale down';
-        }
-
-        element.style.display = 'block';
-
-        const { width } = element.getBoundingClientRect();
-        if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
-          element.style.left = `${mousePosition[0] - width}px`;
-        } else {
-          element.style.left = `${mousePosition[0]}px`;
-        }
-        element.style.top = `${mousePosition[1]}px`;
-
-        depileBtn.addEventListener(
-          'click',
-          depileBtnClick(element, pile.id),
-          false
-        );
-        tempDepileBtn.addEventListener(
-          'click',
-          tempDepileBtnClick(element, pile.id, event),
-          false
-        );
-        scaleBtn.addEventListener(
-          'click',
-          scaleBtnClick(element, pile.id),
-          false
-        );
-
-        pileContextMenuItems.forEach((item, index) => {
-          const button = item.id
-            ? element.querySelector(`#${item.id}`)
-            : element.querySelector(
-                `#piling-js-context-menu-custom-item-${index}`
-              );
-          button.addEventListener('click', () => {
-            item.callback({
-              id: pile.id,
-              ...store.getState().piles[pile.id]
-            });
-            if (!item.keepOpen) closeContextMenu();
-          });
-        });
-      } else {
-        depileBtn.style.display = 'none';
-        tempDepileBtn.style.display = 'none';
-        scaleBtn.style.display = 'none';
-
-        if (isGridShown) {
-          gridBtn.innerHTML = 'hide grid';
-        }
-        element.style.display = 'block';
-
-        const { width } = element.getBoundingClientRect();
-        if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
-          element.style.left = `${mousePosition[0] - width}px`;
-        } else {
-          element.style.left = `${mousePosition[0]}px`;
-        }
-        element.style.top = `${mousePosition[1]}px`;
-
-        gridBtn.addEventListener('click', gridBtnClick(element), false);
-        alignBtn.addEventListener('click', alignByGridClickHandler, false);
+      if (pile && pile.size === 1) {
+        depileBtn.setAttribute('disabled', '');
+        depileBtn.setAttribute('class', 'inactive');
+        tempDepileBtn.setAttribute('disabled', '');
+        tempDepileBtn.setAttribute('class', 'inactive');
+      } else if (pile.isTempDepiled) {
+        depileBtn.setAttribute('disabled', '');
+        depileBtn.setAttribute('class', 'inactive');
+        scaleBtn.setAttribute('disabled', '');
+        scaleBtn.setAttribute('class', 'inactive');
+        tempDepileBtn.innerHTML = 'close temp depile';
       }
+
+      if (pile.scale() > 1) {
+        scaleBtn.innerHTML = 'Scale Down';
+      }
+
+      element.style.display = 'block';
+
+      const { width } = element.getBoundingClientRect();
+      if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
+        element.style.left = `${mousePosition[0] - width}px`;
+      } else {
+        element.style.left = `${mousePosition[0]}px`;
+      }
+      element.style.top = `${mousePosition[1]}px`;
+
+      depileBtn.addEventListener(
+        'click',
+        depileBtnClick(element, pile.id),
+        false
+      );
+      tempDepileBtn.addEventListener(
+        'click',
+        tempDepileBtnClick(element, pile.id, event),
+        false
+      );
+      scaleBtn.addEventListener(
+        'click',
+        scaleBtnClick(element, pile.id),
+        false
+      );
+
+      pileContextMenuItems.forEach((item, index) => {
+        const button = item.id
+          ? element.querySelector(`#${item.id}`)
+          : element.querySelector(
+              `#piling-js-context-menu-custom-item-${index}`
+            );
+        button.addEventListener('click', () => {
+          item.callback({
+            id: pile.id,
+            ...store.getState().piles[pile.id]
+          });
+          if (!item.keepOpen) closeContextMenu();
+        });
+      });
+    } else {
+      depileBtn.style.display = 'none';
+      tempDepileBtn.style.display = 'none';
+      scaleBtn.style.display = 'none';
+
+      if (showGrid) {
+        toggleGridBtn.innerHTML = 'Hide Grid';
+      }
+      element.style.display = 'block';
+
+      const { width } = element.getBoundingClientRect();
+      if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
+        element.style.left = `${mousePosition[0] - width}px`;
+      } else {
+        element.style.left = `${mousePosition[0]}px`;
+      }
+      element.style.top = `${mousePosition[1]}px`;
+
+      toggleGridBtn.addEventListener(
+        'click',
+        toggleGridBtnClick(element),
+        false
+      );
+      alignBtn.addEventListener('click', alignByGridClickHandler, false);
     }
   };
 

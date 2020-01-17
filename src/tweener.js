@@ -36,12 +36,18 @@ const createTweener = ({
     setTimeout(startAnimation, delay);
   };
 
+  /**
+   * Set the value to the current progress given the elapsed time
+   * @return  {bool}  If `true` the animation is over
+   */
   const update = () => {
     if (!startValue) return false;
 
     dt = performance.now() - startTime;
 
     if (dt >= duration) {
+      // Ensure that the endValue is set
+      setter(endValue);
       if (onDone !== null) onDone(getter());
       return true;
     }

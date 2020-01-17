@@ -360,7 +360,14 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
 
   // Map to store calls for after the pile position animation
   const postPilePositionAnimation = new Map();
-  const animatePositionItems = (itemSprite, x, y, animator, isLastOne) => {
+  const animatePositionItems = (
+    itemSprite,
+    x,
+    y,
+    angle,
+    animator,
+    isLastOne
+  ) => {
     const targetScale = itemSprite.tmpTargetScale || itemSprite.scale.x;
     itemSprite.tmpTargetScale = undefined;
     delete itemSprite.tmpTargetScale;
@@ -368,15 +375,21 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     const tweener = createTweener({
       duration: 250,
       interpolator: interpolateVector,
-      endValue: [x, y, targetScale],
+      endValue: [x, y, targetScale, angle],
       getter: () => {
-        return [itemSprite.x, itemSprite.y, itemSprite.scale.x];
+        return [
+          itemSprite.x,
+          itemSprite.y,
+          itemSprite.scale.x,
+          itemSprite.angle
+        ];
       },
       setter: newValue => {
         itemSprite.x = newValue[0];
         itemSprite.y = newValue[1];
         itemSprite.scale.x = newValue[2];
         itemSprite.scale.y = itemSprite.scale.x;
+        itemSprite.angle = newValue[3];
       },
       onDone: () => {
         itemSprite.tmpTargetScale = undefined;
@@ -400,6 +413,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     previewSpacing
   ) => {
     isPositioning = true;
+    let angle = 0;
     if (hasCover) {
       // matrix
       itemContainer.children.forEach((item, index) => {
@@ -411,11 +425,12 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           item,
           -previewSpacing / 2,
           -padding,
+          angle,
           animator,
           index === itemContainer.children.length - 2
         );
       });
-    } else if (itemAlignment) {
+    } else if (itemAlignment || items.length === 1) {
       // image
       newItems.forEach(item => {
         const sprite = item.sprite;
@@ -478,11 +493,13 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           item,
           horizontalPadding,
           verticalPadding,
+          angle,
           animator,
           index === itemContainer.children.length - 1
         );
       });
     } else {
+      const { randomOffsetRange, randomRotationRange } = store.getState();
       let num = 0;
       newItems.forEach(item => {
         num++;
@@ -502,8 +519,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           delete item.tmpRelScale;
         }
 
-        let offsetX = getRandomArbitrary(-30, 30);
-        let offsetY = getRandomArbitrary(-30, 30);
+        let offsetX = getRandomArbitrary(...randomOffsetRange);
+        let offsetY = getRandomArbitrary(...randomOffsetRange);
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
           offsetX += item.x;
@@ -518,17 +535,18 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
           delete item.tmpAbsY;
         }
 
+        if (itemRotation) {
+          angle = getRandomArbitrary(...randomRotationRange);
+        }
+
         animatePositionItems(
           sprite,
           offsetX,
           offsetY,
+          angle,
           animator,
           num === newItems.size
         );
-
-        if (itemRotation) {
-          item.sprite.angle += getRandomArbitrary(-10, 10);
-        }
       });
     }
     newItems.clear();
@@ -593,10 +611,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     return oldScale !== newScale;
   };
 
-  let scaledUp = false;
   const scaleToggle = noAnimate => {
-    scale(scaledUp ? 1 : MAX_SCALE, noAnimate);
-    scaledUp = !scaledUp;
+    scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
   };
 
   const moveTo = (x, y) => {

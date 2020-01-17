@@ -1,5 +1,10 @@
 ### Next
 
+- Add `randomOffsetRange` and `randomRotationRange` properties
+- Animate item rotation
+- Fix pile scaling
+- Fix grid drawing to update dynamically upon changes to the grid
+
 ## v0.5.0
 
 - Add the following properties for dynamic styling. Each property accepts a float value or a callback function. See [`DOCS.md`](DOCS.md#pilingsetproperty-value) for details.
@@ -8,6 +13,7 @@
   - `pileBorderSize`
   - `itemOpacity`
 - Rename the following properties for clarity:
+
   - `itemPadding` is now called `cellPadding`
   - `pileCellAlign` is now called `pileCellAlignment`
   - `itemAlignment` is now called `pileItemAlignment`

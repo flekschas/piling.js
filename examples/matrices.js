@@ -50,8 +50,8 @@ const createMatrixPiles = async element => {
     previewAggregator: matrixPreviewAggregator,
     items: data,
     itemSize: 64,
-    pileCellAlignment: 'center'
-    // pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
+    pileCellAlignment: 'center',
+    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
   return pilingJs;
