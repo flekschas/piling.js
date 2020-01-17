@@ -26,11 +26,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const items = [];
   const itemIndex = new Map();
   const newItems = new Set();
-  const graphics = new PIXI.Graphics();
+  const graphics = new PIXI.Graphics(); // Root graphics
   const itemContainer = new PIXI.Container();
-  const borderContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const border = new PIXI.Graphics();
+  const contentGraphics = new PIXI.Graphics();
 
   const bBox = {
     minX: null,
@@ -46,6 +46,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   let isTempDepiled = false;
   let hasCover = false;
   let isPositioning = false;
+  let isScale = false;
   let cX;
   let cY;
 
@@ -91,7 +92,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     if (!size) {
       border.clear();
     } else {
-      if (isPositioning) {
+      if (isPositioning || isScale) {
         // eslint-disable-next-line no-use-before-define
         postPilePositionAnimation.set('drawBorder', () => {
           drawBorder(size, mode);
@@ -101,11 +102,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       const rect = itemContainer.getBounds();
 
       // eslint-disable-next-line no-use-before-define
-      const currentScale = getScale();
-      if (currentScale !== 1) {
-        rect.width /= currentScale;
-        rect.height /= currentScale;
-      }
+      // const currentScale = getScale();
+      // if (currentScale !== 1) {
+      //   rect.width /= currentScale;
+      //   rect.height /= currentScale;
+      // }
 
       pubSub.publish('updateBBox', id);
 
@@ -297,7 +298,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   const calcBBox = () => {
     // compute bounding box
 
-    const scale = graphics.scale.x;
+    const scale = contentGraphics.scale.x;
 
     let minX = Infinity;
     let minY = Infinity;
@@ -533,11 +534,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     newItems.clear();
   };
 
-  const getScale = () => graphics.scale.x;
+  const getScale = () => contentGraphics.scale.x;
 
   const setScale = scale => {
-    graphics.scale.x = scale;
-    graphics.scale.y = scale;
+    contentGraphics.scale.x = scale;
+    contentGraphics.scale.y = scale;
   };
 
   let scaleTweener;
@@ -549,6 +550,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       setScale(newScale);
     }
 
+    isScale = true;
     let duration = 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
@@ -565,6 +567,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       getter: getScale,
       setter: setScale,
       onDone: () => {
+        isScale = false;
+        postPilePositionAnimation.forEach(fn => {
+          fn();
+        });
+        postPilePositionAnimation.clear();
         pubSub.publish('updateBBox', id);
       }
     });
@@ -663,9 +670,11 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
   };
 
   const init = () => {
-    graphics.addChild(borderContainer);
-    graphics.addChild(itemContainer);
-    graphics.addChild(hoverItemContainer);
+    graphics.addChild(border);
+    graphics.addChild(contentGraphics);
+
+    contentGraphics.addChild(itemContainer);
+    contentGraphics.addChild(hoverItemContainer);
 
     graphics.interactive = true;
     graphics.buttonMode = true;
@@ -674,8 +683,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     // Origin of the items coordinste system relative to the pile
     initialItem.sprite.anchor.set(0);
     initialItem.moveTo(2, 2);
-
-    borderContainer.addChild(border);
 
     graphics
       .on('pointerdown', onPointerDown)
@@ -710,6 +717,9 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     },
     get graphics() {
       return graphics;
+    },
+    get contentGraphics() {
+      return contentGraphics;
     },
     get hasCover() {
       return hasCover;

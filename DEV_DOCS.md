@@ -2,7 +2,6 @@
 
 **Note, if you are trying to find out how to use pile.js please go to the [main docs](DOCS.md). This file only contains information for developing pile.js!**
 
-
 # Depile
 
 The pseudocode for finding the closest available cell for de-piling.
@@ -34,7 +33,6 @@ while(!depilePos)
 return depilePos
 ```
 
-
 # PIXI.js Screengraph
 
 The `stage` is the root PIXI container that we render everything on.
@@ -44,18 +42,18 @@ The `stage` is the root PIXI container that we render everything on.
     - lasso graphics
   - active pile container
   - normal piles container
-    - pile graphics
-      - hover item container
-      - item container
-      - border container
+    - pile root graphics
+      - content graphics
+        - hover item container
+        - item container
+      - border graphics
   - lasso bg container
     - lasso fill graphics
   - grid graphics
 
-
 # Pile API
 
-Each visual [item](#item-api) is part of a pile. The pile class is the primary interface to manage and interact with the items. You never create pile instances yourself but 
+Each visual [item](#item-api) is part of a pile. The pile class is the primary interface to manage and interact with the items. You never create pile instances yourself but
 
 ## Pile properties
 
@@ -152,7 +150,6 @@ Destroy the pile instance.
 #### `pile.moveTo(x, y)`
 
 Move the pile graphics to position `[x, y]`.
-
 
 # Item API
 
