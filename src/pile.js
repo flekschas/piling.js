@@ -604,10 +604,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     return oldScale !== newScale;
   };
 
-  let scaledUp = false;
   const scaleToggle = noAnimate => {
-    scale(scaledUp ? 1 : MAX_SCALE, noAnimate);
-    scaledUp = !scaledUp;
+    scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
   };
 
   const moveTo = (x, y) => {

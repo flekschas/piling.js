@@ -157,7 +157,7 @@ The list of all understood properties is given below.
 | ------------------------- | ----------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
 | aggregateRenderer         | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | backgroundColor           | string or int     | `0x000000`            |                                                                               | `false`    |
-| focusedPiles               | array             | `[]`                  | the id of current focused pile                                                | `true`     |
+| focusedPiles              | array             | `[]`                  | the id of current focused pile                                                | `true`     |
 | coverAggregator           | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | depiledPile               | array             | `[]`                  | the id of the pile to be depiled                                              | `true`     |
 | depileMethod              | string            | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
@@ -196,8 +196,8 @@ The list of all understood properties is given below.
 | previewAggregator         | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | previewRenderer           | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | previewSpacing            | number            | `2`                   | the spacing between 1D previews                                               | `true`     |
-| randomOffsetRange         | array             | `[-30, 30]`          | array of two numbers                                                           | `true`     |
-| randomRotationRange       | array             | `[-10, 10]`          | array of two numbers                                                           | `true`     |
+| randomOffsetRange         | array             | `[-30, 30]`           | array of two numbers                                                          | `true`     |
+| randomRotationRange       | array             | `[-10, 10]`           | array of two numbers                                                          | `true`     |
 | renderer                  | function          |                       | see [`renderers`](#renderers)                                                 | `false`    |
 | scaledPile                | array             | `[]`                  | the id of current scaled pile                                                 | `true`     |
 | showGrid                  | boolean           | `false`               |                                                                               | `false`    |
@@ -314,7 +314,10 @@ The list of all understood properties is given below.
   piling.set('itemOpacity', 0.5);
 
   // Set to a callback function
-  piling.set('itemOpacity', (item, i, pile) => (pile.items.length - i) / pile.items.length);
+  piling.set(
+    'itemOpacity',
+    (item, i, pile) => (pile.items.length - i) / pile.items.length
+  );
   ```
 
   The signature of the callback function should be as follows:
@@ -391,6 +394,7 @@ _See the examples at [#Data](#data)_
 #### `state.piles`
 
 A list of objects with the following properties:
+
 - `items`: a list of item IDs
 - `x`: the current x position
 - `y`: the current y position

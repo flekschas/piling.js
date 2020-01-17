@@ -1549,16 +1549,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       renderRaf();
     }
 
-    if (state.scaledPile !== newState.scaledPile) {
-      if (state.scaledPile.length !== 0) {
-        if (pileInstances.has(state.scaledPile[0])) {
-          const pile = pileInstances.get(state.scaledPile[0]).graphics;
-          pile.scale(1);
-          updateBoundingBox(state.scaledPile[0]);
+    if (state.scaledPiles !== newState.scaledPiles) {
+      state.scaledPiles
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          scaledPileInstance.scale(1);
+          updateBoundingBox(scaledPileInstance.id);
           activePile.removeChildren();
-          normalPiles.addChild(pile);
-        }
-      }
+          normalPiles.addChild(scaledPileInstance.graphics);
+        });
+
+      newState.scaledPiles
+        .map(scaledPile => pileInstances.get(scaledPile))
+        .filter(scaledPileInstance => scaledPileInstance)
+        .forEach(scaledPileInstance => {
+          activePile.addChild(scaledPileInstance.graphics);
+        });
+
       renderRaf();
     }
 
@@ -1743,6 +1751,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
+    if (pile.scale() > 1) {
+      store.dispatch(createAction.setScaledPiles([]));
+    } else {
+      store.dispatch(createAction.setScaledPiles([pileId]));
+    }
     pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
@@ -1823,7 +1836,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else if (event.altKey) {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
-            if (pile.graphics.isHover) pile.animateScale();
+            if (pile.graphics.isHover) {
+              if (pile.scale() > 1) {
+                store.dispatch(createAction.setScaledPiles([]));
+              } else {
+                store.dispatch(createAction.setScaledPiles([result.pileId]));
+              }
+              pile.scaleToggle();
+            }
           });
         } else {
           results.forEach(result => {
@@ -1835,7 +1855,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setScaledPile([]));
+        store.dispatch(createAction.setScaledPiles([]));
       }
     }
   };
@@ -1892,11 +1912,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (result.length !== 0) {
       if (event.altKey) {
         event.preventDefault();
-        store.dispatch(createAction.setScaledPile([result[0].pileId]));
-        const normalizedDeltaY = normalizeWheel(event).pixelY;
-        scalePile(result[0].pileId, normalizedDeltaY);
-        const graphics = pileInstances.get(result[0].pileId).graphics;
-        activePile.addChild(graphics);
+        store.dispatch(createAction.setScaledPiles([result[0].pileId]));
+        scalePile(result[0].pileId, normalizeWheel(event).pixelY);
       }
     }
   };
@@ -2020,7 +2037,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           tempDepileBtn.innerHTML = 'close temp depile';
         }
 
-        if (pile.graphics.scale.x > 1.1) {
+        if (pile.scale() > 1) {
           scaleBtn.innerHTML = 'scale down';
         }
 

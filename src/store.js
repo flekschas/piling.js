@@ -122,7 +122,7 @@ const [pileItemRotation, setPileItemRotation] = setter(
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
 
-const [scaledPile, setScaledPile] = setter('scaledPile', []);
+const [scaledPiles, setScaledPiles] = setter('scaledPiles', []);
 
 // 'originalPos' and 'closestPos'
 const [depileMethod, setDepileMethod] = setter('depileMethod', 'originalPos');
@@ -398,7 +398,7 @@ const createStore = () => {
     previewSpacing,
     randomOffsetRange,
     randomRotationRange,
-    scaledPile,
+    scaledPiles,
     showGrid,
     tempDepileDirection,
     tempDepileOneDNum,
@@ -463,7 +463,7 @@ export const createAction = {
   setPileItemAlignment,
   setPileItemRotation,
   setFocusedPiles,
-  setScaledPile,
+  setScaledPiles,
   setShowGrid,
   setDepileMethod,
   setDepiledPile,
