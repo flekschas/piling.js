@@ -157,7 +157,7 @@ The list of all understood properties is given below.
 | ------------------------- | ----------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
 | aggregateRenderer         | function          |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | backgroundColor           | string or int     | `0x000000`            |                                                                               | `false`    |
-| clickedPile               | array             | `[]`                  | the id of current focused pile                                                | `true`     |
+| focusedPiles               | array             | `[]`                  | the id of current focused pile                                                | `true`     |
 | coverAggregator           | function          |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | depiledPile               | array             | `[]`                  | the id of the pile to be depiled                                              | `true`     |
 | depileMethod              | string            | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
