@@ -20,9 +20,12 @@
   },
   "rules": {
     "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    // Turn on once in a while to find magic numbers
+    // "no-magic-numbers": ["error", { "ignoreArrayIndexes": true }],
+    "no-param-reassign": ["error", { "props": false }],
     "no-plusplus": 0,
+    "no-use-before-define": 0,
     "prefer-destructuring": 0,
-    "no-param-reassign": ["error", { "props": false }]
   }
 }
