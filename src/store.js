@@ -56,6 +56,12 @@ export const softOverwrite = newState => ({
   payload: { newState }
 });
 
+const [arrangementType, setArrangementType] = setter('arrangementType');
+
+const [arrangementObjective, setArrangementObjective] = setter(
+  'arrangementObjective'
+);
+
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
   0x000000
@@ -352,6 +358,8 @@ const createStore = () => {
 
   const appReducer = combineReducers({
     aggregateRenderer,
+    arrangementObjective,
+    arrangementType,
     backgroundColor,
     focusedPiles,
     coverAggregator,
@@ -438,6 +446,8 @@ export const createAction = {
   mergePiles,
   movePiles,
   depilePiles,
+  setArrangementType,
+  setArrangementObjective,
   setBackgroundColor,
   setGridColor,
   setGridOpacity,

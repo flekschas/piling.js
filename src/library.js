@@ -82,6 +82,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const properties = {
     aggregateRenderer: true,
+    arrangementObjective: true,
+    arrangementType: true,
     backgroundColor: true,
     focusedPiles: true,
     depiledPile: true,
@@ -458,6 +460,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const animatePileMove = (pile, x, y) => {
+    const tweener = createTweener({
+      duration: 250,
+      delay: 0,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => {
+        return [pile.graphics.x, pile.graphics.y];
+      },
+      setter: newValue => {
+        pile.graphics.x = newValue[0];
+        pile.graphics.y = newValue[1];
+      }
+    });
+    animator.add(tweener);
+  };
+
   const updateLayout = oldLayout => {
     scaleItems();
 
@@ -505,29 +524,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     });
 
-    // Animate pile move
-    movingPiles.forEach(({ id, x, y }, index) => {
-      const pile = pileInstances.get(id);
-      const tweener = createTweener({
-        duration: 250,
-        delay: 0,
-        interpolator: interpolateVector,
-        endValue: [x, y],
-        getter: () => {
-          return [pile.graphics.x, pile.graphics.y];
-        },
-        setter: newValue => {
-          pile.graphics.x = newValue[0];
-          pile.graphics.y = newValue[1];
-        },
-        onDone: () => {
-          if (index === pileInstances.size - 1) {
-            store.dispatch(createAction.movePiles(movingPiles));
-          }
-        }
-      });
-      animator.add(tweener);
-    });
+    store.dispatch(createAction.movePiles(movingPiles));
 
     renderedItems.forEach(item => {
       const getCellPosition = orderer(layout.numColumns);
@@ -620,6 +617,53 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const arrangePile = pile => {
+    const { orderer, arrangementType, arrangementObjective } = store.getState();
+
+    const getCellPosition = orderer(layout.numColumns);
+
+    let idx = null;
+    let x = null;
+    let y = null;
+    let i = null;
+    let j = null;
+    let u = null;
+    let v = null;
+
+    switch (arrangementType) {
+      case 'data':
+        break;
+      case 'index':
+        idx = arrangementObjective(pile);
+        [i, j] = getCellPosition(idx);
+        break;
+      case 'ij':
+        [i, j] = arrangementObjective(pile);
+        break;
+      case 'xy':
+        [x, y] = arrangementObjective(pile);
+        break;
+      case 'uv':
+        [u, v] = arrangementObjective(pile);
+        break;
+      // No automatic position
+      default:
+        break;
+    }
+
+    if (i !== null) {
+      [x, y] = layout.ijToXy(i, j, pile.graphics.width, pile.graphics.height);
+    } else if (u !== null) {
+      [x, y] = layout.uvToXy(u, v);
+    }
+
+    if (x !== null) {
+      store.dispatch(createAction.movePiles([{ id: pile.id, x, y }]));
+    }
+
+    return [x, y];
+  };
+
   const positionPiles = () => {
     const { items, orderer } = store.getState();
 
@@ -629,27 +673,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach((pile, id) => {
-        let i;
-        let j;
-        if (items[id].position) {
-          [i, j] = items[id].position;
-        } else {
+        let x = null;
+        let y = null;
+
+        [x, y] = arrangePile(pile);
+
+        if (x === null) {
           const getCellPosition = orderer(layout.numColumns);
-          [i, j] = getCellPosition(id);
+          const [i, j] = getCellPosition(id);
+
+          layout.numRows = j + 1;
+
+          [x, y] = layout.ijToXy(
+            i,
+            j,
+            pile.graphics.width,
+            pile.graphics.height
+          );
+          movingPiles.push({ id, x, y });
+        } else {
+          layout.numRows = Math.max(
+            layout.numRows,
+            Math.ceil(y / layout.rowHeight)
+          );
         }
-
-        layout.numRows = j + 1;
-
-        const [x, y] = layout.ijToXy(
-          i,
-          j,
-          pile.graphics.width,
-          pile.graphics.height
-        );
-
         renderedItems.get(id).originalPosition = [x, y];
-
-        movingPiles.push({ id, x, y });
       });
 
       if (movingPiles.length !== 0) {
@@ -777,10 +825,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePilePosition = (pile, id) => {
-    if (pileInstances.has(id)) {
-      const graphics = pileInstances.get(id).graphics;
-      graphics.x = pile.x;
-      graphics.y = pile.y;
+    const pileInstance = pileInstances.get(id);
+    if (pileInstance) {
+      animatePileMove(pileInstance, pile.x, pile.y);
       updateBoundingBox(id);
       renderRaf();
     }
@@ -1427,6 +1474,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const stateUpdates = new Set();
     const newlyCreatedItems = [];
 
+    const changedPiles = [];
+
     if (
       state.items !== newState.items ||
       state.itemRenderer !== newState.itemRenderer ||
@@ -1449,6 +1498,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
+            changedPiles.push(id);
+            stateUpdates.add('arrange');
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
@@ -1456,6 +1507,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
+            changedPiles.push(id);
+            stateUpdates.add('arrange');
           }
         });
       }
@@ -1593,6 +1646,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Consequential updates that cause new actions to be dispatched
     if (stateUpdates.has('grid')) {
       updateGrid();
+    } else if (stateUpdates.has('arrange')) {
+      changedPiles.forEach(id => {
+        const pile = pileInstances.get(id);
+        if (pile) {
+          arrangePile(pile);
+        }
+      });
     }
   };
 
@@ -1623,6 +1683,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     else store.dispatch(softOverwrite(newState));
 
     resetPileBorder();
+  };
+
+  const arrangeBy = (type, dataOrObjectionFunction) => {
+    store.dispatch(
+      batchActions([
+        ...set('arrangementType', type, true),
+        ...set('arrangementObjective', dataOrObjectionFunction, true)
+      ])
+    );
   };
 
   let hit;
@@ -2200,6 +2269,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return pkg.version;
     },
     // Methods
+    arrangeBy,
     destroy,
     exportState,
     get,

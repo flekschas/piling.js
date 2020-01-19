@@ -25,7 +25,7 @@ const createGrid = (
   const { width } = canvas.getBoundingClientRect();
 
   let numColumns = columns;
-  let numRows;
+  let numRows = 0;
   let columnWidth = width / columns;
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
@@ -106,6 +106,17 @@ const createGrid = (
       default:
         return topLeft;
     }
+  };
+
+  /**
+   * Convert the u,v position to an x,y pixel position
+   * @param   {number}  u  Relative position of the canvas on the x-axis
+   * @param   {number}  v  Relative position of the canvas on the y-axis
+   * @return  {array}  Tuple representing the x,y position
+   */
+  const uvToXy = (u, v) => {
+    const { height } = canvas.getBoundingClientRect();
+    return [u * width, v * height];
   };
 
   const align = piles => {
@@ -297,7 +308,8 @@ const createGrid = (
     },
     // Methods
     align,
-    ijToXy
+    ijToXy,
+    uvToXy
   };
 };
 
