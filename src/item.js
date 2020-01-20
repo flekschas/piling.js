@@ -1,31 +1,33 @@
-import { assignWith } from './utils';
+import { assign } from './utils';
 
-const withId = (self, state) => ({
+const withId = id => ({
   get id() {
-    return state.id;
+    return id;
   }
 });
 
-const withImage = (self, state) => ({
+const withImage = image => ({
   get image() {
-    return state.image;
+    return image;
   }
 });
 
-const withPreview = (self, state) => ({
+const withPreview = preview => ({
   get preview() {
-    return state.preview;
+    return preview;
   }
 });
 
-const withOriginalPosition = (self, state) => {
-  state.originalPosition = [0, 0];
+const withOriginalPosition = ([x, y]) => {
+  const originalPosition = [x, y];
   return {
     get originalPosition() {
-      return [...state.originalPosition];
+      return [...originalPosition];
     },
-    set originalPosition(newOriginalPosition) {
-      state.originalPosition = newOriginalPosition.slice(0, 2);
+    setOriginalPosition([newX, newY]) {
+      originalPosition[0] = newX;
+      originalPosition[1] = newY;
+      return this;
     }
   };
 };
@@ -42,16 +44,17 @@ const withDestroy = () => ({
  * @param {object} texture - The PIXI.Texture object of the item
  * @param {object} preview - The PIXI.Graphics object of the item preview
  */
-const createItem = ({ id, image }, { preview = null } = {}) => {
-  const state = { id, image, preview };
-  return assignWith(state)(
+const createItem = (
+  { id, image },
+  { preview = null, originalPosition = [0, 0] } = {}
+) =>
+  assign(
     {},
-    withId,
-    withImage,
-    withPreview,
-    withOriginalPosition,
-    withDestroy
+    withId(id),
+    withImage(image),
+    withPreview(preview),
+    withOriginalPosition(originalPosition),
+    withDestroy()
   );
-};
 
 export default createItem;

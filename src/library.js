@@ -528,11 +528,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.forEach(item => {
       const getCellPosition = orderer(layout.numColumns);
       const [i, j] = getCellPosition(item.id);
-      item.originalPosition = layout.ijToXy(
-        i,
-        j,
-        item.image.displayObject.width,
-        item.image.displayObject.height
+      item.setOriginalPosition(
+        layout.ijToXy(
+          i,
+          j,
+          item.image.displayObject.width,
+          item.image.displayObject.height
+        )
       );
     });
 
@@ -655,7 +657,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.graphics.height
         );
 
-        renderedItems.get(id).originalPosition = [x, y];
+        renderedItems.get(id).setOriginalPosition([x, y]);
 
         movingPiles.push({ id, x, y });
       });
