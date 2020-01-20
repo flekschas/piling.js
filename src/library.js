@@ -1153,24 +1153,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.add(tweener);
   };
 
-  const tempDepileOneD = (
-    temporaryDepileContainer,
-    pile,
-    tempDepileDirection,
-    items
-  ) => {
+  const tempDepileOneD = ({ pile, tempDepileDirection, items }) => {
     if (tempDepileDirection === 'horizontal') {
-      temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-      temporaryDepileContainer.y = 0;
-      temporaryDepileContainer.interactive = true;
+      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      pile.tempDepileContainer.y = 0;
+      pile.tempDepileContainer.interactive = true;
 
       let widths = 0;
       items.forEach((itemId, index) => {
         const clonedSprite = cloneSprite(
           renderedItems.get(itemId).image.sprite
         );
-        clonedSprite.x = -temporaryDepileContainer.x;
-        temporaryDepileContainer.addChild(clonedSprite);
+        clonedSprite.x = -pile.tempDepileContainer.x;
+        pile.tempDepileContainer.addChild(clonedSprite);
         animateTempDepile(
           clonedSprite,
           pile,
@@ -1181,17 +1176,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         widths += clonedSprite.width;
       });
     } else if (tempDepileDirection === 'vertical') {
-      temporaryDepileContainer.x = 0;
-      temporaryDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
-      temporaryDepileContainer.interactive = true;
+      pile.tempDepileContainer.x = 0;
+      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      pile.tempDepileContainer.interactive = true;
 
       let heights = 0;
       items.forEach((itemId, index) => {
         const clonedSprite = cloneSprite(
           renderedItems.get(itemId).image.sprite
         );
-        clonedSprite.y = -temporaryDepileContainer.y;
-        temporaryDepileContainer.addChild(clonedSprite);
+        clonedSprite.y = -pile.tempDepileContainer.y;
+        pile.tempDepileContainer.addChild(clonedSprite);
         animateTempDepile(
           clonedSprite,
           pile,
@@ -1204,17 +1199,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const tempDepileTwoD = (temporaryDepileContainer, pile, items, orderer) => {
-    temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-    temporaryDepileContainer.y = 0;
-    temporaryDepileContainer.interactive = true;
+  const tempDepileTwoD = ({ pile, items, orderer }) => {
+    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    pile.tempDepileContainer.y = 0;
 
     const squareLength = Math.ceil(Math.sqrt(items.length));
 
     items.forEach((itemId, index) => {
       const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
-      clonedSprite.x = -temporaryDepileContainer.x;
-      temporaryDepileContainer.addChild(clonedSprite);
+      clonedSprite.x = -pile.tempDepileContainer.x;
+      pile.tempDepileContainer.addChild(clonedSprite);
       const getPosition = orderer(squareLength);
       let x;
       let y;
@@ -1247,10 +1241,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
           if (pile.isTempDepiled) {
-            pile.itemContainer.removeChildAt(length - 1);
+            pile.tempDepileContainer.removeChildAt(length - 1);
             pile.isTempDepiled = false;
+            pile.blur();
             pile.hover();
-            pile.isFocus = false;
             store.dispatch(createAction.setFocusedPiles([]));
           }
         });
@@ -1269,14 +1263,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const items = [...piles[pileId].items];
 
         if (items.length < tempDepileOneDNum) {
-          tempDepileOneD(
-            pile.tempDepileContainer,
+          tempDepileOneD({
             pile,
             tempDepileDirection,
             items
-          );
+          });
         } else {
-          tempDepileTwoD(pile.tempDepileContainer, pile, items, orderer);
+          tempDepileTwoD({ pile, items, orderer });
         }
         pubSub.publish('pileActive', { pile });
       }

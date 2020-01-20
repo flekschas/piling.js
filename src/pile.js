@@ -840,11 +840,14 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     contentGraphics.addChild(previewItemContainer);
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
+    contentGraphics.addChild(tempDepileContainer);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
     rootGraphics.x = 0;
     rootGraphics.y = 0;
+
+    tempDepileContainer.interactive = true;
 
     rootGraphics
       .on('pointerdown', onPointerDown)
