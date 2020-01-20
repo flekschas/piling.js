@@ -1,8 +1,44 @@
+import * as PIXI from 'pixi.js';
+
+export const assign = (target, ...sources) => {
+  sources.forEach(source => {
+    // eslint-disable-next-line no-shadow
+    const descriptors = Object.keys(source).reduce((descriptors, key) => {
+      descriptors[key] = Object.getOwnPropertyDescriptor(source, key);
+      return descriptors;
+    }, {});
+
+    // By default, Object.assign copies enumerable Symbols, too
+    Object.getOwnPropertySymbols(source).forEach(symbol => {
+      const descriptor = Object.getOwnPropertyDescriptor(source, symbol);
+      if (descriptor.enumerable) {
+        descriptors[symbol] = descriptor;
+      }
+    });
+    Object.defineProperties(target, descriptors);
+  });
+  return target;
+};
+
+export const assignWithState = (target, state, ...props) =>
+  props.reduce((out, prop) => assign(out, prop(out, state)), target);
+
 export const camelToConst = str =>
   str
     .split(/(?=[A-Z])/)
     .join('_')
     .toUpperCase();
+
+export const cloneSprite = sprite => {
+  const clonedSprite = new PIXI.Sprite(sprite.texture);
+  clonedSprite.interactive = sprite.interactive;
+  clonedSprite.x = sprite.x;
+  clonedSprite.y = sprite.y;
+  clonedSprite.width = sprite.width;
+  clonedSprite.height = sprite.height;
+
+  return clonedSprite;
+};
 
 export const l1Dist = (fromX, fromY, toX, toY) =>
   Math.abs(fromX - toX) + Math.abs(fromY - toY);
@@ -12,6 +48,14 @@ export const l2Dist = (fromX, fromY, toX, toY) =>
 
 export const l2Norm = vector =>
   Math.sqrt(vector.reduce((s, v) => s + v ** 2, 0));
+
+export const mergeMaps = (map1, map2) =>
+  new Map(
+    (function* merge() {
+      yield* map1;
+      yield* map2;
+    })()
+  );
 
 export const normalizeVector = vector => {
   const norm = l2Norm(vector);
