@@ -12,7 +12,7 @@ const worker = function worker() {
 
       for (let i = 0; i < src.shape[0]; i++) {
         for (let j = 0; j < src.shape[1]; j++) {
-          newData[i] += src.data[i * src.shape[0] + j] / src.shape[1];
+          newData[j] += src.data[i * src.shape[0] + j] / src.shape[1];
         }
       }
 
