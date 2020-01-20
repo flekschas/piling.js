@@ -440,12 +440,12 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     isPositioning = true;
     let angle = 0;
     if (getCover()) {
-      // matrix
+      const halfSpacing = previewSpacing / 2;
       previewItemContainer.children.forEach((item, index) => {
         animatePositionItems(
           item,
-          -previewSpacing / 2,
-          -(item.height + previewSpacing / 2) * (index + 1),
+          -halfSpacing,
+          -item.height * (index + 1) - halfSpacing,
           angle,
           animator,
           index === previewItemContainer.children.length - 1
