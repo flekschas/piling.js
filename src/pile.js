@@ -2,7 +2,12 @@ import * as PIXI from 'pixi.js';
 
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { interpolateNumber, interpolateVector, mergeMaps } from './utils';
+import {
+  cloneSprite,
+  interpolateNumber,
+  interpolateVector,
+  mergeMaps
+} from './utils';
 
 export const MAX_SCALE = 3;
 export const MODE_HOVER = Symbol('Hover');
@@ -66,25 +71,34 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   };
 
   // eslint-disable-next-line no-shadow
-  const handleHoverItem = ({ item }) => {
+  const itemOverHandler = ({ item }) => {
     if (isFocus) {
       if (!rootGraphics.isDragging) {
-        const clonedSprite = item.cloneSprite();
+        const clonedSprite = cloneSprite(item.item.image.displayObject);
         hoverItemContainer.addChild(clonedSprite);
-        if (item.preview) {
-          item.preview.drawBg(MODE_HOVER);
+        if (hasPreviewItem(item)) {
+          const {
+            previewBackgroundColor,
+            previewBackgroundOpacity
+          } = store.getState();
+          item.image.drawBackground(
+            previewBackgroundColor,
+            previewBackgroundOpacity
+          );
         }
         render();
       }
     }
   };
 
-  const handleHoverItemEnd = ({ item }) => {
+  const itemOutHandler = ({ item }) => {
     if (isFocus) {
-      if (hoverItemContainer.children.length === 2)
+      if (hoverItemContainer.children.length === 2) {
         hoverItemContainer.removeChildAt(0);
-      if (item.preview) {
-        item.preview.drawBg();
+      }
+      if (hasPreviewItem(item)) {
+        const { pileBackgroundColor, pileBackgroundOpacity } = store.getState();
+        item.image.drawBackground(pileBackgroundColor, pileBackgroundOpacity);
       }
       render();
     }
@@ -202,11 +216,11 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     }
     // pubSub subscription for hoverItem
     if (!hoverItemSubscriber) {
-      hoverItemSubscriber = pubSub.subscribe('itemOver', handleHoverItem);
+      hoverItemSubscriber = pubSub.subscribe('itemOver', itemOverHandler);
       pubSubSubscribers.push(hoverItemSubscriber);
     }
     if (!hoverItemEndSubscriber) {
-      hoverItemEndSubscriber = pubSub.subscribe('itemOut', handleHoverItemEnd);
+      hoverItemEndSubscriber = pubSub.subscribe('itemOut', itemOutHandler);
       pubSubSubscribers.push(hoverItemEndSubscriber);
     }
   };
@@ -632,10 +646,13 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   const getItemById = itemId =>
     normalItemIndex.get(itemId) || previewItemIndex.get(itemId);
 
+  const hasNormalItem = item => normalItemIndex.has(item.id);
+  const hasPreviewItem = item => previewItemIndex.has(item.id);
+
   const hasItem = (item, { asPreview = null } = {}) => {
-    if (asPreview === false) return normalItemIndex.has(item.id);
-    if (asPreview === true) return previewItemIndex.has(item.id);
-    return normalItemIndex.has(item.id) || previewItemIndex.has(item.id);
+    if (asPreview === false) return hasNormalItem(item);
+    if (asPreview === true) return hasPreviewItem(item);
+    return hasNormalItem(item) || hasPreviewItem(item);
   };
 
   const updateItemToNormal = item => {
