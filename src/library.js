@@ -530,8 +530,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       item.originalPosition = layout.ijToXy(
         i,
         j,
-        item.sprite.width,
-        item.sprite.height
+        item.image.displayObject.width,
+        item.image.displayObject.height
       );
     });
 
