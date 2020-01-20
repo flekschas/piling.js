@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 
 import createTweener from './tweener';
-import { assignWithState, interpolateNumber } from './utils';
+import { assignWith, interpolateNumber } from './utils';
 
 const withDestroy = (self, state) => ({
   destroy() {
@@ -96,9 +96,8 @@ const createPileItem = ({ image, item, pubSub }) => {
     pubSub
   };
 
-  const self = assignWithState(
-    {}, // Target
-    state,
+  const self = assignWith(state)(
+    {},
     // Read-only properties
     withDisplayObject,
     withId,

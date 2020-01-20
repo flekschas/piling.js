@@ -20,8 +20,8 @@ export const assign = (target, ...sources) => {
   return target;
 };
 
-export const assignWithState = (target, state, ...props) =>
-  props.reduce((out, prop) => assign(out, prop(out, state)), target);
+export const assignWith = (...extras) => (target, ...props) =>
+  props.reduce((out, prop) => assign(out, prop(out, ...extras)), target);
 
 export const camelToConst = str =>
   str

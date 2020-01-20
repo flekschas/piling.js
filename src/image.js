@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-import { assignWithState } from './utils';
+import { assignWith } from './utils';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
 const DEFAULT_BACKGROUND_OPACITY = 0.2;
@@ -73,13 +73,13 @@ const withPadding = (self, state) => ({
 });
 
 const basicImageProps = (self, state) =>
-  assignWithState(self, state, withDisplayObject, withSize, withSprite);
+  assignWith(state)(self, withDisplayObject, withSize, withSprite);
 
 export const createImage = texture => {
   const state = { sprite: new PIXI.Sprite(texture) };
   state.displayObject = state.sprite;
 
-  return assignWithState({}, state, basicImageProps);
+  return assignWith(state)({}, basicImageProps);
 };
 
 export const createImageWithBackground = (
@@ -110,9 +110,8 @@ export const createImageWithBackground = (
   };
   state.displayObject = state.backgroundGraphics;
 
-  const self = assignWithState(
+  const self = assignWith(state)(
     {},
-    state,
     basicImageProps,
     withBackground,
     withPadding

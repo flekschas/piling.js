@@ -1,4 +1,4 @@
-import { assignWithState } from './utils';
+import { assignWith } from './utils';
 
 const withId = (self, state) => ({
   get id() {
@@ -44,9 +44,8 @@ const withDestroy = () => ({
  */
 const createItem = ({ id, image }, { preview = null } = {}) => {
   const state = { id, image, preview };
-  return assignWithState(
+  return assignWith(state)(
     {},
-    state,
     withId,
     withImage,
     withPreview,
