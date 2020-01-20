@@ -17,13 +17,13 @@ modeToString.set(MODE_ACTIVE, 'Active');
 /**
  * Factory function to create a pile
  * @param {object}   options - The options
- * @param {object}   options.initialItem - The first item on the pile
+ * @param {object}   options.initialItems - The initial set of item
  * @param {function} options.render - Render withRaf function
  * @param {number}   options.id - Pile identifier
  * @param {object}   options.pubSub - Local pubSub instance
  * @param {object}   options.store - Redux store
  */
-const createPile = ({ initialItem, render, id, pubSub, store }) => {
+const createPile = ({ initialItems, render, id, pubSub, store }) => {
   const allItems = [];
   const normalItemIndex = new Map();
   const previewItemIndex = new Map();
@@ -844,7 +844,7 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
 
-    setItems([initialItem]);
+    setItems(initialItems);
   };
 
   init();

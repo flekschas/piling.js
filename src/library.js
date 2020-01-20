@@ -609,7 +609,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           renderedItems.set(id, newItem);
 
           const pile = createPile({
-            initialItem: newItem,
+            initialItems: [newItem],
             render: renderRaf,
             id: index,
             pubSub,
@@ -777,7 +777,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     } else {
       const newPile = createPile({
-        initialItem: renderedItems.get(id),
+        initialItems: [renderedItems.get(id)],
         render: renderRaf,
         id,
         pubSub,
