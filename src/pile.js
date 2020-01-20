@@ -697,6 +697,8 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.x = 0;
     graphics.y = 0;
 
+    initialItem.moveTo(0, 0);
+
     graphics
       .on('pointerdown', onPointerDown)
       .on('pointerup', onPointerUp)
