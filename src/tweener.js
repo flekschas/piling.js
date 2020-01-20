@@ -1,5 +1,8 @@
 import { cubicInOut } from './utils';
 
+const DEFAULT_DELAY = 0;
+const DEFAULT_DURATION = 250;
+
 /**
  *
  * @param {number} duration - The time duration of animation
@@ -12,8 +15,8 @@ import { cubicInOut } from './utils';
  * @param {function} onDone - The callback function when the animation is done
  */
 const createTweener = ({
-  duration = 300,
-  delay = 0,
+  duration = DEFAULT_DURATION,
+  delay = DEFAULT_DELAY,
   interpolator,
   easing = cubicInOut,
   endValue,
