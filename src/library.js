@@ -13,6 +13,7 @@ import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   capitalize,
+  cloneSprite,
   colorToDecAlpha,
   debounce,
   deepClone,
@@ -1162,7 +1163,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       let widths = 0;
       items.forEach((itemId, index) => {
-        const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
         clonedSprite.x = -temporaryDepileContainer.x;
         temporaryDepileContainer.addChild(clonedSprite);
         animateTempDepile(
@@ -1181,7 +1184,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       let heights = 0;
       items.forEach((itemId, index) => {
-        const clonedSprite = renderedItems.get(itemId).cloneSprite();
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
         clonedSprite.y = -temporaryDepileContainer.y;
         temporaryDepileContainer.addChild(clonedSprite);
         animateTempDepile(
@@ -1204,7 +1209,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const squareLength = Math.ceil(Math.sqrt(items.length));
 
     items.forEach((itemId, index) => {
-      const clonedSprite = renderedItems.get(itemId).cloneSprite();
+      const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
       clonedSprite.x = -temporaryDepileContainer.x;
       temporaryDepileContainer.addChild(clonedSprite);
       const getPosition = orderer(squareLength);
