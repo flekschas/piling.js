@@ -66,9 +66,14 @@ const createTweener = ({
   };
 
   return {
+    get dt() {
+      return dt;
+    },
+    get duration() {
+      return duration;
+    },
     register,
     update,
-    getDt: () => dt,
     setEasing
   };
 };

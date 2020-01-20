@@ -1,118 +1,64 @@
 import * as PIXI from 'pixi.js';
 
-import createTweener from './tweener';
-import { assignWith, interpolateNumber } from './utils';
+import withConstructor from './with-constructor';
+import withAnimatedProperty from './with-animated-property';
+import withReadOnlyProperty from './with-read-only-property';
 
-const withDestroy = (self, state) => ({
-  destroy() {
-    return state.container.destroy();
-  }
-});
+import { assign, pipe } from './utils';
 
-const withDisplayObject = (self, state) => ({
-  get displayObject() {
-    return state.container;
-  }
-});
-
-const withId = (self, state) => ({
-  get id() {
-    return state.item.id;
-  }
-});
-
-const withImage = (self, state) => ({
-  get image() {
-    return state.image;
-  }
-});
-
-const withItem = (self, state) => ({
-  get item() {
-    return state.item;
-  }
-});
-
-const withMoveTo = self => ({
-  moveTo(x, y) {
-    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
-      self.displayObject.x = x;
-      self.displayObject.y = y;
+const withDestroy = container => self =>
+  assign(self, {
+    destroy() {
+      return container.destroy();
     }
-  }
-});
+  });
 
-const withOpacity = (self, state) => ({
-  get opacity() {
-    return self.displayObject.alpha;
-  },
-  set opacity(newOpacity) {
-    self.displayObject.alpha = newOpacity;
-  },
-  animateOpacity(newOpacity) {
-    let duration = 250;
-    if (state.opacityTweener) {
-      state.pubSub.publish('cancelAnimation', state.opacityTweener);
-      const Dt = state.opacityTweener.getDt();
-      if (Dt < duration) {
-        duration = Dt;
+const withMoveTo = () => self =>
+  assign(self, {
+    moveTo(x, y) {
+      if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
+        self.displayObject.x = x;
+        self.displayObject.y = y;
       }
     }
-    state.opacityTweener = createTweener({
-      duration,
-      delay: 0,
-      interpolator: interpolateNumber,
-      endValue: newOpacity,
-      getter: () => self.opacity,
-      setter: opacity => {
-        self.opacity = opacity;
-      }
-    });
-    state.pubSub.publish('animate', state.opacityTweener);
-  }
-});
+  });
 
 const createPileItem = ({ image, item, pubSub }) => {
-  const init = (self, state) => {
-    state.container.addChild(state.image.displayObject);
+  const init = self => {
+    self.displayObject.addChild(self.image.displayObject);
 
-    state.pointerOverHandler = () => {
-      state.pubSub.publish('itemOver', { item: self });
+    const pointerOverHandler = () => {
+      pubSub.publish('itemOver', { item: self });
     };
-    state.pointerOutHandler = () => {
-      state.pubSub.publish('itemOut', { item: self });
+    const pointerOutHandler = () => {
+      pubSub.publish('itemOut', { item: self });
     };
 
-    state.container.interactive = true;
-    state.container.buttonMode = true;
-    state.container.on('pointerover', state.pointerOverHandler);
-    state.container.on('pointerout', state.pointerOutHandler);
+    self.displayObject.interactive = true;
+    self.displayObject.buttonMode = true;
+    self.displayObject.on('pointerover', pointerOverHandler);
+    self.displayObject.on('pointerout', pointerOutHandler);
+
+    return self;
   };
 
-  const state = {
-    container: new PIXI.Container(),
-    image,
-    item,
-    pubSub
-  };
+  const container = new PIXI.Container();
 
-  const self = assignWith(state)(
-    {},
-    // Read-only properties
-    withDisplayObject,
-    withId,
-    withImage,
-    withItem,
-    // Read-write properties
-    withOpacity,
-    // Methods
-    withDestroy,
-    withMoveTo
+  return init(
+    pipe(
+      withReadOnlyProperty('displayObject', container),
+      withReadOnlyProperty('id', item.id),
+      withReadOnlyProperty('image', image),
+      withReadOnlyProperty('item', item),
+      withAnimatedProperty({
+        name: 'opacity',
+        pubSub
+      }),
+      withDestroy(container),
+      withMoveTo(),
+      withConstructor(createPileItem)
+    )({})
   );
-
-  init(self, state);
-
-  return self;
 };
 
 export default createPileItem;

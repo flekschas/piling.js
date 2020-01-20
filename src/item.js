@@ -1,42 +1,8 @@
-import { assign } from './utils';
+import withConstructor from './with-constructor';
+import withProperty from './with-property';
+import withReadOnlyProperty from './with-read-only-property';
 
-const withId = id => ({
-  get id() {
-    return id;
-  }
-});
-
-const withImage = image => ({
-  get image() {
-    return image;
-  }
-});
-
-const withPreview = preview => ({
-  get preview() {
-    return preview;
-  }
-});
-
-const withOriginalPosition = ([x, y]) => {
-  const originalPosition = [x, y];
-  return {
-    get originalPosition() {
-      return [...originalPosition];
-    },
-    setOriginalPosition([newX, newY]) {
-      originalPosition[0] = newX;
-      originalPosition[1] = newY;
-      return this;
-    }
-  };
-};
-
-const withDestroy = () => ({
-  destroy() {
-    // To be implemented
-  }
-});
+import { pipe } from './utils';
 
 /**
  * Factory function to create an item
@@ -48,13 +14,15 @@ const createItem = (
   { id, image },
   { preview = null, originalPosition = [0, 0] } = {}
 ) =>
-  assign(
-    {},
-    withId(id),
-    withImage(image),
-    withPreview(preview),
-    withOriginalPosition(originalPosition),
-    withDestroy()
-  );
+  pipe(
+    withReadOnlyProperty('id', id),
+    withReadOnlyProperty('image', image),
+    withReadOnlyProperty('preview', preview),
+    withProperty('originalPosition', {
+      initialValue: originalPosition,
+      cloner: v => [...v]
+    }),
+    withConstructor(createItem)
+  )({});
 
 export default createItem;

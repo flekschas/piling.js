@@ -27,7 +27,8 @@ import {
   withThrottleAndDebounce
 } from './utils';
 
-import { createImage, createImageWithBackground } from './image';
+import createImage from './image';
+import createImageWithBackground from './image-with-background';
 import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
@@ -735,7 +736,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         itemSrcs.push(items[itemId].src);
 
-        width = Math.max(width, itemInstance.image.innerWidth);
+        width = Math.max(width, itemInstance.image.width);
 
         itemInstances.push(itemInstance);
       });

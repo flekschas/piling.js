@@ -354,9 +354,8 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     let duration = 250;
     if (opacityTweener) {
       pubSub.publish('cancelAnimation', opacityTweener);
-      const Dt = opacityTweener.getDt();
-      if (Dt < duration) {
-        duration = Dt;
+      if (opacityTweener.dt < opacityTweener.duration) {
+        duration = opacityTweener.dt;
       }
     }
     opacityTweener = createTweener({
@@ -580,9 +579,8 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     let duration = 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
-      const Dt = scaleTweener.getDt();
-      if (Dt < duration) {
-        duration = Dt;
+      if (scaleTweener.dt < scaleTweener.duration) {
+        duration = scaleTweener.dt;
       }
     }
     scaleTweener = createTweener({

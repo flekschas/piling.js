@@ -20,14 +20,13 @@ export const assign = (target, ...sources) => {
   return target;
 };
 
-export const assignWith = (...extras) => (target, ...props) =>
-  props.reduce((out, prop) => assign(out, prop(out, ...extras)), target);
-
 export const camelToConst = str =>
   str
     .split(/(?=[A-Z])/)
     .join('_')
     .toUpperCase();
+
+export const capitalize = str => `${str[0].toUpperCase()}${str.substr(1)}`;
 
 export const cloneSprite = sprite => {
   const clonedSprite = new PIXI.Sprite(sprite.texture);
@@ -39,6 +38,8 @@ export const cloneSprite = sprite => {
 
   return clonedSprite;
 };
+
+export const identity = x => x;
 
 export const l1Dist = (fromX, fromY, toX, toY) =>
   Math.abs(fromX - toX) + Math.abs(fromY - toY);
@@ -61,6 +62,8 @@ export const normalizeVector = vector => {
   const norm = l2Norm(vector);
   return [vector[0] / norm, vector[1] / norm];
 };
+
+export const pipe = (...fns) => x => fns.reduce((y, f) => f(y), x);
 
 /**
  * Update the target object by the source object. Besides extending that target
@@ -162,8 +165,6 @@ export const createWorker = fn => {
     )
   );
 };
-
-export const capitalize = str => `${str[0].toUpperCase()}${str.slice(1)}`;
 
 /**
  * L2 distance between a pair of 2D points
