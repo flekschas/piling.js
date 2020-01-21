@@ -1241,7 +1241,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
           if (pile.isTempDepiled) {
-            pile.tempDepileContainer.removeChildAt(length - 1);
+            pile.tempDepileContainer.removeChildren();
             pile.isTempDepiled = false;
             pile.blur();
             pile.hover();
