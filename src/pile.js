@@ -454,7 +454,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     } else if (itemAlignment || allItems.length === 1) {
       // image
       newItems.forEach(item => {
-        const sprite = item.sprite;
+        const displayObject = item.displayObject;
 
         // eslint-disable-next-line no-use-before-define
         const currentScale = getScale();
@@ -462,11 +462,11 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
 
         // When the scale of the source and target pile were different, we need
         // to equalize the scale.
-        sprite.tmpTargetScale = sprite.scale.x;
+        displayObject.tmpTargetScale = displayObject.scale.x;
         if (!Number.isNaN(+item.tmpRelScale)) {
           relItemScale = item.tmpRelScale / currentScale;
-          sprite.scale.x *= relItemScale;
-          sprite.scale.y = sprite.scale.x;
+          displayObject.scale.x *= relItemScale;
+          displayObject.scale.y = displayObject.scale.x;
           item.tmpRelScale = undefined;
           delete item.tmpRelScale;
         }
@@ -525,17 +525,17 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
       newItems.forEach(item => {
         num++;
 
-        const sprite = item.sprite;
+        const displayObject = item.displayObject;
 
         // eslint-disable-next-line no-use-before-define
         const currentScale = getScale();
         let relItemScale = (item.tmpRelScale || 1) / currentScale;
 
-        sprite.tmpTargetScale = sprite.scale.x;
+        displayObject.tmpTargetScale = displayObject.scale.x;
         if (!Number.isNaN(+item.tmpRelScale)) {
           relItemScale = item.tmpRelScale / currentScale;
-          sprite.scale.x *= relItemScale;
-          sprite.scale.y = sprite.scale.x;
+          displayObject.scale.x *= relItemScale;
+          displayObject.scale.y = displayObject.scale.x;
           item.tmpRelScale = undefined;
           delete item.tmpRelScale;
         }
@@ -561,7 +561,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
         }
 
         animatePositionItems(
-          sprite,
+          displayObject,
           offsetX,
           offsetY,
           angle,
