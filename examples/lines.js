@@ -27,7 +27,7 @@ const createSvgLinesPiles = element => {
   const piling = createPilingJs(element, {
     renderer: svgRenderer,
     items: data,
-    itemOpacity: (item, i, pile) => 1 / pile.items.length / 2 / 3 + 1 / 3,
+    itemOpacity: (item, i, pile) => (1 / pile.items.length) * (2 / 3) + 1 / 3,
     pileItemAlignment: ['top', 'bottom', 'left', 'right'],
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
@@ -35,6 +35,7 @@ const createSvgLinesPiles = element => {
     lassoStrokeColor: '#000000'
   });
 
+  // eslint-disable-next-line no-console
   const log = message => () => console.log(message);
 
   piling.subscribe('pileFocus', log('pileFocus'));
