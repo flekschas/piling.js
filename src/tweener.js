@@ -28,10 +28,15 @@ const createTweener = ({
   let startTime;
   let dt;
   let interpolate;
+  let ready;
 
   const startAnimation = () => {
     startTime = performance.now();
     startValue = getter();
+    ready = typeof startValue !== 'undefined' && startValue !== null;
+    if (!ready) {
+      console.warn(`Invalid start value for animation: ${startValue}`);
+    }
     interpolate = interpolator(startValue, endValue);
   };
 
@@ -44,7 +49,7 @@ const createTweener = ({
    * @return  {bool}  If `true` the animation is over
    */
   const update = () => {
-    if (!startValue) return false;
+    if (!ready) return false;
 
     dt = performance.now() - startTime;
 
