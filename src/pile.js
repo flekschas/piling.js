@@ -70,11 +70,20 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     });
   };
 
+  const clonePileItemSprite = pileItem => {
+    const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
+    clonedSprite.x = pileItem.displayObject.x;
+    clonedSprite.y = pileItem.displayObject.y;
+    clonedSprite.angle = pileItem.displayObject.angle;
+
+    return clonedSprite;
+  };
+
   // eslint-disable-next-line no-shadow
   const itemOverHandler = ({ item }) => {
     if (isFocus) {
       if (!rootGraphics.isDragging) {
-        const clonedSprite = cloneSprite(item.item.image.displayObject);
+        const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
         if (hasPreviewItem(item)) {
           const {
