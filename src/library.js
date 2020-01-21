@@ -1646,7 +1646,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Consequential updates that cause new actions to be dispatched
     if (stateUpdates.has('grid')) {
       updateGrid();
-    } else if (stateUpdates.has('arrange')) {
+    }
+    if (stateUpdates.has('arrange')) {
       changedPiles.forEach(id => {
         const pile = pileInstances.get(id);
         if (pile) {
