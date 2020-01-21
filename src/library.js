@@ -617,7 +617,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const arrangePile = pile => {
+  const getPilePosition = pile => {
     const { orderer, arrangementType, arrangementObjective } = store.getState();
 
     const getCellPosition = orderer(layout.numColumns);
@@ -676,7 +676,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         let x = null;
         let y = null;
 
-        [x, y] = arrangePile(pile);
+        [x, y] = getPilePosition(pile);
 
         if (x === null) {
           const getCellPosition = orderer(layout.numColumns);
@@ -1474,7 +1474,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const stateUpdates = new Set();
     const newlyCreatedItems = [];
 
-    const changedPiles = [];
+    const updatedPiles = [];
 
     if (
       state.items !== newState.items ||
@@ -1498,7 +1498,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
-            changedPiles.push(id);
+            updatedPiles.push(id);
             stateUpdates.add('arrange');
           }
           if (
@@ -1507,8 +1507,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
-            changedPiles.push(id);
-            stateUpdates.add('arrange');
+            updatedPiles.push(id);
           }
         });
       }
@@ -1647,13 +1646,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (stateUpdates.has('grid')) {
       updateGrid();
     }
-    if (stateUpdates.has('arrange')) {
-      changedPiles.forEach(id => {
-        const pile = pileInstances.get(id);
-        if (pile) {
-          arrangePile(pile);
-        }
-      });
+    if (updatedPiles.length > 0) {
+      updatedPiles
+        .filter(id => pileInstances.has(id))
+        .forEach(id => getPilePosition(pileInstances.get(id)));
     }
   };
 
@@ -1686,11 +1682,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resetPileBorder();
   };
 
-  const arrangeBy = (type, dataOrObjectionFunction) => {
+  const arrangeBy = (type, objective) => {
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
-        ...set('arrangementObjective', dataOrObjectionFunction, true)
+        ...set('arrangementObjective', objective, true)
       ])
     );
   };
