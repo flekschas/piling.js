@@ -3,9 +3,11 @@ import withProperty from './with-property';
 
 import { assign, capitalize, interpolateNumber, pipe } from './utils';
 
-const addAnimation = ({ name, pubSub }, { duration } = {}) => self => {
+const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
   const getter = () => self[name];
-  const setter = () => self[`set${capitalize(name)}`];
+  const setter = value => {
+    self[`set${capitalize(name)}`](value);
+  };
 
   let tweener;
 
@@ -19,6 +21,7 @@ const addAnimation = ({ name, pubSub }, { duration } = {}) => self => {
         }
       }
       tweener = createTweener({
+        delay,
         duration: remainingDuration,
         interpolator: interpolateNumber,
         endValue: newOpacity,
@@ -32,11 +35,27 @@ const addAnimation = ({ name, pubSub }, { duration } = {}) => self => {
 
 const withAnimatedProperty = (
   { name, pubSub },
-  { cloner, transformer, validator, duration } = {}
+  {
+    initialValue,
+    getter,
+    setter,
+    cloner,
+    transformer,
+    validator,
+    duration,
+    delay
+  } = {}
 ) => self =>
   pipe(
-    withProperty(name, { cloner, transformer, validator }),
-    addAnimation({ name, pubSub }, { duration })
+    withProperty(name, {
+      initialValue,
+      getter,
+      setter,
+      cloner,
+      transformer,
+      validator
+    }),
+    addAnimation({ name, pubSub }, { duration, delay })
   )(self);
 
 export default withAnimatedProperty;
