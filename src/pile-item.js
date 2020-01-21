@@ -50,10 +50,18 @@ const createPileItem = ({ image, item, pubSub }) => {
       withReadOnlyProperty('id', item.id),
       withReadOnlyProperty('image', image),
       withReadOnlyProperty('item', item),
-      withAnimatedProperty({
-        name: 'opacity',
-        pubSub
-      }),
+      withAnimatedProperty(
+        {
+          name: 'opacity',
+          pubSub
+        },
+        {
+          getter: () => container.alpha,
+          setter: newAlpha => {
+            container.alpha = newAlpha;
+          }
+        }
+      ),
       withDestroy(container),
       withMoveTo(),
       withConstructor(createPileItem)
