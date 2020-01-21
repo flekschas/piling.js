@@ -35,6 +35,7 @@ export const cloneSprite = sprite => {
   clonedSprite.y = sprite.y;
   clonedSprite.width = sprite.width;
   clonedSprite.height = sprite.height;
+  clonedSprite.angle = sprite.angle;
 
   return clonedSprite;
 };
