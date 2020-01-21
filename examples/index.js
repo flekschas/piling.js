@@ -42,6 +42,7 @@ const updateHandler = ({ action }) => {
   const state = piling.exportState();
   history.push(state);
 
+  // eslint-disable-next-line no-console
   console.log('Update', action.type, history.length);
 
   if (history.length > 5) history.shift();

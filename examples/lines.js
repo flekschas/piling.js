@@ -35,6 +35,7 @@ const createSvgLinesPiles = element => {
     lassoStrokeColor: '#000000'
   });
 
+  // eslint-disable-next-line no-console
   const log = message => () => console.log(message);
 
   piling.subscribe('pileFocus', log('pileFocus'));
