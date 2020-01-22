@@ -13,6 +13,7 @@ import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   capitalize,
+  cloneSprite,
   colorToDecAlpha,
   debounce,
   deepClone,
@@ -26,10 +27,11 @@ import {
   withThrottleAndDebounce
 } from './utils';
 
+import createImage from './image';
+import createImageWithBackground from './image-with-background';
 import createPile from './pile';
 import createGrid from './grid';
 import createItem from './item';
-import createPreview from './preview';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
 
@@ -403,7 +405,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let max = 0;
 
     renderedItems.forEach(item => {
-      const longerBorder = Math.max(item.sprite.width, item.sprite.height);
+      const longerBorder = Math.max(
+        item.image.displayObject.width,
+        item.image.displayObject.height
+      );
       if (longerBorder > max) max = longerBorder;
       if (longerBorder < min) min = longerBorder;
     });
@@ -438,22 +443,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .range(range);
 
     renderedItems.forEach(item => {
-      const spriteRatio = item.sprite.height / item.sprite.width;
-
-      if (item.sprite.width > item.sprite.height) {
-        item.sprite.width = scaleSprite(item.sprite.width);
-        item.sprite.height = item.sprite.width * spriteRatio;
-      } else {
-        item.sprite.height = scaleSprite(item.sprite.height);
-        item.sprite.width = item.sprite.height / spriteRatio;
-      }
+      const scaleFactor = scaleSprite(item.image.size) / item.image.size;
+      item.image.sprite.width *= scaleFactor;
+      item.image.sprite.height *= scaleFactor;
 
       if (item.preview) {
-        const previewSprite = item.preview.previewSprite;
-        const previewRatio = previewSprite.height / previewSprite.width;
-        previewSprite.width = item.sprite.width;
-        previewSprite.height = previewSprite.width * previewRatio;
-        item.preview.drawBg(0x000000);
+        item.preview.sprite.width *= scaleFactor;
+        item.preview.sprite.height *= scaleFactor;
+        item.preview.drawBackground();
       }
     });
   };
@@ -487,10 +484,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     pileInstances.forEach(pile => {
-      if (pile.hasCover) {
+      if (pile.cover()) {
         const coverRatio = pile.cover.height / pile.cover.width;
         pile.cover.width =
-          pile.itemContainer.children[0].width -
+          pile.normalItemContainer.children[0].width -
           store.getState().previewSpacing;
         pile.cover.height = coverRatio * pile.cover.width;
 
@@ -532,11 +529,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.forEach(item => {
       const getCellPosition = orderer(layout.numColumns);
       const [i, j] = getCellPosition(item.id);
-      item.originalPosition = layout.ijToXy(
-        i,
-        j,
-        item.sprite.width,
-        item.sprite.height
+      item.setOriginalPosition(
+        layout.ijToXy(
+          i,
+          j,
+          item.image.displayObject.width,
+          item.image.displayObject.height
+        )
       );
     });
 
@@ -558,10 +557,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const createItems = () => {
     const {
+      items,
       itemRenderer,
-      previewRenderer,
+      pileBackgroundColor,
+      pileBackgroundOpacity,
       previewAggregator,
-      items
+      previewRenderer,
+      previewSpacing
     } = store.getState();
 
     if (!items.length || !itemRenderer) return null;
@@ -582,27 +584,36 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     lassoBgContainer.addChild(lassoFill);
     stage.addChild(normalPiles);
 
-    const renderItems = itemRenderer(items.map(({ src }) => src));
+    const renderImages = itemRenderer(
+      items.map(({ src }) => src)
+    ).then(textures => textures.map(createImage));
+
+    const previewOptions = {
+      backgroundColor: pileBackgroundColor,
+      backgroundOpacity: pileBackgroundOpacity,
+      padding: previewSpacing
+    };
+    const createPreview = texture =>
+      createImageWithBackground(texture, previewOptions);
+
     const renderPreviews = previewAggregator
-      ? previewAggregator(items.map(({ src }) => src)).then(newPreviews => {
-          return previewRenderer(newPreviews);
-        })
+      ? previewAggregator(items.map(({ src }) => src))
+          .then(previewRenderer)
+          .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
 
-    return Promise.all([renderItems, renderPreviews]).then(
-      ([newRenderedItems, newRenderedPreviews]) => {
-        newRenderedItems.forEach((renderedItem, index) => {
-          let preview = null;
-          if (newRenderedPreviews[index]) {
-            preview = createPreview({
-              texture: newRenderedPreviews[index],
-              store
-            });
-          }
-          const newItem = createItem(index, renderedItem, preview, pubSub);
-          renderedItems.set(index, newItem);
+    return Promise.all([renderImages, renderPreviews]).then(
+      ([renderedImages, renderedPreviews]) => {
+        renderedImages.forEach((image, index) => {
+          const id = items[index].id || index;
+          const preview = renderedPreviews[index];
+
+          const newItem = createItem({ id, image, pubSub }, { preview });
+
+          renderedItems.set(id, newItem);
+
           const pile = createPile({
-            initialItem: newItem,
+            initialItems: [newItem],
             render: renderRaf,
             id: index,
             pubSub,
@@ -647,7 +658,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.graphics.height
         );
 
-        renderedItems.get(id).originalPosition = [x, y];
+        renderedItems.get(id).setOriginalPosition([x, y]);
 
         movingPiles.push({ id, x, y });
       });
@@ -675,14 +686,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
   };
 
-  const updatePileItemStyle = pile => {
+  const updatePileItemStyle = (pileState, pileId) => {
     const { items, itemOpacity } = store.getState();
 
-    pile.items.forEach((itemId, i) => {
-      const item = items[itemId];
-      const itemInstance = renderedItems.get(itemId);
-      itemInstance.opacity(
-        isFunction(itemOpacity) ? itemOpacity(item, i, pile) : itemOpacity
+    const pileInstance = pileInstances.get(pileId);
+
+    pileInstance.items.forEach((item, i) => {
+      const itemState = items[item.id];
+      item.animateOpacity(
+        isFunction(itemOpacity)
+          ? itemOpacity(itemState, i, pileState)
+          : itemOpacity
       );
     });
   };
@@ -705,39 +719,43 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const updatePreviewAndCover = (pile, pileInstance) => {
-    const { items, coverAggregator, aggregateRenderer } = store.getState();
-    if (pile.items.length === 1) {
-      pileInstance.hasCover = false;
+  const updatePreviewAndCover = (pileState, pileInstance) => {
+    const { items, aggregateRenderer, coverAggregator } = store.getState();
+
+    if (pileState.items.length === 1) {
+      pileInstance.cover(null);
       positionItems(pileInstance.id);
-      pileInstance.removeItems();
-      pileInstance.addItem(renderedItems.get(pile.items[0]));
+      pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
       const itemSrcs = [];
-      let previewWidth;
-      pileInstance.removeItems();
-      pileInstance.hasCover = true;
+      const itemInstances = [];
+      let width = -Infinity;
 
-      pile.items.forEach(itemId => {
+      pileState.items.forEach(itemId => {
+        const itemInstance = renderedItems.get(itemId);
+
         itemSrcs.push(items[itemId].src);
-        const preview = renderedItems.get(itemId).preview.previewContainer;
-        if (!previewWidth) {
-          previewWidth = preview.width - store.getState().previewSpacing;
-        }
-        pileInstance.addItem(renderedItems.get(itemId));
+
+        width = Math.max(width, itemInstance.image.width);
+
+        itemInstances.push(itemInstance);
       });
 
-      coverAggregator(itemSrcs)
-        .then(newSrc => aggregateRenderer([newSrc]))
-        .then(newCover => {
-          const cover = new PIXI.Sprite(newCover[0]);
-          const coverRatio = cover.height / cover.width;
-          cover.width = previewWidth;
-          cover.height = coverRatio * cover.width;
-          pileInstance.cover = cover;
-          pileInstance.itemContainer.addChild(cover);
-          positionItems(pileInstance.id);
-        });
+      pileInstance.setItems(itemInstances, { asPreview: true });
+      pileInstance.cover(
+        coverAggregator(itemSrcs)
+          .then(newSrc => aggregateRenderer([newSrc]))
+          .then(([newCover]) => {
+            const cover = new PIXI.Sprite(newCover);
+            const aspectRatio = cover.width / cover.height;
+            cover.width = width;
+            cover.height = cover.width / aspectRatio;
+
+            positionItems(pileInstance.id);
+
+            return cover;
+          })
+      );
     }
   };
 
@@ -759,11 +777,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           positionItems(id);
         }
         updateBoundingBox(id);
-        updatePileItemStyle(pile);
+        updatePileItemStyle(pile, id);
       }
     } else {
       const newPile = createPile({
-        initialItem: renderedItems.get(id),
+        initialItems: [renderedItems.get(id)],
         render: renderRaf,
         id,
         pubSub,
@@ -772,7 +790,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updateBoundingBox(id);
-      updatePileItemStyle(pile);
+      updatePileItemStyle(pile, id);
     }
   };
 
@@ -959,7 +977,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
     items.forEach((itemId, index) => {
       const pile = pileInstances.get(itemId);
-      const item = renderedItems.get(itemId);
+      const pileItem = pile.getItemById(itemId);
       const tweener = createTweener({
         duration: 250,
         delay: 0,
@@ -967,15 +985,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         endValue: [
           ...(itemPositions.length > 0
             ? itemPositions[index]
-            : item.originalPosition),
+            : pileItem.item.originalPosition),
           0
         ],
         getter: () => {
-          return [pile.x, pile.y, item.sprite.angle];
+          return [pile.x, pile.y, pileItem.displayObject.angle];
         },
         setter: newValue => {
           pile.moveTo(newValue[0], newValue[1]);
-          item.sprite.angle = newValue[2];
+          pileItem.displayObject.angle = newValue[2];
         },
         onDone: finalValue => {
           movingPiles.push({
@@ -1135,22 +1153,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.add(tweener);
   };
 
-  const tempDepileOneD = (
-    temporaryDepileContainer,
-    pile,
-    tempDepileDirection,
-    items
-  ) => {
+  const tempDepileOneD = ({ pile, tempDepileDirection, items }) => {
     if (tempDepileDirection === 'horizontal') {
-      temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-      temporaryDepileContainer.y = 0;
-      temporaryDepileContainer.interactive = true;
+      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      pile.tempDepileContainer.y = 0;
+      pile.tempDepileContainer.interactive = true;
 
       let widths = 0;
       items.forEach((itemId, index) => {
-        const clonedSprite = renderedItems.get(itemId).cloneSprite();
-        clonedSprite.x = -temporaryDepileContainer.x;
-        temporaryDepileContainer.addChild(clonedSprite);
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
+        clonedSprite.x = -pile.tempDepileContainer.x;
+        pile.tempDepileContainer.addChild(clonedSprite);
         animateTempDepile(
           clonedSprite,
           pile,
@@ -1161,15 +1176,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         widths += clonedSprite.width;
       });
     } else if (tempDepileDirection === 'vertical') {
-      temporaryDepileContainer.x = 0;
-      temporaryDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
-      temporaryDepileContainer.interactive = true;
+      pile.tempDepileContainer.x = 0;
+      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      pile.tempDepileContainer.interactive = true;
 
       let heights = 0;
       items.forEach((itemId, index) => {
-        const clonedSprite = renderedItems.get(itemId).cloneSprite();
-        clonedSprite.y = -temporaryDepileContainer.y;
-        temporaryDepileContainer.addChild(clonedSprite);
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
+        clonedSprite.y = -pile.tempDepileContainer.y;
+        pile.tempDepileContainer.addChild(clonedSprite);
         animateTempDepile(
           clonedSprite,
           pile,
@@ -1182,17 +1199,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const tempDepileTwoD = (temporaryDepileContainer, pile, items, orderer) => {
-    temporaryDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-    temporaryDepileContainer.y = 0;
-    temporaryDepileContainer.interactive = true;
+  const tempDepileTwoD = ({ pile, items, orderer }) => {
+    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    pile.tempDepileContainer.y = 0;
 
     const squareLength = Math.ceil(Math.sqrt(items.length));
 
     items.forEach((itemId, index) => {
-      const clonedSprite = renderedItems.get(itemId).cloneSprite();
-      clonedSprite.x = -temporaryDepileContainer.x;
-      temporaryDepileContainer.addChild(clonedSprite);
+      const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
+      clonedSprite.x = -pile.tempDepileContainer.x;
+      pile.tempDepileContainer.addChild(clonedSprite);
       const getPosition = orderer(squareLength);
       let x;
       let y;
@@ -1210,16 +1226,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const pile = pileInstances.get(pileId);
 
       if (pile.isTempDepiled) {
-        const length = pile.itemContainer.children.length;
-        const temporaryDepileContainer = pile.itemContainer.getChildAt(
-          length - 1
-        );
-        temporaryDepileContainer.children.forEach((item, index) => {
+        const length = pile.size;
+        pile.tempDepileContainer.children.forEach((item, index) => {
           animateCloseTempDepile(
             item,
-            -temporaryDepileContainer.x,
-            -temporaryDepileContainer.y,
-            index === temporaryDepileContainer.children.length - 1,
+            -pile.tempDepileContainer.x,
+            -pile.tempDepileContainer.y,
+            index === pile.tempDepileContainer.children.length - 1,
             pile,
             length
           );
@@ -1228,18 +1241,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
           if (pile.isTempDepiled) {
-            pile.itemContainer.removeChildAt(length - 1);
+            pile.tempDepileContainer.removeChildren();
             pile.isTempDepiled = false;
+            pile.blur();
             pile.hover();
-            pile.isFocus = false;
             store.dispatch(createAction.setFocusedPiles([]));
           }
         });
         pubSub.publish('pileInactive', { pile });
       } else {
-        const temporaryDepileContainer = new PIXI.Container();
-        pile.itemContainer.addChild(temporaryDepileContainer);
-
         animateAlpha(pile.graphics, 1);
         pile.graphics.interactive = true;
 
@@ -1253,14 +1263,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const items = [...piles[pileId].items];
 
         if (items.length < tempDepileOneDNum) {
-          tempDepileOneD(
-            temporaryDepileContainer,
+          tempDepileOneD({
             pile,
             tempDepileDirection,
             items
-          );
+          });
         } else {
-          tempDepileTwoD(temporaryDepileContainer, pile, items, orderer);
+          tempDepileTwoD({ pile, items, orderer });
         }
         pubSub.publish('pileActive', { pile });
       }

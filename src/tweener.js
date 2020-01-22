@@ -1,5 +1,8 @@
 import { cubicInOut } from './utils';
 
+const DEFAULT_DELAY = 0;
+const DEFAULT_DURATION = 250;
+
 /**
  *
  * @param {number} duration - The time duration of animation
@@ -12,8 +15,8 @@ import { cubicInOut } from './utils';
  * @param {function} onDone - The callback function when the animation is done
  */
 const createTweener = ({
-  duration = 300,
-  delay = 0,
+  duration = DEFAULT_DURATION,
+  delay = DEFAULT_DELAY,
   interpolator,
   easing = cubicInOut,
   endValue,
@@ -25,10 +28,15 @@ const createTweener = ({
   let startTime;
   let dt;
   let interpolate;
+  let ready;
 
   const startAnimation = () => {
     startTime = performance.now();
     startValue = getter();
+    ready = typeof startValue !== 'undefined' && startValue !== null;
+    if (!ready) {
+      console.warn(`Invalid start value for animation: ${startValue}`);
+    }
     interpolate = interpolator(startValue, endValue);
   };
 
@@ -41,7 +49,7 @@ const createTweener = ({
    * @return  {bool}  If `true` the animation is over
    */
   const update = () => {
-    if (!startValue) return false;
+    if (!ready) return false;
 
     dt = performance.now() - startTime;
 
@@ -63,9 +71,14 @@ const createTweener = ({
   };
 
   return {
+    get dt() {
+      return dt;
+    },
+    get duration() {
+      return duration;
+    },
     register,
     update,
-    getDt: () => dt,
     setEasing
   };
 };

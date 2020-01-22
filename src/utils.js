@@ -1,8 +1,46 @@
+import * as PIXI from 'pixi.js';
+
+export const assign = (target, ...sources) => {
+  sources.forEach(source => {
+    // eslint-disable-next-line no-shadow
+    const descriptors = Object.keys(source).reduce((descriptors, key) => {
+      descriptors[key] = Object.getOwnPropertyDescriptor(source, key);
+      return descriptors;
+    }, {});
+
+    // By default, Object.assign copies enumerable Symbols, too
+    Object.getOwnPropertySymbols(source).forEach(symbol => {
+      const descriptor = Object.getOwnPropertyDescriptor(source, symbol);
+      if (descriptor.enumerable) {
+        descriptors[symbol] = descriptor;
+      }
+    });
+    Object.defineProperties(target, descriptors);
+  });
+  return target;
+};
+
 export const camelToConst = str =>
   str
     .split(/(?=[A-Z])/)
     .join('_')
     .toUpperCase();
+
+export const capitalize = str => `${str[0].toUpperCase()}${str.substr(1)}`;
+
+export const cloneSprite = sprite => {
+  const clonedSprite = new PIXI.Sprite(sprite.texture);
+  clonedSprite.interactive = sprite.interactive;
+  clonedSprite.x = sprite.x;
+  clonedSprite.y = sprite.y;
+  clonedSprite.width = sprite.width;
+  clonedSprite.height = sprite.height;
+  clonedSprite.angle = sprite.angle;
+
+  return clonedSprite;
+};
+
+export const identity = x => x;
 
 export const l1Dist = (fromX, fromY, toX, toY) =>
   Math.abs(fromX - toX) + Math.abs(fromY - toY);
@@ -13,10 +51,20 @@ export const l2Dist = (fromX, fromY, toX, toY) =>
 export const l2Norm = vector =>
   Math.sqrt(vector.reduce((s, v) => s + v ** 2, 0));
 
+export const mergeMaps = (map1, map2) =>
+  new Map(
+    (function* merge() {
+      yield* map1;
+      yield* map2;
+    })()
+  );
+
 export const normalizeVector = vector => {
   const norm = l2Norm(vector);
   return [vector[0] / norm, vector[1] / norm];
 };
+
+export const pipe = (...fns) => x => fns.reduce((y, f) => f(y), x);
 
 /**
  * Update the target object by the source object. Besides extending that target
@@ -118,8 +166,6 @@ export const createWorker = fn => {
     )
   );
 };
-
-export const capitalize = str => `${str[0].toUpperCase()}${str.slice(1)}`;
 
 /**
  * L2 distance between a pair of 2D points
