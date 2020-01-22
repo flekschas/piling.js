@@ -617,6 +617,40 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const aggregatedPileValues = new Map();
+
+  let dataScales;
+  const computeDataScales = pile => {
+    const { arrangementObjective } = store.getState();
+    const { width, height } = canvas.getBoundingClientRect();
+    const rangeMax = [width, height];
+
+    dataScales = arrangementObjective.map((objective, i) => {
+      let min = Infinity;
+      let max = -Infinity;
+
+      if (dataScales && dataScales[i]) {
+        [min, max] = [dataScales[i].domainMin, dataScales[i].domainMax];
+      }
+
+      const pileValues = pile.items.map(objective.property);
+
+      const aggregatedValue = objective.aggregator(pileValues);
+
+      aggregatedPileValues.set(pile.id, aggregatedValue);
+
+      min = aggregatedValue < min ? aggregatedValue : min;
+      max = aggregatedValue > max ? aggregatedValue : max;
+
+      const domain = objective.inverted ? [max, min] : [min, max];
+
+      return objective
+        .scale()
+        .domain(domain)
+        .range([0, rangeMax[i]]);
+    });
+  };
+
   const getPilePosition = pile => {
     const { orderer, arrangementType, arrangementObjective } = store.getState();
 
@@ -632,6 +666,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (arrangementType) {
       case 'data':
+        x = dataScales[0](aggregatedPileValues.get(pile.id));
+        y = x;
         break;
       case 'index':
         idx = arrangementObjective(pile);
@@ -665,13 +701,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const positionPiles = () => {
-    const { items, orderer } = store.getState();
+    const { items, orderer, arrangementType } = store.getState();
 
     if (items.length === 0 || !orderer) return;
 
     const movingPiles = [];
 
     if (pileInstances) {
+      if (arrangementType === 'data') {
+        pileInstances.forEach(pile => {
+          computeDataScales(pile);
+        });
+      }
       pileInstances.forEach((pile, id) => {
         let x = null;
         let y = null;
@@ -1682,7 +1723,76 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resetPileBorder();
   };
 
+  // eslint-disable-next-line consistent-return
+  const expandProperty = objective => {
+    if (objective.constructor === Function) {
+      return objective;
+    }
+    if (objective.constructor === String) {
+      return item => item[objective];
+    }
+  };
+
+  const expandArrangementObjective = arrangementObjective => {
+    if (!Array.isArray(arrangementObjective)) {
+      // eslint-disable-next-line no-param-reassign
+      arrangementObjective = [arrangementObjective];
+    }
+    const expandedArrangementObjective = [];
+
+    arrangementObjective.forEach(objective => {
+      const expandedObjective = {};
+
+      if (objective.constructor !== Object) {
+        expandedObjective.property = expandProperty(objective);
+        expandedObjective.aggregator = values =>
+          values.reduce((average, value) => average + value / values.length, 0);
+        expandedObjective.scale = scaleLinear;
+        expandedObjective.inverse = false;
+      } else {
+        expandedObjective.property = expandProperty(objective.property);
+
+        switch (objective.aggregator) {
+          case 'max':
+            expandedObjective.aggregator = values => Math.max(...values);
+            break;
+          case 'min':
+            expandedObjective.aggregator = values => Math.min(...values);
+            break;
+          case 'mean':
+          default:
+            expandedObjective.aggregator = values =>
+              values.reduce(
+                (average, value) => average + value / values.length,
+                0
+              );
+            break;
+        }
+
+        switch (objective.scale) {
+          case 'linear':
+          default:
+            expandedObjective.scale = scaleLinear;
+            break;
+        }
+
+        if (objective.inverse) {
+          expandedObjective.inverse = true;
+        } else {
+          expandedObjective.inverse = false;
+        }
+      }
+      expandedArrangementObjective.push(expandedObjective);
+    });
+    return expandedArrangementObjective;
+  };
+
   const arrangeBy = (type, objective) => {
+    if (type === 'data') {
+      // eslint-disable-next-line no-param-reassign
+      objective = expandArrangementObjective(objective);
+    }
+
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),

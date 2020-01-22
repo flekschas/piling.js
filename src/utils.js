@@ -374,7 +374,10 @@ export const scaleLinear = () => {
     rangeSize = rangeMax - rangeMin;
     return scale;
   };
-
+  scale.domainMin = domainMin;
+  scale.domainMax = domainMax;
+  scale.rangeMin = rangeMin;
+  scale.rangeMax = rangeMax;
   return scale;
 };
 
