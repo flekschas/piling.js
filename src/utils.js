@@ -393,6 +393,7 @@ export const scaleLinear = () => {
   let domainMin = 0;
   let domainMax = 1;
   let domainSize = 1;
+
   let rangeMin = 0;
   let rangeMax = 1;
   let rangeSize = 1;
@@ -406,24 +407,34 @@ export const scaleLinear = () => {
       )
     );
 
-  scale.domain = ([newDomainMin, newDomainMax]) => {
+  scale.domain = (newDomain = []) => {
+    if (newDomain.length === 0) return [domainMin, domainMax];
+
+    const [newDomainMin, newDomainMax] = newDomain;
+
     domainMin =
       newDomainMin === newDomainMax ? newDomainMin - 0.5 : newDomainMin;
     domainMax =
       newDomainMin === newDomainMax ? newDomainMax + 0.5 : newDomainMax;
+
     domainSize = domainMax - domainMin;
+
     return scale;
   };
-  scale.range = ([newRangeMin, newRangeMax]) => {
+
+  scale.range = (newRange = []) => {
+    if (newRange.length === 0) return [rangeMin, rangeMax];
+
+    const [newRangeMin, newRangeMax] = newRange;
+
     rangeMin = newRangeMin;
     rangeMax = newRangeMax;
+
     rangeSize = rangeMax - rangeMin;
+
     return scale;
   };
-  scale.domainMin = domainMin;
-  scale.domainMax = domainMax;
-  scale.rangeMin = rangeMin;
-  scale.rangeMax = rangeMax;
+
   return scale;
 };
 

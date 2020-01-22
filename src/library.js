@@ -641,7 +641,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       let max = -Infinity;
 
       if (dataScales && dataScales[i]) {
-        [min, max] = [dataScales[i].domainMin, dataScales[i].domainMax];
+        [min, max] = dataScales[i].domain();
       }
 
       const pileValues = pile.items.map(objective.property);
