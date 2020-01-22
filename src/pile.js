@@ -695,8 +695,6 @@ const createPile = ({ initialItem, render, id, pubSub, store }) => {
     graphics.interactive = true;
     graphics.buttonMode = true;
 
-    initialItem.moveTo(0, 0);
-
     graphics.x = 0;
     graphics.y = 0;
 
