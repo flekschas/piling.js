@@ -1536,7 +1536,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
             updatedPiles.push(id);
-            stateUpdates.add('arrange');
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
