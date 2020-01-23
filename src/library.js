@@ -641,6 +641,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const rangeMax = [width, height];
 
     const aggregatedValues = [];
+    aggregatedPileValues.set(pile.id, aggregatedValues);
 
     dataScales = arrangementObjective.map((objective, i) => {
       let min = Infinity;
@@ -655,7 +656,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const aggregatedValue = objective.aggregator(pileValues);
       aggregatedValues.push(aggregatedValue);
-      aggregatedPileValues.set(pile.id, aggregatedValues);
 
       min = aggregatedValue < min ? aggregatedValue : min;
       max = aggregatedValue > max ? aggregatedValue : max;
