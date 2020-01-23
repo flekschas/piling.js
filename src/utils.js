@@ -473,3 +473,13 @@ export const colorToDecAlpha = (color, defaultAlpha = 1) => {
 
 export const isFunction = obj =>
   !!(obj && obj.constructor && obj.call && obj.apply);
+
+export const sumAggregator = values => values.reduce((s, v) => s + v, 0);
+
+export const meanAggregator = values => sumAggregator(values) / values.length;
+
+export const maxAggregator = array =>
+  array.reduce((maxV, v) => (v > maxV ? v : maxV), -Infinity);
+
+export const minAggregator = array =>
+  array.reduce((minV, v) => (v < minV ? v : minV), Infinity);
