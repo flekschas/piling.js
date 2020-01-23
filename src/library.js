@@ -12,19 +12,22 @@ import createAnimator from './animator';
 import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
+  INITIAL_ARRANGEMENT_TYPE,
+  INITIAL_ARRANGEMENT_OBJECTIVE
+} from './defaults';
+
+import {
   capitalize,
   cloneSprite,
   colorToDecAlpha,
   debounce,
   deepClone,
   getBBox,
-  identity,
   isFunction,
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
   l2Dist,
-  mapFilter,
   maxAggregator,
   meanAggregator,
   minAggregator,
@@ -53,7 +56,6 @@ const EXTRA_ROWS = 3;
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
-
   const canvas = document.createElement('canvas');
 
   const pubSub = createPubSub();
@@ -72,6 +74,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resolution: window.devicePixelRatio,
     autoDensity: true
   });
+
+  let isInitialPositioning = true;
 
   const root = new PIXI.Container();
   root.interactive = true;
@@ -278,8 +282,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const normalPiles = new PIXI.Container();
 
   const searchIndex = new RBush();
-
-  const getPileInstances = mapFilter(id => pileInstances.get(id), identity);
 
   const createRBush = () => {
     searchIndex.clear();
@@ -674,10 +676,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const getPilePosition = pile => {
-    const { orderer, arrangementType, arrangementObjective } = store.getState();
+  const getPilePosition = (pileId, init) => {
+    const {
+      arrangementType,
+      arrangementObjective,
+      piles,
+      orderer
+    } = store.getState();
 
-    const getCellPosition = orderer(layout.numColumns);
+    const type = init
+      ? arrangementType || INITIAL_ARRANGEMENT_TYPE
+      : arrangementType;
+
+    const objective = init
+      ? arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE
+      : arrangementObjective;
+
+    const pileInstance = pileInstances.get(pileId);
+    const pileState = piles[pileId];
+
+    const idxToIj = orderer(layout.numColumns);
 
     let index = null;
     let x = null;
@@ -687,34 +705,39 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let u = null;
     let v = null;
 
-    switch (arrangementType) {
+    switch (type) {
       case 'data':
         [x, y] = dataScales.map((scale, idx) =>
-          scale(aggregatedPileValues.get(pile.id)[idx])
+          scale(aggregatedPileValues.get(pileId)[idx])
         );
         break;
       case 'index':
-        index = arrangementObjective(pile);
-        [i, j] = getCellPosition(index);
+        index = objective(pileState, pileId);
+        [i, j] = idxToIj(index);
         break;
       case 'ij':
-        [i, j] = arrangementObjective(pile);
+        [i, j] = objective(pileState, pileId);
         break;
       case 'xy':
-        [x, y] = arrangementObjective(pile);
+        [x, y] = objective(pileState, pileId);
         break;
       case 'uv':
-        [u, v] = arrangementObjective(pile);
+        [u, v] = objective(pileState, pileId);
+        [x, y] = layout.uvToXy(u, v);
         break;
       default:
-        [i, j] = getCellPosition(pile.id);
+        x = pileState.x;
+        y = pileState.y;
         break;
     }
 
     if (i !== null) {
-      [x, y] = layout.ijToXy(i, j, pile.graphics.width, pile.graphics.height);
-    } else if (u !== null) {
-      [x, y] = layout.uvToXy(u, v);
+      [x, y] = layout.ijToXy(
+        i,
+        j,
+        pileInstance.graphics.width,
+        pileInstance.graphics.height
+      );
     }
 
     return [x, y];
@@ -738,18 +761,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     }
 
-    getPileInstances(pileIds).forEach((pile, id) => {
-      const [x, y] = getPilePosition(pile);
+    pileIds
+      .filter(id => pileInstances.has(id))
+      .forEach(id => {
+        const [x, y] = getPilePosition(id, isInitialPositioning);
 
-      movingPiles.push({ id, x, y });
+        movingPiles.push({ id, x, y });
 
-      layout.numRows = Math.max(
-        layout.numRows,
-        Math.ceil(y / layout.rowHeight)
-      );
+        layout.numRows = Math.max(
+          layout.numRows,
+          Math.ceil(y / layout.rowHeight)
+        );
 
-      renderedItems.get(id).setOriginalPosition([x, y]);
-    });
+        renderedItems.get(id).setOriginalPosition([x, y]);
+      });
+
+    isInitialPositioning = false;
 
     store.dispatch(createAction.movePiles(movingPiles));
 
