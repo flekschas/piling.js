@@ -17,15 +17,18 @@ import {
   colorToDecAlpha,
   debounce,
   deepClone,
-  dist,
   getBBox,
+  identity,
   isFunction,
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
+  l2Dist,
+  mapFilter,
   maxAggregator,
   meanAggregator,
   minAggregator,
+  range,
   scaleLinear,
   sumAggregator,
   withThrottleAndDebounce
@@ -276,6 +279,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const searchIndex = new RBush();
 
+  const getPileInstances = mapFilter(id => pileInstances.get(id), identity);
+
   const createRBush = () => {
     searchIndex.clear();
 
@@ -426,7 +431,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     min -= min === max ? 0.1 : 0;
 
     const { itemSizeRange } = store.getState();
-    let range;
+    let scaleRange;
 
     const minRange = Math.min(layout.cellWidth, layout.cellHeight);
 
@@ -437,16 +442,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] > 0 &&
       itemSizeRange[1] <= 1
     ) {
-      range = [minRange * itemSizeRange[0], minRange * itemSizeRange[1]];
+      scaleRange = [minRange * itemSizeRange[0], minRange * itemSizeRange[1]];
     }
     // else assume absolute values in pixels
     else {
-      range = itemSizeRange;
+      scaleRange = itemSizeRange;
     }
 
     scaleSprite = scaleLinear()
       .domain([min, max])
-      .range(range);
+      .range(scaleRange);
 
     renderedItems.forEach(item => {
       const scaleFactor = scaleSprite(item.image.size) / item.image.size;
@@ -715,38 +720,42 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return [x, y];
   };
 
-  const positionPiles = () => {
+  const positionPiles = (pileIds = []) => {
     const { items, orderer, arrangementType } = store.getState();
+
+    if (!pileIds.length) {
+      const { piles } = store.getState();
+      pileIds.splice(0, pileIds.length - 1, ...range(0, piles.length));
+    }
 
     if (items.length === 0 || !orderer) return;
 
     const movingPiles = [];
 
-    if (pileInstances) {
-      if (arrangementType === 'data') {
-        pileInstances.forEach(pile => {
-          computeDataScales(pile);
-        });
-      }
-      pileInstances.forEach((pile, id) => {
-        const [x, y] = getPilePosition(pile);
-
-        movingPiles.push({ id, x, y });
-
-        layout.numRows = Math.max(
-          layout.numRows,
-          Math.ceil(y / layout.rowHeight)
-        );
-
-        renderedItems.get(id).setOriginalPosition([x, y]);
+    if (arrangementType === 'data') {
+      pileInstances.forEach(pile => {
+        computeDataScales(pile);
       });
-
-      store.dispatch(createAction.movePiles(movingPiles));
-
-      createRBush();
-      updateScrollContainer();
-      renderRaf();
     }
+
+    getPileInstances(pileIds).forEach((pile, id) => {
+      const [x, y] = getPilePosition(pile);
+
+      movingPiles.push({ id, x, y });
+
+      layout.numRows = Math.max(
+        layout.numRows,
+        Math.ceil(y / layout.rowHeight)
+      );
+
+      renderedItems.get(id).setOriginalPosition([x, y]);
+    });
+
+    store.dispatch(createAction.movePiles(movingPiles));
+
+    createRBush();
+    updateScrollContainer();
+    renderRaf();
   };
 
   const positionItems = pileId => {
@@ -961,7 +970,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const calcDist = (distanceMat, x, y, origin) => {
     if (distanceMat.get(x, y) !== -1) return;
 
-    const distance = dist(x, y, origin[0], origin[1]);
+    const distance = l2Dist(x, y, origin[0], origin[1]);
     distanceMat.set(x, y, distance);
   };
 
@@ -1043,7 +1052,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
 
     const depilePos = findDepilePos(distanceMat, resultMat, origin, rowNum);
-    const distance = dist(depilePos[0], depilePos[1], origin[0], origin[1]);
+    const distance = l2Dist(depilePos[0], depilePos[1], origin[0], origin[1]);
 
     return { depilePos, distance };
   };
@@ -1409,7 +1418,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       lassoPrevMousePos = currMousePos;
       lasso.moveTo(...currMousePos);
     } else {
-      const d = dist(...currMousePos, ...lassoPrevMousePos);
+      const d = l2Dist(...currMousePos, ...lassoPrevMousePos);
 
       if (d > LASSO_MIN_DIST) {
         lassoPos.push(currMousePos);
@@ -1509,8 +1518,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const newState = store.getState();
 
     const stateUpdates = new Set();
-    const newlyCreatedItems = [];
 
+    const updatedItems = [];
     const updatedPiles = [];
 
     if (
@@ -1521,8 +1530,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {
-      newlyCreatedItems.push(createItems());
-      stateUpdates.add('piles');
+      updatedItems.push(createItems());
     }
 
     if (state.itemSizeRange !== newState.itemSizeRange) {
@@ -1666,14 +1674,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       else clearGrid();
     }
 
-    if (newlyCreatedItems.length !== 0) {
-      Promise.all(newlyCreatedItems).then(() => {
-        if (stateUpdates.has('piles') || stateUpdates.has('layout')) {
-          positionPiles();
-        }
-      });
-    }
-
     state = newState;
 
     pubSub.publish('update', { action: store.lastAction });
@@ -1682,18 +1682,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (stateUpdates.has('grid')) {
       updateGrid();
     }
-    if (updatedPiles.length > 0) {
-      // if type is not undefined or null, automatically move piles
-      if (state.arrangementType) {
-        const movingPiles = [];
-        updatedPiles
-          .filter(id => pileInstances.has(id))
-          .forEach(id => {
-            const [x, y] = getPilePosition(pileInstances.get(id));
-            movingPiles.push({ id, x, y });
-          });
-        store.dispatch(createAction.movePiles(movingPiles));
-      }
+
+    if (
+      stateUpdates.has('layout') ||
+      updatedItems.length > 0 ||
+      updatedPiles.length > 0
+    ) {
+      Promise.all(updatedItems).then(() => {
+        const pileIds =
+          stateUpdates.has('layout') || updatedItems.length > 0
+            ? [] // This will position all piles
+            : updatedPiles;
+
+        positionPiles(pileIds);
+      });
     }
   };
 

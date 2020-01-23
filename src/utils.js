@@ -40,16 +40,65 @@ export const cloneSprite = sprite => {
   return clonedSprite;
 };
 
+/**
+ * Identity function
+ * @param   {*}  x  Any kind of value
+ * @return  {*}  `x`
+ */
 export const identity = x => x;
 
+/**
+ * L1 distance between a pair of 2D points
+ * @param   {number}  fromX  X coordinate of the first point
+ * @param   {number}  fromY  Y coordinate of the first point
+ * @param   {number}  toX  X coordinate of the second point
+ * @param   {number}  toY  Y coordinate of the first point
+ * @return  {number}  L1 distance
+ */
 export const l1Dist = (fromX, fromY, toX, toY) =>
   Math.abs(fromX - toX) + Math.abs(fromY - toY);
 
+/**
+ * L2 distance between a pair of 2D points
+ * @param   {number}  fromX  X coordinate of the first point
+ * @param   {number}  fromY  Y coordinate of the first point
+ * @param   {number}  toX  X coordinate of the second point
+ * @param   {number}  toY  Y coordinate of the first point
+ * @return  {number}  L2 distance
+ */
 export const l2Dist = (fromX, fromY, toX, toY) =>
   Math.sqrt((fromX - toX) ** 2 + (fromY - toY) ** 2);
 
-export const l2Norm = vector =>
-  Math.sqrt(vector.reduce((s, v) => s + v ** 2, 0));
+/**
+ * Vector L2 norm
+ * @param   {array}  v  Vector of numbers
+ * @return  {number}  L2 norm
+ */
+export const l2Norm = v => Math.sqrt(v.reduce((sum, x) => sum + x ** 2, 0));
+
+/**
+ * Map and filter data in one iteration.
+ *
+ * Combining the loops is about 7-8x faster than
+ *
+ * @param   {function}  mapFn  Mapping function
+ * @param   {function}  filterFn  Filter function
+ * @return  {function}  A function that accepts a single array paremeter
+ */
+export const mapFilter = (mapFn, filterFn) =>
+  /**
+   * @param   {array}  arr  An array to be mapped and filtered
+   * @returns {array}  The mapped and filtered array
+   */
+  arr => {
+    const out = [];
+    // loop though array
+    for (let i = 0; i < arr.length; i++) {
+      const result = mapFn(arr[i], i);
+      if (filterFn(result, out.length)) out.push(result);
+    }
+    return out;
+  };
 
 export const mergeMaps = (map1, map2) =>
   new Map(
@@ -65,6 +114,18 @@ export const normalizeVector = vector => {
 };
 
 export const pipe = (...fns) => x => fns.reduce((y, f) => f(y), x);
+
+/**
+ * A function to created a range array
+ * @param   {number}  start  Start of the range (included)
+ * @param   {number}  end  End of the range (excluded)
+ * @param   {number}  stepSize  Increase per step
+ * @return  {array}  Range array
+ */
+export const range = (start, end, stepSize = 1) =>
+  Array(Math.ceil((end - start) / stepSize))
+    .fill()
+    .map((x, i) => start + i * stepSize);
 
 /**
  * Update the target object by the source object. Besides extending that target
@@ -168,17 +229,6 @@ export const createWorker = fn => {
 };
 
 /**
- * L2 distance between a pair of 2D points
- * @param   {number}  x1  X coordinate of the first point
- * @param   {number}  y1  Y coordinate of the first point
- * @param   {number}  x2  X coordinate of the second point
- * @param   {number}  y2  Y coordinate of the first point
- * @return  {number}  L2 distance
- */
-export const dist = (x1, y1, x2, y2) =>
-  Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-
-/**
  * Get the bounding box of a set of 2D positions
  * @param   {array}  positions2d  2D positions to be checked
  * @return  {array}  Quadruple of form `[xMin, yMin, xMax, yMax]` defining the
@@ -211,7 +261,7 @@ export const getBBox = positions2d => {
  * @param   {Array}  polygon  1D list of vertices defining the polygon.
  * @return  {boolean}  If `true` point lies within the polygon.
  */
-export const isPileInPolygon = ([px, py] = [], polygon) => {
+export const isPointInPolygon = ([px, py] = [], polygon) => {
   let x1;
   let y1;
   let x2;
@@ -228,6 +278,8 @@ export const isPileInPolygon = ([px, py] = [], polygon) => {
   }
   return isWithin;
 };
+
+export const isPileInPolygon = isPointInPolygon;
 
 /**
  * Fast version of `Math.max`. Based on
