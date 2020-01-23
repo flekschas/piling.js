@@ -621,7 +621,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           renderedItems.set(id, newItem);
 
           const pile = createPile({
-            initialItems: [newItem],
+            items: [newItem],
             render: renderRaf,
             id: index,
             pubSub,
@@ -773,7 +773,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           Math.ceil(y / layout.rowHeight)
         );
 
-        renderedItems.get(id).setOriginalPosition([x, y]);
+        if (isInitialPositioning) {
+          renderedItems.get(id).setOriginalPosition([x, y]);
+        }
       });
 
     isInitialPositioning = false;
@@ -892,13 +894,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         updatePileItemStyle(pile, id);
       }
     } else {
-      const newPile = createPile({
-        initialItems: [renderedItems.get(id)],
-        render: renderRaf,
-        id,
-        pubSub,
-        store
-      });
+      const newPile = createPile(
+        {
+          items: [renderedItems.get(id)],
+          render: renderRaf,
+          id,
+          pubSub,
+          store
+        },
+        {
+          x: pile.x,
+          y: pile.y
+        }
+      );
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updateBoundingBox(id);
@@ -1191,7 +1199,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const depileToOriginPos = pileId => {
     const { piles } = store.getState();
 
-    const depiledPiles = [];
     const items = [...piles[pileId].items];
 
     // starts from the depiled pile's position
@@ -1200,8 +1207,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       x: piles[pileId].x,
       y: piles[pileId].y
     };
-    depiledPiles.push(depiledPile);
-    store.dispatch(createAction.depilePiles(depiledPiles));
+
+    store.dispatch(createAction.depilePiles([depiledPile]));
     animateDepile(items);
   };
 

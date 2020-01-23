@@ -28,7 +28,10 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.pubSub - Local pubSub instance
  * @param {object}   options.store - Redux store
  */
-const createPile = ({ initialItems, render, id, pubSub, store }) => {
+const createPile = (
+  { items: initialItems, render, id, pubSub, store },
+  { x: initialX = 0, y: initialY = 0 } = {}
+) => {
   const allItems = [];
   const normalItemIndex = new Map();
   const previewItemIndex = new Map();
@@ -853,8 +856,8 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
-    rootGraphics.x = 0;
-    rootGraphics.y = 0;
+    rootGraphics.x = initialX;
+    rootGraphics.y = initialY;
 
     tempDepileContainer.interactive = true;
 
