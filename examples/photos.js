@@ -21,7 +21,7 @@ const createPhotoPiles = async element => {
   piling.set('pileItemRotation', true);
 
   // piling.arrangeBy('index', pile => pile.id);
-  piling.arrangeBy('data', item => item.id);
+  piling.arrangeBy('data', ['id', 'id']);
 
   return piling;
 };

@@ -23,7 +23,11 @@ import {
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
+  maxAggregator,
+  meanAggregator,
+  minAggregator,
   scaleLinear,
+  sumAggregator,
   withThrottleAndDebounce
 } from './utils';
 
@@ -630,25 +634,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const aggregatedPileValues = new Map();
 
-  let dataScales;
+  let dataScales = [];
   const computeDataScales = pile => {
     const { arrangementObjective } = store.getState();
     const { width, height } = canvas.getBoundingClientRect();
     const rangeMax = [width, height];
 
+    const aggregatedValues = [];
+
     dataScales = arrangementObjective.map((objective, i) => {
       let min = Infinity;
       let max = -Infinity;
 
-      if (dataScales && dataScales[i]) {
+      if (dataScales[i]) {
         [min, max] = dataScales[i].domain();
       }
 
+      // const pileValues = pile.items.map(item => items[item.id]).map(objective.property);
       const pileValues = pile.items.map(objective.property);
 
       const aggregatedValue = objective.aggregator(pileValues);
-
-      aggregatedPileValues.set(pile.id, aggregatedValue);
+      aggregatedValues.push(aggregatedValue);
+      aggregatedPileValues.set(pile.id, aggregatedValues);
 
       min = aggregatedValue < min ? aggregatedValue : min;
       max = aggregatedValue > max ? aggregatedValue : max;
@@ -667,7 +674,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const getCellPosition = orderer(layout.numColumns);
 
-    let idx = null;
+    let index = null;
     let x = null;
     let y = null;
     let i = null;
@@ -677,12 +684,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (arrangementType) {
       case 'data':
-        x = dataScales[0](aggregatedPileValues.get(pile.id));
-        y = x;
+        [x, y] = dataScales.map((scale, idx) =>
+          scale(aggregatedPileValues.get(pile.id)[idx])
+        );
         break;
       case 'index':
-        idx = arrangementObjective(pile);
-        [i, j] = getCellPosition(idx);
+        index = arrangementObjective(pile);
+        [i, j] = getCellPosition(index);
         break;
       case 'ij':
         [i, j] = arrangementObjective(pile);
@@ -693,8 +701,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'uv':
         [u, v] = arrangementObjective(pile);
         break;
-      // No automatic position
       default:
+        [i, j] = getCellPosition(pile.id);
         break;
     }
 
@@ -702,10 +710,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       [x, y] = layout.ijToXy(i, j, pile.graphics.width, pile.graphics.height);
     } else if (u !== null) {
       [x, y] = layout.uvToXy(u, v);
-    }
-
-    if (x !== null) {
-      store.dispatch(createAction.movePiles([{ id: pile.id, x, y }]));
     }
 
     return [x, y];
@@ -725,36 +729,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
       }
       pileInstances.forEach((pile, id) => {
-        let x = null;
-        let y = null;
+        const [x, y] = getPilePosition(pile);
 
-        [x, y] = getPilePosition(pile);
+        movingPiles.push({ id, x, y });
 
-        if (x === null) {
-          const getCellPosition = orderer(layout.numColumns);
-          const [i, j] = getCellPosition(id);
+        layout.numRows = Math.max(
+          layout.numRows,
+          Math.ceil(y / layout.rowHeight)
+        );
 
-          layout.numRows = j + 1;
-
-          [x, y] = layout.ijToXy(
-            i,
-            j,
-            pile.graphics.width,
-            pile.graphics.height
-          );
-          movingPiles.push({ id, x, y });
-        } else {
-          layout.numRows = Math.max(
-            layout.numRows,
-            Math.ceil(y / layout.rowHeight)
-          );
-        }
         renderedItems.get(id).setOriginalPosition([x, y]);
       });
 
-      if (movingPiles.length !== 0) {
-        store.dispatch(createAction.movePiles(movingPiles));
-      }
+      store.dispatch(createAction.movePiles(movingPiles));
 
       createRBush();
       updateScrollContainer();
@@ -1697,9 +1684,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateGrid();
     }
     if (updatedPiles.length > 0) {
-      updatedPiles
-        .filter(id => pileInstances.has(id))
-        .forEach(id => getPilePosition(pileInstances.get(id)));
+      // if type is not undefined or null, automatically move piles
+      if (state.arrangementType) {
+        const movingPiles = [];
+        updatedPiles
+          .filter(id => pileInstances.has(id))
+          .forEach(id => {
+            const [x, y] = getPilePosition(pileInstances.get(id));
+            movingPiles.push({ id, x, y });
+          });
+        store.dispatch(createAction.movePiles(movingPiles));
+      }
     }
   };
 
@@ -1734,12 +1729,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   // eslint-disable-next-line consistent-return
   const expandProperty = objective => {
-    if (objective.constructor === Function) {
+    if (isFunction(objective)) {
       return objective;
     }
-    if (objective.constructor === String) {
-      return item => item[objective];
-    }
+    return item => item[objective];
   };
 
   const expandArrangementObjective = arrangementObjective => {
@@ -1754,8 +1747,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (objective.constructor !== Object) {
         expandedObjective.property = expandProperty(objective);
-        expandedObjective.aggregator = values =>
-          values.reduce((average, value) => average + value / values.length, 0);
+        expandedObjective.aggregator = maxAggregator;
         expandedObjective.scale = scaleLinear;
         expandedObjective.inverse = false;
       } else {
@@ -1763,33 +1755,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         switch (objective.aggregator) {
           case 'max':
-            expandedObjective.aggregator = values => Math.max(...values);
+            expandedObjective.aggregator = maxAggregator;
             break;
           case 'min':
-            expandedObjective.aggregator = values => Math.min(...values);
+            expandedObjective.aggregator = minAggregator;
+            break;
+          case 'sum':
+            expandedObjective.aggregator = sumAggregator;
             break;
           case 'mean':
           default:
-            expandedObjective.aggregator = values =>
-              values.reduce(
-                (average, value) => average + value / values.length,
-                0
-              );
+            expandedObjective.aggregator = meanAggregator;
             break;
         }
 
-        switch (objective.scale) {
-          case 'linear':
-          default:
-            expandedObjective.scale = scaleLinear;
-            break;
-        }
-
-        if (objective.inverse) {
-          expandedObjective.inverse = true;
+        if (isFunction(objective.scale)) {
+          expandedObjective.scale = objective.scale;
         } else {
-          expandedObjective.inverse = false;
+          switch (objective.scale) {
+            case 'linear':
+            default:
+              expandedObjective.scale = scaleLinear;
+              break;
+          }
         }
+
+        expandedObjective.inverse = !!objective.inverse;
       }
       expandedArrangementObjective.push(expandedObjective);
     });
