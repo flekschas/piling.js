@@ -761,9 +761,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     }
 
-    pileIds
-      .filter(id => pileInstances.has(id))
-      .forEach(id => {
+    const readyPileIds = pileIds.filter(id => pileInstances.has(id));
+
+    if (readyPileIds.length) {
+      readyPileIds.forEach(id => {
         const [x, y] = getPilePosition(id, isInitialPositioning);
 
         movingPiles.push({ id, x, y });
@@ -778,7 +779,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       });
 
-    isInitialPositioning = false;
+      isInitialPositioning = false;
+    }
 
     store.dispatch(createAction.movePiles(movingPiles));
 
