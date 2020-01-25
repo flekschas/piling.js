@@ -676,6 +676,35 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  let aggregatedValues = [];
+  const computeAggregatedValues = (pile, objective) => {
+    const pileValues = pile.items.map(objective.property);
+    const aggregatedValue = objective.aggregator(pileValues);
+    aggregatedPileValues.set(pile.id, aggregatedValue);
+    aggregatedValues.push(aggregatedValue);
+  };
+
+  const sorter = aggregatedValue => aggregatedValues.indexOf(aggregatedValue);
+
+  const updateArrangement = () => {
+    const { arrangementType, arrangementObjective } = store.getState();
+
+    if (arrangementType === 'data') {
+      if (arrangementObjective.length === 1) {
+        aggregatedValues = [];
+        pileInstances.forEach(pile => {
+          computeAggregatedValues(pile, arrangementObjective[0]);
+        });
+        aggregatedValues.sort((a, b) => a - b);
+      }
+      if (arrangementObjective.length === 2) {
+        pileInstances.forEach(pile => {
+          computeDataScales(pile);
+        });
+      }
+    }
+  };
+
   const getPilePosition = (pileId, init) => {
     const {
       arrangementType,
@@ -707,9 +736,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (type) {
       case 'data':
-        [x, y] = dataScales.map((scale, idx) =>
-          scale(aggregatedPileValues.get(pileId)[idx])
-        );
+        if (dataScales.length) {
+          [x, y] = dataScales.map((scale, idx) =>
+            scale(aggregatedPileValues.get(pileId)[idx])
+          );
+        } else if (aggregatedValues.length) {
+          index = sorter(aggregatedPileValues.get(pileId));
+          [i, j] = idxToIj(index);
+        }
         break;
       case 'index':
         index = objective(pileState, pileId);
@@ -744,7 +778,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const positionPiles = (pileIds = []) => {
-    const { items, orderer, arrangementType } = store.getState();
+    const { items, orderer } = store.getState();
 
     if (!pileIds.length) {
       const { piles } = store.getState();
@@ -755,11 +789,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const movingPiles = [];
 
-    if (arrangementType === 'data') {
-      pileInstances.forEach(pile => {
-        computeDataScales(pile);
-      });
-    }
+    updateArrangement();
 
     pileIds
       .filter(id => pileInstances.has(id))
