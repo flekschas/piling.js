@@ -1,5 +1,15 @@
 import * as PIXI from 'pixi.js';
 
+export const sortAsc = (a, b) => a - b;
+
+export const sortDesc = (a, b) => b - a;
+
+export const argSort = (array, comparator = sortAsc) =>
+  array
+    .map((value, index) => [value, index])
+    .sort((a, b) => comparator(a[0], b[0]))
+    .map(v => v[1]);
+
 export const assign = (target, ...sources) => {
   sources.forEach(source => {
     // eslint-disable-next-line no-shadow
@@ -99,6 +109,23 @@ export const mapFilter = (mapFn, filterFn) =>
     }
     return out;
   };
+
+/**
+ * Store the values of an iterator in an array.
+ *
+ * This code is about 9x faster than `Array.from()`
+ *
+ * @param   {map}  map  The map whose keys are to be converted to an array
+ * @return  {array}  The array with the map keys
+ */
+export const iteratorToArray = iterator => {
+  const keys = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const value of iterator) {
+    keys.push(value);
+  }
+  return keys;
+};
 
 export const mergeMaps = (map1, map2) =>
   new Map(

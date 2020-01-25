@@ -17,6 +17,7 @@ import {
 } from './defaults';
 
 import {
+  argSort,
   capitalize,
   cloneSprite,
   colorToDecAlpha,
@@ -27,6 +28,7 @@ import {
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
+  iteratorToArray,
   l2Dist,
   maxAggregator,
   meanAggregator,
@@ -358,21 +360,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const initGrid = () => {
     const {
-      itemSize,
-      columns,
-      rowHeight,
       cellAspectRatio,
+      cellPadding,
+      columns,
+      itemSize,
+      orderer,
       pileCellAlignment,
-      cellPadding
+      rowHeight
     } = store.getState();
 
     layout = createGrid(canvas, {
-      itemSize,
-      columns,
-      rowHeight,
       cellAspectRatio,
+      cellPadding,
+      columns,
+      itemSize,
+      orderer,
       pileCellAlignment,
-      cellPadding
+      rowHeight
     });
 
     updateScrollContainer();
@@ -386,6 +390,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       cellPadding,
       columns,
       itemSize,
+      orderer,
       pileCellAlignment,
       rowHeight,
       showGrid
@@ -396,6 +401,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       columns,
       rowHeight,
       cellAspectRatio,
+      orderer,
       pileCellAlignment,
       cellPadding
     });
@@ -490,8 +496,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const movingPiles = [];
 
-    const { orderer } = store.getState();
-
     layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
     pileInstances.forEach(pile => {
       const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
@@ -500,12 +504,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const cellIndex = Math.round(
         oldRowNum * oldLayout.numColumns + oldColumnNum
       );
-      const getCellPosition = orderer(layout.numColumns);
-      const [i, j] = getCellPosition(cellIndex);
 
       const [x, y] = layout.ijToXy(
-        i,
-        j,
+        cellIndex,
         pile.graphics.width,
         pile.graphics.height
       );
@@ -535,12 +536,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.movePiles(movingPiles));
 
     renderedItems.forEach(item => {
-      const getCellPosition = orderer(layout.numColumns);
-      const [i, j] = getCellPosition(item.id);
       item.setOriginalPosition(
-        layout.ijToXy(
-          i,
-          j,
+        layout.idxToXy(
+          item.id,
           item.image.displayObject.width,
           item.image.displayObject.height
         )
@@ -639,50 +637,40 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const aggregatedPileValues = new Map();
-
-  let dataScales = [];
-  const computeDataScales = pile => {
+  const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
     const { arrangementObjective } = store.getState();
-    const { width, height } = canvas.getBoundingClientRect();
-    const rangeMax = [width, height];
 
-    const aggregatedValues = [];
-    aggregatedPileValues.set(pile.id, aggregatedValues);
+    switch (arrangementObjective.length) {
+      case 0:
+        console.warn(
+          "Can't arrange pile by data. No arrangement objective available."
+        );
+        return [pileState.x, pileState.y];
 
-    dataScales = arrangementObjective.map((objective, i) => {
-      let min = Infinity;
-      let max = -Infinity;
+      case 1:
+        return layout.idxToXy(
+          pileIdsSortedByAggregate[0][pileId],
+          pileWidth,
+          pileHeight
+        );
 
-      if (dataScales[i]) {
-        [min, max] = dataScales[i].domain();
-      }
+      case 2:
+        return arrangement2dScales.map((scale, idx) =>
+          scale(aggregatedPileValues.get(pileId)[idx])
+        );
 
-      // const pileValues = pile.items.map(item => items[item.id]).map(objective.property);
-      const pileValues = pile.items.map(objective.property);
-
-      const aggregatedValue = objective.aggregator(pileValues);
-      aggregatedValues.push(aggregatedValue);
-
-      min = aggregatedValue < min ? aggregatedValue : min;
-      max = aggregatedValue > max ? aggregatedValue : max;
-
-      const domain = objective.inverted ? [max, min] : [min, max];
-
-      return objective
-        .scale()
-        .domain(domain)
-        .range([0, rangeMax[i]]);
-    });
+      default:
+        console.warn(
+          'Multidimensional arrangement is not yet available. Arrange by 2D.'
+        );
+        return arrangement2dScales.map((scale, idx) =>
+          scale(aggregatedPileValues.get(pileId)[idx])
+        );
+    }
   };
 
   const getPilePosition = (pileId, init) => {
-    const {
-      arrangementType,
-      arrangementObjective,
-      piles,
-      orderer
-    } = store.getState();
+    const { arrangementType, arrangementObjective, piles } = store.getState();
 
     const type = init
       ? arrangementType || INITIAL_ARRANGEMENT_TYPE
@@ -694,72 +682,43 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const pileInstance = pileInstances.get(pileId);
     const pileState = piles[pileId];
+    const pileWidth = pileInstance.graphics.width;
+    const pileHeight = pileInstance.graphics.height;
 
-    const idxToIj = orderer(layout.numColumns);
-
-    let index = null;
-    let x = null;
-    let y = null;
-    let i = null;
-    let j = null;
-    let u = null;
-    let v = null;
+    const ijToXy = (i, j) => layout.ijToXy(i, j, pileWidth, pileHeight);
 
     switch (type) {
       case 'data':
-        [x, y] = dataScales.map((scale, idx) =>
-          scale(aggregatedPileValues.get(pileId)[idx])
-        );
-        break;
+        return getPilePositionByData(pileId, pileWidth, pileHeight, pileState);
+
       case 'index':
-        index = objective(pileState, pileId);
-        [i, j] = idxToIj(index);
-        break;
+        return ijToXy(...layout.idxToIj(objective(pileState, pileId)));
+
       case 'ij':
-        [i, j] = objective(pileState, pileId);
-        break;
+        return ijToXy(...objective(pileState, pileId));
+
       case 'xy':
-        [x, y] = objective(pileState, pileId);
-        break;
+        return objective(pileState, pileId);
+
       case 'uv':
-        [u, v] = objective(pileState, pileId);
-        [x, y] = layout.uvToXy(u, v);
-        break;
+        return layout.uvToXy(...objective(pileState, pileId));
+
       default:
-        x = pileState.x;
-        y = pileState.y;
-        break;
+        return [pileState.x, pileState.y];
     }
-
-    if (i !== null) {
-      [x, y] = layout.ijToXy(
-        i,
-        j,
-        pileInstance.graphics.width,
-        pileInstance.graphics.height
-      );
-    }
-
-    return [x, y];
   };
 
   const positionPiles = (pileIds = []) => {
-    const { items, orderer, arrangementType } = store.getState();
+    const { items } = store.getState();
 
     if (!pileIds.length) {
       const { piles } = store.getState();
       pileIds.splice(0, pileIds.length - 1, ...range(0, piles.length));
     }
 
-    if (items.length === 0 || !orderer) return;
+    if (items.length === 0) return;
 
     const movingPiles = [];
-
-    if (arrangementType === 'data') {
-      pileInstances.forEach(pile => {
-        computeDataScales(pile);
-      });
-    }
 
     const readyPileIds = pileIds.filter(id => pileInstances.has(id));
 
@@ -1550,13 +1509,116 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const aggregatedPileValues = [];
+  const pileIdsSortedByAggregate = [];
+  const aggregatedPileMinValues = [];
+  const aggregatedPileMaxValues = [];
+
+  const updateAggregatedPileValues = (
+    updatedPiles = store.getState().piles
+  ) => {
+    const { arrangementObjective, items } = store.getState();
+
+    arrangementObjective.forEach((objective, i) => {
+      let min = aggregatedPileMinValues[i] || Infinity;
+      let max = aggregatedPileMaxValues[i] || -Infinity;
+
+      const aggregatedValues = aggregatedPileValues[i] || [];
+
+      updatedPiles.forEach((pile, j) => {
+        const pileValues = pile.items.map(itemId =>
+          objective.property(items[itemId])
+        );
+
+        const aggregatedValue = objective.aggregator(pileValues);
+
+        aggregatedValues[j] = aggregatedValue;
+
+        min = aggregatedValue < min ? aggregatedValue : min;
+        max = aggregatedValue > max ? aggregatedValue : max;
+      });
+
+      // Remove outdated values
+      aggregatedValues.splice(items.length);
+
+      aggregatedPileValues[i] = aggregatedValues;
+      pileIdsSortedByAggregate[i] = argSort(aggregatedValues);
+      aggregatedPileMinValues[i] = min;
+      aggregatedPileMaxValues[i] = max;
+    });
+
+    // Remove outdated values
+    aggregatedPileValues.splice(arrangementObjective.length);
+    pileIdsSortedByAggregate.splice(arrangementObjective.length);
+    aggregatedPileMinValues.splice(arrangementObjective.length);
+    aggregatedPileMaxValues.splice(arrangementObjective.length);
+  };
+
+  const updateArrangement1dOrderer = (
+    updatedPiles = store.getState().piles
+  ) => {
+    updateAggregatedPileValues(updatedPiles);
+  };
+
+  let arrangement2dScales = [];
+  const updateArrangement2dScales = (updatedPiles = store.getState().piles) => {
+    const { arrangementObjective } = store.getState();
+    const { width, height } = canvas.getBoundingClientRect();
+    const rangeMax = [width, height];
+
+    updateAggregatedPileValues(updatedPiles);
+
+    arrangement2dScales = arrangementObjective.map((objective, i) => {
+      const currentScale = arrangement2dScales[i];
+      const min = aggregatedPileMinValues[i];
+      const max = aggregatedPileMaxValues[i];
+
+      if (currentScale) {
+        const [currentMin, currentMax] = currentScale.domain();
+
+        if (min === currentMin && max === currentMax) {
+          return arrangement2dScales[i];
+        }
+      }
+
+      const domain = objective.inverted ? [max, min] : [min, max];
+
+      return objective
+        .scale()
+        .domain(domain)
+        .range([0, rangeMax[i]]);
+    });
+  };
+
+  const updateArragnementByData = updatedPiles => {
+    const { arrangementObjective } = store.getState();
+
+    switch (arrangementObjective.length) {
+      case 0:
+        console.warn('No arrangement objectives found!');
+        break;
+
+      case 1:
+        updateArrangement1dOrderer(updatedPiles);
+        break;
+
+      case 2:
+        updateArrangement2dScales(updatedPiles);
+        break;
+
+      default:
+        console.warn('Not yet supported');
+        break;
+    }
+  };
+
   const updated = () => {
     const newState = store.getState();
 
     const stateUpdates = new Set();
 
     const updatedItems = [];
-    const updatedPiles = [];
+    const updatedPiles = new Map();
 
     if (
       state.items !== newState.items ||
@@ -1579,7 +1641,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
-            updatedPiles.push(id);
+            updatedPiles.set(id, pile);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
@@ -1587,7 +1649,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
-            updatedPiles.push(id);
+            updatedPiles.set(id, pile);
           }
         });
       }
@@ -1603,6 +1665,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.cellPadding !== newState.cellPadding ||
+      state.orderer !== newState.orderer ||
       state.pileCellAlignment !== newState.pileCellAlignment
     ) {
       stateUpdates.add('grid');
@@ -1710,6 +1773,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       else clearGrid();
     }
 
+    if (
+      (state.arrangementType === newState.arrangementType ||
+        state.arrangementObjective === newState.arrangementObjective) &&
+      newState.arrangementType === 'data'
+    ) {
+      updateArragnementByData(iteratorToArray(updatedPiles.values()));
+    }
+
     state = newState;
 
     pubSub.publish('update', { action: store.lastAction });
@@ -1728,7 +1799,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const pileIds =
           stateUpdates.has('layout') || updatedItems.length > 0
             ? [] // This will position all piles
-            : updatedPiles;
+            : iteratorToArray(updatedPiles.keys());
 
         positionPiles(pileIds);
       });
@@ -1769,7 +1840,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (isFunction(objective)) {
       return objective;
     }
-    return item => item[objective];
+    return itemState => itemState[objective];
   };
 
   const expandArrangementObjective = arrangementObjective => {
