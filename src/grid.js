@@ -18,6 +18,7 @@ const createGrid = (
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
+    orderer,
     pileCellAlignment = 'topLeft',
     cellPadding = 0
   } = {}
@@ -63,7 +64,7 @@ const createGrid = (
    * @param   {number}  idx  Index of a cell
    * @return  {array}  Tuple with the i,j cell position
    */
-  const idxToIj = idx => [idx % numColumns, Math.floor(idx / numColumns)];
+  const idxToIj = orderer(numColumns);
 
   /**
    * Convert the i,j cell position to an x,y pixel position
@@ -107,6 +108,9 @@ const createGrid = (
         return topLeft;
     }
   };
+
+  const idxToXy = (index, pileWidth, pileHeight) =>
+    ijToXy(...idxToIj(index), pileWidth, pileHeight);
 
   /**
    * Convert the u,v position to an x,y pixel position
@@ -306,6 +310,8 @@ const createGrid = (
     // Methods
     align,
     ijToXy,
+    idxToIj,
+    idxToXy,
     uvToXy
   };
 };
