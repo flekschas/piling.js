@@ -1896,15 +1896,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const arrangeBy = (type, objective) => {
-    if (type === 'data') {
-      // eslint-disable-next-line no-param-reassign
-      objective = expandArrangementObjective(objective);
-    }
+    const expandedObjective =
+      type === 'data' ? expandArrangementObjective(objective) : objective;
 
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
-        ...set('arrangementObjective', objective, true)
+        ...set('arrangementObjective', expandedObjective, true)
       ])
     );
   };
