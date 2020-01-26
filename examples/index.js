@@ -43,7 +43,7 @@ const updateHandler = ({ action }) => {
   history.push(state);
 
   // eslint-disable-next-line no-console
-  console.log('Update', action.type, history.length);
+  // console.log('Update', action.type, history.length);
 
   if (history.length > 5) history.shift();
 };
@@ -150,6 +150,11 @@ const handleOptionsTogglerClick = event => {
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
 createPiles(exampleEl.value).then(pilingLib => {
+  const firstItem = pilingLib.get('items')[0];
+  const numericalProps = Object.keys(firstItem).filter(
+    prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
+  );
+
   const options = [
     {
       id: 'grid',
@@ -196,6 +201,23 @@ createPiles(exampleEl.value).then(pilingLib => {
           values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
         }
       ]
+    },
+    {
+      id: 'arrangement',
+      title: 'Arrangement By Data',
+      fields: [
+        {
+          name: 'arrangementObjective',
+          dtype: 'string',
+          values: numericalProps,
+          setter: values =>
+            values.length
+              ? pilingLib.arrangeBy('data', values)
+              : pilingLib.arrangeBy(),
+          multiple: true,
+          nullifiable: true
+        }
+      ]
     }
   ];
 
@@ -218,6 +240,7 @@ createPiles(exampleEl.value).then(pilingLib => {
 
     if (field.values) {
       const select = document.createElement('select');
+
       field.values.forEach(value => {
         const option = document.createElement('option');
         option.setAttribute('value', value);
@@ -226,9 +249,22 @@ createPiles(exampleEl.value).then(pilingLib => {
         select.appendChild(option);
       });
 
-      Object.defineProperty(select, 'value', {
-        get: () => select.options[select.selectedIndex].value
-      });
+      if (field.multiple) {
+        select.setAttribute('multiple', 'multiple');
+
+        Object.defineProperty(select, 'value', {
+          get: () => {
+            return Array.from(
+              select.querySelectorAll('option:checked'),
+              e => e.value
+            );
+          }
+        });
+      } else {
+        Object.defineProperty(select, 'value', {
+          get: () => select.options[select.selectedIndex].value
+        });
+      }
 
       return select;
     }
@@ -258,6 +294,12 @@ createPiles(exampleEl.value).then(pilingLib => {
 
   const optionsContent = document.querySelector('#options .content');
   options.forEach(section => {
+    const validFields = section.fields.filter(
+      field => typeof field.values === 'undefined' || field.values.length
+    );
+
+    if (!validFields.length) return;
+
     const sectionEl = document.createElement('section');
     sectionEl.id = section.id;
     optionsContent.appendChild(sectionEl);
@@ -270,7 +312,7 @@ createPiles(exampleEl.value).then(pilingLib => {
     fields.setAttribute('class', 'fields');
     sectionEl.appendChild(fields);
 
-    section.fields.forEach(field => {
+    validFields.forEach(field => {
       const label = document.createElement('label');
       const labelTitle = document.createElement('div');
 
@@ -280,10 +322,12 @@ createPiles(exampleEl.value).then(pilingLib => {
       labelTitle.appendChild(title);
       label.appendChild(labelTitle);
 
-      const value = document.createElement('span');
-      value.setAttribute('class', 'value');
-      value.textContent = pilingLib.get(field.name);
-      labelTitle.appendChild(value);
+      const valueEl = document.createElement('span');
+      valueEl.setAttribute('class', 'value');
+      if (field.dtype === 'int' && (field.min || field.max)) {
+        valueEl.textContent = pilingLib.get(field.name);
+      }
+      labelTitle.appendChild(valueEl);
 
       const inputs = document.createElement('inputs');
       inputs.setAttribute('class', 'inputs');
@@ -297,11 +341,20 @@ createPiles(exampleEl.value).then(pilingLib => {
         }
         isSet.addEventListener('change', event => {
           if (event.target.checked) {
-            pilingLib.set(field.name, parseDtype[field.dtype](input.value));
-            value.textContent = parseDtype[field.dtype](input.value);
+            const value = parseDtype[field.dtype](input.value);
+
+            if (field.setter) {
+              field.setter(value);
+            } else {
+              pilingLib.set(field.name, value);
+            }
+
+            if (field.dtype === 'int' && (field.min || field.max)) {
+              valueEl.textContent = value;
+            }
           } else {
             pilingLib.set(field.name, null);
-            value.textContent = '';
+            valueEl.textContent = '';
           }
         });
       } else {
@@ -312,9 +365,17 @@ createPiles(exampleEl.value).then(pilingLib => {
 
       input.addEventListener('change', event => {
         if (isSet && isSet.checked) {
-          const newValue = parseDtype[field.dtype](event.target.value);
-          pilingLib.set(field.name, newValue);
-          value.textContent = newValue;
+          const value = parseDtype[field.dtype](event.target.value);
+
+          if (field.setter) {
+            field.setter(value);
+          } else {
+            pilingLib.set(field.name, value);
+          }
+
+          if (field.dtype === 'int' && (field.min || field.max)) {
+            valueEl.textContent = value;
+          }
         }
       });
 
