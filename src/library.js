@@ -1855,7 +1855,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (objective.constructor !== Object) {
         expandedObjective.property = expandProperty(objective);
-        expandedObjective.aggregator = maxAggregator;
+        expandedObjective.aggregator = meanAggregator;
         expandedObjective.scale = scaleLinear;
         expandedObjective.inverse = false;
       } else {
