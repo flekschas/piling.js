@@ -17,7 +17,6 @@ import {
 } from './defaults';
 
 import {
-  argSort,
   capitalize,
   cloneSprite,
   colorToDecAlpha,
@@ -35,6 +34,7 @@ import {
   minAggregator,
   range,
   scaleLinear,
+  sortPos,
   sumAggregator,
   withThrottleAndDebounce
 } from './utils';
@@ -649,7 +649,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       case 1:
         return layout.idxToXy(
-          pileIdsSortedByAggregate[0][pileId],
+          pileSortPosByAggregate[0][pileId],
           pileWidth,
           pileHeight
         );
@@ -1510,7 +1510,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const aggregatedPileValues = [];
-  const pileIdsSortedByAggregate = [];
+  const pileSortPosByAggregate = [];
   const aggregatedPileMinValues = [];
   const aggregatedPileMaxValues = [];
 
@@ -1542,14 +1542,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       aggregatedValues.splice(items.length);
 
       aggregatedPileValues[i] = aggregatedValues;
-      pileIdsSortedByAggregate[i] = argSort(aggregatedValues);
+      pileSortPosByAggregate[i] = sortPos(aggregatedValues);
       aggregatedPileMinValues[i] = min;
       aggregatedPileMaxValues[i] = max;
     });
 
     // Remove outdated values
     aggregatedPileValues.splice(arrangementObjective.length);
-    pileIdsSortedByAggregate.splice(arrangementObjective.length);
+    pileSortPosByAggregate.splice(arrangementObjective.length);
     aggregatedPileMinValues.splice(arrangementObjective.length);
     aggregatedPileMaxValues.splice(arrangementObjective.length);
   };
@@ -1778,7 +1778,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.arrangementObjective !== newState.arrangementObjective) &&
       newState.arrangementType === 'data'
     ) {
-      updateArragnementByData(iteratorToArray(updatedPiles.values()));
+      stateUpdates.add('layout');
+      const pileStates = updatedPiles.size
+        ? iteratorToArray(updatedPiles.values())
+        : newState.piles;
+      updateArragnementByData(pileStates);
     }
 
     state = newState;

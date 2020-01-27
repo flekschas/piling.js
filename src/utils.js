@@ -4,11 +4,44 @@ export const sortAsc = (a, b) => a - b;
 
 export const sortDesc = (a, b) => b - a;
 
+/**
+ * Return a list of indices sorted by the array
+ *
+ * @example
+ *   sortedIdx = argSort([9, 5, 11, -1, 0])
+ *   >> [3, 4, 1, 0, 2]
+ *   I.e., the smallest element is sortedIdx[0] == -1
+ *
+ * @param   {array}  array  Array of numerical values
+ * @param   {function}  comparator  Pairwise value comparator function
+ * @return  {array}  Array of indices sorted by the values
+ */
 export const argSort = (array, comparator = sortAsc) =>
   array
     .map((value, index) => [value, index])
     .sort((a, b) => comparator(a[0], b[0]))
     .map(v => v[1]);
+
+/**
+ * Return a list of the sort position
+ *
+ * @example
+ *   idxPos = sortPos([9, 5, 11, -1, 0])
+ *   >> [3, 2, 4, 0, 1]
+ *   I.e., the first element is at position idxPos[0] == 3
+ *
+ * @param   {[type]}  array  [description]
+ * @param   {[type]}  comparator  [description]
+ * @return  {[type]}  [description]
+ */
+export const sortPos = (array, comparator = sortAsc) =>
+  array
+    .map((value, index) => [value, index])
+    .sort((a, b) => comparator(a[0], b[0]))
+    .reduce((out, tuple, i) => {
+      out[tuple[1]] = i;
+      return out;
+    }, []);
 
 export const assign = (target, ...sources) => {
   sources.forEach(source => {
