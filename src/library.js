@@ -27,7 +27,6 @@ import {
   isPileInPolygon,
   interpolateVector,
   interpolateNumber,
-  iteratorToArray,
   l2Dist,
   maxAggregator,
   meanAggregator,
@@ -1514,10 +1513,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const aggregatedPileMinValues = [];
   const aggregatedPileMaxValues = [];
 
-  const updateAggregatedPileValues = (
-    updatedPiles = store.getState().piles
-  ) => {
-    const { arrangementObjective, items } = store.getState();
+  const updateAggregatedPileValues = pileIds => {
+    const { arrangementObjective, items, piles } = store.getState();
 
     arrangementObjective.forEach((objective, i) => {
       let min = aggregatedPileMinValues[i] || Infinity;
@@ -1525,14 +1522,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const aggregatedValues = aggregatedPileValues[i] || [];
 
-      updatedPiles.forEach((pile, j) => {
-        const pileValues = pile.items.map(itemId =>
+      pileIds.forEach(pileId => {
+        const pileValues = piles[pileId].items.map(itemId =>
           objective.property(items[itemId])
         );
 
-        const aggregatedValue = objective.aggregator(pileValues);
+        const aggregatedValue = pileValues.length
+          ? objective.aggregator(pileValues)
+          : Infinity;
 
-        aggregatedValues[j] = aggregatedValue;
+        aggregatedValues[pileId] = aggregatedValue;
 
         min = aggregatedValue < min ? aggregatedValue : min;
         max = aggregatedValue > max ? aggregatedValue : max;
@@ -1554,19 +1553,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     aggregatedPileMaxValues.splice(arrangementObjective.length);
   };
 
-  const updateArrangement1dOrderer = (
-    updatedPiles = store.getState().piles
-  ) => {
-    updateAggregatedPileValues(updatedPiles);
+  const updateArrangement1dOrderer = pileIds => {
+    updateAggregatedPileValues(pileIds);
   };
 
   let arrangement2dScales = [];
-  const updateArrangement2dScales = (updatedPiles = store.getState().piles) => {
+  const updateArrangement2dScales = pileIds => {
     const { arrangementObjective } = store.getState();
     const { width, height } = canvas.getBoundingClientRect();
     const rangeMax = [width, height];
 
-    updateAggregatedPileValues(updatedPiles);
+    updateAggregatedPileValues(pileIds);
 
     arrangement2dScales = arrangementObjective.map((objective, i) => {
       const currentScale = arrangement2dScales[i];
@@ -1590,7 +1587,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updateArragnementByData = updatedPiles => {
+  const updateArragnementByData = pileIds => {
     const { arrangementObjective } = store.getState();
 
     switch (arrangementObjective.length) {
@@ -1599,11 +1596,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
 
       case 1:
-        updateArrangement1dOrderer(updatedPiles);
+        updateArrangement1dOrderer(pileIds);
         break;
 
       case 2:
-        updateArrangement2dScales(updatedPiles);
+        updateArrangement2dScales(pileIds);
         break;
 
       default:
@@ -1618,8 +1615,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const stateUpdates = new Set();
 
     const updatedItems = [];
-    const updatedPileItems = new Map();
-    const updatedPilePositions = new Map();
+    const updatedPileItems = [];
+    const updatedPilePositions = [];
 
     if (
       state.items !== newState.items ||
@@ -1642,7 +1639,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
-            updatedPileItems.set(id, pile);
+            updatedPileItems.push(id);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
@@ -1650,7 +1647,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
-            updatedPilePositions.set(id, pile);
+            updatedPilePositions.push(id);
           }
         });
       }
@@ -1777,14 +1774,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       (state.arrangementType !== newState.arrangementType ||
         state.arrangementObjective !== newState.arrangementObjective ||
-        updatedPileItems.size > 0) &&
+        updatedPileItems.length > 0) &&
       newState.arrangementType === 'data'
     ) {
       stateUpdates.add('layout');
-      const pileStates = updatedPileItems.size
-        ? iteratorToArray(updatedPileItems.values())
-        : newState.piles;
-      updateArragnementByData(pileStates);
+
+      const pileIds = updatedPileItems.length
+        ? updatedPileItems
+        : range(0, newState.items.length);
+
+      updateArragnementByData(pileIds);
     }
 
     state = newState;
@@ -1799,15 +1798,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       stateUpdates.has('layout') ||
       updatedItems.length > 0 ||
-      updatedPileItems.size > 0
+      updatedPileItems.length > 0
     ) {
       Promise.all(updatedItems).then(() => {
         // Reposition of all piles
         positionPiles();
       });
-    } else if (updatedPilePositions.size > 0) {
+    } else if (updatedPilePositions.length > 0) {
       // Only update the piles that were dragged
-      positionPiles(iteratorToArray(updatedPilePositions.keys()));
+      positionPiles(updatedPilePositions);
     }
   };
 
