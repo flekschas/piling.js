@@ -1618,7 +1618,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const stateUpdates = new Set();
 
     const updatedItems = [];
-    const updatedPiles = new Map();
+    const updatedPileItems = new Map();
+    const updatedPilePositions = new Map();
 
     if (
       state.items !== newState.items ||
@@ -1641,7 +1642,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatePileStyle(pile, id);
-            updatedPiles.set(id, pile);
+            updatedPileItems.set(id, pile);
           }
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
@@ -1649,7 +1650,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
-            updatedPiles.set(id, pile);
+            updatedPilePositions.set(id, pile);
           }
         });
       }
@@ -1775,12 +1776,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       (state.arrangementType !== newState.arrangementType ||
-        state.arrangementObjective !== newState.arrangementObjective) &&
+        state.arrangementObjective !== newState.arrangementObjective ||
+        updatedPileItems.size > 0) &&
       newState.arrangementType === 'data'
     ) {
       stateUpdates.add('layout');
-      const pileStates = updatedPiles.size
-        ? iteratorToArray(updatedPiles.values())
+      const pileStates = updatedPileItems.size
+        ? iteratorToArray(updatedPileItems.values())
         : newState.piles;
       updateArragnementByData(pileStates);
     }
@@ -1797,16 +1799,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       stateUpdates.has('layout') ||
       updatedItems.length > 0 ||
-      updatedPiles.length > 0
+      updatedPileItems.size > 0
     ) {
       Promise.all(updatedItems).then(() => {
-        const pileIds =
-          stateUpdates.has('layout') || updatedItems.length > 0
-            ? [] // This will position all piles
-            : iteratorToArray(updatedPiles.keys());
-
-        positionPiles(pileIds);
+        // Reposition of all piles
+        positionPiles();
       });
+    } else if (updatedPilePositions.size > 0) {
+      // Only update the piles that were dragged
+      positionPiles(iteratorToArray(updatedPilePositions.keys()));
     }
   };
 
