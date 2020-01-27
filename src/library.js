@@ -1899,7 +1899,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return expandedArrangementObjective;
   };
 
-  const arrangeBy = (type, objective) => {
+  const arrangeBy = (type = null, objective = null) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
