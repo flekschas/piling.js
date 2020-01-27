@@ -1774,8 +1774,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      (state.arrangementType === newState.arrangementType ||
-        state.arrangementObjective === newState.arrangementObjective) &&
+      (state.arrangementType !== newState.arrangementType ||
+        state.arrangementObjective !== newState.arrangementObjective) &&
       newState.arrangementType === 'data'
     ) {
       updateArragnementByData(iteratorToArray(updatedPiles.values()));
