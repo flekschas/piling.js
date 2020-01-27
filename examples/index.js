@@ -211,7 +211,7 @@ createPiles(exampleEl.value).then(pilingLib => {
           dtype: 'string',
           values: numericalProps,
           setter: values =>
-            values.length
+            values && values.length
               ? pilingLib.arrangeBy('data', values)
               : pilingLib.arrangeBy(),
           multiple: true,
@@ -353,7 +353,11 @@ createPiles(exampleEl.value).then(pilingLib => {
               valueEl.textContent = value;
             }
           } else {
-            pilingLib.set(field.name, null);
+            if (field.setter) {
+              field.setter(null);
+            } else {
+              pilingLib.set(field.name, null);
+            }
             valueEl.textContent = '';
           }
         });
