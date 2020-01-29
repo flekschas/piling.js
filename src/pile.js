@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 
+import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
 import {
@@ -45,13 +46,8 @@ const createPile = (
   const hoverItemContainer = new PIXI.Container();
   const tempDepileContainer = new PIXI.Container();
 
-  const bBox = {
-    minX: null,
-    minY: null,
-    maxX: null,
-    maxY: null,
-    pileId: id
-  };
+  const createPileBBox = createBBox({ id });
+  let bBox = {};
 
   let coverItem;
 
@@ -59,8 +55,6 @@ const createPile = (
   let isTempDepiled = false;
   let isPositioning = false;
   let isScaling = false;
-  let cX;
-  let cY;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -312,15 +306,6 @@ const createPile = (
     }
   };
 
-  const setBBox = newBBox => {
-    bBox.minX = newBBox.minX;
-    bBox.minY = newBBox.minY;
-    bBox.maxX = newBBox.maxX;
-    bBox.maxY = newBBox.maxY;
-    cX = bBox.minX + (bBox.maxX - bBox.minX) / 2;
-    cY = bBox.minY + (bBox.maxY - bBox.minY) / 2;
-  };
-
   // compute bounding box
   const calcBBox = () => {
     // eslint-disable-next-line no-use-before-define
@@ -344,19 +329,11 @@ const createPile = (
     previewItemContainer.children.forEach(getMinMaxXY);
     coverItemContainer.children.forEach(getMinMaxXY);
 
-    // console.log('calcBBox', minX, minY, maxX, maxY);
-    // console.log('graphics', graphics.x, graphics.y, graphics.x + graphics.width, graphics.y + graphics.height);
-
-    return {
-      minX,
-      minY,
-      maxX,
-      maxY
-    };
+    return createPileBBox({ minX, minY, maxX, maxY });
   };
 
   const updateBBox = () => {
-    setBBox(calcBBox());
+    bBox = calcBBox();
   };
 
   const getRandomArbitrary = (min, max) => {
@@ -881,12 +858,6 @@ const createPile = (
 
   return {
     // Properties
-    get cX() {
-      return cX;
-    },
-    get cY() {
-      return cY;
-    },
     get bBox() {
       return bBox;
     },

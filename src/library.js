@@ -502,8 +502,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
       pileInstances.forEach(pile => {
-        const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
-        const oldColumnNum = Math.floor(pile.cX / oldLayout.columnWidth);
+        const oldRowNum = Math.floor(pile.bBox.cY / oldLayout.rowHeight);
+        const oldColumnNum = Math.floor(pile.bBox.cX / oldLayout.columnWidth);
 
         const cellIndex = Math.round(
           oldRowNum * oldLayout.numColumns + oldColumnNum
@@ -901,11 +901,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileInstances.forEach(pile => {
       if (pile.id === pileId) return;
 
-      const bBox = pile.bBox;
-      const minY = Math.floor(bBox.minX / layout.columnWidth);
-      const minX = Math.floor(bBox.minY / layout.rowHeight);
-      const maxY = Math.floor(bBox.maxX / layout.columnWidth);
-      const maxX = Math.floor(bBox.maxY / layout.rowHeight);
+      const minY = Math.floor(pile.bBox.minX / layout.columnWidth);
+      const minX = Math.floor(pile.bBox.minY / layout.rowHeight);
+      const maxY = Math.floor(pile.bBox.maxX / layout.columnWidth);
+      const maxX = Math.floor(pile.bBox.maxY / layout.rowHeight);
+
       gridMat.set(minX, minY, 1);
       gridMat.set(minX, maxY, 1);
       gridMat.set(maxX, minY, 1);
@@ -1439,17 +1439,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   );
 
   const findPilesInLasso = lassoPolygon => {
-    const bBox = getBBox(lassoPolygon);
-    const pilesInBBox = searchIndex.search(bBox);
+    const lassoBBox = getBBox(lassoPolygon);
+    const pileBBoxes = searchIndex.search(lassoBBox);
     const pilesInPolygon = [];
-    pilesInBBox.forEach(pile => {
+    pileBBoxes.forEach(pileBBox => {
       if (
-        isPileInPolygon([pile.minX, pile.minY], lassoPolygon) ||
-        isPileInPolygon([pile.minX, pile.maxY], lassoPolygon) ||
-        isPileInPolygon([pile.maxX, pile.minY], lassoPolygon) ||
-        isPileInPolygon([pile.maxX, pile.maxY], lassoPolygon)
+        isPileInPolygon([pileBBox.minX, pileBBox.minY], lassoPolygon) ||
+        isPileInPolygon([pileBBox.minX, pileBBox.maxY], lassoPolygon) ||
+        isPileInPolygon([pileBBox.maxX, pileBBox.minY], lassoPolygon) ||
+        isPileInPolygon([pileBBox.maxX, pileBBox.maxY], lassoPolygon)
       )
-        pilesInPolygon.push(pile.pileId);
+        pilesInPolygon.push(pileBBox.id);
     });
 
     return pilesInPolygon;
