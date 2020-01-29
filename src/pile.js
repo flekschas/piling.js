@@ -308,28 +308,14 @@ const createPile = (
 
   // compute bounding box
   const calcBBox = () => {
-    // eslint-disable-next-line no-use-before-define
-    const scale = getScale();
+    const bounds = rootGraphics.getBounds();
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    const getMinMaxXY = element => {
-      const x = element.x + rootGraphics.x;
-      const y = element.y + rootGraphics.y;
-      if (x < minX) minX = x;
-      if (y < minY) minY = y;
-      if (x + element.width * scale > maxX) maxX = x + element.width * scale;
-      if (y + element.height * scale > maxY) maxY = y + element.height * scale;
-    };
-
-    normalItemContainer.children.forEach(getMinMaxXY);
-    previewItemContainer.children.forEach(getMinMaxXY);
-    coverItemContainer.children.forEach(getMinMaxXY);
-
-    return createPileBBox({ minX, minY, maxX, maxY });
+    return createPileBBox({
+      minX: bounds.x,
+      minY: bounds.y,
+      maxX: bounds.x + bounds.width,
+      maxY: bounds.y + bounds.height
+    });
   };
 
   const updateBBox = () => {
