@@ -1516,34 +1516,99 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updateAggregatedPileValues = pileIds => {
     const { arrangementObjective, items, piles } = store.getState();
 
+    const allPiles = pileIds.length >= pileInstances.size;
+
     arrangementObjective.forEach((objective, i) => {
-      let min = aggregatedPileMinValues[i] || Infinity;
-      let max = aggregatedPileMaxValues[i] || -Infinity;
+      let min =
+        typeof aggregatedPileMinValues[i] === 'undefined' || allPiles
+          ? Infinity
+          : aggregatedPileMinValues[i];
+
+      let max =
+        typeof aggregatedPileMaxValues[i] === 'undefined' || allPiles
+          ? -Infinity
+          : aggregatedPileMaxValues[i];
+
+      // When all piles were updated we need to update the min-max value as well
+      let shouldUpdateMinMax = allPiles;
 
       const aggregatedValues = aggregatedPileValues[i] || [];
+
+      // Even if not all piles were updated we might still need to update the
+      // min-max values. This is the when the user piled-up piles with the
+      // lowest or highest aggregated value
+      if (!allPiles && pileSortPosByAggregate[i]) {
+        let minPos = 0;
+        let maxPos = pileInstances.size;
+        let newMin = false;
+        let newMax = false;
+
+        pileIds.forEach(id => {
+          const pos = pileSortPosByAggregate[i][id];
+
+          // If the pile that updated was positioned at the current lowest
+          // position we're going to increase the lowest position and indicate
+          // that we need to get a new min value
+          if (pos === minPos) {
+            minPos++;
+            newMin = true;
+            shouldUpdateMinMax = true;
+          }
+
+          // Equivalent to how we update the min position
+          if (pos === maxPos) {
+            maxPos--;
+            newMax = true;
+            shouldUpdateMinMax = true;
+          }
+
+          return pileSortPosByAggregate[i][id];
+        });
+
+        min = newMin
+          ? aggregatedValues[pileSortPosByAggregate[i].indexOf(minPos)]
+          : min;
+
+        max = newMax
+          ? aggregatedValues[pileSortPosByAggregate[i].indexOf(maxPos)]
+          : max;
+      }
 
       pileIds.forEach(pileId => {
         const pileValues = piles[pileId].items.map(itemId =>
           objective.property(items[itemId])
         );
 
-        const aggregatedValue = pileValues.length
-          ? objective.aggregator(pileValues)
-          : Infinity;
+        const aggregatedValue = objective.aggregator(pileValues);
 
-        aggregatedValues[pileId] = aggregatedValue;
+        if (aggregatedValue < min) {
+          min = aggregatedValue;
+          shouldUpdateMinMax = true;
+        }
 
-        min = aggregatedValue < min ? aggregatedValue : min;
-        max = aggregatedValue > max ? aggregatedValue : max;
+        if (aggregatedValue > max) {
+          max = aggregatedValue;
+          shouldUpdateMinMax = true;
+        }
+
+        aggregatedValues[pileId] = Number.isNaN(aggregatedValue)
+          ? // This will ensure that the value is ignored during the sort process
+            null
+          : aggregatedValue;
       });
 
       // Remove outdated values
       aggregatedValues.splice(items.length);
 
       aggregatedPileValues[i] = aggregatedValues;
-      pileSortPosByAggregate[i] = sortPos(aggregatedValues);
-      aggregatedPileMinValues[i] = min;
-      aggregatedPileMaxValues[i] = max;
+      pileSortPosByAggregate[i] = sortPos(aggregatedValues, {
+        ignoreNull: true
+      });
+
+      if (shouldUpdateMinMax) {
+        aggregatedPileMinValues[i] = min;
+        aggregatedPileMaxValues[i] = max;
+      }
     });
 
     // Remove outdated values
