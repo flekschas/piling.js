@@ -291,7 +291,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach(pile => {
-        pile.updateBBox();
+        pile.updateBounds();
         boxList.push(pile.bBox);
       });
       searchIndex.load(boxList);
@@ -306,13 +306,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updateBoundingBox = pileId => {
+  const updatePileBounds = pileId => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => {
       return a.id === b.id;
     });
-    pile.updateBBox();
+    pile.updateBounds();
     searchIndex.insert(pile.bBox);
   };
 
@@ -857,7 +857,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pileInstance.setItems(itemInstances);
           positionItems(id);
         }
-        updateBoundingBox(id);
+        updatePileBounds(id);
         updatePileItemStyle(pile, id);
       }
     } else {
@@ -876,7 +876,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
-      updateBoundingBox(id);
+      updatePileBounds(id);
       updatePileItemStyle(pile, id);
     }
   };
@@ -885,7 +885,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       animatePileMove(pileInstance, pile.x, pile.y);
-      updateBoundingBox(id);
+      updatePileBounds(id);
       renderRaf();
     }
   };
@@ -1358,7 +1358,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
         pubSub.publish('pileActive', { pile });
       }
-      updateBoundingBox(pileId);
+      updatePileBounds(pileId);
     });
     renderRaf();
   };
@@ -1510,7 +1510,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
     if (pile.scaleByWheel(wheelDelta)) {
-      updateBoundingBox(pileId);
+      updatePileBounds(pileId);
     }
     renderRaf();
   };
@@ -1811,7 +1811,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
           scaledPileInstance.scale(1);
-          updateBoundingBox(scaledPileInstance.id);
+          updatePileBounds(scaledPileInstance.id);
           activePile.removeChildren();
           normalPiles.addChild(scaledPileInstance.graphics);
         });
@@ -2467,8 +2467,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.cancel(tweener);
   };
 
-  const handleUpdateBBox = pileId => {
-    updateBoundingBox(pileId);
+  const handleUpdatePileBounds = pileId => {
+    updatePileBounds(pileId);
   };
 
   let storeUnsubscribor;
@@ -2495,7 +2495,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('pileDrop', handleDropPile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
-    pubSub.subscribe('updateBBox', handleUpdateBBox);
+    pubSub.subscribe('updatePileBounds', handleUpdatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);

@@ -47,7 +47,9 @@ const createPile = (
   const tempDepileContainer = new PIXI.Container();
 
   const createPileBBox = createBBox({ id });
+
   let bBox = {};
+  let anchorBox = {};
 
   let coverItem;
 
@@ -128,7 +130,7 @@ const createPile = (
     const borderBounds = borderGraphics.getBounds();
     const contentBounds = contentGraphics.getBounds();
 
-    pubSub.publish('updateBBox', id);
+    pubSub.publish('updatePileBounds', id);
 
     const state = store.getState();
 
@@ -306,7 +308,31 @@ const createPile = (
     }
   };
 
-  // compute bounding box
+  /**
+   * Calculate the current anchor box of the pile
+   * @return  {object}  Anchor bounding box
+   */
+  const calcAnchorBox = () => {
+    const bounds = coverItemContainer.children.length
+      ? coverItemContainer.getBounds()
+      : normalItemContainer.getBounds();
+
+    return createPileBBox({
+      minX: bounds.x,
+      minY: bounds.y,
+      maxX: bounds.x + bounds.width,
+      maxY: bounds.y + bounds.height
+    });
+  };
+
+  const updateAnchorBox = () => {
+    anchorBox = calcAnchorBox();
+  };
+
+  /**
+   * Compute the current bounding box of the pile
+   * @return  {object}  Pile bounding box
+   */
   const calcBBox = () => {
     const bounds = rootGraphics.getBounds();
 
@@ -320,6 +346,11 @@ const createPile = (
 
   const updateBBox = () => {
     bBox = calcBBox();
+  };
+
+  const updateBounds = () => {
+    updateAnchorBox();
+    updateBBox();
   };
 
   const getRandomArbitrary = (min, max) => {
@@ -399,7 +430,7 @@ const createPile = (
             fn();
           });
           postPilePositionAnimation.clear();
-          pubSub.publish('updateBBox', id);
+          pubSub.publish('updatePileBounds', id);
         }
       }
     });
@@ -585,7 +616,7 @@ const createPile = (
           fn();
         });
         postPilePositionAnimation.clear();
-        pubSub.publish('updateBBox', id);
+        pubSub.publish('updatePileBounds', id);
       }
     });
     pubSub.publish('animate', scaleTweener);
@@ -614,7 +645,7 @@ const createPile = (
     if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
       rootGraphics.x = x;
       rootGraphics.y = y;
-      pubSub.publish('updateBBox', id);
+      pubSub.publish('updatePileBounds', id);
     }
   };
 
@@ -844,6 +875,9 @@ const createPile = (
 
   return {
     // Properties
+    get anchorBox() {
+      return anchorBox;
+    },
     get bBox() {
       return bBox;
     },
@@ -910,7 +944,7 @@ const createPile = (
     scaleByWheel,
     scaleToggle,
     setItems,
-    updateBBox
+    updateBounds
   };
 };
 
