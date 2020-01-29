@@ -8,38 +8,53 @@ export const sortDesc = (a, b) => b - a;
  * Return a list of indices sorted by the array
  *
  * @example
- *   sortedIdx = argSort([9, 5, 11, -1, 0])
+ *   X = [9, 5, 11, -1, 0]
+ *   sortedIdx = argSort(X)
  *   >> [3, 4, 1, 0, 2]
- *   I.e., the smallest element is sortedIdx[0] == -1
+ *   I.e., the smallest element is X[sortedIdx[0]] == -1
  *
  * @param   {array}  array  Array of numerical values
  * @param   {function}  comparator  Pairwise value comparator function
  * @return  {array}  Array of indices sorted by the values
  */
-export const argSort = (array, comparator = sortAsc) =>
+export const argSort = (array, { comparator = sortAsc, ignoreNull = false }) =>
   array
-    .map((value, index) => [value, index])
+    .map(
+      ignoreNull
+        ? (v, i) => (v === null ? undefined : [v, i])
+        : (v, i) => [v, i]
+    )
     .sort((a, b) => comparator(a[0], b[0]))
-    .map(v => v[1]);
+    .reduce((out, v) => {
+      if (!v) return out;
+      out.push(v[1]);
+      return out;
+    }, []);
 
 /**
  * Return a list of the sort position
  *
  * @example
- *   idxPos = sortPos([9, 5, 11, -1, 0])
+ *   X = [9, 5, 11, -1, 0]
+ *   idxPos = sortPos(X)
  *   >> [3, 2, 4, 0, 1]
- *   I.e., the first element is at position idxPos[0] == 3
+ *   I.e., the first element of X is at position idxPos[0] == 3
  *
- * @param   {[type]}  array  [description]
- * @param   {[type]}  comparator  [description]
- * @return  {[type]}  [description]
+ * @param   {array}  array  Array of numerical values
+ * @param   {function}  comparator  Pairwise value comparator function
+ * @return  {array}  Array of the sorted value positions
  */
-export const sortPos = (array, comparator = sortAsc) =>
+export const sortPos = (array, { comparator = sortAsc, ignoreNull = false }) =>
   array
-    .map((value, index) => [value, index])
+    .map(
+      ignoreNull
+        ? (v, i) => (v === null ? undefined : [v, i])
+        : (v, i) => [v, i]
+    )
     .sort((a, b) => comparator(a[0], b[0]))
-    .reduce((out, tuple, i) => {
-      out[tuple[1]] = i;
+    .reduce((out, v, i) => {
+      if (!v) return out;
+      out[v[1]] = i;
       return out;
     }, []);
 
