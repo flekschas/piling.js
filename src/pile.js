@@ -908,6 +908,12 @@ const createPile = (
     set isTempDepiled(newIsTempDepiled) {
       isTempDepiled = !!newIsTempDepiled;
     },
+    get normalItemContainer() {
+      return normalItemContainer;
+    },
+    get previewItemContainer() {
+      return previewItemContainer;
+    },
     get items() {
       return [...allItems];
     },
