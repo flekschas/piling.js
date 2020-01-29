@@ -302,7 +302,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => {
-      return a.pileId === b.pileId;
+      return a.id === b.id;
     });
   };
 
@@ -310,7 +310,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => {
-      return a.pileId === b.pileId;
+      return a.id === b.id;
     });
     pile.updateBBox();
     searchIndex.insert(pile.bBox);
@@ -1991,13 +1991,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileGfx = pile.graphics;
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
+      const searchBBox = pileInstances.get(pileId).calcBBox();
       const collidePiles = searchIndex
-        .search(pileInstances.get(pileId).calcBBox())
-        .filter(collidePile => collidePile.pileId !== pileId);
+        .search(searchBBox)
+        .filter(collidePile => collidePile.id !== pileId);
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        hit = !pileInstances.get(collidePiles[0].pileId).isTempDepiled;
+        hit = !pileInstances.get(collidePiles[0].id).isTempDepiled;
         if (hit) {
           pile.items.forEach(item => {
             item.tmpAbsX = pileGfx.x;
@@ -2005,7 +2006,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             item.tmpRelScale = pile.scale();
           });
           store.dispatch(
-            createAction.mergePiles([pileId, collidePiles[0].pileId], true)
+            createAction.mergePiles([pileId, collidePiles[0].id], true)
           );
         }
       } else {
@@ -2038,16 +2039,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (oldResult !== []) {
       oldResult.forEach(collidePile => {
-        if (pileInstances.get(collidePile.pileId)) {
-          const pile = pileInstances.get(collidePile.pileId);
+        if (pileInstances.get(collidePile.id)) {
+          const pile = pileInstances.get(collidePile.id);
           pile.blur();
         }
       });
     }
 
     newResult.forEach(collidePile => {
-      if (pileInstances.get(collidePile.pileId)) {
-        const pile = pileInstances.get(collidePile.pileId);
+      if (pileInstances.get(collidePile.id)) {
+        const pile = pileInstances.get(collidePile.id);
         pile.hover();
       }
     });
@@ -2178,28 +2179,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         if (event.shiftKey) {
           const { depileMethod } = store.getState();
           if (depileMethod === 'originalPos') {
-            depileToOriginPos(results[0].pileId);
+            depileToOriginPos(results[0].id);
           } else if (depileMethod === 'cloestPos') {
-            store.dispatch(createAction.setDepiledPile([results[0].pileId]));
+            store.dispatch(createAction.setDepiledPile([results[0].id]));
           }
           store.dispatch(createAction.setFocusedPiles([]));
         } else if (event.altKey) {
           results.forEach(result => {
-            const pile = pileInstances.get(result.pileId);
+            const pile = pileInstances.get(result.id);
             if (pile.graphics.isHover) {
               if (pile.scale() > 1) {
                 store.dispatch(createAction.setScaledPiles([]));
               } else {
-                store.dispatch(createAction.setScaledPiles([result.pileId]));
+                store.dispatch(createAction.setScaledPiles([result.id]));
               }
               pile.scaleToggle();
             }
           });
         } else {
           results.forEach(result => {
-            const pile = pileInstances.get(result.pileId);
+            const pile = pileInstances.get(result.id);
             if (pile.graphics.isHover) {
-              store.dispatch(createAction.setFocusedPiles([result.pileId]));
+              store.dispatch(createAction.setFocusedPiles([result.id]));
             }
           });
         }
@@ -2230,12 +2231,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (result.length !== 0) {
       if (!store.getState().temporaryDepiledPiles.length) {
-        if (piles[result[0].pileId].items.length > 1) {
+        if (piles[result[0].id].items.length > 1) {
           let temp = [...temporaryDepiledPiles];
-          if (temp.includes(result[0].pileId)) {
-            temp = temp.filter(id => id !== result[0].pileId);
+          if (temp.includes(result[0].id)) {
+            temp = temp.filter(id => id !== result[0].id);
           } else {
-            temp = [result[0].pileId];
+            temp = [result[0].id];
           }
           store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
         }
@@ -2262,8 +2263,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (result.length !== 0) {
       if (event.altKey) {
         event.preventDefault();
-        store.dispatch(createAction.setScaledPiles([result[0].pileId]));
-        scalePile(result[0].pileId, normalizeWheel(event).pixelY);
+        store.dispatch(createAction.setScaledPiles([result[0].id]));
+        scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
     }
   };
@@ -2369,8 +2370,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       let pile;
       results.forEach(result => {
-        if (pileInstances.get(result.pileId).graphics.isHover) {
-          pile = pileInstances.get(result.pileId);
+        if (pileInstances.get(result.id).graphics.isHover) {
+          pile = pileInstances.get(result.id);
         }
       });
       if (pile && pile.size === 1) {
