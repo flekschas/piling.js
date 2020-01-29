@@ -127,10 +127,10 @@ const createGrid = (
     piles.forEach(pile => {
       pilePositions.set(pile.id, {
         id: pile.id,
-        cX: pile.cX,
-        cY: pile.cY,
-        width: pile.graphics.width,
-        height: pile.graphics.height
+        cX: pile.anchorBox.cX,
+        cY: pile.anchorBox.cY,
+        width: pile.anchorBox.width,
+        height: pile.anchorBox.height
       });
     });
 
