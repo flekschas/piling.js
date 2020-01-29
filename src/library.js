@@ -491,65 +491,72 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateLayout = oldLayout => {
+    const { arrangementType } = store.getState();
+
     scaleItems();
 
-    const movingPiles = [];
+    if (arrangementType === null) {
+      // Since there is no automatic arrangement in place we manually move
+      // piles from their old cell position to their new cell position
+      const movingPiles = [];
 
-    layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
-    pileInstances.forEach(pile => {
-      const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
-      const oldColumnNum = Math.floor(pile.cX / oldLayout.columnWidth);
+      layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
+      pileInstances.forEach(pile => {
+        const oldRowNum = Math.floor(pile.cY / oldLayout.rowHeight);
+        const oldColumnNum = Math.floor(pile.cX / oldLayout.columnWidth);
 
-      const cellIndex = Math.round(
-        oldRowNum * oldLayout.numColumns + oldColumnNum
-      );
-
-      const [x, y] = layout.ijToXy(
-        cellIndex,
-        pile.graphics.width,
-        pile.graphics.height
-      );
-
-      movingPiles.push({ id: pile.id, x, y });
-    });
-
-    pileInstances.forEach(pile => {
-      if (pile.cover()) {
-        const coverRatio = pile.cover.height / pile.cover.width;
-        pile.cover.width =
-          pile.normalItemContainer.children[0].width -
-          store.getState().previewSpacing;
-        pile.cover.height = coverRatio * pile.cover.width;
-
-        const { pileItemAlignment, pileItemRotation } = store.getState();
-
-        pile.positionItems(
-          pileItemAlignment,
-          pileItemRotation,
-          animator,
-          store.getState().previewSpacing
+        const cellIndex = Math.round(
+          oldRowNum * oldLayout.numColumns + oldColumnNum
         );
-      }
-    });
 
-    store.dispatch(createAction.movePiles(movingPiles));
+        const [x, y] = layout.idxToXy(
+          cellIndex,
+          pile.graphics.width,
+          pile.graphics.height
+        );
 
-    renderedItems.forEach(item => {
-      item.setOriginalPosition(
-        layout.idxToXy(
-          item.id,
-          item.image.displayObject.width,
-          item.image.displayObject.height
-        )
-      );
-    });
+        movingPiles.push({ id: pile.id, x, y });
+      });
+
+      pileInstances.forEach(pile => {
+        if (pile.cover()) {
+          const coverRatio = pile.cover.height / pile.cover.width;
+          pile.cover.width =
+            pile.previewItemContainer.children[0].width -
+            store.getState().previewSpacing;
+          pile.cover.height = coverRatio * pile.cover.width;
+
+          const { pileItemAlignment, pileItemRotation } = store.getState();
+
+          pile.positionItems(
+            pileItemAlignment,
+            pileItemRotation,
+            animator,
+            store.getState().previewSpacing
+          );
+        }
+      });
+
+      store.dispatch(createAction.movePiles(movingPiles));
+
+      renderedItems.forEach(item => {
+        item.setOriginalPosition(
+          layout.idxToXy(
+            item.id,
+            item.image.displayObject.width,
+            item.image.displayObject.height
+          )
+        );
+      });
+    } else {
+      positionPiles();
+    }
 
     createRBush();
 
-    const focusedPile = store.getState().focusedPiles[0];
-    if (focusedPile) {
+    store.getState().focusedPiles.forEach(focusedPile => {
       pileInstances.get(focusedPile).focus();
-    }
+    });
 
     updateScrollContainer();
     renderRaf();
