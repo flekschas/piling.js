@@ -712,7 +712,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
     );
 
-    pileInstance.scale(isFunction(pileScale) ? pileScale(pile) : pileScale);
+    pileInstance.scale(
+      isFunction(pileScale) ? pileScale(pile) : pileScale,
+      false,
+      true
+    );
 
     pileInstance.borderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
@@ -1752,7 +1756,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    if (pile.scale() > 1) {
+    if (pile.scale() > pile.baseScale) {
       store.dispatch(createAction.setScaledPiles([]));
     } else {
       store.dispatch(createAction.setScaledPiles([pileId]));
@@ -1838,7 +1842,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
-              if (pile.scale() > 1) {
+              if (pile.scale() > pile.baseScale) {
                 store.dispatch(createAction.setScaledPiles([]));
               } else {
                 store.dispatch(createAction.setScaledPiles([result.pileId]));
@@ -2037,7 +2041,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         tempDepileBtn.innerHTML = 'close temp depile';
       }
 
-      if (pile.scale() > 1) {
+      if (pile.scale() > pile.baseScale) {
         scaleBtn.innerHTML = 'Scale Down';
       }
 

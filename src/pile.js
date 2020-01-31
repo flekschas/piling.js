@@ -59,6 +59,8 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   let cX;
   let cY;
 
+  let baseScale = 1;
+
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
   let hoverItemEndSubscriber;
@@ -591,11 +593,15 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
 
   let scaleTweener;
   // eslint-disable-next-line consistent-return
-  const scale = (newScale, noAnimate) => {
+  const scale = (newScale, noAnimate, updateBaseScale = false) => {
     if (Number.isNaN(+newScale)) return getScale();
 
     if (noAnimate) {
       setScale(newScale);
+    }
+
+    if (updateBaseScale) {
+      baseScale = newScale;
     }
 
     isScaling = true;
@@ -641,7 +647,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   };
 
   const scaleToggle = noAnimate => {
-    scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
+    scale(getScale() > baseScale ? baseScale : MAX_SCALE, noAnimate);
   };
 
   const moveTo = (x, y) => {
@@ -883,6 +889,9 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     },
     get cY() {
       return cY;
+    },
+    get baseScale() {
+      return baseScale;
     },
     get bBox() {
       return bBox;
