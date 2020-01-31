@@ -1,4 +1,4 @@
-import { createWorker } from './utils';
+import { createWorker } from '@flekschas/utils';
 import workerFn from './matrix-preview-aggregator-worker';
 
 const createMatrixPreviewAggregator = (aggregagtor = 'mean') => sources => {

@@ -1,4 +1,4 @@
-import { createWorker } from './utils';
+import { createWorker } from '@flekschas/utils';
 import workerFn from './matrix-cover-aggregator-worker';
 
 const createMatrixCoverAggregator = (aggregagtor = 'mean') => sources => {

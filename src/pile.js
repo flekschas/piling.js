@@ -1,14 +1,14 @@
+import {
+  interpolateNumber,
+  interpolateVector,
+  mergeMaps
+} from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import {
-  cloneSprite,
-  interpolateNumber,
-  interpolateVector,
-  mergeMaps
-} from './utils';
+import { cloneSprite } from './utils';
 
 export const MAX_SCALE = 3;
 export const MODE_HOVER = Symbol('Hover');
@@ -641,11 +641,11 @@ const createPile = (
     scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
   };
 
-  const moveTo = (x, y) => {
+  const moveTo = (x, y, notification = true) => {
     if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
       rootGraphics.x = x;
       rootGraphics.y = y;
-      pubSub.publish('updatePileBounds', id);
+      if (notification) pubSub.publish('updatePileBounds', id);
     }
   };
 

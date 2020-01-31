@@ -1,10 +1,12 @@
+import {
+  assign,
+  pipe,
+  withConstructor,
+  withReadOnlyProperty
+} from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import withConstructor from './with-constructor';
 import withAnimatedProperty from './with-animated-property';
-import withReadOnlyProperty from './with-read-only-property';
-
-import { assign, pipe } from './utils';
 
 const withDestroy = container => self =>
   assign(self, {

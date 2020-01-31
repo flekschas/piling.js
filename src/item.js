@@ -1,8 +1,9 @@
-import withConstructor from './with-constructor';
-import withProperty from './with-property';
-import withReadOnlyProperty from './with-read-only-property';
-
-import { pipe } from './utils';
+import {
+  pipe,
+  withConstructor,
+  withProperty,
+  withReadOnlyProperty
+} from '@flekschas/utils';
 
 /**
  * Factory function to create an item

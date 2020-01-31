@@ -1,8 +1,11 @@
+import {
+  assign,
+  pipe,
+  withConstructor,
+  withReadOnlyProperty
+} from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import { assign, pipe } from './utils';
-import withConstructor from './with-constructor';
-import withReadOnlyProperty from './with-read-only-property';
 import withSize from './with-size';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;

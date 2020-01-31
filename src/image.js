@@ -1,8 +1,6 @@
+import { pipe, withConstructor, withReadOnlyProperty } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import { pipe } from './utils';
-import withConstructor from './with-constructor';
-import withReadOnlyProperty from './with-read-only-property';
 import withSize from './with-size';
 
 const createImage = texture => {

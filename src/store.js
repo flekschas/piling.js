@@ -1,9 +1,9 @@
+import { camelToConst, deepClone, cubicInOut, update } from '@flekschas/utils';
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
-import { camelToConst, deepClone, cubicInOut, update } from './utils';
 
 const clone = (value, state) => {
   switch (typeof value) {

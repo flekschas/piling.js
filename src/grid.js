@@ -1,6 +1,7 @@
+import { l2Norm, normalize } from '@flekschas/utils';
 import clip from 'liang-barsky';
 
-import { l1Dist, l2Norm, normalizeVector } from './utils';
+import { l1Dist } from './utils';
 
 /**
  * Factory function to create a grid
@@ -236,7 +237,7 @@ const createGrid = (
         ];
         direction[0] += (Math.sign(direction[0]) || 1) * Math.random();
         direction[1] += (Math.sign(direction[1]) || 1) * Math.random();
-        direction = normalizeVector([x(direction[0]), y(direction[1])]);
+        direction = normalize([x(direction[0]), y(direction[1])]);
 
         // Move the pile in direction `direction` to the cell border
         // We accomplish this by clipping a line starting at the pile

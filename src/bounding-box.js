@@ -1,5 +1,4 @@
-import { pipe } from './utils';
-import withReadOnlyProperty from './with-read-only-property';
+import { pipe, withReadOnlyProperty } from '@flekschas/utils';
 
 const createBBox = (metadata = {}) => ({ minX, minY, maxX, maxY }) =>
   pipe(
