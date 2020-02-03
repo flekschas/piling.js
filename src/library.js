@@ -517,12 +517,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (size < minSize) minSize = size;
     });
 
-    // When `minSize` is equal to `maxSize`, `itemSizeScale` will draw all piles
-    // at `minRange + ((maxRange - minRange) / 2)`, which is not what we want
-    // so we artificially subscract a small value from `min` to make pile being
-    // drawn at `maxRange`.
-    minSize -= minSize === maxSize ? 0.1 : 0;
-
     const { itemSizeRange } = store.getState();
     let scaleRange;
 

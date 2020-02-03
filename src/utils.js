@@ -83,7 +83,7 @@ export const scaleLinear = () => {
       rangeMax,
       Math.max(
         rangeMin,
-        ((value - domainMin) / domainSize) * rangeSize + rangeMin
+        rangeMax - ((domainMax - value) / domainSize) * rangeSize
       )
     );
 
@@ -92,12 +92,10 @@ export const scaleLinear = () => {
 
     const [newDomainMin, newDomainMax] = newDomain;
 
-    domainMin =
-      newDomainMin === newDomainMax ? newDomainMin - 0.5 : newDomainMin;
-    domainMax =
-      newDomainMin === newDomainMax ? newDomainMax + 0.5 : newDomainMax;
+    domainMin = newDomainMin;
+    domainMax = newDomainMax;
 
-    domainSize = domainMax - domainMin;
+    domainSize = domainMax - domainMin || 1;
 
     return scale;
   };
