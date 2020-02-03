@@ -32,7 +32,6 @@ import {
   CAMERA_VIEW,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
-  PILE_BOUNDS_UPDATE_DELAY,
   POSITION_PILES_DEBOUNCE_TIME
 } from './defaults';
 
@@ -326,12 +325,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pile.updateBounds();
     searchIndex.insert(pile.bBox);
   };
-
-  const updatePileBoundsDb = throttleAndDebounce(
-    updatePileBounds,
-    PILE_BOUNDS_UPDATE_DELAY,
-    PILE_BOUNDS_UPDATE_DELAY
-  );
 
   const translatePilePosition = () => {
     lastPilePosition.forEach((pilePos, pileId) => {
@@ -2127,7 +2120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let hit;
 
-  const handleDropPile = ({ pileId }) => {
+  const handleDragEndPile = ({ pileId }) => {
     hit = false;
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
@@ -2173,7 +2166,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let oldResult = [];
   let newResult = [];
 
-  const handleHighlightPile = ({ pileId }) => {
+  const handleHighlightPile = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
     oldResult = [...newResult];
@@ -2196,9 +2189,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const handleDragPile = ({ pileId }) => {
+  const handleDragStartPile = ({ pileId }) => {
     activePile.addChild(pileInstances.get(pileId).graphics);
-    handleHighlightPile({ pileId });
+    handleHighlightPile(pileId);
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -2628,10 +2621,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.cancel(tweener);
   };
 
-  const handleUpdatePileBounds = pileId => {
-    updatePileBoundsDb(pileId);
-  };
-
   let storeUnsubscribor;
 
   const init = () => {
@@ -2646,11 +2635,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
-    pubSub.subscribe('pileDrag', handleDragPile);
-    pubSub.subscribe('pileDrop', handleDropPile);
+    pubSub.subscribe('pileDragStart', handleDragStartPile);
+    pubSub.subscribe('pileDragEnd', handleDragEndPile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
-    pubSub.subscribe('updatePileBounds', handleUpdatePileBounds);
+    pubSub.subscribe('updatePileBounds', updatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);

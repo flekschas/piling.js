@@ -9,6 +9,4 @@ export const CAMERA_VIEW = new Float32Array([
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 
-export const PILE_BOUNDS_UPDATE_DELAY = 50;
-
 export const POSITION_PILES_DEBOUNCE_TIME = 100;

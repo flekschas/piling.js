@@ -11,11 +11,13 @@ import createTweener from './tweener';
 import { cloneSprite } from './utils';
 
 export const MAX_SCALE = 3;
+export const MODE_NORMAL = Symbol('Normal');
 export const MODE_HOVER = Symbol('Hover');
 export const MODE_FOCUS = Symbol('Focus');
 export const MODE_ACTIVE = Symbol('Active');
 
 const modeToString = new Map();
+modeToString.set(MODE_NORMAL, '');
 modeToString.set(MODE_HOVER, 'Hover');
 modeToString.set(MODE_FOCUS, 'Focus');
 modeToString.set(MODE_ACTIVE, 'Active');
@@ -57,6 +59,8 @@ const createPile = (
   let isTempDepiled = false;
   let isPositioning = false;
   let isScaling = false;
+
+  let mode = MODE_NORMAL;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -114,7 +118,7 @@ const createPile = (
 
   let borderSizeBase = 0;
 
-  const drawBorder = (size = borderSizeBase, mode = '') => {
+  const drawBorder = (size = borderSizeBase, currentMode = mode) => {
     borderGraphics.clear();
 
     if (!size) return;
@@ -122,15 +126,13 @@ const createPile = (
     if (isPositioning || isScaling) {
       // eslint-disable-next-line no-use-before-define
       postPilePositionAnimation.set('drawBorder', () => {
-        drawBorder(size, mode);
+        drawBorder(size, currentMode);
       });
       return;
     }
 
     const borderBounds = borderGraphics.getBounds();
     const contentBounds = contentGraphics.getBounds();
-
-    pubSub.publish('updatePileBounds', id);
 
     const state = store.getState();
 
@@ -185,19 +187,26 @@ const createPile = (
   };
 
   const blur = () => {
+    mode = MODE_NORMAL;
     drawBorder();
   };
 
   const hover = () => {
-    drawBorder(borderSizeBase || 1, MODE_HOVER);
+    if (mode === MODE_HOVER) return;
+    mode = MODE_HOVER;
+    drawBorder(borderSizeBase || 1);
   };
 
   const focus = () => {
-    drawBorder(borderSizeBase || 2, MODE_FOCUS);
+    if (mode === MODE_FOCUS) return;
+    mode = MODE_FOCUS;
+    drawBorder(borderSizeBase || 2);
   };
 
   const active = () => {
-    drawBorder(borderSizeBase || 3, MODE_ACTIVE);
+    if (mode === MODE_ACTIVE) return;
+    mode = MODE_ACTIVE;
+    drawBorder(borderSizeBase || 3);
   };
 
   const onPointerDown = () => {
@@ -270,6 +279,9 @@ const createPile = (
     rootGraphics.beforeDragX = rootGraphics.x;
     rootGraphics.beforeDragY = rootGraphics.y;
     dragMove = false;
+
+    pubSub.publish('pileDragStart', { pileId: id, event });
+
     render();
   };
 
@@ -280,8 +292,8 @@ const createPile = (
     rootGraphics.draggingMouseOffset = null;
 
     if (dragMove) {
-      // trigger collision check
-      pubSub.publish('pileDrop', { pileId: id, event });
+      pubSub.publish('updatePileBounds', id);
+      pubSub.publish('pileDragEnd', { pileId: id, event });
     }
 
     render();
@@ -291,7 +303,7 @@ const createPile = (
     if (rootGraphics.isDragging) {
       dragMove = true;
 
-      pubSub.publish('pileDrag', { pileId: id, event });
+      pubSub.publish('pileDragMove', { pileId: id, event });
 
       const newPosition = event.data.getLocalPosition(rootGraphics.parent);
       // remove offset
