@@ -1748,10 +1748,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ? [maxValue, minValue]
         : [minValue, maxValue];
 
+      const meanItemSize = mean(
+        itemSizeScale.domain().map(size => itemSizeScale(size))
+      );
+
       return objective
         .scale()
         .domain(domain)
-        .range([0, rangeMax[i]]);
+        .range([meanItemSize / 2, rangeMax[i] - meanItemSize / 2]);
     });
   };
 
