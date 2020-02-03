@@ -1850,7 +1850,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const updatedItems = [];
     const updatedPileItems = [];
-    const updatedPilePositions = [];
 
     if (
       state.items !== newState.items ||
@@ -1881,7 +1880,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           ) {
             updatePilePosition(pile, id);
             updatePileStyle(pile, id);
-            updatedPilePositions.push(id);
           }
         });
       }
@@ -2032,9 +2030,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // Reposition of all piles
         positionPiles();
       });
-    } else if (updatedPilePositions.length > 0) {
-      // Only update the piles that were dragged
-      positionPiles(updatedPilePositions);
     }
   };
 
