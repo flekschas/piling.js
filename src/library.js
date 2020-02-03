@@ -2289,19 +2289,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     mouseDown = false;
   };
 
-  let clickMark = false;
+  let isClicked = false;
 
   const mouseClickHandler = event => {
     // when double click, avoid click handler
-    if (!clickMark) {
-      clickMark = true;
-    } else {
-      clickMark = false;
+    if (isClicked) {
+      isClicked = false;
       return;
     }
-    // eslint-disable-next-line func-names
-    setTimeout(function() {
-      clickMark = false;
+
+    isClicked = true;
+
+    setTimeout(() => {
+      isClicked = false;
     }, 500);
 
     const contextMenuElement = rootElement.querySelector(
