@@ -322,9 +322,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileBounds = pileId => {
     const pile = pileInstances.get(pileId);
 
-    searchIndex.remove(pile.bBox, (a, b) => {
-      return a.id === b.id;
-    });
+    searchIndex.remove(pile.bBox, (a, b) => a.id === b.id);
     pile.updateBounds();
     searchIndex.insert(pile.bBox);
   };
@@ -2536,6 +2534,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile = pileInstances.get(result.id);
         }
       });
+
       if (pile && pile.size === 1) {
         depileBtn.setAttribute('disabled', '');
         depileBtn.setAttribute('class', 'inactive');
