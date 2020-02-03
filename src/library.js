@@ -89,6 +89,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let isInitialPositioning = true;
   let isPanZoom = null;
+  let isPanZoomed = false;
 
   const root = new PIXI.Container();
   root.interactive = true;
@@ -338,10 +339,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePilePosition();
+    isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
   };
 
   const panZoomEndHandler = () => {
+    if (!isPanZoomed) return;
+    isPanZoomed = false;
     // Update the camera
     camera.tick();
     translatePilePosition();
