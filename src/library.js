@@ -712,10 +712,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
     );
 
-    pileInstance.scale(
-      isFunction(pileScale) ? pileScale(pile) : pileScale,
-      false,
-      true
+    pileInstance.animateScale(
+      isFunction(pileScale) ? pileScale(pile) : pileScale
     );
 
     pileInstance.borderSize(
@@ -1428,7 +1426,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
-    if (pile.scaleByWheel(wheelDelta)) {
+    if (pile.magnifyByWheel(wheelDelta)) {
       updateBoundingBox(pileId);
     }
     renderRaf();
@@ -1558,7 +1556,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
-          scaledPileInstance.scale(1);
+          // We currently allow only one item to be magnified up so all
+          // previously magnified piles are reset
+          scaledPileInstance.unmagnify();
           updateBoundingBox(scaledPileInstance.id);
           activePile.removeChildren();
           normalPiles.addChild(scaledPileInstance.graphics);
@@ -1568,6 +1568,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
+          scaledPileInstance.magnify();
           activePile.addChild(scaledPileInstance.graphics);
         });
 
@@ -1657,7 +1658,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.items.forEach(item => {
             item.tmpAbsX = pileGfx.x;
             item.tmpAbsY = pileGfx.y;
-            item.tmpRelScale = pile.scale();
+            item.tmpRelScale = pile.scale;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].pileId], true)
@@ -1756,12 +1757,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const scaleBtnClick = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
-    if (pile.scale() > pile.baseScale) {
+    if (pile.isMagnified) {
       store.dispatch(createAction.setScaledPiles([]));
     } else {
       store.dispatch(createAction.setScaledPiles([pileId]));
     }
-    pile.scaleToggle();
 
     hideContextMenu(contextMenuElement);
   };
@@ -1842,12 +1842,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           results.forEach(result => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
-              if (pile.scale() > pile.baseScale) {
+              if (pile.isMagnified) {
                 store.dispatch(createAction.setScaledPiles([]));
               } else {
                 store.dispatch(createAction.setScaledPiles([result.pileId]));
               }
-              pile.scaleToggle();
+              pile.magnifyByToggle();
             }
           });
         } else {
@@ -2041,7 +2041,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         tempDepileBtn.innerHTML = 'close temp depile';
       }
 
-      if (pile.scale() > pile.baseScale) {
+      if (pile.isMagnified) {
         scaleBtn.innerHTML = 'Scale Down';
       }
 
