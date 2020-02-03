@@ -1,41 +1,48 @@
 import * as PIXI from 'pixi.js';
+import createDom2dCamera from '@flekschas/dom-2d-camera';
+import { mat4, vec4 } from 'gl-matrix';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
 import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
-// import convolve from 'ndarray-convolve';
-// import ndarray from 'ndarray';
+import {
+  capitalize,
+  debounce,
+  deepClone,
+  identity,
+  isFunction,
+  isPointInPolygon,
+  interpolateVector,
+  interpolateNumber,
+  max,
+  mean,
+  min,
+  range,
+  sortPos,
+  sum,
+  throttleAndDebounce
+} from '@flekschas/utils';
 
 import createAnimator from './animator';
 
 import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
+  CAMERA_VIEW,
   INITIAL_ARRANGEMENT_TYPE,
-  INITIAL_ARRANGEMENT_OBJECTIVE
+  INITIAL_ARRANGEMENT_OBJECTIVE,
+  PILE_BOUNDS_UPDATE_DELAY,
+  POSITION_PILES_DEBOUNCE_TIME
 } from './defaults';
 
 import {
-  capitalize,
   cloneSprite,
   colorToDecAlpha,
-  debounce,
-  deepClone,
   getBBox,
-  isFunction,
-  isPileInPolygon,
-  interpolateVector,
-  interpolateNumber,
   l2Dist,
-  maxAggregator,
-  meanAggregator,
-  minAggregator,
-  range,
   scaleLinear,
-  sortPos,
-  sumAggregator,
-  withThrottleAndDebounce
+  toHomogeneous
 } from './utils';
 
 import createImage from './image';
@@ -46,7 +53,7 @@ import createItem from './item';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
 
-import pkg from '../package.json';
+import { version } from '../package.json';
 
 // We cannot import the following libraries using the normal `import` statement
 // as this blows up the Rollup bundle massively for some reasons...
@@ -66,6 +73,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let gridMat;
 
+  let translatePoint;
+  let camera;
+  const projection = new Float32Array(16);
+  const lastPilePosition = new Map();
+
   const renderer = new PIXI.Renderer({
     width: rootElement.getBoundingClientRect().width,
     height: rootElement.getBoundingClientRect().height,
@@ -77,6 +89,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   });
 
   let isInitialPositioning = true;
+  let isPanZoom = null;
 
   const root = new PIXI.Container();
   root.interactive = true;
@@ -316,16 +329,98 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     searchIndex.insert(pile.bBox);
   };
 
+  const updatePileBoundsDb = throttleAndDebounce(
+    updatePileBounds,
+    PILE_BOUNDS_UPDATE_DELAY,
+    PILE_BOUNDS_UPDATE_DELAY
+  );
+
+  const translatePilePosition = () => {
+    lastPilePosition.forEach((pilePos, pileId) => {
+      const [x, y] = translatePoint(pilePos);
+      pileInstances.get(pileId).moveTo(x, y, false);
+    });
+    renderRaf();
+  };
+
+  const panZoomHandler = (updatePilePosition = true) => {
+    // Update the camera
+    camera.tick();
+    translatePilePosition();
+    if (updatePilePosition) positionPilesDb();
+  };
+
+  const panZoomEndHandler = () => {
+    // Update the camera
+    camera.tick();
+    translatePilePosition();
+    positionPiles();
+  };
+
   let layout;
 
   const updateScrollContainer = () => {
-    const finalHeight = Math.round(layout.rowHeight) * layout.numRows;
     const canvasHeight = canvas.getBoundingClientRect().height;
-    const extraHeight = Math.round(layout.rowHeight) * EXTRA_ROWS;
+    const finalHeight =
+      Math.round(layout.rowHeight) * (layout.numRows + EXTRA_ROWS);
     scrollContainer.style.height = `${Math.max(
       0,
-      finalHeight - canvasHeight + extraHeight
+      finalHeight - canvasHeight
     )}px`;
+  };
+
+  const enableScrolling = () => {
+    if (isPanZoom === false) return;
+
+    disablePanZoom();
+
+    isPanZoom = false;
+    translatePoint = identity;
+
+    stage.y = 0;
+    rootElement.style.overflowY = 'auto';
+    rootElement.addEventListener('scroll', mouseScrollHandler, false);
+    window.addEventListener('mousedown', mouseDownHandler, false);
+    window.addEventListener('mouseup', mouseUpHandler, false);
+    window.addEventListener('mousemove', mouseMoveHandler, false);
+    canvas.addEventListener('wheel', mouseWheelHandler, false);
+  };
+
+  const disableScrolling = () => {
+    if (isPanZoom !== false) return;
+
+    stage.y = 0;
+    rootElement.style.overflowY = 'hidden';
+    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
+    window.removeEventListener('mousedown', mouseDownHandler, false);
+    window.removeEventListener('mouseup', mouseUpHandler, false);
+    window.removeEventListener('mousemove', mouseMoveHandler, false);
+    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+  };
+
+  const enablePanZoom = () => {
+    if (isPanZoom === true) return;
+
+    disableScrolling();
+
+    isPanZoom = true;
+    translatePoint = translatePointByCamera;
+
+    camera = createDom2dCamera(canvas, {
+      isNdc: false,
+      onMouseDown: mouseDownHandler,
+      onMouseUp: mouseUpHandler,
+      onMouseMove: mouseMoveHandler,
+      onWheel: mouseWheelHandler
+    });
+    camera.set(mat4.clone(CAMERA_VIEW));
+  };
+
+  const disablePanZoom = () => {
+    if (isPanZoom !== true) return;
+
+    camera.dispose();
+    camera = undefined;
   };
 
   const drawGrid = () => {
@@ -419,23 +514,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const scaleItems = () => {
     if (!renderedItems.size) return;
 
-    let min = Infinity;
-    let max = 0;
+    let minValue = Infinity;
+    let maxValue = 0;
 
     renderedItems.forEach(item => {
       const longerBorder = Math.max(
         item.image.displayObject.width,
         item.image.displayObject.height
       );
-      if (longerBorder > max) max = longerBorder;
-      if (longerBorder < min) min = longerBorder;
+      if (longerBorder > maxValue) maxValue = longerBorder;
+      if (longerBorder < minValue) minValue = longerBorder;
     });
 
     // When `min` is equal to `max`, `scaleSprite` will draw all piles at
     // `minRange + ((maxRange - minRange) / 2)`, which is not what we want sp
     // we artificially subscract a small value from `min` to make pile being
     // drawn at `maxRange`.
-    min -= min === max ? 0.1 : 0;
+    minValue -= minValue === maxValue ? 0.1 : 0;
 
     const { itemSizeRange } = store.getState();
     let scaleRange;
@@ -457,7 +552,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     scaleSprite = scaleLinear()
-      .domain([min, max])
+      .domain([minValue, maxValue])
       .range(scaleRange);
 
     renderedItems.forEach(item => {
@@ -479,13 +574,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       delay: 0,
       interpolator: interpolateVector,
       endValue: [x, y],
-      getter: () => {
-        return [pile.graphics.x, pile.graphics.y];
-      },
-      setter: newValue => {
-        pile.graphics.x = newValue[0];
-        pile.graphics.y = newValue[1];
-      }
+      getter: () => [pile.x, pile.y],
+      setter: ([newX, newY]) => pile.moveTo(newX, newY, false),
+      done: () => updatePileBounds(pile.id)
     });
     animator.add(tweener);
   };
@@ -661,16 +752,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
 
       case 2:
-        return arrangement2dScales.map((scale, idx) =>
-          scale(aggregatedPileValues.get(pileId)[idx])
+        return arrangement2dScales.map((scale, i) =>
+          scale(aggregatedPileValues[i][pileId])
         );
 
       default:
         console.warn(
           'Multidimensional arrangement is not yet available. Arrange by 2D.'
         );
-        return arrangement2dScales.map((scale, idx) =>
-          scale(aggregatedPileValues.get(pileId)[idx])
+        return arrangement2dScales.map((scale, i) =>
+          scale(aggregatedPileValues[i][pileId])
         );
     }
   };
@@ -714,7 +805,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const positionPiles = (pileIds = []) => {
+  const translatePointByCamera = ([x, y]) => {
+    const v = toHomogeneous(x, y);
+
+    vec4.transformMat4(v, v, camera.view);
+
+    return v.slice(0, 2);
+  };
+
+  const positionPiles = (pileIds = [], { immideate = false } = {}) => {
     const { items } = store.getState();
 
     if (!pileIds.length) {
@@ -726,13 +825,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const movingPiles = [];
 
-    const readyPileIds = pileIds.filter(id => pileInstances.has(id));
+    const readyPiles = pileIds
+      .filter(id => pileInstances.has(id))
+      .map(id => pileInstances.get(id));
 
-    if (readyPileIds.length) {
-      readyPileIds.forEach(id => {
-        const [x, y] = getPilePosition(id, isInitialPositioning);
+    if (readyPiles.length) {
+      readyPiles.forEach(pile => {
+        const point = getPilePosition(pile.id, isInitialPositioning);
 
-        movingPiles.push({ id, x, y });
+        lastPilePosition.set(pile.id, point);
+
+        const [x, y] = translatePoint(point);
+
+        if (immideate) {
+          pile.moveTo(x, y);
+        }
+
+        movingPiles.push({ id: pile.id, x, y });
 
         layout.numRows = Math.max(
           layout.numRows,
@@ -740,7 +849,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
 
         if (isInitialPositioning) {
-          renderedItems.get(id).setOriginalPosition([x, y]);
+          renderedItems.get(pile.id).setOriginalPosition([x, y]);
         }
       });
 
@@ -753,6 +862,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     updateScrollContainer();
     renderRaf();
   };
+
+  const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = pileId => {
     const { pileItemAlignment, pileItemRotation } = store.getState();
@@ -847,6 +958,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         deleteSearchIndex(id);
         pileInstance.destroy();
         pileInstances.delete(id);
+        lastPilePosition.delete(id);
       } else {
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pile, pileInstance);
@@ -885,8 +997,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       animatePileMove(pileInstance, pile.x, pile.y);
-      updatePileBounds(id);
-      renderRaf();
     }
   };
 
@@ -915,52 +1025,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const next = (distanceMat, current) => {
     let nextPos;
-    let min = Infinity;
+    let minValue = Infinity;
 
     // top
     if (
       current[0] - 1 >= 0 &&
-      distanceMat.get(current[0] - 1, current[1]) < min
+      distanceMat.get(current[0] - 1, current[1]) < minValue
     ) {
-      min = distanceMat.get(current[0] - 1, current[1]);
+      minValue = distanceMat.get(current[0] - 1, current[1]);
       nextPos = [current[0] - 1, current[1]];
     }
 
     // left
     if (
       current[1] - 1 >= 0 &&
-      distanceMat.get(current[0], current[1] - 1) < min
+      distanceMat.get(current[0], current[1] - 1) < minValue
     ) {
-      min = distanceMat.get(current[0], current[1] - 1);
+      minValue = distanceMat.get(current[0], current[1] - 1);
       nextPos = [current[0], current[1] - 1];
     }
 
     // bottom
     if (
       current[0] + 1 < distanceMat.shape[0] &&
-      distanceMat.get(current[0] + 1, current[1]) < min
+      distanceMat.get(current[0] + 1, current[1]) < minValue
     ) {
-      min = distanceMat.get(current[0] + 1, current[1]);
+      minValue = distanceMat.get(current[0] + 1, current[1]);
       nextPos = [current[0] + 1, current[1]];
     }
 
     // right
     if (
       current[1] + 1 < distanceMat.shape[1] &&
-      distanceMat.get(current[0], current[1] + 1) < min
+      distanceMat.get(current[0], current[1] + 1) < minValue
     ) {
-      min = distanceMat.get(current[0], current[1] + 1);
+      minValue = distanceMat.get(current[0], current[1] + 1);
       nextPos = [current[0], current[1] + 1];
     }
 
     const length = distanceMat.data.length;
     distanceMat.set(current[0], current[1], length);
 
-    if (min === distanceMat.data.length) {
+    if (minValue === distanceMat.data.length) {
       for (let i = 0; i < distanceMat.shape[0]; i++) {
         for (let j = 0; j < distanceMat.shape[1]; j++) {
-          if (distanceMat.get(i, j) < min && distanceMat.get(i, j) > 0)
-            min = distanceMat.get(i, j);
+          if (distanceMat.get(i, j) < minValue && distanceMat.get(i, j) > 0)
+            minValue = distanceMat.get(i, j);
           nextPos = [i, j];
         }
       }
@@ -1409,8 +1519,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let mouseDown = false;
 
   const lassoExtend = () => {
-    if (!mouseDown) return;
-
     const currMousePos = getMousePos();
 
     if (!lassoPrevMousePos) {
@@ -1432,7 +1540,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     }
   };
-  const lassoExtendDb = withThrottleAndDebounce(
+  const lassoExtendDb = throttleAndDebounce(
     lassoExtend,
     LASSO_MIN_DELAY,
     LASSO_MIN_DELAY
@@ -1444,10 +1552,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pilesInPolygon = [];
     pileBBoxes.forEach(pileBBox => {
       if (
-        isPileInPolygon([pileBBox.minX, pileBBox.minY], lassoPolygon) ||
-        isPileInPolygon([pileBBox.minX, pileBBox.maxY], lassoPolygon) ||
-        isPileInPolygon([pileBBox.maxX, pileBBox.minY], lassoPolygon) ||
-        isPileInPolygon([pileBBox.maxX, pileBBox.maxY], lassoPolygon)
+        isPointInPolygon([pileBBox.minX, pileBBox.minY], lassoPolygon) ||
+        isPointInPolygon([pileBBox.minX, pileBBox.maxY], lassoPolygon) ||
+        isPointInPolygon([pileBBox.maxX, pileBBox.minY], lassoPolygon) ||
+        isPointInPolygon([pileBBox.maxX, pileBBox.maxY], lassoPolygon)
       )
         pilesInPolygon.push(pileBBox.id);
     });
@@ -1477,9 +1585,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           return [pile.x, pile.y];
         },
         setter: xy => {
-          pile.moveTo(...xy);
+          pile.moveTo(...xy, false);
         },
         onDone: () => {
+          updatePileBounds(pile.id);
           if (index === pileIds.length - 1) {
             store.dispatch(createAction.mergePiles(pileIds, false));
           }
@@ -1526,12 +1635,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const allPiles = pileIds.length >= pileInstances.size;
 
     arrangementObjective.forEach((objective, i) => {
-      let min =
+      let minValue =
         typeof aggregatedPileMinValues[i] === 'undefined' || allPiles
           ? Infinity
           : aggregatedPileMinValues[i];
 
-      let max =
+      let maxValue =
         typeof aggregatedPileMaxValues[i] === 'undefined' || allPiles
           ? -Infinity
           : aggregatedPileMaxValues[i];
@@ -1572,13 +1681,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           return pileSortPosByAggregate[i][id];
         });
 
-        min = newMin
+        minValue = newMin
           ? aggregatedValues[pileSortPosByAggregate[i].indexOf(minPos)]
-          : min;
+          : minValue;
 
-        max = newMax
+        maxValue = newMax
           ? aggregatedValues[pileSortPosByAggregate[i].indexOf(maxPos)]
-          : max;
+          : maxValue;
       }
 
       pileIds.forEach(pileId => {
@@ -1588,13 +1697,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const aggregatedValue = objective.aggregator(pileValues);
 
-        if (aggregatedValue < min) {
-          min = aggregatedValue;
+        if (aggregatedValue < minValue) {
+          minValue = aggregatedValue;
           shouldUpdateMinMax = true;
         }
 
-        if (aggregatedValue > max) {
-          max = aggregatedValue;
+        if (aggregatedValue > maxValue) {
+          maxValue = aggregatedValue;
           shouldUpdateMinMax = true;
         }
 
@@ -1613,8 +1722,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       if (shouldUpdateMinMax) {
-        aggregatedPileMinValues[i] = min;
-        aggregatedPileMaxValues[i] = max;
+        aggregatedPileMinValues[i] = minValue;
+        aggregatedPileMaxValues[i] = maxValue;
       }
     });
 
@@ -1639,18 +1748,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     arrangement2dScales = arrangementObjective.map((objective, i) => {
       const currentScale = arrangement2dScales[i];
-      const min = aggregatedPileMinValues[i];
-      const max = aggregatedPileMaxValues[i];
+      const minValue = aggregatedPileMinValues[i];
+      const maxValue = aggregatedPileMaxValues[i];
 
       if (currentScale) {
         const [currentMin, currentMax] = currentScale.domain();
 
-        if (min === currentMin && max === currentMax) {
+        if (minValue === currentMin && maxValue === currentMax) {
           return arrangement2dScales[i];
         }
       }
 
-      const domain = objective.inverted ? [max, min] : [min, max];
+      const domain = objective.inverted
+        ? [maxValue, minValue]
+        : [minValue, maxValue];
 
       return objective
         .scale()
@@ -1665,20 +1776,59 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (arrangementObjective.length) {
       case 0:
         console.warn('No arrangement objectives found!');
+        enableScrolling();
         break;
 
       case 1:
         updateArrangement1dOrderer(pileIds);
+        enableScrolling();
         break;
 
       case 2:
         updateArrangement2dScales(pileIds);
+        enablePanZoom();
         break;
 
       default:
         console.warn('Not yet supported');
+        enableScrolling();
         break;
     }
+  };
+
+  const updateArragnement = updatedPileIds => {
+    const { arrangementType, items } = store.getState();
+
+    const pileIds = updatedPileIds.length
+      ? updatedPileIds
+      : range(0, items.length);
+
+    switch (arrangementType) {
+      case 'data':
+        updateArragnementByData(pileIds);
+        break;
+
+      case 'index':
+        enableScrolling();
+        break;
+
+      case 'ij':
+        enableScrolling();
+        break;
+
+      case 'xy':
+        enablePanZoom();
+        break;
+
+      case 'uv':
+        enablePanZoom();
+        break;
+
+      default:
+        break;
+    }
+
+    updateScrollContainer();
   };
 
   const updated = () => {
@@ -1844,18 +1994,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      (state.arrangementType !== newState.arrangementType ||
-        state.arrangementObjective !== newState.arrangementObjective ||
-        updatedPileItems.length > 0) &&
-      newState.arrangementType === 'data'
+      state.arrangementType !== newState.arrangementType ||
+      state.arrangementObjective !== newState.arrangementObjective ||
+      updatedPileItems.length > 0
     ) {
       stateUpdates.add('layout');
-
-      const pileIds = updatedPileItems.length
-        ? updatedPileItems
-        : range(0, newState.items.length);
-
-      updateArragnementByData(pileIds);
+      updateArragnement(updatedPileItems);
     }
 
     state = newState;
@@ -1892,12 +2036,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const exportState = () => {
     const clonedState = deepClone(state);
-    clonedState.version = pkg.version;
+    clonedState.version = { version };
     return clonedState;
   };
 
   const importState = (newState, overwriteState = false) => {
-    if (newState.version !== pkg.version) {
+    if (newState.version !== { version }) {
       console.warn(
         `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
       );
@@ -1931,7 +2075,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (objective.constructor !== Object) {
         expandedObjective.property = expandProperty(objective);
-        expandedObjective.aggregator = meanAggregator;
+        expandedObjective.aggregator = mean;
         expandedObjective.scale = scaleLinear;
         expandedObjective.inverse = false;
       } else {
@@ -1939,17 +2083,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         switch (objective.aggregator) {
           case 'max':
-            expandedObjective.aggregator = maxAggregator;
+            expandedObjective.aggregator = max;
             break;
           case 'min':
-            expandedObjective.aggregator = minAggregator;
+            expandedObjective.aggregator = min;
             break;
           case 'sum':
-            expandedObjective.aggregator = sumAggregator;
+            expandedObjective.aggregator = sum;
             break;
           case 'mean':
           default:
-            expandedObjective.aggregator = meanAggregator;
+            expandedObjective.aggregator = mean;
             break;
         }
 
@@ -2136,9 +2280,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const mouseUpHandler = () => {
     if (mouseDown) {
-      lassoEnd();
-      mouseDown = false;
+      if (isLasso) {
+        lassoEnd();
+      } else if (isPanZoom) {
+        panZoomEndHandler();
+      }
     }
+    mouseDown = false;
   };
 
   let clickMark = false;
@@ -2214,7 +2362,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const mouseMoveHandler = event => {
     mousePosition = getRelativeMousePosition(event);
 
-    lassoExtendDb();
+    if (mouseDown) {
+      if (event.altKey || isLasso) {
+        lassoExtendDb();
+      } else if (isPanZoom) {
+        panZoomHandler(false);
+      }
+    }
   };
 
   const mouseDblClickHandler = event => {
@@ -2251,27 +2405,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseWheelHandler = event => {
-    getRelativeMousePosition(event);
+    if (event.altKey) {
+      getRelativeMousePosition(event);
 
-    const result = searchIndex.search({
-      minX: mousePosition[0],
-      minY: mousePosition[1],
-      maxX: mousePosition[0] + 1,
-      maxY: mousePosition[1] + 1
-    });
+      const result = searchIndex.search({
+        minX: mousePosition[0],
+        minY: mousePosition[1],
+        maxX: mousePosition[0] + 1,
+        maxY: mousePosition[1] + 1
+      });
 
-    if (result.length !== 0) {
-      if (event.altKey) {
+      if (result.length !== 0) {
         event.preventDefault();
         store.dispatch(createAction.setScaledPiles([result[0].id]));
         scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
+    } else if (isPanZoom) {
+      panZoomHandler();
     }
   };
 
   const mouseScrollHandler = () => {
     stage.y = -rootElement.scrollTop;
     renderRaf();
+  };
+
+  const updateProjection = (width, height) => {
+    mat4.fromScaling(projection, [height / width, 1, 1]);
   };
 
   const resizeHandler = () => {
@@ -2283,6 +2443,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
+
+    updateProjection(width, height);
 
     updateGrid();
   };
@@ -2468,7 +2630,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const handleUpdatePileBounds = pileId => {
-    updatePileBounds(pileId);
+    updatePileBoundsDb(pileId);
   };
 
   let storeUnsubscribor;
@@ -2476,20 +2638,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const init = () => {
     // Setup event handler
     window.addEventListener('blur', () => {}, false);
-    window.addEventListener('mousedown', mouseDownHandler, false);
-    window.addEventListener('mouseup', mouseUpHandler, false);
-    window.addEventListener('mousemove', mouseMoveHandler, false);
     window.addEventListener('resize', resizeHandlerDb, false);
     window.addEventListener('orientationchange', resizeHandlerDb, false);
-
-    rootElement.addEventListener('scroll', mouseScrollHandler, false);
 
     canvas.addEventListener('contextmenu', contextmenuHandler, false);
     canvas.addEventListener('mouseenter', () => {}, false);
     canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
-    canvas.addEventListener('wheel', mouseWheelHandler, false);
 
     pubSub.subscribe('pileDrag', handleDragPile);
     pubSub.subscribe('pileDrop', handleDropPile);
@@ -2502,20 +2658,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rootElement.appendChild(scrollContainer);
 
     rootElement.style.overflowX = 'hidden';
-    rootElement.style.overflowY = 'auto';
     canvas.style.position = 'sticky';
     canvas.style.display = 'block';
     canvas.style.top = '0px';
     canvas.style.left = '0px';
 
-    const { width, height } = canvas.getBoundingClientRect();
-
-    mask
-      .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
-      .endFill();
-
+    resizeHandler();
     initGrid();
+
+    if (isPanZoom) enablePanZoom();
+    else enableScrolling();
 
     setPublic(initOptions);
   };
@@ -2556,7 +2708,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   return {
     // Properties
     get version() {
-      return pkg.version;
+      return { version };
     },
     // Methods
     arrangeBy,
