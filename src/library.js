@@ -896,6 +896,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const createScaledImage = texture => {
+    const image = createImage(texture);
+    const scaleFactor = itemSizeScale(image.size) / image.size;
+    image.sprite.width *= scaleFactor;
+    image.sprite.height *= scaleFactor;
+    return image;
+  };
+
   const updatePreviewAndCover = (pileState, pileInstance) => {
     const { items, aggregateRenderer, coverAggregator } = store.getState();
 
@@ -919,20 +927,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       pileInstance.setItems(itemInstances, { asPreview: true });
-      pileInstance.cover(
-        coverAggregator(itemSrcs)
-          .then(newSrc => aggregateRenderer([newSrc]))
-          .then(([newCover]) => {
-            const cover = new PIXI.Sprite(newCover);
-            const aspectRatio = cover.width / cover.height;
-            cover.width = width;
-            cover.height = cover.width / aspectRatio;
 
-            positionItems(pileInstance.id);
+      const coverImage = coverAggregator(itemSrcs)
+        .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
+        .then(([coverTexture]) => createScaledImage(coverTexture));
 
-            return cover;
-          })
-      );
+      pileInstance.cover(coverImage);
+
+      coverImage.then(() => {
+        positionItems(pileInstance.id);
+      });
+
+      //   coverAggregator(itemSrcs)
+      //     .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
+      //     .then(([coverTexture]) => {
+      //       const cover = new PIXI.Sprite(coverTexture);
+      //       cover.anchor.set(0.5);
+      //       const aspectRatio = cover.width / cover.height;
+      //       cover.width = width;
+      //       cover.height = cover.width / aspectRatio;
+
+      //       positionItems(pileInstance.id);
+
+      //       return cover;
+      //     })
+      // );
     }
   };
 

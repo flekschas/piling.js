@@ -25,14 +25,12 @@ const withBackground = ({
       return backgroundGraphics.fill.alpha;
     },
     drawBackground(color = backgroundColor, opacity = backgroundOpacity) {
+      const width = self.width + self.padding;
+      const height = self.height + self.padding;
+
       backgroundGraphics.clear();
       backgroundGraphics.beginFill(color, opacity);
-      backgroundGraphics.drawRect(
-        0,
-        0,
-        self.width + self.padding,
-        self.height + self.padding
-      );
+      backgroundGraphics.drawRect(-width / 2, -height / 2, width, height);
       backgroundGraphics.endFill();
     }
   });
@@ -52,6 +50,7 @@ const withPadding = initialPadding => self => {
 const createImageWithBackground = (
   texture,
   {
+    anchor = [0.5, 0.5],
     backgroundColor = DEFAULT_BACKGROUND_COLOR,
     backgroundOpacity = DEFAULT_BACKGROUND_OPACITY,
     padding = DEFAULT_PADDING
@@ -59,10 +58,11 @@ const createImageWithBackground = (
 ) => {
   const backgroundGraphics = new PIXI.Graphics();
   const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(...anchor);
 
   const init = self => {
-    self.sprite.y = self.padding / 2;
-    self.sprite.x = self.padding / 2;
+    // self.sprite.y = self.padding / 2;
+    // self.sprite.x = self.padding / 2;
 
     backgroundGraphics.addChild(sprite);
 

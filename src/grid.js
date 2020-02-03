@@ -80,9 +80,12 @@ const createGrid = (
       return [i * cellWidth, j * cellHeight];
     }
 
+    const halfWidth = pileWidth / 2;
+    const halfHeight = pileHeight / 2;
+
     const topLeft = [
-      i * columnWidth + cellPadding,
-      j * rowHeight + cellPadding
+      i * columnWidth + cellPadding + halfWidth,
+      j * rowHeight + cellPadding + halfHeight
     ];
 
     switch (pileCellAlignment) {

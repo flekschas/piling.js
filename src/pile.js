@@ -458,16 +458,20 @@ const createPile = (
     isPositioning = true;
     let angle = 0;
     if (getCover()) {
-      const halfSpacing = previewSpacing / 2;
-      previewItemContainer.children.forEach((item, index) => {
-        animatePositionItems(
-          item,
-          -halfSpacing,
-          -item.height * (index + 1) - halfSpacing,
-          angle,
-          animator,
-          index === previewItemContainer.children.length - 1
-        );
+      getCover().then(coverImage => {
+        const halfSpacing = previewSpacing / 2;
+        const halfHeight = coverImage.height / 2;
+
+        previewItemContainer.children.forEach((item, index) => {
+          animatePositionItems(
+            item,
+            0,
+            -halfHeight - item.height * (index + 0.5) - halfSpacing,
+            angle,
+            animator,
+            index === previewItemContainer.children.length - 1
+          );
+        });
       });
     } else if (itemAlignment || allItems.length === 1) {
       // image
@@ -824,8 +828,8 @@ const createPile = (
 
   const setCover = newCover => {
     coverItem = newCover;
-    coverItem.then(coverSprite => {
-      coverItemContainer.addChild(coverSprite);
+    coverItem.then(coverImage => {
+      coverItemContainer.addChild(coverImage.displayObject);
       while (coverItemContainer.children.length > 1) {
         coverItemContainer.removeChildAt(0);
       }
