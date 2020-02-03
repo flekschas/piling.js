@@ -839,8 +839,10 @@ const createPile = (
   const removeCover = () => {
     if (!coverItem) return;
 
-    coverItem.then(coverSprite => {
-      const coverItemIdx = coverItemContainer.getChildIndex(coverSprite);
+    coverItem.then(coverImage => {
+      const coverItemIdx = coverItemContainer.getChildIndex(
+        coverImage.displayObject
+      );
       if (coverItemIdx >= 0) coverItemContainer.removeChildAt(coverItemIdx);
     });
 
