@@ -500,28 +500,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let scaleSprite;
+  let itemSizeScale;
 
   const scaleItems = () => {
     if (!renderedItems.size) return;
 
-    let minValue = Infinity;
-    let maxValue = 0;
+    let minSize = Infinity;
+    let maxSize = 0;
 
     renderedItems.forEach(item => {
-      const longerBorder = Math.max(
+      const size = Math.max(
         item.image.displayObject.width,
         item.image.displayObject.height
       );
-      if (longerBorder > maxValue) maxValue = longerBorder;
-      if (longerBorder < minValue) minValue = longerBorder;
+      if (size > maxSize) maxSize = size;
+      if (size < minSize) minSize = size;
     });
 
-    // When `min` is equal to `max`, `scaleSprite` will draw all piles at
-    // `minRange + ((maxRange - minRange) / 2)`, which is not what we want sp
-    // we artificially subscract a small value from `min` to make pile being
+    // When `minSize` is equal to `maxSize`, `itemSizeScale` will draw all piles
+    // at `minRange + ((maxRange - minRange) / 2)`, which is not what we want
+    // so we artificially subscract a small value from `min` to make pile being
     // drawn at `maxRange`.
-    minValue -= minValue === maxValue ? 0.1 : 0;
+    minSize -= minSize === maxSize ? 0.1 : 0;
 
     const { itemSizeRange } = store.getState();
     let scaleRange;
@@ -542,12 +542,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       scaleRange = itemSizeRange;
     }
 
-    scaleSprite = scaleLinear()
-      .domain([minValue, maxValue])
+    itemSizeScale = scaleLinear()
+      .domain([minSize, maxSize])
       .range(scaleRange);
 
     renderedItems.forEach(item => {
-      const scaleFactor = scaleSprite(item.image.size) / item.image.size;
+      const scaleFactor = itemSizeScale(item.image.size) / item.image.size;
       item.image.sprite.width *= scaleFactor;
       item.image.sprite.height *= scaleFactor;
 
