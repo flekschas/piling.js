@@ -1,5 +1,6 @@
 ### Next
 
+- Seperate bewtween pile's base scale and magnification
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Change pile border to be scale invariant
 - Animate item rotation
