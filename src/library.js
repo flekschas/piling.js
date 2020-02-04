@@ -136,6 +136,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     lassoStrokeOpacity: true,
     lassoStrokeSize: true,
+    magnifiedPiles: true,
     orderer: true,
     pileBorderColor: {
       set: value => {
@@ -201,7 +202,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       get: 'itemRenderer',
       set: value => [createAction.setItemRenderer(value)]
     },
-    scaledPile: true,
     showGrid: true,
     temporaryDepiledPiles: true,
     tempDepileDirection: true,
@@ -1551,8 +1551,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       renderRaf();
     }
 
-    if (state.scaledPiles !== newState.scaledPiles) {
-      state.scaledPiles
+    if (state.magnifiedPiles !== newState.magnifiedPiles) {
+      state.magnifiedPiles
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
@@ -1564,7 +1564,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           normalPiles.addChild(scaledPileInstance.graphics);
         });
 
-      newState.scaledPiles
+      newState.magnifiedPiles
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
@@ -1755,12 +1755,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const scaleBtnClick = (contextMenuElement, pileId) => () => {
+  const pileMagnificationHandler = (contextMenuElement, pileId) => () => {
     const pile = pileInstances.get(pileId);
     if (pile.isMagnified) {
-      store.dispatch(createAction.setScaledPiles([]));
+      store.dispatch(createAction.setMagnifiedPiles([]));
     } else {
-      store.dispatch(createAction.setScaledPiles([pileId]));
+      store.dispatch(createAction.setMagnifiedPiles([pileId]));
     }
 
     hideContextMenu(contextMenuElement);
@@ -1843,11 +1843,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             const pile = pileInstances.get(result.pileId);
             if (pile.graphics.isHover) {
               if (pile.isMagnified) {
-                store.dispatch(createAction.setScaledPiles([]));
+                store.dispatch(createAction.setMagnifiedPiles([]));
               } else {
-                store.dispatch(createAction.setScaledPiles([result.pileId]));
+                store.dispatch(createAction.setMagnifiedPiles([result.pileId]));
               }
-              pile.magnifyByToggle();
             }
           });
         } else {
@@ -1860,7 +1859,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setScaledPiles([]));
+        store.dispatch(createAction.setMagnifiedPiles([]));
       }
     }
   };
@@ -1917,7 +1916,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (result.length !== 0) {
       if (event.altKey) {
         event.preventDefault();
-        store.dispatch(createAction.setScaledPiles([result[0].pileId]));
+        store.dispatch(createAction.setMagnifiedPiles([result[0].pileId]));
         scalePile(result[0].pileId, normalizeWheel(event).pixelY);
       }
     }
@@ -2015,7 +2014,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const tempDepileBtn = element.querySelector('#temp-depile-button');
     const toggleGridBtn = element.querySelector('#grid-button');
     const alignBtn = element.querySelector('#align-button');
-    const scaleBtn = element.querySelector('#scale-button');
+    const magnifyBtn = element.querySelector('#magnify-button');
 
     // click on pile
     if (clickedOnPile) {
@@ -2036,13 +2035,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else if (pile.isTempDepiled) {
         depileBtn.setAttribute('disabled', '');
         depileBtn.setAttribute('class', 'inactive');
-        scaleBtn.setAttribute('disabled', '');
-        scaleBtn.setAttribute('class', 'inactive');
+        magnifyBtn.setAttribute('disabled', '');
+        magnifyBtn.setAttribute('class', 'inactive');
         tempDepileBtn.innerHTML = 'close temp depile';
       }
 
       if (pile.isMagnified) {
-        scaleBtn.innerHTML = 'Scale Down';
+        magnifyBtn.innerHTML = 'Unmagnify';
       }
 
       element.style.display = 'block';
@@ -2065,9 +2064,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         tempDepileBtnClick(element, pile.id, event),
         false
       );
-      scaleBtn.addEventListener(
+      magnifyBtn.addEventListener(
         'click',
-        scaleBtnClick(element, pile.id),
+        pileMagnificationHandler(element, pile.id),
         false
       );
 
@@ -2088,7 +2087,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else {
       depileBtn.style.display = 'none';
       tempDepileBtn.style.display = 'none';
-      scaleBtn.style.display = 'none';
+      magnifyBtn.style.display = 'none';
 
       if (showGrid) {
         toggleGridBtn.innerHTML = 'Hide Grid';
