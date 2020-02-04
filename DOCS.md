@@ -178,6 +178,7 @@ The list of all understood properties is given below.
 | lassoStrokeOpacity        | float             | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
 | lassoStrokeSize           | int               | `1`                   | must be greater or equal than `1`                                             | `false`    |
 | orderer                   | function          | row-major             | see [`notes`](#notes)                                                         | `true`     |
+| magnifiedPiles                | array             | `[]`                  | the id of current magnified pile                                                 | `true`     |
 | pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
 | pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColor           | string or int     | `0x808080`            |                                                                               | `false`    |
@@ -199,7 +200,6 @@ The list of all understood properties is given below.
 | randomOffsetRange         | array             | `[-30, 30]`           | array of two numbers                                                          | `true`     |
 | randomRotationRange       | array             | `[-10, 10]`           | array of two numbers                                                          | `true`     |
 | renderer                  | function          |                       | see [`renderers`](#renderers)                                                 | `false`    |
-| scaledPile                | array             | `[]`                  | the id of current scaled pile                                                 | `true`     |
 | showGrid                  | boolean           | `false`               |                                                                               | `false`    |
 | tempDepileDirection       | string            | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
 | tempDepileOneDNum         | number            | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
@@ -657,12 +657,12 @@ piling.set('previewAggregator', previewAggregator);
 - **De-pile:**
   - While pressing <kbd>SHIFT</kbd>, click on a pile to de-pile it.
   - Right click on a pile to open the context menu. Click on <kbd>depile</kbd> button to de-pile.
-- **Scale a pile:**
-  - While pressing <kbd>ALT</kbd>, click on a pile to automatically scale it up.
-  - While pressing <kbd>ALT</kbd>, click on a scaled-up pile to automatically scale it down.
-  - While pressing <kbd>ALT</kbd>, hover on a pile and scroll to manually scale it. Then click on the background to automatically scale it down.
-  - Right click on a pile to open the context menu. Click on <kbd>scale up</kbd> button to automatically scale the pile up.
-  - Right click on a scaled-up pile to open the context menu. Click on <kbd>scale donw</kbd> button to automatically scale the pile down.
+- **Magnify a pile:**
+  - While pressing <kbd>ALT</kbd>, click on a pile to automatically magnify it.
+  - While pressing <kbd>ALT</kbd>, click on a magnified pile to automatically unmagnify it.
+  - While pressing <kbd>ALT</kbd>, hover on a pile and scroll to manually magnify it. Then click on the background to automatically unmagnify it.
+  - Right click on a pile to open the context menu. Click on <kbd>magnify</kbd> button to automatically magnify the pile.
+  - Right click on a magnified pile to open the context menu. Click on <kbd>unmagnify</kbd> button to automatically unmagnify the pile.
 - **Show grid:**
   - Right click on the background to open the context menu. Click on <kbd>show grid</kbd> button to show the grid.
   - If the grid is shown, right click on the background and click on <kbd>hide grid</kbd> button to hide the grid.
