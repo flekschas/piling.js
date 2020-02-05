@@ -4,6 +4,7 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import {
   cloneSprite,
+  identity,
   interpolateNumber,
   interpolateVector,
   mergeMaps
@@ -603,7 +604,10 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   };
 
   let scaleTweener;
-  const animateScale = (newScale, { isMagnification = false } = {}) => {
+  const animateScale = (
+    newScale,
+    { isMagnification = false, onDone = identity } = {}
+  ) => {
     if (!isMagnification) {
       baseScale = newScale;
     }
@@ -632,6 +636,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
         });
         postPilePositionAnimation.clear();
         pubSub.publish('updateBBox', id);
+        onDone();
       }
     });
     pubSub.publish('animate', scaleTweener);
@@ -665,7 +670,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   };
 
   let moveToTweener;
-  const animateMoveTo = (x, y) => {
+  const animateMoveTo = (x, y, { onDone = identity } = {}) => {
     isMoving = true;
     let duration = 250;
     if (moveToTweener) {
@@ -684,6 +689,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
       onDone: () => {
         isMoving = false;
         pubSub.publish('updateBBox', id);
+        onDone();
       }
     });
     pubSub.publish('animate', moveToTweener);
