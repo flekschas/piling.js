@@ -15,6 +15,7 @@ import {
   isPointInPolygon,
   interpolateVector,
   interpolateNumber,
+  l2PointDist,
   max,
   mean,
   min,
@@ -39,7 +40,6 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getBBox,
-  l2Dist,
   scaleLinear,
   toHomogeneous
 } from './utils';
@@ -1092,7 +1092,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const calcDist = (distanceMat, x, y, origin) => {
     if (distanceMat.get(x, y) !== -1) return;
 
-    const distance = l2Dist(x, y, origin[0], origin[1]);
+    const distance = l2PointDist(x, y, origin[0], origin[1]);
     distanceMat.set(x, y, distance);
   };
 
@@ -1174,7 +1174,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
 
     const depilePos = findDepilePos(distanceMat, resultMat, origin, rowNum);
-    const distance = l2Dist(depilePos[0], depilePos[1], origin[0], origin[1]);
+    const distance = l2PointDist(
+      depilePos[0],
+      depilePos[1],
+      origin[0],
+      origin[1]
+    );
 
     return { depilePos, distance };
   };
@@ -1537,7 +1542,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       lassoPrevMousePos = currMousePos;
       lasso.moveTo(...currMousePos);
     } else {
-      const d = l2Dist(...currMousePos, ...lassoPrevMousePos);
+      const d = l2PointDist(
+        currMousePos[0],
+        currMousePos[1],
+        lassoPrevMousePos[0],
+        lassoPrevMousePos[1]
+      );
 
       if (d > LASSO_MIN_DIST) {
         lassoPos.push(currMousePos);
