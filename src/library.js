@@ -752,9 +752,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
 
       default:
-        console.warn(
-          'Multidimensional arrangement is not yet available. Arrange by 2D.'
-        );
         return arrangement2dScales.map((scale, i) =>
           scale(aggregatedPileValues[i][pileId])
         );
@@ -1854,7 +1851,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
 
       default:
-        console.warn('Not yet supported');
+        console.warn(
+          'Multi-dimensional arrangement is not yet available. Will fallback to a 2D scatter plot of the first 2 objectives.'
+        );
         break;
     }
   };
