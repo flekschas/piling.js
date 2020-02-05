@@ -20,8 +20,10 @@ const createPhotoPiles = async element => {
   piling.set('pileItemAlignment', false);
   piling.set('pileItemRotation', true);
 
-  // piling.arrangeBy('index', pile => pile.id);
-  piling.arrangeBy('data', ['id', 'id']);
+  piling.arrangeBy('data', [
+    (itemData, itemId) => itemId,
+    (itemData, itemId) => itemId
+  ]);
 
   return piling;
 };
