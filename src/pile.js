@@ -56,6 +56,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
   let isTempDepiled = false;
   let isPositioning = false;
   let isScaling = false;
+  let isMoving = false;
   let cX;
   let cY;
 
@@ -274,6 +275,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     rootGraphics.beforeDragX = rootGraphics.x;
     rootGraphics.beforeDragY = rootGraphics.y;
     dragMove = false;
+    pubSub.publish('pileDragStart', { pileId: id, event });
     render();
   };
 
@@ -297,10 +299,16 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
 
       pubSub.publish('pileDrag', { pileId: id, event });
 
-      const newPosition = event.data.getLocalPosition(rootGraphics.parent);
-      // remove offset
-      rootGraphics.x = newPosition.x - rootGraphics.draggingMouseOffset[0];
-      rootGraphics.y = newPosition.y - rootGraphics.draggingMouseOffset[1];
+      let { x, y } = event.data.getLocalPosition(rootGraphics.parent);
+      x -= rootGraphics.draggingMouseOffset[0];
+      y -= rootGraphics.draggingMouseOffset[1];
+
+      if (isMoving) {
+        moveToTweener.updateEndValue([x, y]);
+      } else {
+        rootGraphics.x = x;
+        rootGraphics.y = y;
+      }
 
       if (isTempDepiled) {
         active();
@@ -656,6 +664,31 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     animateScale(baseScale, { isMagnification: true });
   };
 
+  let moveToTweener;
+  const animateMoveTo = (x, y) => {
+    isMoving = true;
+    let duration = 250;
+    if (moveToTweener) {
+      pubSub.publish('cancelAnimation', moveToTweener);
+      if (moveToTweener.dt < moveToTweener.duration) {
+        duration = moveToTweener.dt;
+      }
+    }
+    moveToTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => [rootGraphics.x, rootGraphics.y],
+      setter: xy => moveTo(...xy),
+      onDone: () => {
+        isMoving = false;
+        pubSub.publish('updateBBox', id);
+      }
+    });
+    pubSub.publish('animate', moveToTweener);
+  };
+
   const moveTo = (x, y) => {
     if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
       rootGraphics.x = x;
@@ -926,6 +959,9 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     get items() {
       return [...allItems];
     },
+    get magnification() {
+      return magnification;
+    },
     get size() {
       return allItems.length;
     },
@@ -942,6 +978,7 @@ const createPile = ({ initialItems, render, id, pubSub, store }) => {
     id,
     // Methods
     animateScale,
+    animateMoveTo,
     blur,
     cover,
     hover,
