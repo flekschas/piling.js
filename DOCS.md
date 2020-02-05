@@ -338,74 +338,76 @@ Position piles with user-specified arrangement method.
 
 `type` and the corresponding `objective` can be one of the following:
 
-| Type         | Objective            |
-| ------------ | --------------------- |
-| index | callback funciton that returns the pile index |
-| ij | callback function returns the cell (i.e., ij position) the pile should be positioned in |
-| xy | callback function returns the final xy position |
-| uv | callback function returns the final uv position of the canvas |
-| data | string, callback function, object or array |
+| Type      | Objective                                                                               |
+| --------- | --------------------------------------------------------------------------------------- |
+| `null`    | `undefined` _(manual positioning)_                                                      |
+| `'index'` | `function` that returns the linear index                                           |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |
+| `'xy'`    | `function` that returns the final xy position                                         |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           |
+| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                           |
 
 **Notes and examples:**
-- The signature of the callback function with `index`, `ij`, `xy` and `uv` should be as follows:
+- The signature of the callback function for types `index`, `ij`, `xy` and `uv` should be as follows:
 
   ```javascript
-    function (pileState, pileId) {
-      // Do something
-      return pilePosition;
-    }
+  function (pileState, pileId) {
+    // Do something
+    return pilePosition;
+  }
   ```
-- With `type === 'data'`, `objective` can either be a string, callback function, object or array to produce a 1D ordering, 2D scatterplot, or multi-dimensional cluster plot.
-  - 1D ordering
+- With `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
+
+  - The `objective` object can contain the following properties:
+    - `property` [type: `string` or `function`]: A function that retrieves that returns a numerical value for an pile's item.
+
+      The signature of the callback function looks as follows and must return a numerical value:
+
+      ```javascript
+      function (itemState, itemId, itemIndex) {
+        // Do something
+        return aNumericalValue;
+      }
+      ```
+
+      For convenience, we can automatically access item properties by their name. E.g., the following objective are identical:
+
+      ```javascript
+      piling.arrangeBy('data', 'a');
+      piling.arrangeBy('data', itemState => itemState.a);
+      ```
+
+    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the numerical values of the pile's items into a single numerical value.
+
+      For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
+
+    - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
+
+    - `inverse` [type `boolean` default: `false`]: If `true` the scale will be inverted
+
+  - For convenience the following examples are all equivalent:
     
     ```javascript
-      // The following 3 calls are all equivalent
-      piling.arrangeBy('data', 'a'); // string
+      // Define the property via a simple string
+      piling.arrangeBy('data', 'a');
+      // Define the property callback function
       piling.arrangeBy('data', itemState => itemState.a); // callback function
-      // object
-      piling.arrangeBy(
-        'data',
-        {
-          property: itemState => itemState.a,
-          inverse: true // For descending order
-        }
-      );
+      // Define the property callback function as part of the `objective` object
+      piling.arrangeBy('data', { property: itemState => itemState.a });
+      // Explicitly define 
+      piling.arrangeBy('data', ['a']);
     ```
 
-    Also, in all 3 examples from above data could be wrapped in an array and the result should be identical because a single pile property can only lead to a linear ordering.
-  - 2D scatterplot
+  - 1D orderings, 2D scatter plots, or multi-dimensional cluster plots are defined by the number passed to `arrangeBy('data', objectives)`:
     
     ```javascript
-      piling.arrangeBy('data', ['a', 'b']); // `a` is used for the x-axis and `b` is used for the y-axis
-      piling.arrangeBy(
-        'data',
-        [
-          {
-            property: 'a',
-            inverse: true
-          },
-          {
-            property: itemState => itemState.a + itemState.b,
-            scale: d3.scaleLog  // Providing a scale function would be the highest level of customizability
-          }
-        ]
-      );
+      // 1D / linear ordering
+      piling.arrangeBy('data', ['a']);
+      // 2D scatter plot
+      piling.arrangeBy('data', ['a', 'b']);
+      // Multi dimensional cluster plot
+      piling.arrangeBy('data', ['a', 'b', 'c', ...]);
     ```
-
-  - Multi-dimensional cluster plot
-    
-    To be continued...
-
-  - An object can contain the following properties:
-    - property: A function that retrieves the state of an item and returns a numerical value
-      - Can be a string of an item property or an array of strings.
-    - aggregator: A function that retrieves an array of numerical values and returns a single numerical value (i.e., the aggregate)
-      - Can be a string of the following: `min`, `max`, `mean` and `sum`.
-      - The default aggregator is `mean`.
-    - scale: A D3 scale function
-      - The default scale function is `d3.scaleLinear`.
-    - inverse: A boolean flag indicating whether the scale should be inverted or not
-      - The default value is false.
     
 #### `piling.destroy()`
 
