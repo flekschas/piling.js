@@ -33,6 +33,9 @@ import {
   CAMERA_VIEW,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
+  NAVIGATION_MODE_AUTO,
+  NAVIGATION_MODE_PAN_ZOOM,
+  NAVIGATION_MODE_SCROLL,
   POSITION_PILES_DEBOUNCE_TIME
 } from './defaults';
 
@@ -164,6 +167,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     lassoStrokeOpacity: true,
     lassoStrokeSize: true,
     magnifiedPiles: true,
+    navigationMode: true,
     orderer: true,
     pileBorderColor: {
       set: value => {
@@ -1634,6 +1638,47 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const updateNavigationMode = () => {
+    const {
+      arrangementType,
+      arrangementObjective,
+      navigationMode
+    } = store.getState();
+
+    switch (navigationMode) {
+      case NAVIGATION_MODE_PAN_ZOOM:
+        enablePanZoom();
+        break;
+
+      case NAVIGATION_MODE_SCROLL:
+        enableScrolling();
+        break;
+
+      case NAVIGATION_MODE_AUTO:
+      default:
+        switch (arrangementType) {
+          case 'data':
+            if (arrangementObjective.length > 1) enablePanZoom();
+            else enableScrolling();
+            break;
+
+          case 'xy':
+          case 'uv':
+            enablePanZoom();
+            break;
+
+          case 'index':
+          case 'ij':
+            enableScrolling();
+            break;
+
+          default:
+          // Nothing
+        }
+        break;
+    }
+  };
+
   const aggregatedPileValues = [];
   const pileSortPosByAggregate = [];
   const aggregatedPileMinValues = [];
@@ -1790,22 +1835,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (arrangementObjective.length) {
       case 0:
         console.warn('No arrangement objectives found!');
-        enableScrolling();
         break;
 
       case 1:
         updateArrangement1dOrderer(pileIds);
-        enableScrolling();
         break;
 
       case 2:
         updateArrangement2dScales(pileIds);
-        enablePanZoom();
         break;
 
       default:
         console.warn('Not yet supported');
-        enableScrolling();
         break;
     }
   };
@@ -1817,31 +1858,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       ? updatedPileIds
       : range(0, items.length);
 
-    switch (arrangementType) {
-      case 'data':
-        updateArragnementByData(pileIds);
-        break;
-
-      case 'index':
-        enableScrolling();
-        break;
-
-      case 'ij':
-        enableScrolling();
-        break;
-
-      case 'xy':
-        enablePanZoom();
-        break;
-
-      case 'uv':
-        enablePanZoom();
-        break;
-
-      default:
-        break;
+    if (arrangementType === 'data') {
+      updateArragnementByData(pileIds);
     }
 
+    updateNavigationMode();
     updateScrollContainer();
   };
 
@@ -2019,6 +2040,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       Promise.all(updatedItems).then(() => {
         updateArragnement(updatedPileItems);
       });
+    }
+
+    if (state.navigationMode !== newState.navigationMode) {
+      updateNavigationMode();
     }
 
     state = newState;
@@ -2691,9 +2716,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     resizeHandler();
     initGrid();
-
-    if (isPanZoom) enablePanZoom();
-    else enableScrolling();
+    enableScrolling();
 
     setPublic(initOptions);
   };
