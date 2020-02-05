@@ -1,11 +1,12 @@
 ### Next
 
-- Seperate bewtween pile's base scale and magnification
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Change pile border to be scale invariant
 - Animate item rotation
+- Unmagnify magnified piles on drag start
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
+- Disentangle the pile base scale and magnification
 
 ## v0.5.0
 
