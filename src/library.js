@@ -1701,8 +1701,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
 
       pileIds.forEach(pileId => {
-        const pileValues = piles[pileId].items.map(itemId =>
-          objective.property(items[itemId])
+        const pileValues = piles[pileId].items.map((itemId, index) =>
+          objective.property(items[itemId], itemId, index)
         );
 
         const aggregatedValue = objective.aggregator(pileValues);
