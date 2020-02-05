@@ -77,7 +77,7 @@ const TEMPLATE = `<ul id="piling-js-context-menu-list">
     <button id="align-button">Align by Grid</button>
   </li>
   <li>
-    <button id="scale-button">Scale Up</button>
+    <button id="magnify-button">Magnify</button>
   </li>
 </ul>`;
 

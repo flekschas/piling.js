@@ -1,4 +1,5 @@
 import {
+  identity,
   interpolateNumber,
   interpolateVector,
   mergeMaps
@@ -10,7 +11,7 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import { cloneSprite } from './utils';
 
-export const MAX_SCALE = 3;
+export const MAX_MAGNIFICATION = 3;
 export const MODE_NORMAL = Symbol('Normal');
 export const MODE_HOVER = Symbol('Hover');
 export const MODE_FOCUS = Symbol('Focus');
@@ -59,8 +60,12 @@ const createPile = (
   let isTempDepiled = false;
   let isPositioning = false;
   let isScaling = false;
+  let isMoving = false;
 
   let mode = MODE_NORMAL;
+
+  let baseScale = 1;
+  let magnification = 1;
 
   const pubSubSubscribers = [];
   let hoverItemSubscriber;
@@ -305,10 +310,16 @@ const createPile = (
 
       pubSub.publish('pileDragMove', { pileId: id, event });
 
-      const newPosition = event.data.getLocalPosition(rootGraphics.parent);
-      // remove offset
-      rootGraphics.x = newPosition.x - rootGraphics.draggingMouseOffset[0];
-      rootGraphics.y = newPosition.y - rootGraphics.draggingMouseOffset[1];
+      let { x, y } = event.data.getLocalPosition(rootGraphics.parent);
+      x -= rootGraphics.draggingMouseOffset[0];
+      y -= rootGraphics.draggingMouseOffset[1];
+
+      if (isMoving) {
+        moveToTweener.updateEndValue([x, y]);
+      } else {
+        rootGraphics.x = x;
+        rootGraphics.y = y;
+      }
 
       if (isTempDepiled) {
         active();
@@ -597,18 +608,20 @@ const createPile = (
 
   const getScale = () => contentGraphics.scale.x;
 
-  const setScale = scale => {
-    contentGraphics.scale.x = scale;
-    contentGraphics.scale.y = scale;
+  const setScale = (newScale, { isMagnification = false } = {}) => {
+    if (!isMagnification) baseScale = newScale;
+
+    contentGraphics.scale.x = newScale;
+    contentGraphics.scale.y = newScale;
   };
 
   let scaleTweener;
-  // eslint-disable-next-line consistent-return
-  const scale = (newScale, noAnimate) => {
-    if (Number.isNaN(+newScale)) return getScale();
-
-    if (noAnimate) {
-      setScale(newScale);
+  const animateScale = (
+    newScale,
+    { isMagnification = false, onDone = identity } = {}
+  ) => {
+    if (!isMagnification) {
+      baseScale = newScale;
     }
 
     isScaling = true;
@@ -625,7 +638,9 @@ const createPile = (
       interpolator: interpolateNumber,
       endValue: newScale,
       getter: getScale,
-      setter: setScale,
+      setter: v => {
+        setScale(v, { isMagnification });
+      },
       onDone: () => {
         isScaling = false;
         postPilePositionAnimation.forEach(fn => {
@@ -633,28 +648,63 @@ const createPile = (
         });
         postPilePositionAnimation.clear();
         pubSub.publish('updatePileBounds', id);
+        onDone();
       }
     });
     pubSub.publish('animate', scaleTweener);
   };
 
-  const scaleByWheel = wheelDelta => {
+  const magnifyByWheel = wheelDelta => {
     const force = Math.log(Math.abs(wheelDelta) + 1);
     const momentum = Math.sign(wheelDelta) * force;
 
-    const oldScale = getScale();
+    const currentScale = getScale();
     const newScale = Math.min(
-      Math.max(1, oldScale * (1 + 0.075 * momentum)),
-      MAX_SCALE
+      Math.max(1, currentScale * (1 + 0.075 * momentum)),
+      baseScale * MAX_MAGNIFICATION
     );
 
-    scale(newScale, true);
+    magnification = newScale / baseScale;
 
-    return oldScale !== newScale;
+    setScale(newScale, { isMagnification: true });
+
+    return currentScale !== newScale;
   };
 
-  const scaleToggle = noAnimate => {
-    scale(getScale() > 1 ? 1 : MAX_SCALE, noAnimate);
+  const magnify = () => {
+    magnification = MAX_MAGNIFICATION;
+    animateScale(baseScale * MAX_MAGNIFICATION, { isMagnification: true });
+  };
+
+  const unmagnify = () => {
+    magnification = 1;
+    animateScale(baseScale, { isMagnification: true });
+  };
+
+  let moveToTweener;
+  const animateMoveTo = (x, y, { onDone = identity } = {}) => {
+    isMoving = true;
+    let duration = 250;
+    if (moveToTweener) {
+      pubSub.publish('cancelAnimation', moveToTweener);
+      if (moveToTweener.dt < moveToTweener.duration) {
+        duration = moveToTweener.dt;
+      }
+    }
+    moveToTweener = createTweener({
+      duration,
+      delay: 0,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => [rootGraphics.x, rootGraphics.y],
+      setter: xy => moveTo(...xy),
+      onDone: () => {
+        isMoving = false;
+        pubSub.publish('updateBBox', id);
+        onDone();
+      }
+    });
+    pubSub.publish('animate', moveToTweener);
   };
 
   const moveTo = (x, y, notification = true) => {
@@ -896,6 +946,9 @@ const createPile = (
     get anchorBox() {
       return anchorBox;
     },
+    get baseScale() {
+      return baseScale;
+    },
     get bBox() {
       return bBox;
     },
@@ -910,6 +963,9 @@ const createPile = (
     },
     set isFocus(newIsFocus) {
       isFocus = !!newIsFocus;
+    },
+    get isMagnified() {
+      return magnification > 1;
     },
     get isTempDepiled() {
       return isTempDepiled;
@@ -926,6 +982,9 @@ const createPile = (
     get items() {
       return [...allItems];
     },
+    get magnification() {
+      return magnification;
+    },
     get size() {
       return allItems.length;
     },
@@ -941,6 +1000,8 @@ const createPile = (
     borderGraphics,
     id,
     // Methods
+    animateScale,
+    animateMoveTo,
     blur,
     cover,
     hover,
@@ -958,11 +1019,12 @@ const createPile = (
     opacity,
     positionItems,
     removeAllItems,
-    scale,
-    scaleByWheel,
-    scaleToggle,
+    setScale,
+    magnifyByWheel,
+    magnify,
     setItems,
-    updateBounds
+    updateBounds,
+    unmagnify
   };
 };
 
