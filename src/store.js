@@ -5,6 +5,8 @@ import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 
+import { NAVIGATION_MODE_AUTOMATIC, NAVIGATION_MODES } from './defaults';
+
 const clone = (value, state) => {
   switch (typeof value) {
     case 'object': {
@@ -31,6 +33,26 @@ const setReducer = (key, defaultValue = null) => {
   };
 };
 
+const setOptionsReducer = (key, options, defaultValue = null) => {
+  // eslint-disable-next-line no-param-reassign
+  options = new Set(options);
+
+  const actionType = `SET_${camelToConst(key)}`;
+
+  return (state = defaultValue, action) => {
+    switch (action.type) {
+      case actionType:
+        if (options.has(action.payload[key])) {
+          return clone(action.payload[key], state);
+        }
+        return state;
+
+      default:
+        return state;
+    }
+  };
+};
+
 const setAction = key => {
   const type = `SET_${camelToConst(key)}`;
   return newValue => ({ type, payload: { [key]: newValue } });
@@ -38,6 +60,11 @@ const setAction = key => {
 
 const setter = (key, defaultValue = null) => [
   setReducer(key, defaultValue),
+  setAction(key)
+];
+
+const setterOptions = (key, options, defaultValue = null) => [
+  setOptionsReducer(key, options, defaultValue),
   setAction(key)
 ];
 
@@ -152,6 +179,12 @@ const [tempDepileOneDNum, setTempDepileOneDNum] = setter(
 );
 
 const [easing, setEasing] = setter('easing', cubicInOut);
+
+const [navigationMode, setNavigationMode] = setterOptions(
+  'navigationMode',
+  NAVIGATION_MODES,
+  NAVIGATION_MODE_AUTOMATIC
+);
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
@@ -384,6 +417,7 @@ const createStore = () => {
     lassoStrokeColor,
     lassoStrokeOpacity,
     lassoStrokeSize,
+    navigationMode,
     orderer,
     pileBorderColor,
     pileBorderOpacity,
@@ -458,6 +492,7 @@ export const createAction = {
   setLassoStrokeSize,
   setItemRenderer,
   setItemOpacity,
+  setNavigationMode,
   setPreviewRenderer,
   setAggregateRenderer,
   setPreviewAggregator,
