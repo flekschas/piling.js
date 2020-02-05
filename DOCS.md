@@ -179,6 +179,7 @@ The list of all understood properties is given below.
 | lassoStrokeSize           | int               | `1`                   | must be greater or equal than `1`                                             | `false`    |
 | orderer                   | function          | row-major             | see [`notes`](#notes)                                                         | `true`     |
 | magnifiedPiles            | array             | `[]`                  | the id of current magnified pile                                              | `true`     |
+| navigationMode            | string            | auto                  | Can be one of auto, panZoom, or scroll                                        | `false`    |
 | pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
 | pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColor           | string or int     | `0x808080`            |                                                                               | `false`    |
