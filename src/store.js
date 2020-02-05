@@ -5,7 +5,7 @@ import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 
-import { NAVIGATION_MODE_AUTOMATIC, NAVIGATION_MODES } from './defaults';
+import { NAVIGATION_MODE_AUTO, NAVIGATION_MODES } from './defaults';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -183,7 +183,7 @@ const [easing, setEasing] = setter('easing', cubicInOut);
 const [navigationMode, setNavigationMode] = setterOptions(
   'navigationMode',
   NAVIGATION_MODES,
-  NAVIGATION_MODE_AUTOMATIC
+  NAVIGATION_MODE_AUTO
 );
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
