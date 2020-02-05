@@ -204,7 +204,7 @@ createPiles(exampleEl.value).then(pilingLib => {
     },
     {
       id: 'arrangement',
-      title: 'Arrangement By Data',
+      title: 'Arrangement & Navigation',
       fields: [
         {
           name: 'arrangementObjective',
@@ -216,6 +216,11 @@ createPiles(exampleEl.value).then(pilingLib => {
               : pilingLib.arrangeBy(),
           multiple: true,
           nullifiable: true
+        },
+        {
+          name: 'navigationMode',
+          dtype: 'string',
+          values: ['auto', 'panZoom', 'scroll']
         }
       ]
     }
@@ -239,34 +244,108 @@ createPiles(exampleEl.value).then(pilingLib => {
     const currentValue = pilingLib.get(field.name);
 
     if (field.values) {
-      const select = document.createElement('select');
-
-      field.values.forEach(value => {
-        const option = document.createElement('option');
-        option.setAttribute('value', value);
-        option.textContent = value;
-        if (currentValue === value) option.selected = true;
-        select.appendChild(option);
-      });
-
       if (field.multiple) {
-        select.setAttribute('multiple', 'multiple');
+        const checkboxes = document.createElement('div');
 
-        Object.defineProperty(select, 'value', {
-          get: () => {
-            return Array.from(
-              select.querySelectorAll('option:checked'),
+        field.values.forEach(value => {
+          const checkboxLabel = document.createElement('label');
+          checkboxes.appendChild(checkboxLabel);
+
+          const checkbox = document.createElement('input');
+          checkbox.setAttribute('type', 'checkbox');
+          checkbox.setAttribute('value', value);
+          if (currentValue === value) checkbox.selected = true;
+          checkboxLabel.appendChild(checkbox);
+
+          const checkboxLabelText = document.createElement('span');
+          checkboxLabelText.textContent = value;
+          checkboxLabel.appendChild(checkboxLabelText);
+        });
+
+        Object.defineProperty(checkboxes, 'value', {
+          get: () =>
+            Array.from(
+              checkboxes.querySelectorAll('input:checked'),
               e => e.value
-            );
-          }
+            )
         });
-      } else {
-        Object.defineProperty(select, 'value', {
-          get: () => select.options[select.selectedIndex].value
-        });
+
+        checkboxes.addEventListener = (type, callback) => {
+          Array.prototype.forEach.call(
+            checkboxes.querySelectorAll('input'),
+            checkbox => {
+              checkbox.addEventListener(type, callback);
+            }
+          );
+        };
+
+        return checkboxes;
       }
 
-      return select;
+      if (field.values.length > 3) {
+        const select = document.createElement('select');
+
+        field.values.forEach(value => {
+          const option = document.createElement('option');
+          option.setAttribute('value', value);
+          option.textContent = value;
+          if (currentValue === value) option.selected = true;
+          select.appendChild(option);
+        });
+
+        if (field.multiple) {
+          select.setAttribute('multiple', 'multiple');
+
+          Object.defineProperty(select, 'value', {
+            get: () => {
+              return Array.from(
+                select.querySelectorAll('option:checked'),
+                e => e.value
+              );
+            }
+          });
+        } else {
+          Object.defineProperty(select, 'value', {
+            get: () => select.options[select.selectedIndex].value
+          });
+        }
+
+        return select;
+      }
+
+      const radios = document.createElement('div');
+
+      field.values.forEach(value => {
+        const radioLabel = document.createElement('label');
+        radios.appendChild(radioLabel);
+
+        const radio = document.createElement('input');
+        radio.setAttribute('type', 'radio');
+        radio.setAttribute('name', field.name);
+        radio.setAttribute('value', value);
+
+        if (currentValue === value) radio.checked = true;
+        radioLabel.appendChild(radio);
+
+        const radioLabelText = document.createElement('span');
+        radioLabelText.textContent = value;
+        radioLabel.appendChild(radioLabelText);
+      });
+
+      Object.defineProperty(radios, 'value', {
+        get: () => radios.querySelector('input:checked').value
+      });
+
+      radios.addEventListener = (type, callback) => {
+        Array.prototype.forEach.call(
+          radios.querySelectorAll('input'),
+          radio => {
+            radio.addEventListener(type, callback);
+          }
+        );
+      };
+
+      return radios;
     }
 
     const input = document.createElement('input');
@@ -365,11 +444,21 @@ createPiles(exampleEl.value).then(pilingLib => {
         isSet.checked = true;
         isSet.disabled = true;
       }
-      inputs.appendChild(isSet);
+
+      if (!(field.values && (field.multiple || !field.nullifiable))) {
+        inputs.appendChild(isSet);
+      }
 
       input.addEventListener('change', event => {
+        let value = event.target.value;
+
+        if (field.values && field.multiple) {
+          value = input.value;
+          isSet.checked = value.length;
+        }
+
         if (isSet && isSet.checked) {
-          const value = parseDtype[field.dtype](event.target.value);
+          value = parseDtype[field.dtype](value);
 
           if (field.setter) {
             field.setter(value);
