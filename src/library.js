@@ -1709,6 +1709,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const handleDragStartPile = ({ pileId, event }) => {
+    const pile = pileInstances.get(pileId);
+
+    if (pile && pile.isMagnified) {
+      const mousePos = event.data.getLocalPosition(pile.graphics.parent);
+
+      pile.graphics.draggingMouseOffset[0] /= pile.magnification;
+      pile.graphics.draggingMouseOffset[1] /= pile.magnification;
+      pile.animateMoveTo(
+        mousePos.x - pile.graphics.draggingMouseOffset[0],
+        mousePos.y - pile.graphics.draggingMouseOffset[1]
+      );
+    }
+
+    store.dispatch(createAction.setMagnifiedPiles([]));
+  };
+
   const handleDragPile = ({ pileId }) => {
     activePile.addChild(pileInstances.get(pileId).graphics);
     handleHighlightPile({ pileId });
@@ -2144,6 +2161,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
     canvas.addEventListener('wheel', mouseWheelHandler, false);
 
+    pubSub.subscribe('pileDragStart', handleDragStartPile);
     pubSub.subscribe('pileDrag', handleDragPile);
     pubSub.subscribe('pileDrop', handleDropPile);
     pubSub.subscribe('animate', handleAnimate);
