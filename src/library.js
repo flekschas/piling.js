@@ -828,11 +828,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         lastPilePosition.set(pile.id, point);
 
-        const [x, y] = translatePoint(point);
-
         if (immideate) {
-          pile.moveTo(x, y);
+          const [outX, outY] = translatePoint(point);
+          pile.moveTo(outX, outY);
         }
+
+        const [x, y] = point;
 
         movingPiles.push({ id: pile.id, x, y });
 
@@ -1007,10 +1008,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const updatePilePosition = (pile, id) => {
+  const updatePilePosition = (pileState, id) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
-      animatePileMove(pileInstance, pile.x, pile.y);
+      const [x, y] = translatePoint([pileState.x, pileState.y]);
+      animatePileMove(pileInstance, x, y);
     }
   };
 
