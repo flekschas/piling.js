@@ -19,6 +19,7 @@ import {
   deepClone,
   dist,
   getBBox,
+  identity,
   isFunction,
   isPileInPolygon,
   interpolateVector,
@@ -1385,24 +1386,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     pileIds.forEach((id, index) => {
       const pile = pileInstances.get(id);
-      const tweener = createTweener({
-        duration: 250,
-        delay: 0,
-        interpolator: interpolateVector,
-        endValue: [centerX, centerY],
-        getter: () => {
-          return [pile.x, pile.y];
-        },
-        setter: xy => {
-          pile.moveTo(...xy);
-        },
-        onDone: () => {
-          if (index === pileIds.length - 1) {
-            store.dispatch(createAction.mergePiles(pileIds, false));
-          }
-        }
-      });
-      animator.add(tweener);
+      const onDone =
+        index === pileIds.length - 1
+          ? () => {
+              store.dispatch(createAction.mergePiles(pileIds, false));
+            }
+          : identity;
+
+      pile.animateMoveTo(centerX, centerY, { onDone });
     });
   };
 
