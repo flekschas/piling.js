@@ -378,6 +378,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     stage.y = 0;
     rootElement.style.overflowY = 'auto';
+    rootElement.scrollTop = 0;
     rootElement.addEventListener('scroll', mouseScrollHandler, false);
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
@@ -390,6 +391,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     stage.y = 0;
     rootElement.style.overflowY = 'hidden';
+    rootElement.scrollTop = 0;
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
@@ -1679,6 +1681,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
         break;
     }
+
+    translatePilePosition();
+    positionPiles();
+    updateScrollContainer();
   };
 
   const aggregatedPileValues = [];
@@ -1865,7 +1871,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     updateNavigationMode();
-    updateScrollContainer();
   };
 
   const updated = () => {
@@ -2045,7 +2050,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.navigationMode !== newState.navigationMode) {
-      updateNavigationMode();
+      stateUpdates.add('navigation');
     }
 
     state = newState;
@@ -2066,6 +2071,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // Reposition of all piles
         positionPiles();
       });
+    }
+
+    if (stateUpdates.has('navigation')) {
+      updateNavigationMode();
     }
   };
 
