@@ -504,7 +504,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let itemSizeScale;
+  let itemSizeScale = scaleLinear();
 
   const scaleItems = () => {
     if (!renderedItems.size) return;
@@ -2009,12 +2009,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      state.arrangementType !== newState.arrangementType ||
-      state.arrangementObjective !== newState.arrangementObjective ||
-      updatedPileItems.length > 0
+      newState.items.length &&
+      (state.arrangementType !== newState.arrangementType ||
+        state.arrangementObjective !== newState.arrangementObjective ||
+        updatedItems.length > 0 ||
+        updatedPileItems.length > 0)
     ) {
       stateUpdates.add('layout');
-      updateArragnement(updatedPileItems);
+      Promise.all(updatedItems).then(() => {
+        updateArragnement(updatedPileItems);
+      });
     }
 
     state = newState;
