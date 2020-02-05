@@ -19,7 +19,7 @@ const createTweener = ({
   delay = DEFAULT_DELAY,
   interpolator,
   easing = cubicInOut,
-  endValue,
+  endValue: initialEndValue,
   getter,
   setter,
   onDone = null
@@ -27,8 +27,8 @@ const createTweener = ({
   let startValue;
   let startTime;
   let dt;
-  let interpolate;
   let ready;
+  let endValue = initialEndValue;
 
   const startAnimation = () => {
     startTime = performance.now();
@@ -37,7 +37,6 @@ const createTweener = ({
     if (!ready) {
       console.warn(`Invalid start value for animation: ${startValue}`);
     }
-    interpolate = interpolator(startValue, endValue);
   };
 
   const register = () => {
@@ -60,7 +59,7 @@ const createTweener = ({
       return true;
     }
 
-    setter(interpolate(easing(dt / duration)));
+    setter(interpolator(startValue, endValue, easing(dt / duration)));
 
     return false;
   };
@@ -68,6 +67,10 @@ const createTweener = ({
   const setEasing = newEasing => {
     // eslint-disable-next-line no-param-reassign
     easing = newEasing;
+  };
+
+  const updateEndValue = newEndValue => {
+    endValue = newEndValue;
   };
 
   return {
@@ -79,6 +82,7 @@ const createTweener = ({
     },
     register,
     update,
+    updateEndValue,
     setEasing
   };
 };

@@ -257,10 +257,10 @@ export const cubicInOut = t => {
   return p;
 };
 
-export const interpolateNumber = (a, b) => p => a * (1 - p) + b * p;
+export const interpolateNumber = (a, b, p) => a * (1 - p) + b * p;
 
-export const interpolateVector = (a, b) => p =>
-  a.map((x, i) => interpolateNumber(x, b[i])(p));
+export const interpolateVector = (a, b, p) =>
+  a.map((x, i) => interpolateNumber(x, b[i], p));
 
 /**
  * Debounce a function call
