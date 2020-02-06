@@ -1302,7 +1302,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     store.dispatch(createAction.depilePiles([depiledPile]));
-    animateDepile(items);
+
+    if (!store.getState().arrangementType) {
+      animateDepile(items);
+    }
   };
 
   const animateTempDepile = (clonedSprite, pile, x, y, isLastOne) => {
