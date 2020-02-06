@@ -331,10 +331,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     searchIndex.insert(pile.bBox);
   };
 
-  const translatePilePosition = () => {
+  const translatePiles = () => {
     lastPilePosition.forEach((pilePos, pileId) => {
-      const [x, y] = translatePoint(pilePos);
-      pileInstances.get(pileId).moveTo(x, y, false);
+      movePileTo(pileInstances.get(pileId), pilePos[0], pilePos[1]);
     });
     renderRaf();
   };
@@ -342,7 +341,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const panZoomHandler = (updatePilePosition = true) => {
     // Update the camera
     camera.tick();
-    translatePilePosition();
+    translatePiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
   };
@@ -352,7 +351,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     isPanZoomed = false;
     // Update the camera
     camera.tick();
-    translatePilePosition();
+    translatePiles();
     positionPiles();
   };
 
@@ -565,17 +564,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileInstances.forEach(pile => pile.updateCover());
   };
 
-  const animatePileMove = (pile, x, y) => {
-    const tweener = createTweener({
-      duration: 250,
-      delay: 0,
-      interpolator: interpolateVector,
-      endValue: [x, y],
-      getter: () => [pile.x, pile.y],
-      setter: ([newX, newY]) => pile.moveTo(newX, newY, false),
-      done: () => updatePileBounds(pile.id)
-    });
-    animator.add(tweener);
+  const movePileTo = (pile, x, y) => {
+    pile.moveTo(...translatePoint([x, y]));
+  };
+
+  const movePileToWithUpdate = (pile, x, y) => {
+    movePileTo(pile, x, y);
+    updatePileBounds(pile.id);
+  };
+
+  const animateMovePileTo = (pile, x, y, options) => {
+    pile.animateMoveTo(...translatePoint([x, y]), options);
   };
 
   const updateLayout = oldLayout => {
@@ -820,15 +819,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (readyPiles.length) {
       readyPiles.forEach(pile => {
         const point = getPilePosition(pile.id, isInitialPositioning);
-
         lastPilePosition.set(pile.id, point);
 
-        if (immideate) {
-          const [outX, outY] = translatePoint(point);
-          pile.moveTo(outX, outY);
-        }
-
         const [x, y] = point;
+
+        if (immideate) movePileToWithUpdate(pile, x, y);
 
         movingPiles.push({ id: pile.id, x, y });
 
@@ -961,28 +956,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const updatePileItems = (pile, id) => {
+  const updatePileItems = (pileState, id) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
-      if (pile.items.length === 0) {
+      if (pileState.items.length === 0) {
         deleteSearchIndex(id);
         pileInstance.destroy();
         pileInstances.delete(id);
         lastPilePosition.delete(id);
       } else {
         if (store.getState().previewAggregator) {
-          updatePreviewAndCover(pile, pileInstance);
+          updatePreviewAndCover(pileState, pileInstance);
         } else {
-          const itemInstances = pile.items.map(itemId =>
+          const itemInstances = pileState.items.map(itemId =>
             renderedItems.get(itemId)
           );
           pileInstance.setItems(itemInstances);
           positionItems(id);
         }
         updatePileBounds(id);
-        updatePileItemStyle(pile, id);
+        updatePileItemStyle(pileState, id);
       }
     } else {
+      const [x, y] = translatePoint([pileState.x, pileState.y]);
       const newPile = createPile(
         {
           items: [renderedItems.get(id)],
@@ -991,23 +987,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pubSub,
           store
         },
-        {
-          x: pile.x,
-          y: pile.y
-        }
+        { x, y }
       );
       pileInstances.set(id, newPile);
       normalPiles.addChild(newPile.graphics);
       updatePileBounds(id);
-      updatePileItemStyle(pile, id);
+      updatePileItemStyle(pileState, id);
+      lastPilePosition.set(id, [pileState.x, pileState.y]);
     }
   };
 
   const updatePilePosition = (pileState, id) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
-      const [x, y] = translatePoint([pileState.x, pileState.y]);
-      animatePileMove(pileInstance, x, y);
+      lastPilePosition.set(id, [pileState.x, pileState.y]);
+      animateMovePileTo(pileInstance, pileState.x, pileState.y);
     }
   };
 
@@ -1194,36 +1188,38 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     itemIds.forEach((itemId, index) => {
       const pile = pileInstances.get(itemId);
       const pileItem = pile.getItemById(itemId);
-      const tweener = createTweener({
-        duration: 250,
-        delay: 0,
-        interpolator: interpolateVector,
-        endValue: [
-          ...(itemPositions.length > 0
-            ? itemPositions[index]
-            : pileItem.item.originalPosition),
-          0
-        ],
-        getter: () => {
-          return [pile.x, pile.y, pileItem.displayObject.angle];
-        },
-        setter: newValue => {
-          pile.moveTo(newValue[0], newValue[1]);
-          pileItem.displayObject.angle = newValue[2];
-        },
-        onDone: finalValue => {
-          movingPiles.push({
-            id: itemId,
-            x: finalValue[0],
-            y: finalValue[1]
-          });
-          // when animation is done, dispatch move piles
-          if (index === itemIds.length - 1) {
-            store.dispatch(createAction.movePiles(movingPiles));
+      animator.add(
+        createTweener({
+          duration: 250,
+          delay: 0,
+          interpolator: interpolateVector,
+          endValue: [
+            ...(itemPositions.length > 0
+              ? itemPositions[index]
+              : translatePoint(pileItem.item.originalPosition)),
+            0
+          ],
+          getter: () => {
+            return [pile.x, pile.y, pileItem.displayObject.angle];
+          },
+          setter: newValue => {
+            pile.moveTo(newValue[0], newValue[1]);
+            pileItem.displayObject.angle = newValue[2];
+          },
+          onDone: () => {
+            movingPiles.push({
+              id: pile.id,
+              x: pileItem.item.originalPosition[0],
+              y: pileItem.item.originalPosition[1]
+            });
+            updatePileBounds(pile.id);
+            // when animation is done, dispatch move piles
+            if (index === itemIds.length - 1) {
+              store.dispatch(createAction.movePiles(movingPiles));
+            }
           }
-        }
-      });
-      animator.add(tweener);
+        })
+      );
     });
   };
 
@@ -1612,7 +1608,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             }
           : identity;
 
-      pile.animateMoveTo(centerX, centerY, { onDone });
+      animateMovePileTo(pile, centerX, centerY, { onDone });
     });
   };
 
@@ -1682,7 +1678,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
     }
 
-    translatePilePosition();
+    translatePiles();
     positionPiles();
     updateScrollContainer();
   };
@@ -2038,12 +2034,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       else clearGrid();
     }
 
+    // prettier-ignore
     if (
       newState.items.length &&
-      (state.arrangementType !== newState.arrangementType ||
+      (
+        state.arrangementType !== newState.arrangementType ||
         state.arrangementObjective !== newState.arrangementObjective ||
-        updatedItems.length > 0 ||
-        updatedPileItems.length > 0)
+        (
+          newState.arrangementType &&
+          (updatedItems.length || updatedPileItems.length)
+        )
+      )
     ) {
       stateUpdates.add('layout');
       Promise.all(updatedItems).then(() => {
@@ -2260,7 +2261,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pile.graphics.draggingMouseOffset[0] /= pile.magnification;
       pile.graphics.draggingMouseOffset[1] /= pile.magnification;
-      pile.animateMoveTo(
+      animateMovePileTo(
+        pile,
         mousePos.x - pile.graphics.draggingMouseOffset[0],
         mousePos.y - pile.graphics.draggingMouseOffset[1]
       );
@@ -2532,9 +2534,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           return [pile.x, pile.y];
         },
         setter: xy => {
-          pile.moveTo(...xy);
+          movePileTo(pile, xy[0], xy[1]);
         },
         onDone: () => {
+          updatePileBounds(pile.id);
           if (index === pileMovements.length - 1) {
             store.dispatch(createAction.movePiles(pileMovements));
             createRBush();

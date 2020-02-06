@@ -691,22 +691,19 @@ const createPile = (
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => [rootGraphics.x, rootGraphics.y],
-      setter: xy => moveTo(...xy),
+      setter: xy => moveTo(xy[0], xy[1]),
       onDone: () => {
         isMoving = false;
-        pubSub.publish('updateBBox', id);
+        pubSub.publish('updatePileBounds', id);
         onDone();
       }
     });
     pubSub.publish('animate', moveToTweener);
   };
 
-  const moveTo = (x, y, notification = true) => {
-    if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
-      rootGraphics.x = x;
-      rootGraphics.y = y;
-      if (notification) pubSub.publish('updatePileBounds', id);
-    }
+  const moveTo = (x, y) => {
+    rootGraphics.x = x;
+    rootGraphics.y = y;
   };
 
   const getItemById = itemId =>
