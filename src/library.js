@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import createDom2dCamera from '@flekschas/dom-2d-camera';
+import createDom2dCamera from 'dom-2d-camera';
 import { mat4, vec4 } from 'gl-matrix';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
