@@ -1,4 +1,4 @@
-import { pipe, withConstructor, withReadOnlyProperty } from '@flekschas/utils';
+import { pipe, withConstructor, withStaticProperty } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 import withSize from './with-size';
@@ -8,8 +8,8 @@ const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
   sprite.anchor.set(...anchor);
 
   return pipe(
-    withReadOnlyProperty('displayObject', sprite),
-    withReadOnlyProperty('sprite', sprite),
+    withStaticProperty('displayObject', sprite),
+    withStaticProperty('sprite', sprite),
     withSize(sprite),
     withConstructor(createImage)
   )({});

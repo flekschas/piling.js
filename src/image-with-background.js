@@ -2,7 +2,7 @@ import {
   assign,
   pipe,
   withConstructor,
-  withReadOnlyProperty
+  withStaticProperty
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -71,8 +71,8 @@ const createImageWithBackground = (
 
   return init(
     pipe(
-      withReadOnlyProperty('displayObject', backgroundGraphics),
-      withReadOnlyProperty('sprite', sprite),
+      withStaticProperty('displayObject', backgroundGraphics),
+      withStaticProperty('sprite', sprite),
       withSize(sprite),
       withPadding(padding),
       withBackground({

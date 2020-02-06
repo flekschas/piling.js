@@ -2,7 +2,7 @@ import {
   pipe,
   withConstructor,
   withProperty,
-  withReadOnlyProperty
+  withStaticProperty
 } from '@flekschas/utils';
 
 /**
@@ -16,9 +16,9 @@ const createItem = (
   { preview = null, originalPosition = [0, 0] } = {}
 ) =>
   pipe(
-    withReadOnlyProperty('id', id),
-    withReadOnlyProperty('image', image),
-    withReadOnlyProperty('preview', preview),
+    withStaticProperty('id', id),
+    withStaticProperty('image', image),
+    withStaticProperty('preview', preview),
     withProperty('originalPosition', {
       initialValue: originalPosition,
       cloner: v => [...v]

@@ -2,7 +2,7 @@ import {
   assign,
   pipe,
   withConstructor,
-  withReadOnlyProperty
+  withStaticProperty
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -48,10 +48,10 @@ const createPileItem = ({ image, item, pubSub }) => {
 
   return init(
     pipe(
-      withReadOnlyProperty('displayObject', container),
-      withReadOnlyProperty('id', item.id),
-      withReadOnlyProperty('image', image),
-      withReadOnlyProperty('item', item),
+      withStaticProperty('displayObject', container),
+      withStaticProperty('id', item.id),
+      withStaticProperty('image', image),
+      withStaticProperty('item', item),
       withAnimatedProperty(
         {
           name: 'opacity',
