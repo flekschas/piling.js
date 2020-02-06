@@ -1854,7 +1854,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const updateArragnement = updatedPileIds => {
+  const updateArrangement = updatedPileIds => {
     const { arrangementType, items } = store.getState();
 
     const pileIds = updatedPileIds.length
@@ -2040,7 +2040,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     ) {
       stateUpdates.add('layout');
       Promise.all(updatedItems).then(() => {
-        updateArragnement(updatedPileItems);
+        updateArrangement(updatedPileItems);
       });
     }
 
