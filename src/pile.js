@@ -486,31 +486,28 @@ const createPile = (
       });
     } else if (itemAlignment || allItems.length === 1) {
       // image
-      newItems.forEach(item => {
-        const displayObject = item.displayObject;
+      newItems.forEach(pileItem => {
+        const item = pileItem.item;
+        const displayObject = pileItem.displayObject;
 
         // eslint-disable-next-line no-use-before-define
         const currentScale = getScale();
-        let relItemScale = (item.tmpRelScale || 1) / currentScale;
 
         // When the scale of the source and target pile were different, we need
         // to equalize the scale.
         displayObject.tmpTargetScale = displayObject.scale.x;
         if (!Number.isNaN(+item.tmpRelScale)) {
-          relItemScale = item.tmpRelScale / currentScale;
+          const relItemScale = item.tmpRelScale / currentScale;
           displayObject.scale.x *= relItemScale;
           displayObject.scale.y = displayObject.scale.x;
-          item.tmpRelScale = undefined;
           delete item.tmpRelScale;
         }
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          item.moveTo(
-            (item.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-            (item.y + item.tmpAbsY - rootGraphics.y) / currentScale
+          pileItem.moveTo(
+            (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
+            (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
           );
-          item.tmpAbsX = undefined;
-          item.tmpAbsY = undefined;
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }
@@ -555,21 +552,20 @@ const createPile = (
     } else {
       const { randomOffsetRange, randomRotationRange } = store.getState();
       let num = 0;
-      newItems.forEach(item => {
+      newItems.forEach(pileItem => {
         num++;
 
-        const displayObject = item.displayObject;
+        const item = pileItem.item;
+        const displayObject = pileItem.displayObject;
 
         // eslint-disable-next-line no-use-before-define
         const currentScale = getScale();
-        let relItemScale = (item.tmpRelScale || 1) / currentScale;
 
         displayObject.tmpTargetScale = displayObject.scale.x;
         if (!Number.isNaN(+item.tmpRelScale)) {
-          relItemScale = item.tmpRelScale / currentScale;
+          const relItemScale = item.tmpRelScale / currentScale;
           displayObject.scale.x *= relItemScale;
           displayObject.scale.y = displayObject.scale.x;
-          item.tmpRelScale = undefined;
           delete item.tmpRelScale;
         }
 
@@ -577,14 +573,12 @@ const createPile = (
         let offsetY = getRandomArbitrary(...randomOffsetRange);
 
         if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          offsetX += item.x;
-          offsetY += item.y;
-          item.moveTo(
-            (item.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-            (item.y + item.tmpAbsY - rootGraphics.y) / currentScale
+          offsetX += pileItem.x;
+          offsetY += pileItem.y;
+          pileItem.moveTo(
+            (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
+            (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
           );
-          item.tmpAbsX = undefined;
-          item.tmpAbsY = undefined;
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }

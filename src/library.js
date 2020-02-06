@@ -2194,10 +2194,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (collidePiles.length === 1) {
         hit = !pileInstances.get(collidePiles[0].id).isTempDepiled;
         if (hit) {
-          pile.items.forEach(item => {
-            item.tmpAbsX = pileGfx.x;
-            item.tmpAbsY = pileGfx.y;
-            item.tmpRelScale = pile.scale;
+          pile.items.forEach(pileItem => {
+            pileItem.item.tmpAbsX = pileGfx.x;
+            pileItem.item.tmpAbsY = pileGfx.y;
+            pileItem.item.tmpRelScale = pile.scale;
           });
           store.dispatch(
             createAction.mergePiles([pileId, collidePiles[0].id], true)
