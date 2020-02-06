@@ -1185,9 +1185,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return { depilePos, distance };
   };
 
-  const animateDepile = (items, itemPositions = []) => {
+  const animateDepile = (srcPileId, itemIds, itemPositions = []) => {
     const movingPiles = [];
-    items.forEach((itemId, index) => {
+
+    const srcPile = pileInstances.get(srcPileId);
+    srcPile.drawBorder();
+
+    itemIds.forEach((itemId, index) => {
       const pile = pileInstances.get(itemId);
       const pileItem = pile.getItemById(itemId);
       const tweener = createTweener({
@@ -1214,7 +1218,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             y: finalValue[1]
           });
           // when animation is done, dispatch move piles
-          if (index === items.length - 1) {
+          if (index === itemIds.length - 1) {
             store.dispatch(createAction.movePiles(movingPiles));
           }
         }
@@ -1285,7 +1289,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
     depiledPiles.push(depiledPile);
     store.dispatch(createAction.depilePiles(depiledPiles));
-    animateDepile(items, itemPositions);
+    animateDepile(pileId, items, itemPositions);
     store.dispatch(createAction.setDepiledPile([]));
   };
 
@@ -1304,7 +1308,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.depilePiles([depiledPile]));
 
     if (!store.getState().arrangementType) {
-      animateDepile(items);
+      animateDepile(pileId, items);
     }
   };
 
