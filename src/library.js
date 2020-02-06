@@ -561,6 +561,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         item.preview.drawBackground();
       }
     });
+
+    pileInstances.forEach(pile => pile.updateCover());
   };
 
   const animatePileMove = (pile, x, y) => {
@@ -606,12 +608,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileInstances.forEach(pile => {
         if (pile.cover()) {
-          const coverRatio = pile.cover.height / pile.cover.width;
-          pile.cover.width =
-            pile.previewItemContainer.children[0].width -
-            store.getState().previewSpacing;
-          pile.cover.height = coverRatio * pile.cover.width;
-
           const { pileItemAlignment, pileItemRotation } = store.getState();
 
           pile.positionItems(

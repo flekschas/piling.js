@@ -899,6 +899,18 @@ const createPile = (
     coverItem = undefined;
   };
 
+  const updateCover = () => {
+    if (!coverItem) return;
+
+    coverItem.then(coverImage => {
+      const cover = coverImage.displayObject;
+      const coverRatio = cover.height / cover.width;
+      cover.width =
+        previewItemContainer.width - store.getState().previewSpacing;
+      cover.height = coverRatio * cover.width;
+    });
+  };
+
   // eslint-disable-next-line consistent-return
   const cover = newCover => {
     if (typeof newCover === 'undefined') return getCover();
@@ -1024,6 +1036,7 @@ const createPile = (
     magnify,
     setItems,
     updateBounds,
+    updateCover,
     unmagnify
   };
 };
