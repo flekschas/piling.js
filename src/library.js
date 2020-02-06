@@ -75,9 +75,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let gridMat;
 
-  let translatePoint;
+  let translatePointToScreen;
+  let translatePointFromScreen;
   let camera;
-  const projection = new Float32Array(16);
+  const scratch = new Float32Array(16);
   const lastPilePosition = new Map();
 
   const renderer = new PIXI.Renderer({
@@ -373,7 +374,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     disablePanZoom();
 
     isPanZoom = false;
-    translatePoint = identity;
+    translatePointToScreen = identity;
+    translatePointFromScreen = identity;
 
     stage.y = 0;
     rootElement.style.overflowY = 'auto';
@@ -404,7 +406,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     disableScrolling();
 
     isPanZoom = true;
-    translatePoint = translatePointByCamera;
+    translatePointToScreen = translatePointToCamera;
+    translatePointFromScreen = translatePointFromCamera;
 
     camera = createDom2dCamera(canvas, {
       isNdc: false,
@@ -565,7 +568,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const movePileTo = (pile, x, y) => {
-    pile.moveTo(...translatePoint([x, y]));
+    pile.moveTo(...translatePointToScreen([x, y]));
   };
 
   const movePileToWithUpdate = (pile, x, y) => {
@@ -574,7 +577,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateMovePileTo = (pile, x, y, options) => {
-    pile.animateMoveTo(...translatePoint([x, y]), options);
+    pile.animateMoveTo(...translatePointToScreen([x, y]), options);
   };
 
   const updateLayout = oldLayout => {
@@ -792,10 +795,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const translatePointByCamera = ([x, y]) => {
+  const translatePointToCamera = ([x, y]) => {
     const v = toHomogeneous(x, y);
 
     vec4.transformMat4(v, v, camera.view);
+
+    return v.slice(0, 2);
+  };
+
+  const translatePointFromCamera = ([x, y]) => {
+    const v = toHomogeneous(x, y);
+
+    vec4.transformMat4(v, v, mat4.invert(scratch, camera.view));
 
     return v.slice(0, 2);
   };
@@ -978,7 +989,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         updatePileItemStyle(pileState, id);
       }
     } else {
-      const [x, y] = translatePoint([pileState.x, pileState.y]);
+      const [x, y] = translatePointToScreen([pileState.x, pileState.y]);
       const newPile = createPile(
         {
           items: [renderedItems.get(id)],
@@ -1196,7 +1207,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           endValue: [
             ...(itemPositions.length > 0
               ? itemPositions[index]
-              : translatePoint(pileItem.item.originalPosition)),
+              : translatePointToScreen(pileItem.item.originalPosition)),
             0
           ],
           getter: () => {
@@ -2210,12 +2221,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         resetPileBorder();
+        // We need to "untranslate" the position of the pile
+        const [x, y] = translatePointFromScreen([pile.x, pile.y]);
         store.dispatch(
           createAction.movePiles([
             {
               id: pileId,
-              x: pile.x,
-              y: pile.y
+              x,
+              y
             }
           ])
         );
@@ -2499,10 +2512,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const updateProjection = (width, height) => {
-    mat4.fromScaling(projection, [height / width, 1, 1]);
-  };
-
   const resizeHandler = () => {
     const { width, height } = rootElement.getBoundingClientRect();
 
@@ -2512,8 +2521,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .beginFill(0xffffff)
       .drawRect(0, 0, width, height)
       .endFill();
-
-    updateProjection(width, height);
 
     updateGrid();
   };
