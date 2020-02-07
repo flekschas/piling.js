@@ -6,6 +6,7 @@ import { enableBatching } from 'redux-batched-actions';
 import createOrderer from './orderer';
 
 import {
+  DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODES
@@ -151,6 +152,11 @@ const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
   'bottom',
   'right'
 ]);
+
+const [pileItemBrightness, setPileItemBrightness] = setter(
+  'pileItemBrightness',
+  DEFAULT_PILE_ITEM_BRIGHTNESS
+);
 
 const [pileItemRotation, setPileItemRotation] = setter(
   'pileItemRotation',
@@ -438,6 +444,7 @@ const createStore = () => {
     pileCellAlignment,
     pileContextMenuItems,
     pileItemAlignment,
+    pileItemBrightness,
     pileItemRotation,
     pileItemTint,
     pileOpacity,
@@ -529,6 +536,7 @@ export const createAction = {
   setPileCellAlignment,
   setPileContextMenuItems,
   setPileItemAlignment,
+  setPileItemBrightness,
   setPileItemRotation,
   setPileItemTint,
   setPileOpacity,

@@ -1,8 +1,8 @@
 import { pipe, withConstructor, withStaticProperty } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
+import withColorFilters from './with-color-filters';
 import withSize from './with-size';
-import withTint from './with-tint';
 
 const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
   const sprite = new PIXI.Sprite(texture);
@@ -11,8 +11,8 @@ const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
   return pipe(
     withStaticProperty('displayObject', sprite),
     withStaticProperty('sprite', sprite),
+    withColorFilters(sprite),
     withSize(sprite),
-    withTint(sprite),
     withConstructor(createImage)
   )({});
 };

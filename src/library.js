@@ -137,6 +137,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     pileItemAlignment: true,
+    pileItemBrightness: true,
     pileItemRotation: true,
     pileItemTint: true,
     gridColor: {
@@ -888,7 +889,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
-    const { items, itemOpacity, pileItemTint } = store.getState();
+    const {
+      items,
+      itemOpacity,
+      pileItemBrightness,
+      pileItemTint
+    } = store.getState();
 
     const pileInstance = pileInstances.get(pileId);
 
@@ -901,11 +907,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : itemOpacity
       );
 
-      pileItem.image.tint(
-        isFunction(pileItemTint)
-          ? pileItemTint(itemState, i, pileState)
-          : pileItemTint
+      pileItem.image.brightness(
+        isFunction(pileItemBrightness)
+          ? pileItemBrightness(itemState, i, pileState)
+          : pileItemBrightness
       );
+
+      // We can't apply a brightness and tint effect as both rely on the same
+      // mechanism. Therefore we decide to give brightness higher precedence.
+      if (!pileItemBrightness) {
+        pileItem.image.tint(
+          isFunction(pileItemTint)
+            ? pileItemTint(itemState, i, pileState)
+            : pileItemTint
+        );
+      }
     });
   };
 
