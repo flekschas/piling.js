@@ -310,20 +310,19 @@ The list of all understood properties is given below.
   }
   ```
 
-- `pileItemOpacity` can be set to a static float value within `[0, 1]`, or the user can specify a callback function to dynamically style items. E.g.,
+- `pileItemBrightness`, `pileItemOpacity`, and `pileItemTint` can either be set to a static value or a callback function to dynamically style items. E.g.,
 
   ```javascript
   // Set to a static number
-  piling.set('itemOpacity', 0.5);
+  piling.set('pileItemOpacity', 0.5);
 
   // Set to a callback function
   piling.set(
-    'itemOpacity',
+    'pileItemOpacity',
     (item, i, pile) => (pile.items.length - i) / pile.items.length
   );
   ```
 
-  The signature of the callback function should be as follows:
   The callback function is evaluated, in order, for each item on every pile and receives the current [item](#stateitems), the item's current index, and [pile](#statepiles) that the item belongs to. The function’s return value is then used to set the opacity of each pile’s item. I.e., the function signature is as follows:
 
   ```javascript
