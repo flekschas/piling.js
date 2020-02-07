@@ -657,6 +657,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemRenderer,
       pileBackgroundColor,
       pileBackgroundOpacity,
+      pileItemAlignment,
+      pileItemRotation,
       previewAggregator,
       previewRenderer,
       previewSpacing
@@ -715,6 +717,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pubSub,
             store
           });
+          pile.positionItems(
+            pileItemAlignment,
+            pileItemRotation,
+            animator,
+            previewSpacing
+          );
           pileInstances.set(index, pile);
           normalPiles.addChild(pile.graphics);
         });
