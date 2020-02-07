@@ -1334,45 +1334,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const animateTempDepile = (clonedSprite, pile, x, y, isLastOne) => {
+  const animateTempDepileItems = (item, x, y, { onDone = identity } = {}) => {
     const tweener = createTweener({
-      duration: 250,
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => {
-        return [clonedSprite.x, clonedSprite.y];
+        return [item.x, item.y];
       },
       setter: newValue => {
-        clonedSprite.x = newValue[0];
-        clonedSprite.y = newValue[1];
+        item.x = newValue[0];
+        item.y = newValue[1];
       },
       onDone: () => {
-        if (isLastOne) {
-          pile.isTempDepiled = true;
-          store.dispatch(createAction.setFocusedPiles([]));
-          store.dispatch(createAction.setFocusedPiles([pile.id]));
-        }
-      }
-    });
-    animator.add(tweener);
-  };
-
-  const animateCloseTempDepile = (clonedSprite, x, y, isLastOne) => {
-    const tweener = createTweener({
-      duration: 250,
-      interpolator: interpolateVector,
-      endValue: [x, y],
-      getter: () => {
-        return [clonedSprite.x, clonedSprite.y];
-      },
-      setter: newValue => {
-        clonedSprite.x = newValue[0];
-        clonedSprite.y = newValue[1];
-      },
-      onDone: () => {
-        if (isLastOne) {
-          pubSub.publish('closeTempDepile');
-        }
+        onDone();
       }
     });
     animator.add(tweener);
@@ -1393,7 +1367,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.add(tweener);
   };
 
+  const closeTempDepile = pileIds => {
+    pileIds.forEach(pileId => {
+      const pile = pileInstances.get(pileId);
+
+      const onDone = () => {
+        pile.tempDepileContainer.removeChildren();
+        pile.isTempDepiled = false;
+        pile.hover();
+        store.dispatch(createAction.setFocusedPiles([]));
+        updatePileBounds(pileId);
+      };
+
+      pile.tempDepileContainer.children.forEach((item, index) => {
+        const options =
+          index === pile.tempDepileContainer.children.length - 1
+            ? { onDone }
+            : undefined;
+
+        animateTempDepileItems(
+          item,
+          -pile.tempDepileContainer.x,
+          -pile.tempDepileContainer.y,
+          options
+        );
+      });
+
+      pubSub.publish('pileInactive', { pile });
+    });
+    renderRaf();
+  };
+
   const tempDepileOneD = ({ pile, tempDepileDirection, items }) => {
+    const onDone = () => {
+      pile.isTempDepiled = true;
+      store.dispatch(createAction.setFocusedPiles([]));
+      store.dispatch(createAction.setFocusedPiles([pile.id]));
+    };
+    const createOptions = isLast => (isLast ? { onDone } : undefined);
+
     if (tempDepileDirection === 'horizontal') {
       pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
       pile.tempDepileContainer.y = 0;
@@ -1406,13 +1418,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
         clonedSprite.x = -pile.tempDepileContainer.x;
         pile.tempDepileContainer.addChild(clonedSprite);
-        animateTempDepile(
-          clonedSprite,
-          pile,
-          index * 5 + widths,
-          0,
-          index === items.length - 1
-        );
+
+        const options = createOptions(index === items.length - 1);
+
+        animateTempDepileItems(clonedSprite, index * 5 + widths, 0, options);
+
         widths += clonedSprite.width;
       });
     } else if (tempDepileDirection === 'vertical') {
@@ -1427,13 +1437,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
         clonedSprite.y = -pile.tempDepileContainer.y;
         pile.tempDepileContainer.addChild(clonedSprite);
-        animateTempDepile(
-          clonedSprite,
-          pile,
-          0,
-          index * 5 + heights,
-          index === items.length - 1
-        );
+
+        const options = createOptions(index === items.length - 1);
+
+        animateTempDepileItems(clonedSprite, 0, index * 5 + heights, options);
+
         heights += clonedSprite.height;
       });
     }
@@ -1445,74 +1453,56 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const squareLength = Math.ceil(Math.sqrt(items.length));
 
+    const onDone = () => {
+      pile.isTempDepiled = true;
+      store.dispatch(createAction.setFocusedPiles([]));
+      store.dispatch(createAction.setFocusedPiles([pile.id]));
+    };
+
+    const createOptions = isLast => (isLast ? { onDone } : undefined);
+
     items.forEach((itemId, index) => {
       const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
       clonedSprite.x = -pile.tempDepileContainer.x;
       pile.tempDepileContainer.addChild(clonedSprite);
       const getPosition = orderer(squareLength);
-      let x;
-      let y;
-      [x, y] = getPosition(index);
+      let [x, y] = getPosition(index);
       x *= layout.columnWidth;
       y *= layout.rowHeight;
-      animateTempDepile(clonedSprite, pile, x, y, index === items.length - 1);
+
+      const options = createOptions(index === items.length - 1);
+
+      animateTempDepileItems(clonedSprite, x, y, options);
     });
   };
 
-  let closeTempDepileEvent;
+  const tempDepile = pileIds => {
+    const {
+      piles,
+      tempDepileDirection,
+      tempDepileOneDNum,
+      orderer
+    } = store.getState();
 
-  const temporaryDepile = pileIds => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
-      if (pile.isTempDepiled) {
-        const length = pile.size;
-        pile.tempDepileContainer.children.forEach((item, index) => {
-          animateCloseTempDepile(
-            item,
-            -pile.tempDepileContainer.x,
-            -pile.tempDepileContainer.y,
-            index === pile.tempDepileContainer.children.length - 1,
-            pile,
-            length
-          );
-        });
-        if (closeTempDepileEvent) pubSub.unsubscribe(closeTempDepileEvent);
+      animateAlpha(pile.graphics, 1);
+      pile.graphics.interactive = true;
 
-        closeTempDepileEvent = pubSub.subscribe('closeTempDepile', () => {
-          if (pile.isTempDepiled) {
-            pile.tempDepileContainer.removeChildren();
-            pile.isTempDepiled = false;
-            pile.blur();
-            pile.hover();
-            store.dispatch(createAction.setFocusedPiles([]));
-          }
-        });
-        pubSub.publish('pileInactive', { pile });
-      } else {
-        animateAlpha(pile.graphics, 1);
-        pile.graphics.interactive = true;
+      const items = [...piles[pileId].items];
 
-        const {
-          piles,
+      if (items.length < tempDepileOneDNum) {
+        tempDepileOneD({
+          pile,
           tempDepileDirection,
-          tempDepileOneDNum,
-          orderer
-        } = store.getState();
-
-        const items = [...piles[pileId].items];
-
-        if (items.length < tempDepileOneDNum) {
-          tempDepileOneD({
-            pile,
-            tempDepileDirection,
-            items
-          });
-        } else {
-          tempDepileTwoD({ pile, items, orderer });
-        }
-        pubSub.publish('pileActive', { pile });
+          items
+        });
+      } else {
+        tempDepileTwoD({ pile, items, orderer });
       }
+      pubSub.publish('pileActive', { pile });
+
       updatePileBounds(pileId);
     });
     renderRaf();
@@ -1981,21 +1971,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.temporaryDepiledPiles !== newState.temporaryDepiledPiles) {
-      if (newState.temporaryDepiledPiles.length !== 0) {
-        if (state.temporaryDepiledPiles.length !== 0) {
-          temporaryDepile(state.temporaryDepiledPiles);
-        }
+      if (state.temporaryDepiledPiles.length) {
+        closeTempDepile(state.temporaryDepiledPiles);
+      }
+
+      if (newState.temporaryDepiledPiles.length) {
         pileInstances.forEach(otherPile => {
           animateAlpha(otherPile.graphics, 0.1);
           otherPile.graphics.interactive = false;
         });
-        temporaryDepile(newState.temporaryDepiledPiles);
+
+        tempDepile(newState.temporaryDepiledPiles);
       } else {
         pileInstances.forEach(otherPile => {
           animateAlpha(otherPile.graphics, 1);
           otherPile.graphics.interactive = true;
         });
-        temporaryDepile(state.temporaryDepiledPiles);
       }
     }
 
@@ -2502,20 +2493,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       maxY: mouseDownPosition[1] + 1
     });
 
-    if (result.length !== 0) {
-      if (!store.getState().temporaryDepiledPiles.length) {
-        if (piles[result[0].id].items.length > 1) {
-          let temp = [...temporaryDepiledPiles];
-          if (temp.includes(result[0].id)) {
-            temp = temp.filter(id => id !== result[0].id);
-          } else {
-            temp = [result[0].id];
-          }
-          store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
+    if (result.length !== 0 && !temporaryDepiledPiles.length) {
+      if (piles[result[0].id].items.length > 1) {
+        let temp = [...temporaryDepiledPiles];
+        if (temp.includes(result[0].id)) {
+          temp = temp.filter(id => id !== result[0].id);
+        } else {
+          temp = [result[0].id];
         }
-      } else {
-        store.dispatch(createAction.setTemporaryDepiledPiles([]));
-        store.dispatch(createAction.setFocusedPiles([]));
+        store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
       }
     } else {
       store.dispatch(createAction.setTemporaryDepiledPiles([]));
