@@ -1,7 +1,7 @@
 ### Next
 
-- Add pan&zoom for 2D scatterplots arrangement
-- Add a new method `arrangeBy()` to support automatic and data-driven layout
+- Add pan&zoom interaction
+- Add a new method `arrangeBy()` for support automatic and data-driven pile arrangements
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Change pile border to be scale invariant
 - Animate item rotation

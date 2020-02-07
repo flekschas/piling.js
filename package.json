@@ -4,12 +4,11 @@
   "description": "A WebGL-based Library for Visual Piling/Stacking",
   "author": [
     {
-      "name": "Xinyi Zhou"
+      "name": "Fritz Lekschas",
+      "url": "https://lekschas.de"
     },
     {
-      "name": "Fritz Lekschas",
-      "email": "service@lekschas.de",
-      "url": "https://lekschas.de"
+      "name": "Xinyi Zhou"
     }
   ],
   "keywords": [
