@@ -6,6 +6,8 @@ export const CAMERA_VIEW = new Float32Array([
   0, 0, 0, 1
 ]);
 
+export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
+
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 

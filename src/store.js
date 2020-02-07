@@ -5,7 +5,11 @@ import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 
-import { NAVIGATION_MODE_AUTO, NAVIGATION_MODES } from './defaults';
+import {
+  DEFAULT_PILE_ITEM_TINT,
+  NAVIGATION_MODE_AUTO,
+  NAVIGATION_MODES
+} from './defaults';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -151,6 +155,11 @@ const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
 const [pileItemRotation, setPileItemRotation] = setter(
   'pileItemRotation',
   false
+);
+
+const [pileItemTint, setPileItemTint] = setter(
+  'pileItemTint',
+  DEFAULT_PILE_ITEM_TINT
 );
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
@@ -430,6 +439,7 @@ const createStore = () => {
     pileContextMenuItems,
     pileItemAlignment,
     pileItemRotation,
+    pileItemTint,
     pileOpacity,
     piles,
     pileScale,
@@ -520,6 +530,7 @@ export const createAction = {
   setPileContextMenuItems,
   setPileItemAlignment,
   setPileItemRotation,
+  setPileItemTint,
   setPileOpacity,
   setPileScale,
   setPreviewAggregator,

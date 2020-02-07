@@ -138,6 +138,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellPadding: true,
     pileItemAlignment: true,
     pileItemRotation: true,
+    pileItemTint: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -705,6 +706,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all([renderImages, renderPreviews]).then(
       ([renderedImages, renderedPreviews]) => {
         renderedImages.forEach((image, index) => {
+          const { piles } = store.getState();
           const id = items[index].id || index;
           const preview = renderedPreviews[index];
 
@@ -726,6 +728,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             previewSpacing
           );
           pileInstances.set(index, pile);
+          updatePileStyle(piles[index], index);
+          updatePileItemStyle(piles[index], index);
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
@@ -884,16 +888,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
-    const { items, itemOpacity } = store.getState();
+    const { items, itemOpacity, pileItemTint } = store.getState();
 
     const pileInstance = pileInstances.get(pileId);
 
-    pileInstance.items.forEach((item, i) => {
-      const itemState = items[item.id];
-      item.animateOpacity(
+    pileInstance.items.forEach((pileItem, i) => {
+      const itemState = items[pileItem.id];
+
+      pileItem.animateOpacity(
         isFunction(itemOpacity)
           ? itemOpacity(itemState, i, pileState)
           : itemOpacity
+      );
+
+      pileItem.image.tint(
+        isFunction(pileItemTint)
+          ? pileItemTint(itemState, i, pileState)
+          : pileItemTint
       );
     });
   };
@@ -1908,16 +1919,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
-            updatePileStyle(pile, id);
             updatedPileItems.push(id);
           }
+
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
-            updatePileStyle(pile, id);
           }
+
+          updatePileStyle(pile, id);
         });
       }
     }
