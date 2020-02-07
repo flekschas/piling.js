@@ -339,16 +339,17 @@ Position piles with user-specified arrangement method.
 
 `type` and the corresponding `objective` can be one of the following:
 
-| Type      | Objective                                                                               |
-| --------- | --------------------------------------------------------------------------------------- |
-| `null`    | `undefined` _(manual positioning)_                                                      |
-| `'index'` | `function` that returns the linear index                                           |
+| Type      | Objective                                                                             |
+| --------- | ------------------------------------------------------------------------------------- |
+| `null`    | `undefined` _(manual positioning)_                                                    |
+| `'index'` | `function` that returns the linear index                                              |
 | `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |
 | `'xy'`    | `function` that returns the final xy position                                         |
 | `'uv'`    | `function` that returns the final uv position of the canvas                           |
-| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                           |
+| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      |
 
 **Notes and examples:**
+
 - The signature of the callback function for types `index`, `ij`, `xy` and `uv` should be as follows:
 
   ```javascript
@@ -357,9 +358,11 @@ Position piles with user-specified arrangement method.
     return pilePosition;
   }
   ```
+
 - With `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
 
   - The `objective` object can contain the following properties:
+
     - `property` [type: `string` or `function`]: A function that retrieves that returns a numerical value for an pile's item.
 
       The signature of the callback function looks as follows and must return a numerical value:
@@ -387,20 +390,20 @@ Position piles with user-specified arrangement method.
     - `inverse` [type `boolean` default: `false`]: If `true` the scale will be inverted
 
   - For convenience the following examples are all equivalent:
-    
+
     ```javascript
-      // Define the property via a simple string
-      piling.arrangeBy('data', 'a');
-      // Define the property callback function
-      piling.arrangeBy('data', itemState => itemState.a); // callback function
-      // Define the property callback function as part of the `objective` object
-      piling.arrangeBy('data', { property: itemState => itemState.a });
-      // Explicitly define 
-      piling.arrangeBy('data', ['a']);
+    // Define the property via a simple string
+    piling.arrangeBy('data', 'a');
+    // Define the property callback function
+    piling.arrangeBy('data', itemState => itemState.a); // callback function
+    // Define the property callback function as part of the `objective` object
+    piling.arrangeBy('data', { property: itemState => itemState.a });
+    // Explicitly define
+    piling.arrangeBy('data', ['a']);
     ```
 
   - 1D orderings, 2D scatter plots, or multi-dimensional cluster plots are defined by the number passed to `arrangeBy('data', objectives)`:
-    
+
     ```javascript
       // 1D / linear ordering
       piling.arrangeBy('data', ['a']);
@@ -409,7 +412,11 @@ Position piles with user-specified arrangement method.
       // Multi dimensional cluster plot
       piling.arrangeBy('data', ['a', 'b', 'c', ...]);
     ```
-    
+
+#### `piling.arrangeByOnce(type, objective)`
+
+Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the automatic pile arrangement only once and then switches back to manual pile arrangement.
+
 #### `piling.destroy()`
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
