@@ -5,7 +5,12 @@ import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 
-import { NAVIGATION_MODE_AUTO, NAVIGATION_MODES } from './defaults';
+import {
+  DEFAULT_PILE_ITEM_BRIGHTNESS,
+  DEFAULT_PILE_ITEM_TINT,
+  NAVIGATION_MODE_AUTO,
+  NAVIGATION_MODES
+} from './defaults';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -121,7 +126,7 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
+const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
@@ -148,9 +153,19 @@ const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
   'right'
 ]);
 
+const [pileItemBrightness, setPileItemBrightness] = setter(
+  'pileItemBrightness',
+  DEFAULT_PILE_ITEM_BRIGHTNESS
+);
+
 const [pileItemRotation, setPileItemRotation] = setter(
   'pileItemRotation',
   false
+);
+
+const [pileItemTint, setPileItemTint] = setter(
+  'pileItemTint',
+  DEFAULT_PILE_ITEM_TINT
 );
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
@@ -404,7 +419,6 @@ const createStore = () => {
     focusedPiles,
     gridColor,
     gridOpacity,
-    itemOpacity,
     itemRenderer,
     items,
     itemSize,
@@ -429,7 +443,10 @@ const createStore = () => {
     pileCellAlignment,
     pileContextMenuItems,
     pileItemAlignment,
+    pileItemBrightness,
+    pileItemOpacity,
     pileItemRotation,
+    pileItemTint,
     pileOpacity,
     piles,
     pileScale,
@@ -494,7 +511,6 @@ export const createAction = {
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
-  setItemOpacity,
   setItemRenderer,
   setItems,
   setItemSize,
@@ -519,7 +535,10 @@ export const createAction = {
   setPileCellAlignment,
   setPileContextMenuItems,
   setPileItemAlignment,
+  setPileItemBrightness,
+  setPileItemOpacity,
   setPileItemRotation,
+  setPileItemTint,
   setPileOpacity,
   setPileScale,
   setPreviewAggregator,

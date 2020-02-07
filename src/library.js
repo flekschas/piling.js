@@ -123,7 +123,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     depileMethod: true,
     easing: true,
     coverAggregator: true,
-    itemOpacity: true,
     items: {
       set: value => [
         createAction.setItems(value),
@@ -137,7 +136,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     pileItemAlignment: true,
+    pileItemBrightness: true,
+    pileItemOpacity: true,
     pileItemRotation: true,
+    pileItemTint: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -705,6 +707,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all([renderImages, renderPreviews]).then(
       ([renderedImages, renderedPreviews]) => {
         renderedImages.forEach((image, index) => {
+          const { piles } = store.getState();
           const id = items[index].id || index;
           const preview = renderedPreviews[index];
 
@@ -726,6 +729,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             previewSpacing
           );
           pileInstances.set(index, pile);
+          updatePileStyle(piles[index], index);
+          updatePileItemStyle(piles[index], index);
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
@@ -884,17 +889,39 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
-    const { items, itemOpacity } = store.getState();
+    const {
+      items,
+      pileItemBrightness,
+      pileItemOpacity,
+      pileItemTint
+    } = store.getState();
 
     const pileInstance = pileInstances.get(pileId);
 
-    pileInstance.items.forEach((item, i) => {
-      const itemState = items[item.id];
-      item.animateOpacity(
-        isFunction(itemOpacity)
-          ? itemOpacity(itemState, i, pileState)
-          : itemOpacity
+    pileInstance.items.forEach((pileItem, i) => {
+      const itemState = items[pileItem.id];
+
+      pileItem.animateOpacity(
+        isFunction(pileItemOpacity)
+          ? pileItemOpacity(itemState, i, pileState)
+          : pileItemOpacity
       );
+
+      pileItem.image.brightness(
+        isFunction(pileItemBrightness)
+          ? pileItemBrightness(itemState, i, pileState)
+          : pileItemBrightness
+      );
+
+      // We can't apply a brightness and tint effect as both rely on the same
+      // mechanism. Therefore we decide to give brightness higher precedence.
+      if (!pileItemBrightness) {
+        pileItem.image.tint(
+          isFunction(pileItemTint)
+            ? pileItemTint(itemState, i, pileState)
+            : pileItemTint
+        );
+      }
     });
   };
 
@@ -1908,18 +1935,41 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         newState.piles.forEach((pile, id) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
-            updatePileStyle(pile, id);
             updatedPileItems.push(id);
           }
+
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
-            updatePileStyle(pile, id);
           }
+
+          updatePileStyle(pile, id);
         });
       }
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileItemOpacity !== newState.pileItemOpacity ||
+        state.pileItemBrightness !== newState.pileItemBrightness ||
+        state.pileItemTint !== newState.pileItemTint)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileItemStyle(pile, id);
+      });
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileOpacity !== newState.pileOpacity ||
+        state.pileBorderSize !== newState.pileBorderSize ||
+        state.pileScale !== newState.pileScale)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileStyle(pile, id);
+      });
     }
 
     if (state.orderer !== newState.orderer) {
