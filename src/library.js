@@ -33,6 +33,8 @@ import {
   CAMERA_VIEW,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
+  LASSO_MIN_DIST,
+  LASSO_MIN_DELAY,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
@@ -1525,8 +1527,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return [...mousePosition];
   };
 
-  const LASSO_MIN_DIST = 8;
-  const LASSO_MIN_DELAY = 25;
   let lassoPos = [];
   let lassoPosFlat = [];
   let lassoPrevMousePos;
@@ -1560,8 +1560,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const currMousePos = getMousePos();
 
     if (!lassoPrevMousePos) {
-      lassoPos.push(currMousePos);
-      lassoPosFlat.push(...currMousePos);
+      lassoPos = [currMousePos];
+      lassoPosFlat = [currMousePos[0], currMousePos[1]];
       lassoPrevMousePos = currMousePos;
       lasso.moveTo(...currMousePos);
     } else {
@@ -1574,7 +1574,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (d > LASSO_MIN_DIST) {
         lassoPos.push(currMousePos);
-        lassoPosFlat.push(...currMousePos);
+        lassoPosFlat.push(currMousePos[0], currMousePos[1]);
         lassoPrevMousePos = currMousePos;
         if (lassoPos.length > 1) {
           drawlasso();
@@ -2365,6 +2365,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (!result) {
         mouseDown = true;
+        lassoEnd();
       }
     }
   };

@@ -9,6 +9,9 @@ export const CAMERA_VIEW = new Float32Array([
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 
+export const LASSO_MIN_DIST = 2;
+export const LASSO_MIN_DELAY = 10;
+
 export const NAVIGATION_MODE_AUTO = 'auto';
 export const NAVIGATION_MODE_PAN_ZOOM = 'panZoom';
 export const NAVIGATION_MODE_SCROLL = 'scroll';
