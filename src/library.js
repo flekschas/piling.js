@@ -2474,20 +2474,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       maxY: mouseDownPosition[1] + 1
     });
 
-    if (result.length !== 0) {
-      if (!store.getState().temporaryDepiledPiles.length) {
-        if (piles[result[0].id].items.length > 1) {
-          let temp = [...temporaryDepiledPiles];
-          if (temp.includes(result[0].id)) {
-            temp = temp.filter(id => id !== result[0].id);
-          } else {
-            temp = [result[0].id];
-          }
-          store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
+    if (result.length !== 0 && !temporaryDepiledPiles.length) {
+      if (piles[result[0].id].items.length > 1) {
+        let temp = [...temporaryDepiledPiles];
+        if (temp.includes(result[0].id)) {
+          temp = temp.filter(id => id !== result[0].id);
+        } else {
+          temp = [result[0].id];
         }
-      } else {
-        store.dispatch(createAction.setTemporaryDepiledPiles([]));
-        store.dispatch(createAction.setFocusedPiles([]));
+        store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
       }
     } else {
       store.dispatch(createAction.setTemporaryDepiledPiles([]));
