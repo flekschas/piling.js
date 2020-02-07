@@ -1953,6 +1953,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       pileInstances.size &&
       (state.itemOpacity !== newState.itemOpacity ||
+        state.pileItemBrightness !== newState.pileItemBrightness ||
         state.pileItemTint !== newState.pileItemTint)
     ) {
       newState.piles.forEach((pile, id) => {
