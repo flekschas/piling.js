@@ -1,7 +1,7 @@
 ### Next
 
 - Add pan&zoom interaction
-- Add a new method `arrangeBy()` for support automatic and data-driven pile arrangements
+- Add `arrangeBy()` and `arrangeByOnce()` for automatic and data-driven pile arrangements
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Change pile border to be scale invariant
 - Animate item rotation
