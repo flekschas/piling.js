@@ -1362,91 +1362,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     animator.add(tweener);
   };
 
-  const tempDepileOneD = ({ pile, tempDepileDirection, items }) => {
-    if (tempDepileDirection === 'horizontal') {
-      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-      pile.tempDepileContainer.y = 0;
-      pile.tempDepileContainer.interactive = true;
-
-      let widths = 0;
-      items.forEach((itemId, index) => {
-        const clonedSprite = cloneSprite(
-          renderedItems.get(itemId).image.sprite
-        );
-        clonedSprite.x = -pile.tempDepileContainer.x;
-        pile.tempDepileContainer.addChild(clonedSprite);
-
-        const onDone = () => {
-          if (index === items.length - 1) {
-            pile.isTempDepiled = true;
-            store.dispatch(createAction.setFocusedPiles([]));
-            store.dispatch(createAction.setFocusedPiles([pile.id]));
-          }
-        };
-
-        animateTempDepileItems(clonedSprite, index * 5 + widths, 0, { onDone });
-
-        widths += clonedSprite.width;
-      });
-    } else if (tempDepileDirection === 'vertical') {
-      pile.tempDepileContainer.x = 0;
-      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
-      pile.tempDepileContainer.interactive = true;
-
-      let heights = 0;
-      items.forEach((itemId, index) => {
-        const clonedSprite = cloneSprite(
-          renderedItems.get(itemId).image.sprite
-        );
-        clonedSprite.y = -pile.tempDepileContainer.y;
-        pile.tempDepileContainer.addChild(clonedSprite);
-
-        const onDone = () => {
-          if (index === items.length - 1) {
-            pile.isTempDepiled = true;
-            store.dispatch(createAction.setFocusedPiles([]));
-            store.dispatch(createAction.setFocusedPiles([pile.id]));
-          }
-        };
-
-        animateTempDepileItems(clonedSprite, 0, index * 5 + heights, {
-          onDone
-        });
-
-        heights += clonedSprite.height;
-      });
-    }
-  };
-
-  const tempDepileTwoD = ({ pile, items, orderer }) => {
-    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
-    pile.tempDepileContainer.y = 0;
-
-    const squareLength = Math.ceil(Math.sqrt(items.length));
-
-    items.forEach((itemId, index) => {
-      const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
-      clonedSprite.x = -pile.tempDepileContainer.x;
-      pile.tempDepileContainer.addChild(clonedSprite);
-      const getPosition = orderer(squareLength);
-      let x;
-      let y;
-      [x, y] = getPosition(index);
-      x *= layout.columnWidth;
-      y *= layout.rowHeight;
-
-      const onDone = () => {
-        if (index === items.length - 1) {
-          pile.isTempDepiled = true;
-          store.dispatch(createAction.setFocusedPiles([]));
-          store.dispatch(createAction.setFocusedPiles([pile.id]));
-        }
-      };
-
-      animateTempDepileItems(clonedSprite, x, y, { onDone });
-    });
-  };
-
   const closeTempDepile = pileIds => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
@@ -1476,6 +1391,84 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pubSub.publish('pileInactive', { pile });
     });
     renderRaf();
+  };
+
+  const tempDepileOneD = ({ pile, tempDepileDirection, items }) => {
+    const onDone = () => {
+      pile.isTempDepiled = true;
+      store.dispatch(createAction.setFocusedPiles([]));
+      store.dispatch(createAction.setFocusedPiles([pile.id]));
+    };
+    const createOptions = isLast => (isLast ? { onDone } : undefined);
+
+    if (tempDepileDirection === 'horizontal') {
+      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      pile.tempDepileContainer.y = 0;
+      pile.tempDepileContainer.interactive = true;
+
+      let widths = 0;
+      items.forEach((itemId, index) => {
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
+        clonedSprite.x = -pile.tempDepileContainer.x;
+        pile.tempDepileContainer.addChild(clonedSprite);
+
+        const options = createOptions(index === items.length - 1);
+
+        animateTempDepileItems(clonedSprite, index * 5 + widths, 0, options);
+
+        widths += clonedSprite.width;
+      });
+    } else if (tempDepileDirection === 'vertical') {
+      pile.tempDepileContainer.x = 0;
+      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      pile.tempDepileContainer.interactive = true;
+
+      let heights = 0;
+      items.forEach((itemId, index) => {
+        const clonedSprite = cloneSprite(
+          renderedItems.get(itemId).image.sprite
+        );
+        clonedSprite.y = -pile.tempDepileContainer.y;
+        pile.tempDepileContainer.addChild(clonedSprite);
+
+        const options = createOptions(index === items.length - 1);
+
+        animateTempDepileItems(clonedSprite, 0, index * 5 + heights, options);
+
+        heights += clonedSprite.height;
+      });
+    }
+  };
+
+  const tempDepileTwoD = ({ pile, items, orderer }) => {
+    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    pile.tempDepileContainer.y = 0;
+
+    const squareLength = Math.ceil(Math.sqrt(items.length));
+
+    const onDone = () => {
+      pile.isTempDepiled = true;
+      store.dispatch(createAction.setFocusedPiles([]));
+      store.dispatch(createAction.setFocusedPiles([pile.id]));
+    };
+
+    const createOptions = isLast => (isLast ? { onDone } : undefined);
+
+    items.forEach((itemId, index) => {
+      const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
+      clonedSprite.x = -pile.tempDepileContainer.x;
+      pile.tempDepileContainer.addChild(clonedSprite);
+      const getPosition = orderer(squareLength);
+      let [x, y] = getPosition(index);
+      x *= layout.columnWidth;
+      y *= layout.rowHeight;
+
+      const options = createOptions(index === items.length - 1);
+
+      animateTempDepileItems(clonedSprite, x, y, options);
+    });
   };
 
   const tempDepile = pileIds => {
