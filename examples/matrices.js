@@ -54,7 +54,6 @@ const createMatrixPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
-  pilingJs.arrangeByOnce('data', ['distanceToDiagonal']);
   return pilingJs;
 };
 
