@@ -1934,6 +1934,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     }
 
+    if (
+      pileInstances.size &&
+      (state.itemOpacity !== newState.itemOpacity ||
+        state.pileItemTint !== newState.pileItemTint)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileItemStyle(pile, id);
+      });
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileOpacity !== newState.pileOpacity ||
+        state.pileBorderSize !== newState.pileBorderSize ||
+        state.pileScale !== newState.pileScale)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileStyle(pile, id);
+      });
+    }
+
     if (state.orderer !== newState.orderer) {
       stateUpdates.add('layout');
     }
