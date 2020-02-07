@@ -43,7 +43,7 @@ const updateHandler = ({ action }) => {
   history.push(state);
 
   // eslint-disable-next-line no-console
-  console.log('Update', action.type, history.length);
+  // console.log('Update', action.type, history.length);
 
   if (history.length > 5) history.shift();
 };
@@ -150,6 +150,11 @@ const handleOptionsTogglerClick = event => {
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
 createPiles(exampleEl.value).then(pilingLib => {
+  const firstItem = pilingLib.get('items')[0];
+  const numericalProps = Object.keys(firstItem).filter(
+    prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
+  );
+
   const options = [
     {
       id: 'grid',
@@ -196,6 +201,28 @@ createPiles(exampleEl.value).then(pilingLib => {
           values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
         }
       ]
+    },
+    {
+      id: 'arrangement',
+      title: 'Arrangement & Navigation',
+      fields: [
+        {
+          name: 'arrangementObjective',
+          dtype: 'string',
+          values: numericalProps,
+          setter: values =>
+            values && values.length
+              ? pilingLib.arrangeBy('data', values)
+              : pilingLib.arrangeBy(),
+          multiple: true,
+          nullifiable: true
+        },
+        {
+          name: 'navigationMode',
+          dtype: 'string',
+          values: ['auto', 'panZoom', 'scroll']
+        }
+      ]
     }
   ];
 
@@ -217,20 +244,108 @@ createPiles(exampleEl.value).then(pilingLib => {
     const currentValue = pilingLib.get(field.name);
 
     if (field.values) {
-      const select = document.createElement('select');
+      if (field.multiple) {
+        const checkboxes = document.createElement('div');
+
+        field.values.forEach(value => {
+          const checkboxLabel = document.createElement('label');
+          checkboxes.appendChild(checkboxLabel);
+
+          const checkbox = document.createElement('input');
+          checkbox.setAttribute('type', 'checkbox');
+          checkbox.setAttribute('value', value);
+          if (currentValue === value) checkbox.selected = true;
+          checkboxLabel.appendChild(checkbox);
+
+          const checkboxLabelText = document.createElement('span');
+          checkboxLabelText.textContent = value;
+          checkboxLabel.appendChild(checkboxLabelText);
+        });
+
+        Object.defineProperty(checkboxes, 'value', {
+          get: () =>
+            Array.from(
+              checkboxes.querySelectorAll('input:checked'),
+              e => e.value
+            )
+        });
+
+        checkboxes.addEventListener = (type, callback) => {
+          Array.prototype.forEach.call(
+            checkboxes.querySelectorAll('input'),
+            checkbox => {
+              checkbox.addEventListener(type, callback);
+            }
+          );
+        };
+
+        return checkboxes;
+      }
+
+      if (field.values.length > 3) {
+        const select = document.createElement('select');
+
+        field.values.forEach(value => {
+          const option = document.createElement('option');
+          option.setAttribute('value', value);
+          option.textContent = value;
+          if (currentValue === value) option.selected = true;
+          select.appendChild(option);
+        });
+
+        if (field.multiple) {
+          select.setAttribute('multiple', 'multiple');
+
+          Object.defineProperty(select, 'value', {
+            get: () => {
+              return Array.from(
+                select.querySelectorAll('option:checked'),
+                e => e.value
+              );
+            }
+          });
+        } else {
+          Object.defineProperty(select, 'value', {
+            get: () => select.options[select.selectedIndex].value
+          });
+        }
+
+        return select;
+      }
+
+      const radios = document.createElement('div');
+
       field.values.forEach(value => {
-        const option = document.createElement('option');
-        option.setAttribute('value', value);
-        option.textContent = value;
-        if (currentValue === value) option.selected = true;
-        select.appendChild(option);
+        const radioLabel = document.createElement('label');
+        radios.appendChild(radioLabel);
+
+        const radio = document.createElement('input');
+        radio.setAttribute('type', 'radio');
+        radio.setAttribute('name', field.name);
+        radio.setAttribute('value', value);
+
+        if (currentValue === value) radio.checked = true;
+        radioLabel.appendChild(radio);
+
+        const radioLabelText = document.createElement('span');
+        radioLabelText.textContent = value;
+        radioLabel.appendChild(radioLabelText);
       });
 
-      Object.defineProperty(select, 'value', {
-        get: () => select.options[select.selectedIndex].value
+      Object.defineProperty(radios, 'value', {
+        get: () => radios.querySelector('input:checked').value
       });
 
-      return select;
+      radios.addEventListener = (type, callback) => {
+        Array.prototype.forEach.call(
+          radios.querySelectorAll('input'),
+          radio => {
+            radio.addEventListener(type, callback);
+          }
+        );
+      };
+
+      return radios;
     }
 
     const input = document.createElement('input');
@@ -258,6 +373,12 @@ createPiles(exampleEl.value).then(pilingLib => {
 
   const optionsContent = document.querySelector('#options .content');
   options.forEach(section => {
+    const validFields = section.fields.filter(
+      field => typeof field.values === 'undefined' || field.values.length
+    );
+
+    if (!validFields.length) return;
+
     const sectionEl = document.createElement('section');
     sectionEl.id = section.id;
     optionsContent.appendChild(sectionEl);
@@ -270,7 +391,7 @@ createPiles(exampleEl.value).then(pilingLib => {
     fields.setAttribute('class', 'fields');
     sectionEl.appendChild(fields);
 
-    section.fields.forEach(field => {
+    validFields.forEach(field => {
       const label = document.createElement('label');
       const labelTitle = document.createElement('div');
 
@@ -280,10 +401,12 @@ createPiles(exampleEl.value).then(pilingLib => {
       labelTitle.appendChild(title);
       label.appendChild(labelTitle);
 
-      const value = document.createElement('span');
-      value.setAttribute('class', 'value');
-      value.textContent = pilingLib.get(field.name);
-      labelTitle.appendChild(value);
+      const valueEl = document.createElement('span');
+      valueEl.setAttribute('class', 'value');
+      if (field.dtype === 'int' && (field.min || field.max)) {
+        valueEl.textContent = pilingLib.get(field.name);
+      }
+      labelTitle.appendChild(valueEl);
 
       const inputs = document.createElement('inputs');
       inputs.setAttribute('class', 'inputs');
@@ -297,24 +420,55 @@ createPiles(exampleEl.value).then(pilingLib => {
         }
         isSet.addEventListener('change', event => {
           if (event.target.checked) {
-            pilingLib.set(field.name, parseDtype[field.dtype](input.value));
-            value.textContent = parseDtype[field.dtype](input.value);
+            const value = parseDtype[field.dtype](input.value);
+
+            if (field.setter) {
+              field.setter(value);
+            } else {
+              pilingLib.set(field.name, value);
+            }
+
+            if (field.dtype === 'int' && (field.min || field.max)) {
+              valueEl.textContent = value;
+            }
           } else {
-            pilingLib.set(field.name, null);
-            value.textContent = '';
+            if (field.setter) {
+              field.setter(null);
+            } else {
+              pilingLib.set(field.name, null);
+            }
+            valueEl.textContent = '';
           }
         });
       } else {
         isSet.checked = true;
         isSet.disabled = true;
       }
-      inputs.appendChild(isSet);
+
+      if (!(field.values && (field.multiple || !field.nullifiable))) {
+        inputs.appendChild(isSet);
+      }
 
       input.addEventListener('change', event => {
+        let value = event.target.value;
+
+        if (field.values && field.multiple) {
+          value = input.value;
+          isSet.checked = value.length;
+        }
+
         if (isSet && isSet.checked) {
-          const newValue = parseDtype[field.dtype](event.target.value);
-          pilingLib.set(field.name, newValue);
-          value.textContent = newValue;
+          value = parseDtype[field.dtype](value);
+
+          if (field.setter) {
+            field.setter(value);
+          } else {
+            pilingLib.set(field.name, value);
+          }
+
+          if (field.dtype === 'int' && (field.min || field.max)) {
+            valueEl.textContent = value;
+          }
         }
       });
 

@@ -1,4 +1,4 @@
-import { cubicInOut } from './utils';
+import { cubicInOut } from '@flekschas/utils';
 
 const DEFAULT_DELAY = 0;
 const DEFAULT_DURATION = 250;

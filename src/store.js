@@ -1,9 +1,11 @@
+import { camelToConst, deepClone, cubicInOut, update } from '@flekschas/utils';
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
-import { camelToConst, deepClone, cubicInOut, update } from './utils';
+
+import { NAVIGATION_MODE_AUTO, NAVIGATION_MODES } from './defaults';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -31,6 +33,26 @@ const setReducer = (key, defaultValue = null) => {
   };
 };
 
+const setOptionsReducer = (key, options, defaultValue = null) => {
+  // eslint-disable-next-line no-param-reassign
+  options = new Set(options);
+
+  const actionType = `SET_${camelToConst(key)}`;
+
+  return (state = defaultValue, action) => {
+    switch (action.type) {
+      case actionType:
+        if (options.has(action.payload[key])) {
+          return clone(action.payload[key], state);
+        }
+        return state;
+
+      default:
+        return state;
+    }
+  };
+};
+
 const setAction = key => {
   const type = `SET_${camelToConst(key)}`;
   return newValue => ({ type, payload: { [key]: newValue } });
@@ -38,6 +60,11 @@ const setAction = key => {
 
 const setter = (key, defaultValue = null) => [
   setReducer(key, defaultValue),
+  setAction(key)
+];
+
+const setterOptions = (key, options, defaultValue = null) => [
+  setOptionsReducer(key, options, defaultValue),
   setAction(key)
 ];
 
@@ -55,6 +82,12 @@ export const softOverwrite = newState => ({
   type: 'SOFT_OVERWRITE',
   payload: { newState }
 });
+
+const [arrangementType, setArrangementType] = setter('arrangementType');
+
+const [arrangementObjective, setArrangementObjective] = setter(
+  'arrangementObjective'
+);
 
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
@@ -146,6 +179,12 @@ const [tempDepileOneDNum, setTempDepileOneDNum] = setter(
 );
 
 const [easing, setEasing] = setter('easing', cubicInOut);
+
+const [navigationMode, setNavigationMode] = setterOptions(
+  'navigationMode',
+  NAVIGATION_MODES,
+  NAVIGATION_MODE_AUTO
+);
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
@@ -352,42 +391,45 @@ const createStore = () => {
 
   const appReducer = combineReducers({
     aggregateRenderer,
+    arrangementObjective,
+    arrangementType,
     backgroundColor,
-    focusedPiles,
+    cellAspectRatio,
+    cellPadding,
+    columns,
     coverAggregator,
     depiledPile,
     depileMethod,
     easing,
-    itemSize,
-    itemSizeRange,
-    columns,
-    rowHeight,
-    cellAspectRatio,
+    focusedPiles,
     gridColor,
     gridOpacity,
-    cellPadding,
-    pileItemAlignment,
     itemOpacity,
     itemRenderer,
-    pileItemRotation,
     items,
+    itemSize,
+    itemSizeRange,
     lassoFillColor,
     lassoFillOpacity,
     lassoStrokeColor,
     lassoStrokeOpacity,
     lassoStrokeSize,
+    magnifiedPiles,
+    navigationMode,
     orderer,
-    pileBorderColor,
-    pileBorderOpacity,
-    pileBorderColorFocus,
-    pileBorderOpacityFocus,
-    pileBorderColorActive,
-    pileBorderOpacityActive,
-    pileBorderSize,
     pileBackgroundColor,
     pileBackgroundOpacity,
+    pileBorderColor,
+    pileBorderColorActive,
+    pileBorderColorFocus,
+    pileBorderOpacity,
+    pileBorderOpacityActive,
+    pileBorderOpacityFocus,
+    pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
+    pileItemAlignment,
+    pileItemRotation,
     pileOpacity,
     piles,
     pileScale,
@@ -398,7 +440,7 @@ const createStore = () => {
     previewSpacing,
     randomOffsetRange,
     randomRotationRange,
-    magnifiedPiles,
+    rowHeight,
     showGrid,
     tempDepileDirection,
     tempDepileOneDNum,
@@ -434,59 +476,62 @@ const createStore = () => {
 export default createStore;
 
 export const createAction = {
+  depilePiles,
   initPiles,
   mergePiles,
   movePiles,
-  depilePiles,
+  setAggregateRenderer,
+  setArrangementObjective,
+  setArrangementType,
   setBackgroundColor,
+  setCellAspectRatio,
+  setCellPadding,
+  setColumns,
+  setCoverAggregator,
+  setDepiledPile,
+  setDepileMethod,
+  setEasing,
+  setFocusedPiles,
   setGridColor,
   setGridOpacity,
+  setItemOpacity,
+  setItemRenderer,
+  setItems,
+  setItemSize,
+  setItemSizeRange,
   setLassoFillColor,
   setLassoFillOpacity,
   setLassoStrokeColor,
   setLassoStrokeOpacity,
   setLassoStrokeSize,
-  setItemRenderer,
-  setItemOpacity,
-  setPreviewRenderer,
-  setAggregateRenderer,
-  setPreviewAggregator,
-  setCoverAggregator,
-  setItems,
-  setOrderer,
-  setItemSize,
-  setItemSizeRange,
-  setColumns,
-  setRowHeight,
-  setCellAspectRatio,
-  setCellPadding,
-  setPileItemAlignment,
-  setPileItemRotation,
-  setFocusedPiles,
   setMagnifiedPiles,
-  setShowGrid,
-  setDepileMethod,
-  setDepiledPile,
-  setTemporaryDepiledPiles,
-  setTempDepileDirection,
-  setTempDepileOneDNum,
-  setEasing,
-  setPreviewSpacing,
-  setPreviewBackgroundColor,
-  setPreviewBackgroundOpacity,
-  setPileBorderColor,
-  setPileBorderOpacity,
-  setPileBorderColorFocus,
-  setPileBorderOpacityFocus,
-  setPileBorderColorActive,
-  setPileBorderOpacityActive,
-  setPileBorderSize,
+  setNavigationMode,
+  setOrderer,
   setPileBackgroundColor,
   setPileBackgroundOpacity,
+  setPileBorderColor,
+  setPileBorderColorActive,
+  setPileBorderColorFocus,
+  setPileBorderOpacity,
+  setPileBorderOpacityActive,
+  setPileBorderOpacityFocus,
+  setPileBorderSize,
+  setPileCellAlignment,
   setPileContextMenuItems,
+  setPileItemAlignment,
+  setPileItemRotation,
   setPileOpacity,
   setPileScale,
-  setPileCellAlignment,
+  setPreviewAggregator,
+  setPreviewBackgroundColor,
+  setPreviewBackgroundOpacity,
+  setPreviewRenderer,
+  setPreviewSpacing,
   setRandomOffsetRange,
-  setRandomRotationRange
+  setRandomRotationRange,
+  setRowHeight,
+  setShowGrid,
+  setTempDepileDirection,
+  setTempDepileOneDNum,
+  setTemporaryDepiledPiles
 };

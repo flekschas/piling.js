@@ -1,4 +1,4 @@
-import { assign } from './utils';
+import { assign } from '@flekschas/utils';
 
 const withSize = sprite => self =>
   assign(self, {

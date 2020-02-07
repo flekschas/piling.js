@@ -1,8 +1,11 @@
+import {
+  assign,
+  pipe,
+  withConstructor,
+  withStaticProperty
+} from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import { assign, pipe } from './utils';
-import withConstructor from './with-constructor';
-import withReadOnlyProperty from './with-read-only-property';
 import withSize from './with-size';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
@@ -22,14 +25,12 @@ const withBackground = ({
       return backgroundGraphics.fill.alpha;
     },
     drawBackground(color = backgroundColor, opacity = backgroundOpacity) {
+      const width = self.width + self.padding;
+      const height = self.height + self.padding;
+
       backgroundGraphics.clear();
       backgroundGraphics.beginFill(color, opacity);
-      backgroundGraphics.drawRect(
-        0,
-        0,
-        self.width + self.padding,
-        self.height + self.padding
-      );
+      backgroundGraphics.drawRect(-width / 2, -height / 2, width, height);
       backgroundGraphics.endFill();
     }
   });
@@ -49,6 +50,7 @@ const withPadding = initialPadding => self => {
 const createImageWithBackground = (
   texture,
   {
+    anchor = [0.5, 0.5],
     backgroundColor = DEFAULT_BACKGROUND_COLOR,
     backgroundOpacity = DEFAULT_BACKGROUND_OPACITY,
     padding = DEFAULT_PADDING
@@ -56,10 +58,11 @@ const createImageWithBackground = (
 ) => {
   const backgroundGraphics = new PIXI.Graphics();
   const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(...anchor);
 
   const init = self => {
-    self.sprite.y = self.padding / 2;
-    self.sprite.x = self.padding / 2;
+    // self.sprite.y = self.padding / 2;
+    // self.sprite.x = self.padding / 2;
 
     backgroundGraphics.addChild(sprite);
 
@@ -68,8 +71,8 @@ const createImageWithBackground = (
 
   return init(
     pipe(
-      withReadOnlyProperty('displayObject', backgroundGraphics),
-      withReadOnlyProperty('sprite', sprite),
+      withStaticProperty('displayObject', backgroundGraphics),
+      withStaticProperty('sprite', sprite),
       withSize(sprite),
       withPadding(padding),
       withBackground({

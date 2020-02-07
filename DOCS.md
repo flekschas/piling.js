@@ -178,7 +178,8 @@ The list of all understood properties is given below.
 | lassoStrokeOpacity        | float             | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
 | lassoStrokeSize           | int               | `1`                   | must be greater or equal than `1`                                             | `false`    |
 | orderer                   | function          | row-major             | see [`notes`](#notes)                                                         | `true`     |
-| magnifiedPiles                | array             | `[]`                  | the id of current magnified pile                                                 | `true`     |
+| magnifiedPiles            | array             | `[]`                  | the id of current magnified pile                                              | `true`     |
+| navigationMode            | string            | auto                  | Can be one of auto, panZoom, or scroll                                        | `false`    |
 | pileBackgroundColor       | string or int     | `0x000000`            |                                                                               | `false`    |
 | pileBackgroundOpacity     | float             | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColor           | string or int     | `0x808080`            |                                                                               | `false`    |
@@ -332,6 +333,83 @@ The list of all understood properties is given below.
 
   The function should return a value within `[0, 1]`.
 
+#### `piling.arrangeBy(type, objective)`
+
+Position piles with user-specified arrangement method.
+
+`type` and the corresponding `objective` can be one of the following:
+
+| Type      | Objective                                                                               |
+| --------- | --------------------------------------------------------------------------------------- |
+| `null`    | `undefined` _(manual positioning)_                                                      |
+| `'index'` | `function` that returns the linear index                                           |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |
+| `'xy'`    | `function` that returns the final xy position                                         |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           |
+| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                           |
+
+**Notes and examples:**
+- The signature of the callback function for types `index`, `ij`, `xy` and `uv` should be as follows:
+
+  ```javascript
+  function (pileState, pileId) {
+    // Do something
+    return pilePosition;
+  }
+  ```
+- With `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
+
+  - The `objective` object can contain the following properties:
+    - `property` [type: `string` or `function`]: A function that retrieves that returns a numerical value for an pile's item.
+
+      The signature of the callback function looks as follows and must return a numerical value:
+
+      ```javascript
+      function (itemState, itemId, itemIndex) {
+        // Do something
+        return aNumericalValue;
+      }
+      ```
+
+      For convenience, we can automatically access item properties by their name. E.g., the following objective are identical:
+
+      ```javascript
+      piling.arrangeBy('data', 'a');
+      piling.arrangeBy('data', itemState => itemState.a);
+      ```
+
+    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the numerical values of the pile's items into a single numerical value.
+
+      For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
+
+    - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
+
+    - `inverse` [type `boolean` default: `false`]: If `true` the scale will be inverted
+
+  - For convenience the following examples are all equivalent:
+    
+    ```javascript
+      // Define the property via a simple string
+      piling.arrangeBy('data', 'a');
+      // Define the property callback function
+      piling.arrangeBy('data', itemState => itemState.a); // callback function
+      // Define the property callback function as part of the `objective` object
+      piling.arrangeBy('data', { property: itemState => itemState.a });
+      // Explicitly define 
+      piling.arrangeBy('data', ['a']);
+    ```
+
+  - 1D orderings, 2D scatter plots, or multi-dimensional cluster plots are defined by the number passed to `arrangeBy('data', objectives)`:
+    
+    ```javascript
+      // 1D / linear ordering
+      piling.arrangeBy('data', ['a']);
+      // 2D scatter plot
+      piling.arrangeBy('data', ['a', 'b']);
+      // Multi dimensional cluster plot
+      piling.arrangeBy('data', ['a', 'b', 'c', ...]);
+    ```
+    
 #### `piling.destroy()`
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.

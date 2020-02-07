@@ -1,6 +1,7 @@
+import { l2Norm, normalize } from '@flekschas/utils';
 import clip from 'liang-barsky';
 
-import { l1Dist, l2Norm, normalizeVector } from './utils';
+import { l1Dist } from './utils';
 
 /**
  * Factory function to create a grid
@@ -18,14 +19,15 @@ const createGrid = (
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
+    orderer,
     pileCellAlignment = 'topLeft',
     cellPadding = 0
   } = {}
 ) => {
-  const { width } = canvas.getBoundingClientRect();
+  const { width, height } = canvas.getBoundingClientRect();
 
   let numColumns = columns;
-  let numRows;
+  let numRows = 0;
   let columnWidth = width / columns;
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
@@ -63,7 +65,7 @@ const createGrid = (
    * @param   {number}  idx  Index of a cell
    * @return  {array}  Tuple with the i,j cell position
    */
-  const idxToIj = idx => [idx % numColumns, Math.floor(idx / numColumns)];
+  const idxToIj = orderer(numColumns);
 
   /**
    * Convert the i,j cell position to an x,y pixel position
@@ -78,9 +80,12 @@ const createGrid = (
       return [i * cellWidth, j * cellHeight];
     }
 
+    const halfWidth = pileWidth / 2;
+    const halfHeight = pileHeight / 2;
+
     const topLeft = [
-      i * columnWidth + cellPadding,
-      j * rowHeight + cellPadding
+      i * columnWidth + cellPadding + halfWidth,
+      j * rowHeight + cellPadding + halfHeight
     ];
 
     switch (pileCellAlignment) {
@@ -108,6 +113,17 @@ const createGrid = (
     }
   };
 
+  const idxToXy = (index, pileWidth, pileHeight) =>
+    ijToXy(...idxToIj(index), pileWidth, pileHeight);
+
+  /**
+   * Convert the u,v position to an x,y pixel position
+   * @param   {number}  u  Relative position of the canvas on the x-axis
+   * @param   {number}  v  Relative position of the canvas on the y-axis
+   * @return  {array}  Tuple representing the x,y position
+   */
+  const uvToXy = (u, v) => [u * width, v * height];
+
   const align = piles => {
     const cells = [];
     const conflicts = [];
@@ -115,10 +131,10 @@ const createGrid = (
     piles.forEach(pile => {
       pilePositions.set(pile.id, {
         id: pile.id,
-        cX: pile.cX,
-        cY: pile.cY,
-        width: pile.graphics.width,
-        height: pile.graphics.height
+        cX: pile.anchorBox.cX,
+        cY: pile.anchorBox.cY,
+        width: pile.anchorBox.width,
+        height: pile.anchorBox.height
       });
     });
 
@@ -224,7 +240,7 @@ const createGrid = (
         ];
         direction[0] += (Math.sign(direction[0]) || 1) * Math.random();
         direction[1] += (Math.sign(direction[1]) || 1) * Math.random();
-        direction = normalizeVector([x(direction[0]), y(direction[1])]);
+        direction = normalize([x(direction[0]), y(direction[1])]);
 
         // Move the pile in direction `direction` to the cell border
         // We accomplish this by clipping a line starting at the pile
@@ -297,7 +313,10 @@ const createGrid = (
     },
     // Methods
     align,
-    ijToXy
+    ijToXy,
+    idxToIj,
+    idxToXy,
+    uvToXy
   };
 };
 

@@ -1,10 +1,13 @@
+import {
+  assign,
+  pipe,
+  withConstructor,
+  withReadOnlyProperty,
+  withStaticProperty
+} from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import withConstructor from './with-constructor';
 import withAnimatedProperty from './with-animated-property';
-import withReadOnlyProperty from './with-read-only-property';
-
-import { assign, pipe } from './utils';
 
 const withDestroy = container => self =>
   assign(self, {
@@ -46,10 +49,12 @@ const createPileItem = ({ image, item, pubSub }) => {
 
   return init(
     pipe(
-      withReadOnlyProperty('displayObject', container),
-      withReadOnlyProperty('id', item.id),
-      withReadOnlyProperty('image', image),
-      withReadOnlyProperty('item', item),
+      withStaticProperty('displayObject', container),
+      withReadOnlyProperty('x', () => container.x),
+      withReadOnlyProperty('y', () => container.y),
+      withStaticProperty('id', item.id),
+      withStaticProperty('image', image),
+      withStaticProperty('item', item),
       withAnimatedProperty(
         {
           name: 'opacity',

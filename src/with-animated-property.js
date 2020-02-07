@@ -1,7 +1,12 @@
-import createTweener from './tweener';
-import withProperty from './with-property';
+import {
+  assign,
+  capitalize,
+  interpolateNumber,
+  pipe,
+  withProperty
+} from '@flekschas/utils';
 
-import { assign, capitalize, interpolateNumber, pipe } from './utils';
+import createTweener from './tweener';
 
 const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
   const getter = () => self[name];

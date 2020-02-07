@@ -19,7 +19,10 @@ const bundleConfigurator = (file, plugins = [], format = 'umd') => ({
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main']
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     ...plugins

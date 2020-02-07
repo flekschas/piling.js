@@ -1,8 +1,9 @@
-import withConstructor from './with-constructor';
-import withProperty from './with-property';
-import withReadOnlyProperty from './with-read-only-property';
-
-import { pipe } from './utils';
+import {
+  pipe,
+  withConstructor,
+  withProperty,
+  withStaticProperty
+} from '@flekschas/utils';
 
 /**
  * Factory function to create an item
@@ -15,9 +16,9 @@ const createItem = (
   { preview = null, originalPosition = [0, 0] } = {}
 ) =>
   pipe(
-    withReadOnlyProperty('id', id),
-    withReadOnlyProperty('image', image),
-    withReadOnlyProperty('preview', preview),
+    withStaticProperty('id', id),
+    withStaticProperty('image', image),
+    withStaticProperty('preview', preview),
     withProperty('originalPosition', {
       initialValue: originalPosition,
       cloner: v => [...v]
