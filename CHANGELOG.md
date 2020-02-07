@@ -2,6 +2,8 @@
 
 - Add pan&zoom interaction
 - Add a new method `arrangeBy()` for support automatic and data-driven pile arrangements
+- Add `pileItemBrightness` to control the brightness of pile items
+- Add `pileItemTint` to control the [tint of pile items](https://pixijs.download/dev/docs/PIXI.Sprite.html#tint)
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Change pile border to be scale invariant
 - Animate item rotation
