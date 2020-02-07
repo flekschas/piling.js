@@ -164,7 +164,6 @@ The list of all understood properties is given below.
 | easing                    | function                | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
 | gridColor                 | string or int           | `0x787878`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
 | gridOpacity               | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| itemOpacity               | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | items                     | array                   | `[]`                  | see [`data`](#data)                                                           | `false`    |
 | itemSize                  | int                     |                       | number of pixels                                                              | `true`     |
 | itemSizeRange             | array                   | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
@@ -193,6 +192,7 @@ The list of all understood properties is given below.
 | pileContextMenuItems      | array                   | `[]`                  | see _examples_ below                                                          | `true`     |
 | pileItemAlignment         | array or boolean        | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | pileItemBrightness        | string, int or function | `0`                   | must be in [-1,1] where `-1` refers to black and `1` refers to white          | `false`    |
+| pileItemOpacity           | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | pileItemRotation          | boolean                 | `false`               | `true` or `false`                                                             | `true`     |
 | pileItemTint              | string, int or function | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `true`     |
 | pileOpacity               | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
@@ -310,7 +310,7 @@ The list of all understood properties is given below.
   }
   ```
 
-- `itemOpacity` can be set to a static float value within `[0, 1]`, or the user can specify a callback function to dynamically style items. E.g.,
+- `pileItemOpacity` can be set to a static float value within `[0, 1]`, or the user can specify a callback function to dynamically style items. E.g.,
 
   ```javascript
   // Set to a static number

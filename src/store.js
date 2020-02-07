@@ -126,7 +126,7 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
+const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
@@ -419,7 +419,6 @@ const createStore = () => {
     focusedPiles,
     gridColor,
     gridOpacity,
-    itemOpacity,
     itemRenderer,
     items,
     itemSize,
@@ -445,6 +444,7 @@ const createStore = () => {
     pileContextMenuItems,
     pileItemAlignment,
     pileItemBrightness,
+    pileItemOpacity,
     pileItemRotation,
     pileItemTint,
     pileOpacity,
@@ -511,7 +511,6 @@ export const createAction = {
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
-  setItemOpacity,
   setItemRenderer,
   setItems,
   setItemSize,
@@ -537,6 +536,7 @@ export const createAction = {
   setPileContextMenuItems,
   setPileItemAlignment,
   setPileItemBrightness,
+  setPileItemOpacity,
   setPileItemRotation,
   setPileItemTint,
   setPileOpacity,

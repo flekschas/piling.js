@@ -123,7 +123,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     depileMethod: true,
     easing: true,
     coverAggregator: true,
-    itemOpacity: true,
     items: {
       set: value => [
         createAction.setItems(value),
@@ -138,6 +137,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellPadding: true,
     pileItemAlignment: true,
     pileItemBrightness: true,
+    pileItemOpacity: true,
     pileItemRotation: true,
     pileItemTint: true,
     gridColor: {
@@ -891,8 +891,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileItemStyle = (pileState, pileId) => {
     const {
       items,
-      itemOpacity,
       pileItemBrightness,
+      pileItemOpacity,
       pileItemTint
     } = store.getState();
 
@@ -902,9 +902,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const itemState = items[pileItem.id];
 
       pileItem.animateOpacity(
-        isFunction(itemOpacity)
-          ? itemOpacity(itemState, i, pileState)
-          : itemOpacity
+        isFunction(pileItemOpacity)
+          ? pileItemOpacity(itemState, i, pileState)
+          : pileItemOpacity
       );
 
       pileItem.image.brightness(
@@ -1952,7 +1952,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       pileInstances.size &&
-      (state.itemOpacity !== newState.itemOpacity ||
+      (state.pileItemOpacity !== newState.pileItemOpacity ||
         state.pileItemBrightness !== newState.pileItemBrightness ||
         state.pileItemTint !== newState.pileItemTint)
     ) {
