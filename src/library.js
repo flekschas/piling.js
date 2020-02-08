@@ -184,6 +184,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacity: true,
+    pileBorderColorHover: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBorderColorHover(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBorderOpacityHover(opacity));
+        return actions;
+      }
+    },
+    pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);

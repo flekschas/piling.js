@@ -449,6 +449,9 @@ const createPile = (
         itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
+          if (borderSizeBase) {
+            drawBorder();
+          }
           postPilePositionAnimation.forEach(fn => {
             fn();
           });

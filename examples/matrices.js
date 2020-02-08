@@ -51,7 +51,8 @@ const createMatrixPiles = async element => {
     items: data,
     itemSize: 64,
     pileCellAlignment: 'center',
-    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
+    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
+    pileBorderSize: pile => pile.items.length - 1
   });
 
   return pilingJs;
