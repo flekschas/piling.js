@@ -181,6 +181,8 @@ const createPile = (
       getCover().then(() => {
         drawBorder();
       });
+    } else {
+      drawBorder();
     }
   };
 
@@ -449,9 +451,8 @@ const createPile = (
         itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
-          if (borderSizeBase) {
-            drawBorder();
-          }
+          drawBorder();
+          // console.log(postPilePositionAnimation, borderSizeBase)
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -640,6 +641,7 @@ const createPile = (
       },
       onDone: () => {
         isScaling = false;
+        drawBorder();
         postPilePositionAnimation.forEach(fn => {
           fn();
         });
