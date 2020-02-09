@@ -99,6 +99,8 @@ const [backgroundColor, setBackgroundColor] = setter(
   0x000000
 );
 
+const [isDarkMode, setIsDarkMode] = setter('isDarkMode', false);
+
 const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
@@ -419,6 +421,7 @@ const createStore = () => {
     focusedPiles,
     gridColor,
     gridOpacity,
+    isDarkMode,
     itemRenderer,
     items,
     itemSize,
@@ -511,6 +514,7 @@ export const createAction = {
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
+  setIsDarkMode,
   setItemRenderer,
   setItems,
   setItemSize,

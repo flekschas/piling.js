@@ -21,8 +21,7 @@ import {
   min,
   range,
   sortPos,
-  sum,
-  throttleAndDebounce
+  sum
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
@@ -33,8 +32,6 @@ import {
   CAMERA_VIEW,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
-  LASSO_MIN_DIST,
-  LASSO_MIN_DELAY,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
@@ -56,6 +53,7 @@ import createGrid from './grid';
 import createItem from './item';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
+import createLasso from './lasso';
 
 import { version } from '../package.json';
 
@@ -304,6 +302,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
 
+  let isMouseDown = false;
+  let isLasso = false;
+
+  const lasso = createLasso({
+    onStart: () => {
+      isLasso = true;
+      isMouseDown = true;
+    },
+    onDraw: () => {
+      renderRaf();
+    }
+  });
+
+  stage.addChild(gridGfx);
+  stage.addChild(lasso.fillContainer);
+  stage.addChild(normalPiles);
+  stage.addChild(activePile);
+  stage.addChild(lasso.lineContainer);
+
   const searchIndex = new RBush();
 
   const createRBush = () => {
@@ -516,6 +533,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
+  const updateLasso = () => {
+    const {
+      isDarkMode,
+      lassoFillColor,
+      lassoFillOpacity,
+      lassoStrokeColor,
+      lassoStrokeOpacity,
+      lassoStrokeSize
+    } = store.getState();
+
+    lasso.set({
+      fillColor: lassoFillColor,
+      fillOpacity: lassoFillOpacity,
+      strokeColor: lassoStrokeColor,
+      strokeOpacity: lassoStrokeOpacity,
+      strokeSize: lassoStrokeSize,
+      isDarkMode
+    });
+  };
+
   let itemSizeScale = scaleLinear();
 
   const scaleItems = () => {
@@ -650,11 +687,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const lassoContainer = new PIXI.Container();
-  const lassoBgContainer = new PIXI.Container();
-  const lasso = new PIXI.Graphics();
-  const lassoFill = new PIXI.Graphics();
-
   const createItems = () => {
     const {
       items,
@@ -679,12 +711,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.clear();
     pileInstances.clear();
 
-    stage.removeChildren();
-
-    stage.addChild(gridGfx);
-    stage.addChild(lassoBgContainer);
-    lassoBgContainer.addChild(lassoFill);
-    stage.addChild(normalPiles);
+    normalPiles.removeChildren();
+    activePile.removeChildren();
 
     const renderImages = itemRenderer(
       items.map(({ src }) => src)
@@ -734,9 +762,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
-        stage.addChild(activePile);
-        stage.addChild(lassoContainer);
-        lassoContainer.addChild(lasso);
         renderRaf();
       }
     );
@@ -1532,9 +1557,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let mousePosition = [0, 0];
 
-  // Get a copy of the current mouse position
-  const getMousePos = () => mousePosition.slice();
-
   const getRelativeMousePosition = event => {
     const rect = canvas.getBoundingClientRect();
 
@@ -1543,68 +1565,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     return [...mousePosition];
   };
-
-  let lassoPos = [];
-  let lassoPosFlat = [];
-  let lassoPrevMousePos;
-  let isLasso = false;
-
-  const drawlasso = () => {
-    const {
-      lassoFillColor,
-      lassoFillOpacity,
-      lassoStrokeColor,
-      lassoStrokeOpacity,
-      lassoStrokeSize
-    } = store.getState();
-
-    lasso.clear();
-    lassoFill.clear();
-    lasso.lineStyle(lassoStrokeSize, lassoStrokeColor, lassoStrokeOpacity);
-    lasso.moveTo(...lassoPos[0]);
-    lassoPos.forEach(pos => {
-      lasso.lineTo(...pos);
-      lasso.moveTo(...pos);
-    });
-    lassoFill.beginFill(lassoFillColor, lassoFillOpacity);
-    lassoFill.drawPolygon(lassoPosFlat);
-    renderRaf();
-  };
-
-  let mouseDown = false;
-
-  const lassoExtend = () => {
-    const currMousePos = getMousePos();
-
-    if (!lassoPrevMousePos) {
-      lassoPos = [currMousePos];
-      lassoPosFlat = [currMousePos[0], currMousePos[1]];
-      lassoPrevMousePos = currMousePos;
-      lasso.moveTo(...currMousePos);
-    } else {
-      const d = l2PointDist(
-        currMousePos[0],
-        currMousePos[1],
-        lassoPrevMousePos[0],
-        lassoPrevMousePos[1]
-      );
-
-      if (d > LASSO_MIN_DIST) {
-        lassoPos.push(currMousePos);
-        lassoPosFlat.push(currMousePos[0], currMousePos[1]);
-        lassoPrevMousePos = currMousePos;
-        if (lassoPos.length > 1) {
-          drawlasso();
-          isLasso = true;
-        }
-      }
-    }
-  };
-  const lassoExtendDb = throttleAndDebounce(
-    lassoExtend,
-    LASSO_MIN_DELAY,
-    LASSO_MIN_DELAY
-  );
 
   const findPilesInLasso = lassoPolygon => {
     const lassoBBox = getBBox(lassoPolygon);
@@ -1621,6 +1581,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     return pilesInPolygon;
+  };
+
+  const lassoEndHandler = () => {
+    isLasso = false;
+    const lassoPosFlat = lasso.end();
+    const pilesInLasso = findPilesInLasso(lassoPosFlat);
+    if (pilesInLasso.length > 1) {
+      store.dispatch(createAction.setFocusedPiles([]));
+      animateMerge(pilesInLasso);
+    }
   };
 
   const animateMerge = pileIds => {
@@ -1646,24 +1616,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       animateMovePileTo(pile, centerX, centerY, { onDone });
     });
-  };
-
-  const lassoEnd = () => {
-    if (isLasso) {
-      const pilesInLasso = findPilesInLasso(lassoPosFlat);
-      if (pilesInLasso.length > 1) {
-        store.dispatch(createAction.setFocusedPiles([]));
-        animateMerge(pilesInLasso);
-      }
-      lasso.closePath();
-      lasso.clear();
-      lassoFill.clear();
-      renderRaf();
-      isLasso = false;
-    }
-    lassoPos = [];
-    lassoPosFlat = [];
-    lassoPrevMousePos = undefined;
   };
 
   const scalePile = (pileId, wheelDelta) => {
@@ -2116,6 +2068,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('navigation');
     }
 
+    if (
+      state.isDarkMode !== newState.isDarkMode ||
+      state.lassoFillColor !== newState.lassoFillColor ||
+      state.lassoFillOpacity !== newState.lassoFillOpacity ||
+      state.lassoStrokeColor !== newState.lassoStrokeColor ||
+      state.lassoStrokeOpacity !== newState.lassoStrokeOpacity ||
+      state.lassoStrokeSize !== newState.lassoStrokeSize
+    ) {
+      updateLasso();
+    }
+
     state = newState;
 
     pubSub.publish('update', { action: store.lastAction });
@@ -2404,22 +2367,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         maxY: mouseDownPosition[1] + 1
       });
 
-      if (!result) {
-        mouseDown = true;
-        lassoEnd();
-      }
+      isMouseDown = !result;
     }
   };
 
   const mouseUpHandler = () => {
-    if (mouseDown) {
+    if (isMouseDown) {
       if (isLasso) {
-        lassoEnd();
+        lassoEndHandler();
       } else if (isPanZoom) {
         panZoomEndHandler();
       }
     }
-    mouseDown = false;
+    isMouseDown = false;
+  };
+
+  const mouseMoveHandler = event => {
+    mousePosition = getRelativeMousePosition(event);
+
+    if (isMouseDown) {
+      if (event.altKey || isLasso) {
+        lasso.extendDb(mousePosition.slice());
+      } else if (isPanZoom) {
+        panZoomHandler(false);
+      }
+    }
   };
 
   let isClicked = false;
@@ -2485,20 +2457,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
+        lasso.showStartIndicator(mouseDownPosition.slice());
         store.dispatch(createAction.setFocusedPiles([]));
         store.dispatch(createAction.setMagnifiedPiles([]));
-      }
-    }
-  };
-
-  const mouseMoveHandler = event => {
-    mousePosition = getRelativeMousePosition(event);
-
-    if (mouseDown) {
-      if (event.altKey || isLasso) {
-        lassoExtendDb();
-      } else if (isPanZoom) {
-        panZoomHandler(false);
       }
     }
   };
@@ -2775,6 +2736,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
+    rootElement.appendChild(lasso.startIndicator);
 
     rootElement.style.overflowX = 'hidden';
     canvas.style.position = 'sticky';
