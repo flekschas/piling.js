@@ -6,6 +6,9 @@ import { enableBatching } from 'redux-batched-actions';
 import createOrderer from './orderer';
 
 import {
+  DEFAULT_LASSO_SHOW_START_INDICATOR,
+  DEFAULT_LASSO_START_INDICATOR_FILL_COLOR,
+  DEFAULT_LASSO_START_INDICATOR_FILL_OPACITY,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
   NAVIGATION_MODE_AUTO,
@@ -112,6 +115,24 @@ const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
   'lassoFillOpacity',
   0.15
+);
+
+const [lassoShowStartIndicator, setLassoShowStartIndicator] = setter(
+  'lassoShowStartIndicator',
+  DEFAULT_LASSO_SHOW_START_INDICATOR
+);
+
+const [lassoStartIndicatorFillColor, setLassoStartIndicatorFillColor] = setter(
+  'lassoStartIndicatorFillColor',
+  DEFAULT_LASSO_START_INDICATOR_FILL_COLOR
+);
+
+const [
+  lassoStartIndicatorFillOpacity,
+  setLassoStartIndicatorFillOpacity
+] = setter(
+  'lassoStartIndicatorFillOpacity',
+  DEFAULT_LASSO_START_INDICATOR_FILL_OPACITY
 );
 
 const [lassoStrokeColor, setLassoStrokeColor] = setter(
@@ -428,6 +449,9 @@ const createStore = () => {
     itemSizeRange,
     lassoFillColor,
     lassoFillOpacity,
+    lassoShowStartIndicator,
+    lassoStartIndicatorFillColor,
+    lassoStartIndicatorFillOpacity,
     lassoStrokeColor,
     lassoStrokeOpacity,
     lassoStrokeSize,
@@ -521,6 +545,9 @@ export const createAction = {
   setItemSizeRange,
   setLassoFillColor,
   setLassoFillOpacity,
+  setLassoShowStartIndicator,
+  setLassoStartIndicatorFillColor,
+  setLassoStartIndicatorFillOpacity,
   setLassoStrokeColor,
   setLassoStrokeOpacity,
   setLassoStrokeSize,

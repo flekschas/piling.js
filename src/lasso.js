@@ -2,6 +2,7 @@ import {
   assign,
   identity,
   l2PointDist,
+  nextAnimationFrame,
   pipe,
   throttleAndDebounce,
   wait,
@@ -10,12 +11,27 @@ import {
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
-import { LASSO_MIN_DELAY, LASSO_MIN_DIST } from './defaults';
+import {
+  LASSO_MIN_DELAY,
+  LASSO_MIN_DIST,
+  LASSO_SHOW_START_INDICATOR_TIME,
+  LASSO_HIDE_START_INDICATOR_TIME
+} from './defaults';
 
 const lassoStyleEl = document.createElement('style');
 document.head.appendChild(lassoStyleEl);
 
 const lassoStylesheets = lassoStyleEl.sheet;
+
+const addRule = rule => {
+  const currentNumRules = lassoStylesheets.length;
+  lassoStylesheets.insertRule(rule, currentNumRules);
+  return currentNumRules;
+};
+
+const removeRule = index => {
+  lassoStylesheets.deleteRule(index);
+};
 
 const scaleInFadeOut = `
 @keyframes scaleInFadeOut {
@@ -34,9 +50,25 @@ const scaleInFadeOut = `
 }
 `;
 
-lassoStylesheets.insertRule(scaleInFadeOut, lassoStylesheets.length);
+addRule(scaleInFadeOut);
 
-const indicatorAnimation = '3s scaleInFadeOut backwards';
+const inAnimation = `${LASSO_SHOW_START_INDICATOR_TIME}ms ease scaleInFadeOut 0s 1 normal backwards`;
+
+const createOutAnimationRule = (currentOpacity, currentScale) => `
+@keyframes fadeScaleOut {
+  0% {
+    opacity: ${currentOpacity};
+    transform: translate(-50%,-50%) scale(${currentScale});
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(0);
+  }
+}
+`;
+
+const outAnimation = `${LASSO_HIDE_START_INDICATOR_TIME}ms ease fadeScaleOut 0s 1 normal backwards`;
+let outAnimationRuleIndex = null;
 
 const createLasso = ({
   fillColor: initialFillColor,
@@ -75,7 +107,7 @@ const createLasso = ({
   startIndicator.style.background = isDarkMode
     ? 'rgba(255, 255, 255, 0.1)'
     : 'rgba(0, 0, 0, 0.1)';
-  startIndicator.style.opacity = '0.5';
+  startIndicator.style.opacity = 0.5;
   startIndicator.style.transform = 'translate(-50%,-50%) scale(0)';
 
   let isMouseDown = false;
@@ -93,8 +125,13 @@ const createLasso = ({
     onStart();
   };
 
+  const indicatorMouseLeaveHandler = () => {
+    hideStartIndicator();
+  };
+
   window.addEventListener('mouseup', mouseUpHandler);
   startIndicator.addEventListener('mousedown', indicatorMouseDownHandler);
+  startIndicator.addEventListener('mouseleave', indicatorMouseLeaveHandler);
 
   const showStartIndicator = async ([x, y]) => {
     await wait(0);
@@ -102,12 +139,42 @@ const createLasso = ({
     if (isMouseDown) return;
 
     startIndicator.style.animation = 'none';
+    // startIndicator.offsetHeight;
 
-    await wait(10);
+    // See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Tips
+    // why we need to wait for two animation frames
+    await nextAnimationFrame(2);
 
     startIndicator.style.top = `${y}px`;
     startIndicator.style.left = `${x}px`;
-    startIndicator.style.animation = indicatorAnimation;
+    startIndicator.style.animation = inAnimation;
+  };
+
+  const hideStartIndicator = async () => {
+    const computedStyle = getComputedStyle(startIndicator);
+    const opacity = +computedStyle.opacity;
+    // The css rule `transform: translate(-1, -1) scale(0.5);` is represented as
+    // `matrix(0.5, 0, 0, 0.5, -1, -1)`
+    const m = computedStyle.transform.match(/([0-9.-]+)+/g);
+    const scale = m ? +m[0] : 1;
+
+    startIndicator.style.animation = 'none';
+    startIndicator.style.opacity = opacity;
+    startIndicator.style.transform = `translate(-50%,-50%) scale(${scale})`;
+
+    await nextAnimationFrame(2);
+
+    if (outAnimationRuleIndex !== null) removeRule(outAnimationRuleIndex);
+
+    outAnimationRuleIndex = addRule(createOutAnimationRule(opacity, scale));
+
+    startIndicator.style.animation = outAnimation;
+
+    await nextAnimationFrame();
+
+    // Reset to default CSS
+    startIndicator.style.opacity = 0.5;
+    startIndicator.style.transform = 'translate(-50%,-50%) scale(0)';
   };
 
   const draw = () => {

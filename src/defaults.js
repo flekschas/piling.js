@@ -14,6 +14,11 @@ export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 
 export const LASSO_MIN_DIST = 2;
 export const LASSO_MIN_DELAY = 10;
+export const LASSO_SHOW_START_INDICATOR_TIME = 2500;
+export const LASSO_HIDE_START_INDICATOR_TIME = 250;
+export const DEFAULT_LASSO_SHOW_START_INDICATOR = true;
+export const DEFAULT_LASSO_START_INDICATOR_FILL_COLOR = null;
+export const DEFAULT_LASSO_START_INDICATOR_FILL_OPACITY = 0.1;
 
 export const NAVIGATION_MODE_AUTO = 'auto';
 export const NAVIGATION_MODE_PAN_ZOOM = 'panZoom';
