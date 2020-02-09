@@ -452,7 +452,6 @@ const createPile = (
         if (isLastOne) {
           isPositioning = false;
           drawBorder();
-          // console.log(postPilePositionAnimation, borderSizeBase)
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
