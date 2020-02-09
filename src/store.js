@@ -205,11 +205,21 @@ const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',
-  0xffffff
+  0x000000
 );
 
 const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
   'previewBackgroundOpacity',
+  0.85
+);
+
+const [previewBorderColor, setPreviewBorderColor] = setter(
+  'previewBorderColor',
+  0xffffff
+);
+
+const [previewBorderOpacity, setPreviewBorderOpacity] = setter(
+  'previewBorderOpacity',
   0.85
 );
 
@@ -453,6 +463,8 @@ const createStore = () => {
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
+    previewBorderColor,
+    previewBorderOpacity,
     previewRenderer,
     previewSpacing,
     randomOffsetRange,
@@ -544,6 +556,8 @@ export const createAction = {
   setPreviewAggregator,
   setPreviewBackgroundColor,
   setPreviewBackgroundOpacity,
+  setPreviewBorderColor,
+  setPreviewBorderOpacity,
   setPreviewRenderer,
   setPreviewSpacing,
   setRandomOffsetRange,

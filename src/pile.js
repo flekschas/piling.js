@@ -94,14 +94,8 @@ const createPile = (
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
         if (hasPreviewItem(item)) {
-          const {
-            previewBackgroundColor,
-            previewBackgroundOpacity
-          } = store.getState();
-          item.image.drawBackground(
-            previewBackgroundColor,
-            previewBackgroundOpacity
-          );
+          const { previewBorderColor, previewBorderOpacity } = store.getState();
+          item.image.drawBackground(previewBorderColor, previewBorderOpacity);
         }
         render();
       }
@@ -114,8 +108,14 @@ const createPile = (
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
-        const { pileBackgroundColor, pileBackgroundOpacity } = store.getState();
-        item.image.drawBackground(pileBackgroundColor, pileBackgroundOpacity);
+        const {
+          previewBackgroundColor,
+          previewBackgroundOpacity
+        } = store.getState();
+        item.image.drawBackground(
+          previewBackgroundColor,
+          previewBackgroundOpacity
+        );
       }
       render();
     }

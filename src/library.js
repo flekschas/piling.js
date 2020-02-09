@@ -232,6 +232,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBackgroundOpacity: true,
+    previewBorderColor: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPreviewBorderColor(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPreviewBorderOpacity(opacity));
+        return actions;
+      }
+    },
+    previewBorderOpacity: true,
     randomOffsetRange: true,
     randomRotationRange: true,
     renderer: {
@@ -659,8 +669,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       items,
       itemRenderer,
-      pileBackgroundColor,
-      pileBackgroundOpacity,
+      previewBackgroundColor,
+      previewBackgroundOpacity,
       pileItemAlignment,
       pileItemRotation,
       previewAggregator,
@@ -691,8 +701,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     ).then(textures => textures.map(createImage));
 
     const previewOptions = {
-      backgroundColor: pileBackgroundColor,
-      backgroundOpacity: pileBackgroundOpacity,
+      backgroundColor: previewBackgroundColor,
+      backgroundOpacity: previewBackgroundOpacity,
       padding: previewSpacing
     };
     const createPreview = texture =>
