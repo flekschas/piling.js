@@ -12,6 +12,14 @@ import {
 import * as PIXI from 'pixi.js';
 
 import {
+  DEFAULT_DARK_MODE,
+  DEFAULT_LASSO_FILL_COLOR,
+  DEFAULT_LASSO_FILL_OPACITY,
+  DEFAULT_LASSO_SHOW_START_INDICATOR,
+  DEFAULT_LASSO_START_INDICATOR_OPACITY,
+  DEFAULT_LASSO_STROKE_COLOR,
+  DEFAULT_LASSO_STROKE_OPACITY,
+  DEFAULT_LASSO_STROKE_SIZE,
   LASSO_MIN_DELAY,
   LASSO_MIN_DIST,
   LASSO_SHOW_START_INDICATOR_TIME,
@@ -71,23 +79,28 @@ const outAnimation = `${LASSO_HIDE_START_INDICATOR_TIME}ms ease fadeScaleOut 0s 
 let outAnimationRuleIndex = null;
 
 const createLasso = ({
-  fillColor: initialFillColor,
-  fillOpacity: initialFillOpacity,
-  strokeColor: initialStrokeColor,
-  strokeOpacity: initialStrokeOpacity,
-  strokeSize: initialStrokeSize,
-  onStart: initialOnStart = identity,
+  fillColor: initialFillColor = DEFAULT_LASSO_FILL_COLOR,
+  fillOpacity: initialFillOpacity = DEFAULT_LASSO_FILL_OPACITY,
+  isShowStartIndicator: initialIsShowStartIndicator = DEFAULT_LASSO_SHOW_START_INDICATOR,
+  isDarkMode: initialIsDarkMode = DEFAULT_DARK_MODE,
   onDraw: initialOnDraw = identity,
-  isDarkMode: initialIsDarkMode = false
+  onStart: initialOnStart = identity,
+  startIndicatorOpacity: initialStartIndicatorOpacity = DEFAULT_LASSO_START_INDICATOR_OPACITY,
+  strokeColor: initialStrokeColor = DEFAULT_LASSO_STROKE_COLOR,
+  strokeOpacity: initialStrokeOpacity = DEFAULT_LASSO_STROKE_OPACITY,
+  strokeSize: initialStrokeSize = DEFAULT_LASSO_STROKE_SIZE
 } = {}) => {
   let fillColor = initialFillColor;
   let fillOpacity = initialFillOpacity;
-  let onDraw = initialOnDraw;
-  let onStart = initialOnStart;
+  let isShowStartIndicator = initialIsShowStartIndicator;
+  let isDarkMode = initialIsDarkMode;
+  let startIndicatorOpacity = initialStartIndicatorOpacity;
   let strokeColor = initialStrokeColor;
   let strokeOpacity = initialStrokeOpacity;
   let strokeSize = initialStrokeSize;
-  let isDarkMode = initialIsDarkMode;
+
+  let onDraw = initialOnDraw;
+  let onStart = initialOnStart;
 
   const lineContainer = new PIXI.Container();
   const fillContainer = new PIXI.Container();
@@ -97,6 +110,11 @@ const createLasso = ({
   lineContainer.addChild(lineGfx);
   fillContainer.addChild(fillGfx);
 
+  const getBackgroundColor = () =>
+    isDarkMode
+      ? `rgba(255, 255, 255, ${startIndicatorOpacity})`
+      : `rgba(0, 0, 0, ${startIndicatorOpacity})`;
+
   const startIndicator = document.createElement('div');
   startIndicator.id = 'lasso-start-indicator';
   startIndicator.style.position = 'absolute';
@@ -104,13 +122,11 @@ const createLasso = ({
   startIndicator.style.width = '4rem';
   startIndicator.style.height = '4rem';
   startIndicator.style.borderRadius = '4rem';
-  startIndicator.style.background = isDarkMode
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.1)';
   startIndicator.style.opacity = 0.5;
   startIndicator.style.transform = 'translate(-50%,-50%) scale(0)';
 
   let isMouseDown = false;
+  let isLasso = false;
   let lassoPos = [];
   let lassoPosFlat = [];
   let lassoPrevMousePos;
@@ -121,6 +137,7 @@ const createLasso = ({
 
   const indicatorMouseDownHandler = () => {
     isMouseDown = true;
+    isLasso = true;
     clear();
     onStart();
   };
@@ -130,16 +147,13 @@ const createLasso = ({
   };
 
   window.addEventListener('mouseup', mouseUpHandler);
-  startIndicator.addEventListener('mousedown', indicatorMouseDownHandler);
-  startIndicator.addEventListener('mouseleave', indicatorMouseLeaveHandler);
 
   const showStartIndicator = async ([x, y]) => {
     await wait(0);
 
-    if (isMouseDown) return;
+    if (!isShowStartIndicator || isMouseDown) return;
 
     startIndicator.style.animation = 'none';
-    // startIndicator.offsetHeight;
 
     // See https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Tips
     // why we need to wait for two animation frames
@@ -195,6 +209,10 @@ const createLasso = ({
 
   const extend = currMousePos => {
     if (!lassoPrevMousePos) {
+      if (!isLasso) {
+        isLasso = true;
+        onStart();
+      }
       lassoPos = [currMousePos];
       lassoPosFlat = [currMousePos[0], currMousePos[1]];
       lassoPrevMousePos = currMousePos;
@@ -231,6 +249,7 @@ const createLasso = ({
   };
 
   const end = () => {
+    isLasso = false;
     const lassoPolygon = [...lassoPosFlat];
 
     clear();
@@ -238,34 +257,61 @@ const createLasso = ({
     return lassoPolygon;
   };
 
+  const ifNotNull = (v, alternative) => (v === null ? alternative : v);
+
   const set = ({
     fillColor: newFillColor = null,
     fillOpacity: newFillOpacity = null,
     onDraw: newOnDraw = null,
     onStart: newOnStart = null,
+    showStartIndicator: newIsShowStartIndicator = null,
+    startIndicatorOpacity: newStartIndicatorOpacity = null,
     strokeColor: newStrokeColor = null,
     strokeOpacity: newStrokeOpacity = null,
     strokeSize: newStrokeSize = null,
-    isDarkMode: newisDarkMode = null
+    darkMode: newIsDarkMode = null
   } = {}) => {
-    fillColor = newFillColor === null ? fillColor : newFillColor;
-    fillOpacity = newFillOpacity === null ? fillOpacity : newFillOpacity;
-    onDraw = newOnDraw === null ? onDraw : newOnDraw;
-    onStart = newOnStart === null ? onStart : newOnStart;
-    strokeColor = newStrokeColor === null ? strokeColor : newStrokeColor;
-    strokeOpacity =
-      newStrokeOpacity === null ? strokeOpacity : newStrokeOpacity;
-    strokeSize = newStrokeSize === null ? strokeSize : newStrokeSize;
-    isDarkMode = newisDarkMode === null ? isDarkMode : newisDarkMode;
+    fillColor = ifNotNull(newFillColor, fillColor);
+    fillOpacity = ifNotNull(newFillOpacity, fillOpacity);
+    onDraw = ifNotNull(newOnDraw, onDraw);
+    onStart = ifNotNull(newOnStart, onStart);
+    isDarkMode = ifNotNull(newIsDarkMode, isDarkMode);
+    isShowStartIndicator = ifNotNull(
+      newIsShowStartIndicator,
+      isShowStartIndicator
+    );
+    startIndicatorOpacity = ifNotNull(
+      newStartIndicatorOpacity,
+      startIndicatorOpacity
+    );
+    strokeColor = ifNotNull(newStrokeColor, strokeColor);
+    strokeOpacity = ifNotNull(newStrokeOpacity, strokeOpacity);
+    strokeSize = ifNotNull(newStrokeSize, strokeSize);
 
-    startIndicator.style.background = isDarkMode
-      ? 'rgba(255, 255, 255, 0.1)'
-      : 'rgba(0, 0, 0, 0.1)';
+    startIndicator.style.background = getBackgroundColor();
+
+    if (isShowStartIndicator) {
+      startIndicator.addEventListener('mousedown', indicatorMouseDownHandler);
+      startIndicator.addEventListener('mouseleave', indicatorMouseLeaveHandler);
+    } else {
+      startIndicator.removeEventListener(
+        'mousedown',
+        indicatorMouseDownHandler
+      );
+      startIndicator.removeEventListener(
+        'mouseleave',
+        indicatorMouseLeaveHandler
+      );
+    }
   };
 
   const destroy = () => {
     window.removeEventListener('mouseup', mouseUpHandler);
     startIndicator.removeEventListener('mousedown', indicatorMouseDownHandler);
+    startIndicator.removeEventListener(
+      'mouseleave',
+      indicatorMouseLeaveHandler
+    );
   };
 
   const withPublicMethods = () => self =>

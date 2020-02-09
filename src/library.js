@@ -116,6 +116,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     arrangementObjective: true,
     arrangementType: true,
     backgroundColor: true,
+    darkMode: true,
     focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
@@ -158,6 +159,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     lassoFillOpacity: true,
+    lassoShowStartIndicator: true,
+    lassoStartIndicatorOpacity: true,
     lassoStrokeColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -535,9 +538,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const updateLasso = () => {
     const {
-      isDarkMode,
+      darkMode,
       lassoFillColor,
       lassoFillOpacity,
+      lassoShowStartIndicator,
+      lassoStartIndicatorOpacity,
       lassoStrokeColor,
       lassoStrokeOpacity,
       lassoStrokeSize
@@ -546,10 +551,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     lasso.set({
       fillColor: lassoFillColor,
       fillOpacity: lassoFillOpacity,
+      showStartIndicator: lassoShowStartIndicator,
+      startIndicatorOpacity: lassoStartIndicatorOpacity,
       strokeColor: lassoStrokeColor,
       strokeOpacity: lassoStrokeOpacity,
       strokeSize: lassoStrokeSize,
-      isDarkMode
+      darkMode
     });
   };
 
@@ -2069,9 +2076,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      state.isDarkMode !== newState.isDarkMode ||
+      state.darkMode !== newState.darkMode ||
       state.lassoFillColor !== newState.lassoFillColor ||
       state.lassoFillOpacity !== newState.lassoFillOpacity ||
+      state.lassoShowStartIndicator !== newState.lassoShowStartIndicator ||
+      state.lassoStartIndicatorOpacity !==
+        newState.lassoStartIndicatorOpacity ||
       state.lassoStrokeColor !== newState.lassoStrokeColor ||
       state.lassoStrokeOpacity !== newState.lassoStrokeOpacity ||
       state.lassoStrokeSize !== newState.lassoStrokeSize
@@ -2386,7 +2396,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     mousePosition = getRelativeMousePosition(event);
 
     if (isMouseDown) {
-      if (event.altKey || isLasso) {
+      if (event.shiftKey || isLasso) {
         lasso.extendDb(mousePosition.slice());
       } else if (isPanZoom) {
         panZoomHandler(false);
@@ -2771,6 +2781,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.removeEventListener('wheel', mouseWheelHandler, false);
 
     renderer.destroy(true);
+    lasso.destroy();
 
     if (storeUnsubscribor) {
       storeUnsubscribor();
