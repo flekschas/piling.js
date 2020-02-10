@@ -11,6 +11,9 @@ export const DEFAULT_DARK_MODE = false;
 export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
 export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
 
+export const EVENT_LISTENER_ACTIVE = { passive: false };
+export const EVENT_LISTENER_PASSIVE = { passive: true };
+
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 

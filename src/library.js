@@ -30,6 +30,8 @@ import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   CAMERA_VIEW,
+  EVENT_LISTENER_ACTIVE,
+  EVENT_LISTENER_PASSIVE,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
   NAVIGATION_MODE_AUTO,
@@ -414,11 +416,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     stage.y = 0;
     rootElement.style.overflowY = 'auto';
     rootElement.scrollTop = 0;
-    rootElement.addEventListener('scroll', mouseScrollHandler, false);
-    window.addEventListener('mousedown', mouseDownHandler, false);
-    window.addEventListener('mouseup', mouseUpHandler, false);
-    window.addEventListener('mousemove', mouseMoveHandler, false);
-    canvas.addEventListener('wheel', mouseWheelHandler, false);
+    rootElement.addEventListener(
+      'scroll',
+      mouseScrollHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    window.addEventListener(
+      'mousedown',
+      mouseDownHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    window.addEventListener('mouseup', mouseUpHandler, EVENT_LISTENER_PASSIVE);
+    window.addEventListener(
+      'mousemove',
+      mouseMoveHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    canvas.addEventListener('wheel', wheelHandler, EVENT_LISTENER_ACTIVE);
   };
 
   const disableScrolling = () => {
@@ -427,11 +441,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     stage.y = 0;
     rootElement.style.overflowY = 'hidden';
     rootElement.scrollTop = 0;
-    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
-    window.removeEventListener('mousedown', mouseDownHandler, false);
-    window.removeEventListener('mouseup', mouseUpHandler, false);
-    window.removeEventListener('mousemove', mouseMoveHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    rootElement.removeEventListener('scroll', mouseScrollHandler);
+    window.removeEventListener('mousedown', mouseDownHandler);
+    window.removeEventListener('mouseup', mouseUpHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
+    canvas.removeEventListener('wheel', wheelHandler);
   };
 
   const enablePanZoom = () => {
@@ -448,7 +462,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseDown: mouseDownHandler,
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
-      onWheel: mouseWheelHandler
+      onWheel: wheelHandler
     });
     camera.set(mat4.clone(CAMERA_VIEW));
   };
@@ -2229,7 +2243,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let hit;
 
-  const handleDragEndPile = ({ pileId }) => {
+  const pileDragEndHandler = ({ pileId }) => {
     hit = false;
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
@@ -2301,7 +2315,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     previouslyHoveredPiles = [...currentlyHoveredPiles];
   };
 
-  const handleDragStartPile = ({ pileId, event }) => {
+  const pileDragStartHandler = ({ pileId, event }) => {
     const pile = pileInstances.get(pileId);
 
     if (pile && pile.isMagnified) {
@@ -2322,7 +2336,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     highlightHoveringPiles(pileId);
   };
 
-  const handleDragMovePile = ({ pileId }) => {
+  const pileDragMoveHandler = ({ pileId }) => {
     highlightHoveringPiles(pileId);
   };
 
@@ -2519,7 +2533,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const mouseWheelHandler = event => {
+  const wheelHandler = event => {
     if (event.altKey) {
       getRelativeMousePosition(event);
 
@@ -2677,17 +2691,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       depileBtn.addEventListener(
         'click',
         depileBtnClick(element, pile.id),
-        false
+        EVENT_LISTENER_PASSIVE
       );
       tempDepileBtn.addEventListener(
         'click',
         tempDepileBtnClick(element, pile.id, event),
-        false
+        EVENT_LISTENER_PASSIVE
       );
       magnifyBtn.addEventListener(
         'click',
         pileMagnificationHandler(element, pile.id),
-        false
+        EVENT_LISTENER_PASSIVE
       );
 
       pileContextMenuItems.forEach((item, index) => {
@@ -2696,13 +2710,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : element.querySelector(
               `#piling-js-context-menu-custom-item-${index}`
             );
-        button.addEventListener('click', () => {
-          item.callback({
-            id: pile.id,
-            ...store.getState().piles[pile.id]
-          });
-          if (!item.keepOpen) closeContextMenu();
-        });
+        button.addEventListener(
+          'click',
+          () => {
+            item.callback({
+              id: pile.id,
+              ...store.getState().piles[pile.id]
+            });
+            if (!item.keepOpen) closeContextMenu();
+          },
+          {
+            once: true,
+            passive: true
+          }
+        );
       });
     } else {
       depileBtn.style.display = 'none';
@@ -2725,18 +2746,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       toggleGridBtn.addEventListener(
         'click',
         toggleGridBtnClick(element),
-        false
+        EVENT_LISTENER_PASSIVE
       );
-      alignBtn.addEventListener('click', alignByGridClickHandler, false);
+      alignBtn.addEventListener(
+        'click',
+        alignByGridClickHandler,
+        EVENT_LISTENER_PASSIVE
+      );
     }
   };
 
-  const handleAnimate = tweener => {
+  const startAnimationHandler = tweener => {
     tweener.setEasing(store.getState().easing);
     animator.add(tweener);
   };
 
-  const handleCancelAnimation = tweener => {
+  const cancelAnimationHandler = tweener => {
     animator.cancel(tweener);
   };
 
@@ -2744,21 +2769,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const init = () => {
     // Setup event handler
-    window.addEventListener('blur', () => {}, false);
-    window.addEventListener('resize', resizeHandlerDb, false);
-    window.addEventListener('orientationchange', resizeHandlerDb, false);
+    window.addEventListener('resize', resizeHandlerDb, EVENT_LISTENER_PASSIVE);
+    window.addEventListener(
+      'orientationchange',
+      resizeHandlerDb,
+      EVENT_LISTENER_PASSIVE
+    );
 
-    canvas.addEventListener('contextmenu', contextmenuHandler, false);
-    canvas.addEventListener('mouseenter', () => {}, false);
-    canvas.addEventListener('mouseleave', () => {}, false);
-    canvas.addEventListener('click', mouseClickHandler, false);
-    canvas.addEventListener('dblclick', mouseDblClickHandler, false);
+    canvas.addEventListener(
+      'contextmenu',
+      contextmenuHandler,
+      EVENT_LISTENER_ACTIVE
+    );
+    canvas.addEventListener('click', mouseClickHandler, EVENT_LISTENER_PASSIVE);
+    canvas.addEventListener(
+      'dblclick',
+      mouseDblClickHandler,
+      EVENT_LISTENER_PASSIVE
+    );
 
-    pubSub.subscribe('pileDragStart', handleDragStartPile);
-    pubSub.subscribe('pileDragMove', handleDragMovePile);
-    pubSub.subscribe('pileDragEnd', handleDragEndPile);
-    pubSub.subscribe('animate', handleAnimate);
-    pubSub.subscribe('cancelAnimation', handleCancelAnimation);
+    pubSub.subscribe('pileDragStart', pileDragStartHandler);
+    pubSub.subscribe('pileDragMove', pileDragMoveHandler);
+    pubSub.subscribe('pileDragEnd', pileDragEndHandler);
+    pubSub.subscribe('startAnimation', startAnimationHandler);
+    pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
     pubSub.subscribe('updatePileBounds', updatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
@@ -2781,22 +2815,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const destroy = () => {
     // Remove event listeners
-    window.removeEventListener('keyup', () => {}, false);
-    window.removeEventListener('blur', () => {}, false);
-    window.removeEventListener('mousedown', mouseDownHandler, false);
-    window.removeEventListener('mouseup', mouseUpHandler, false);
-    window.removeEventListener('mousemove', mouseMoveHandler, false);
-    window.removeEventListener('resize', resizeHandlerDb, false);
-    window.removeEventListener('orientationchange', resizeHandlerDb, false);
+    window.removeEventListener('mousedown', mouseDownHandler);
+    window.removeEventListener('mouseup', mouseUpHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
+    window.removeEventListener('resize', resizeHandlerDb);
+    window.removeEventListener('orientationchange', resizeHandlerDb);
 
-    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
+    rootElement.removeEventListener('scroll', mouseScrollHandler);
 
-    canvas.removeEventListener('contextmenu', contextmenuHandler, false);
-    canvas.removeEventListener('mouseenter', () => {}, false);
-    canvas.removeEventListener('mouseleave', () => {}, false);
-    canvas.removeEventListener('click', mouseClickHandler, false);
-    canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    canvas.removeEventListener('contextmenu', contextmenuHandler);
+    canvas.removeEventListener('click', mouseClickHandler);
+    canvas.removeEventListener('dblclick', mouseDblClickHandler);
+    canvas.removeEventListener('wheel', wheelHandler);
 
     renderer.destroy(true);
     lasso.destroy();
