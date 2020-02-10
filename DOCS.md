@@ -183,8 +183,10 @@ The list of all understood properties is given below.
 | pileBackgroundOpacity     | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColor           | string or int           | `0x808080`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
 | pileBorderOpacity         | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorSelected   | string or int           | `0xeee462`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBorderOpacitySelected | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorHover   | string or int           | `0x808080`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
+| pileBorderOpacityHover | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
+| pileBorderColorFocus   | string or int           | `0xeee462`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
+| pileBorderOpacityFocus | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColorActive     | string or int           | `0xffa5da`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
 | pileBorderOpacityActive   | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderSize            | float or function       | 0                     | see [`notes`](#notes)                                                         | `true`     |
