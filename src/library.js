@@ -398,7 +398,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.addEventListener('mousedown', mouseDownHandler, false);
     window.addEventListener('mouseup', mouseUpHandler, false);
     window.addEventListener('mousemove', mouseMoveHandler, false);
-    canvas.addEventListener('wheel', mouseWheelHandler, false);
+    canvas.addEventListener('wheel', wheelHandler, false);
   };
 
   const disableScrolling = () => {
@@ -411,7 +411,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.removeEventListener('mousedown', mouseDownHandler, false);
     window.removeEventListener('mouseup', mouseUpHandler, false);
     window.removeEventListener('mousemove', mouseMoveHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    canvas.removeEventListener('wheel', wheelHandler, false);
   };
 
   const enablePanZoom = () => {
@@ -428,7 +428,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseDown: mouseDownHandler,
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
-      onWheel: mouseWheelHandler
+      onWheel: wheelHandler
     });
     camera.set(mat4.clone(CAMERA_VIEW));
   };
@@ -2256,7 +2256,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let hit;
 
-  const handleDragEndPile = ({ pileId }) => {
+  const pileDragEndHandler = ({ pileId }) => {
     hit = false;
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
@@ -2328,7 +2328,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     previouslyHoveredPiles = [...currentlyHoveredPiles];
   };
 
-  const handleDragStartPile = ({ pileId, event }) => {
+  const pileDragStartHandler = ({ pileId, event }) => {
     const pile = pileInstances.get(pileId);
 
     if (pile && pile.isMagnified) {
@@ -2349,7 +2349,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     highlightHoveringPiles(pileId);
   };
 
-  const handleDragMovePile = ({ pileId }) => {
+  const pileDragMoveHandler = ({ pileId }) => {
     highlightHoveringPiles(pileId);
   };
 
@@ -2548,7 +2548,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const mouseWheelHandler = event => {
+  const wheelHandler = event => {
     if (event.altKey) {
       getRelativeMousePosition(event);
 
@@ -2760,12 +2760,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const handleAnimate = tweener => {
+  const startAnimationHandler = tweener => {
     tweener.setEasing(store.getState().easing);
     animator.add(tweener);
   };
 
-  const handleCancelAnimation = tweener => {
+  const cancelAnimationHandler = tweener => {
     animator.cancel(tweener);
   };
 
@@ -2783,11 +2783,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
-    pubSub.subscribe('pileDragStart', handleDragStartPile);
-    pubSub.subscribe('pileDragMove', handleDragMovePile);
-    pubSub.subscribe('pileDragEnd', handleDragEndPile);
-    pubSub.subscribe('animate', handleAnimate);
-    pubSub.subscribe('cancelAnimation', handleCancelAnimation);
+    pubSub.subscribe('pileDragStart', pileDragStartHandler);
+    pubSub.subscribe('pileDragMove', pileDragMoveHandler);
+    pubSub.subscribe('pileDragEnd', pileDragEndHandler);
+    pubSub.subscribe('startAnimation', startAnimationHandler);
+    pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
     pubSub.subscribe('updatePileBounds', updatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
@@ -2824,7 +2824,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    canvas.removeEventListener('wheel', wheelHandler, false);
 
     renderer.destroy(true);
 
