@@ -2773,13 +2773,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const init = () => {
     // Setup event handler
-    window.addEventListener('blur', () => {}, false);
-    window.addEventListener('resize', resizeHandlerDb, false);
-    window.addEventListener('orientationchange', resizeHandlerDb, false);
+    window.addEventListener('blur', () => {});
+    window.addEventListener('resize', resizeHandlerDb);
+    window.addEventListener('orientationchange', resizeHandlerDb);
 
-    canvas.addEventListener('contextmenu', contextmenuHandler, false);
-    canvas.addEventListener('click', mouseClickHandler, false);
-    canvas.addEventListener('dblclick', mouseDblClickHandler, false);
+    canvas.addEventListener('contextmenu', contextmenuHandler);
+    canvas.addEventListener('click', mouseClickHandler);
+    canvas.addEventListener('dblclick', mouseDblClickHandler);
 
     pubSub.subscribe('pileDragStart', pileDragStartHandler);
     pubSub.subscribe('pileDragMove', pileDragMoveHandler);
@@ -2807,20 +2807,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const destroy = () => {
     // Remove event listeners
-    window.removeEventListener('keyup', () => {}, false);
-    window.removeEventListener('blur', () => {}, false);
-    window.removeEventListener('mousedown', mouseDownHandler, false);
-    window.removeEventListener('mouseup', mouseUpHandler, false);
-    window.removeEventListener('mousemove', mouseMoveHandler, false);
-    window.removeEventListener('resize', resizeHandlerDb, false);
-    window.removeEventListener('orientationchange', resizeHandlerDb, false);
+    window.removeEventListener('keyup', () => {});
+    window.removeEventListener('blur', () => {});
+    window.removeEventListener('mousedown', mouseDownHandler);
+    window.removeEventListener('mouseup', mouseUpHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
+    window.removeEventListener('resize', resizeHandlerDb);
+    window.removeEventListener('orientationchange', resizeHandlerDb);
 
-    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
+    rootElement.removeEventListener('scroll', mouseScrollHandler);
 
-    canvas.removeEventListener('contextmenu', contextmenuHandler, false);
-    canvas.removeEventListener('click', mouseClickHandler, false);
-    canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
-    canvas.removeEventListener('wheel', wheelHandler, false);
+    canvas.removeEventListener('contextmenu', contextmenuHandler);
+    canvas.removeEventListener('click', mouseClickHandler);
+    canvas.removeEventListener('dblclick', mouseDblClickHandler);
+    canvas.removeEventListener('wheel', wheelHandler);
 
     renderer.destroy(true);
 
