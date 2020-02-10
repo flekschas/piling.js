@@ -185,6 +185,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacity: true,
+    pileBorderColorHover: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBorderColorHover(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBorderOpacityHover(opacity));
+        return actions;
+      }
+    },
+    pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -1892,6 +1902,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (state.piles !== newState.piles) {
       if (state.piles.length !== 0) {
         newState.piles.forEach((pile, id) => {
+          if (pile === state.piles[id]) return;
+
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatedPileItems.push(id);
@@ -2242,7 +2254,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           );
         }
       } else {
-        resetPileBorder();
         // We need to "untranslate" the position of the pile
         const [x, y] = translatePointFromScreen([pile.x, pile.y]);
         store.dispatch(
@@ -2260,32 +2271,34 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!hit) {
       normalPiles.addChild(pileGfx);
     }
+
+    previouslyHoveredPiles = [];
   };
 
-  let oldResult = [];
-  let newResult = [];
+  let previouslyHoveredPiles = [];
 
-  const handleHighlightPile = pileId => {
+  const highlightHoveringPiles = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
-    oldResult = [...newResult];
-    newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
+    const currentlyHoveredPiles = searchIndex.search(
+      pileInstances.get(pileId).calcBBox()
+    );
 
-    if (oldResult !== []) {
-      oldResult.forEach(collidePile => {
-        if (pileInstances.get(collidePile.id)) {
-          const pile = pileInstances.get(collidePile.id);
-          pile.blur();
-        }
+    previouslyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
+        pile.blur();
       });
-    }
 
-    newResult.forEach(collidePile => {
-      if (pileInstances.get(collidePile.id)) {
-        const pile = pileInstances.get(collidePile.id);
+    currentlyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
         pile.hover();
-      }
-    });
+      });
+
+    previouslyHoveredPiles = [...currentlyHoveredPiles];
   };
 
   const handleDragStartPile = ({ pileId, event }) => {
@@ -2306,7 +2319,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.setMagnifiedPiles([]));
 
     activePile.addChild(pileInstances.get(pileId).graphics);
-    handleHighlightPile(pileId);
+    highlightHoveringPiles(pileId);
+  };
+
+  const handleDragMovePile = ({ pileId }) => {
+    highlightHoveringPiles(pileId);
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -2738,6 +2755,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
     pubSub.subscribe('pileDragStart', handleDragStartPile);
+    pubSub.subscribe('pileDragMove', handleDragMovePile);
     pubSub.subscribe('pileDragEnd', handleDragEndPile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
