@@ -2778,8 +2778,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.addEventListener('orientationchange', resizeHandlerDb, false);
 
     canvas.addEventListener('contextmenu', contextmenuHandler, false);
-    canvas.addEventListener('mouseenter', () => {}, false);
-    canvas.addEventListener('mouseleave', () => {}, false);
     canvas.addEventListener('click', mouseClickHandler, false);
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
@@ -2820,8 +2818,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rootElement.removeEventListener('scroll', mouseScrollHandler, false);
 
     canvas.removeEventListener('contextmenu', contextmenuHandler, false);
-    canvas.removeEventListener('mouseenter', () => {}, false);
-    canvas.removeEventListener('mouseleave', () => {}, false);
     canvas.removeEventListener('click', mouseClickHandler, false);
     canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
     canvas.removeEventListener('wheel', wheelHandler, false);
