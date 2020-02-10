@@ -123,18 +123,51 @@ const createPile = (
 
   let borderSizeBase = 0;
 
-  const drawBorder = (size = borderSizeBase, currentMode = mode) => {
-    borderGraphics.clear();
+  const setBorderSize = newBorderSize => {
+    borderSizeBase = +newBorderSize;
 
-    if (!size) return;
+    if (getCover()) {
+      // Wait until the cover is rendered
+      getCover().then(() => {
+        drawBorder();
+      });
+    } else {
+      drawBorder();
+    }
+  };
+
+  const getBorderSize = () => {
+    switch (mode) {
+      case MODE_HOVER:
+      case MODE_FOCUS:
+        return borderSizeBase || 1;
+
+      case MODE_ACTIVE:
+        return borderSizeBase || 2;
+
+      case MODE_NORMAL:
+      default:
+        return borderSizeBase;
+    }
+  };
+
+  const drawBorder = () => {
+    const size = getBorderSize();
+
+    if (!size) {
+      borderGraphics.clear();
+      return;
+    }
 
     if (isPositioning || isScaling) {
-      // eslint-disable-next-line no-use-before-define
+      const currentMode = mode;
       postPilePositionAnimation.set('drawBorder', () => {
         drawBorder(size, currentMode);
       });
       return;
     }
+
+    borderGraphics.clear();
 
     const borderBounds = borderGraphics.getBounds();
     const contentBounds = contentGraphics.getBounds();
@@ -172,18 +205,6 @@ const createPile = (
     render();
   };
 
-  const getBorderSize = () => borderSizeBase;
-  const setBorderSize = newBorderSize => {
-    borderSizeBase = +newBorderSize;
-
-    if (getCover()) {
-      // Wait until the cover is rendered
-      getCover().then(() => {
-        drawBorder();
-      });
-    }
-  };
-
   // eslint-disable-next-line consistent-return
   const borderSize = newBorderSize => {
     if (Number.isNaN(+newBorderSize)) return getBorderSize();
@@ -199,19 +220,19 @@ const createPile = (
   const hover = () => {
     if (mode === MODE_HOVER) return;
     mode = MODE_HOVER;
-    drawBorder(borderSizeBase || 1);
+    drawBorder();
   };
 
   const focus = () => {
     if (mode === MODE_FOCUS) return;
     mode = MODE_FOCUS;
-    drawBorder(borderSizeBase || 2);
+    drawBorder();
   };
 
   const active = () => {
     if (mode === MODE_ACTIVE) return;
     mode = MODE_ACTIVE;
-    drawBorder(borderSizeBase || 3);
+    drawBorder();
   };
 
   const onPointerDown = () => {
@@ -324,7 +345,7 @@ const createPile = (
       if (isTempDepiled) {
         active();
       } else {
-        focus();
+        hover();
       }
 
       render();
@@ -449,6 +470,7 @@ const createPile = (
         itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
+          drawBorder();
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -637,6 +659,7 @@ const createPile = (
       },
       onDone: () => {
         isScaling = false;
+        drawBorder();
         postPilePositionAnimation.forEach(fn => {
           fn();
         });
