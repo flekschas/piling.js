@@ -2300,30 +2300,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let oldResult = [];
-  let newResult = [];
+  let previouslyHoveredPiles = [];
 
-  const handleHighlightPile = pileId => {
+  const highlightHoveringPiles = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
-    oldResult = [...newResult];
-    newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
+    const currentlyHoveredPiles = searchIndex.search(
+      pileInstances.get(pileId).calcBBox()
+    );
 
-    if (oldResult !== []) {
-      oldResult.forEach(collidePile => {
-        if (pileInstances.get(collidePile.id)) {
-          const pile = pileInstances.get(collidePile.id);
-          pile.blur();
-        }
+    previouslyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
+        pile.blur();
       });
-    }
 
-    newResult.forEach(collidePile => {
-      if (pileInstances.get(collidePile.id)) {
-        const pile = pileInstances.get(collidePile.id);
+    currentlyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
         pile.hover();
-      }
-    });
+      });
+
+    previouslyHoveredPiles = [...currentlyHoveredPiles];
   };
 
   const handleDragStartPile = ({ pileId, event }) => {
@@ -2344,7 +2344,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.setMagnifiedPiles([]));
 
     activePile.addChild(pileInstances.get(pileId).graphics);
-    handleHighlightPile(pileId);
+    highlightHoveringPiles(pileId);
   };
 
   const hideContextMenu = contextMenuElement => {
