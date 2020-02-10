@@ -252,6 +252,8 @@ const createLasso = ({
     isLasso = false;
     const lassoPolygon = [...lassoPosFlat];
 
+    extendDb.cancel();
+
     clear();
 
     return lassoPolygon;
