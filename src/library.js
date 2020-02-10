@@ -1255,6 +1255,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
 
     const srcPile = pileInstances.get(srcPileId);
+    srcPile.blur();
     srcPile.drawBorder();
 
     itemIds.forEach((itemId, index) => {
@@ -1374,6 +1375,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     store.dispatch(createAction.depilePiles([depiledPile]));
+    blurPrevHoveredPiles();
 
     if (!store.getState().arrangementType) {
       animateDepile(pileId, items);
@@ -2335,11 +2337,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!hit) {
       normalPiles.addChild(pileGfx);
     }
-
-    previouslyHoveredPiles = [];
   };
 
   let previouslyHoveredPiles = [];
+
+  const blurPrevHoveredPiles = () => {
+    previouslyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
+        pile.blur();
+      });
+
+    previouslyHoveredPiles = [];
+  };
 
   const highlightHoveringPiles = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
@@ -2348,12 +2359,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.get(pileId).calcBBox()
     );
 
-    previouslyHoveredPiles
-      .map(pile => pileInstances.get(pile.id))
-      .filter(identity)
-      .forEach(pile => {
-        pile.blur();
-      });
+    blurPrevHoveredPiles();
 
     currentlyHoveredPiles
       .map(pile => pileInstances.get(pile.id))
