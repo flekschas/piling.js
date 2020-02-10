@@ -65,6 +65,7 @@
   "dependencies": {
     "@flekschas/utils": "^0.5.0",
     "camera-2d-simple": "^2.0.1",
+    "d3": "^5.15.0",
     "deep-equal": "^1.1.0",
     "dom-2d-camera": "^1.0.0-rc.6",
     "gl-matrix": "^3.1.0",

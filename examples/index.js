@@ -1,13 +1,16 @@
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
+import createSplomPiles from './sploms';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
+const splomEl = document.getElementById('splom');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
+const splomCreditEl = document.getElementById('splom-credit');
 const optionsEl = document.getElementById('options');
 const optionsTogglerEl = document.getElementById('options-toggler');
 const undoButton = document.getElementById('undo');
@@ -56,6 +59,8 @@ const createPiles = async example => {
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'none';
       svgCreditEl.style.display = 'none';
+      splomEl.style.display = 'none';
+      splomCreditEl.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -70,6 +75,8 @@ const createPiles = async example => {
       photosCreditEl.style.display = 'none';
       svgEl.style.display = 'none';
       svgCreditEl.style.display = 'none';
+      splomEl.style.display = 'none';
+      splomCreditEl.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -84,10 +91,28 @@ const createPiles = async example => {
       photosCreditEl.style.display = 'none';
       matricesEl.style.display = 'none';
       matricesCreditEl.style.display = 'none';
+      splomEl.style.display = 'none';
+      splomCreditEl.style.display = 'none';
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
       piling = await createSvgLinesPiles(svgEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
+    case 'splom':
+      if (piling) piling.destroy();
+      photosEl.style.display = 'none';
+      photosCreditEl.style.display = 'none';
+      matricesEl.style.display = 'none';
+      matricesCreditEl.style.display = 'none';
+      svgEl.style.display = 'none';
+      svgCreditEl.style.display = 'none';
+      splomEl.style.display = 'block';
+      splomCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      piling = await createSplomPiles(splomEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -125,6 +150,10 @@ switch (example) {
 
   case 'lines':
     exampleEl.selectedIndex = 2;
+    break;
+
+  case 'splom':
+    exampleEl.selectedIndex = 3;
     break;
 
   default:
