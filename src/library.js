@@ -2243,6 +2243,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const animateDropMerge = (sourcePileId, targetPileId) => {
+    const { piles } = store.getState();
+    const x = piles[targetPileId].x;
+    const y = piles[targetPileId].y;
+
+    const onDone = () => {
+      store.dispatch(
+        createAction.mergePiles([sourcePileId, targetPileId], true)
+      );
+    };
+
+    animateMovePileTo(pileInstances.get(sourcePileId), x, y, { onDone });
+  };
+
   let hit;
 
   const pileDragEndHandler = ({ pileId }) => {
@@ -2258,16 +2272,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        hit = !pileInstances.get(collidePiles[0].id).isTempDepiled;
+        const targetPileId = collidePiles[0].id;
+        hit = !pileInstances.get(targetPileId).isTempDepiled;
         if (hit) {
+          // TODO: The drop merge animation code should be unified
+
+          // This is needed for the drop merge animation of the pile class
           pile.items.forEach(pileItem => {
             pileItem.item.tmpAbsX = pileGfx.x;
             pileItem.item.tmpAbsY = pileGfx.y;
             pileItem.item.tmpRelScale = pile.scale;
           });
-          store.dispatch(
-            createAction.mergePiles([pileId, collidePiles[0].id], true)
-          );
+
+          if (store.getState().previewAggregator) {
+            animateDropMerge(pileId, targetPileId);
+          } else {
+            store.dispatch(
+              createAction.mergePiles([pileId, targetPileId], true)
+            );
+          }
         }
       } else {
         // We need to "untranslate" the position of the pile
