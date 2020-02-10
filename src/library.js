@@ -2347,6 +2347,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     highlightHoveringPiles(pileId);
   };
 
+  const handleDragMovePile = ({ pileId }) => {
+    highlightHoveringPiles(pileId);
+  };
+
   const hideContextMenu = contextMenuElement => {
     contextMenuElement.style.display = 'none';
     rootElement.removeChild(contextMenuElement);
@@ -2778,6 +2782,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.addEventListener('dblclick', mouseDblClickHandler, false);
 
     pubSub.subscribe('pileDragStart', handleDragStartPile);
+    pubSub.subscribe('pileDragMove', handleDragMovePile);
     pubSub.subscribe('pileDragEnd', handleDragEndPile);
     pubSub.subscribe('animate', handleAnimate);
     pubSub.subscribe('cancelAnimation', handleCancelAnimation);
