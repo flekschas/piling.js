@@ -2298,6 +2298,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!hit) {
       normalPiles.addChild(pileGfx);
     }
+
+    previouslyHoveredPiles = [];
   };
 
   let previouslyHoveredPiles = [];
