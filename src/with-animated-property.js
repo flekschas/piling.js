@@ -33,7 +33,7 @@ const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
         getter,
         setter
       });
-      pubSub.publish('animate', tweener);
+      pubSub.publish('startAnimation', tweener);
     }
   });
 };
