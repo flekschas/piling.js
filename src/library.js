@@ -1255,6 +1255,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
 
     const srcPile = pileInstances.get(srcPileId);
+    srcPile.blur();
     srcPile.drawBorder();
 
     itemIds.forEach((itemId, index) => {
