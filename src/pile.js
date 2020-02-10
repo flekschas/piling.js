@@ -345,7 +345,7 @@ const createPile = (
       if (isTempDepiled) {
         active();
       } else {
-        focus();
+        hover();
       }
 
       render();
