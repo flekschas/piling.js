@@ -5,9 +5,10 @@
 - Add `pileItemBrightness` to control the brightness of pile items
 - Add `pileItemTint` to control the [tint of pile items](https://pixijs.download/dev/docs/PIXI.Sprite.html#tint)
 - Add `randomOffsetRange` and `randomRotationRange` properties
+- Add item rotation animation
+- Add drop-merge animation when using a preview aggregator
 - Rename `itemOpacity` to `pileItemOpacity` for consistency
 - Change pile border to be scale invariant
-- Animate item rotation
 - Unmagnify magnified piles on drag start
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
