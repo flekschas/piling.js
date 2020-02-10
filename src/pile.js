@@ -430,7 +430,7 @@ const createPile = (
       getter: getOpacity,
       setter: setOpacity
     });
-    pubSub.publish('animate', opacityTweener);
+    pubSub.publish('startAnimation', opacityTweener);
   };
 
   // Map to store calls for after the pile position animation
@@ -668,7 +668,7 @@ const createPile = (
         onDone();
       }
     });
-    pubSub.publish('animate', scaleTweener);
+    pubSub.publish('startAnimation', scaleTweener);
   };
 
   const magnifyByWheel = wheelDelta => {
@@ -721,7 +721,7 @@ const createPile = (
         onDone();
       }
     });
-    pubSub.publish('animate', moveToTweener);
+    pubSub.publish('startAnimation', moveToTweener);
   };
 
   const moveTo = (x, y) => {
