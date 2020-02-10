@@ -1943,6 +1943,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (state.piles !== newState.piles) {
       if (state.piles.length !== 0) {
         newState.piles.forEach((pile, id) => {
+          if (pile === state.piles[id]) return;
+
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatedPileItems.push(id);
@@ -2279,7 +2281,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           );
         }
       } else {
-        resetPileBorder();
         // We need to "untranslate" the position of the pile
         const [x, y] = translatePointFromScreen([pile.x, pile.y]);
         store.dispatch(
