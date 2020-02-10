@@ -122,6 +122,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
+    dimensionalityReducer: true,
     easing: true,
     coverAggregator: true,
     items: {

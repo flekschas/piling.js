@@ -109,6 +109,10 @@ const [backgroundColor, setBackgroundColor] = setter(
 
 const [darkMode, setDarkMode] = setter('darkMode', DEFAULT_DARK_MODE);
 
+const [dimensionalityReducer, setDimensionalityReducer] = setter(
+  'dimensionalityReducer'
+);
+
 const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
@@ -451,6 +455,7 @@ const createStore = () => {
     coverAggregator,
     depiledPile,
     depileMethod,
+    dimensionalityReducer,
     easing,
     focusedPiles,
     gridColor,
@@ -548,6 +553,7 @@ export const createAction = {
   setCoverAggregator,
   setDepiledPile,
   setDepileMethod,
+  setDimensionalityReducer,
   setEasing,
   setFocusedPiles,
   setGridColor,
