@@ -2773,7 +2773,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const init = () => {
     // Setup event handler
-    window.addEventListener('blur', () => {});
     window.addEventListener('resize', resizeHandlerDb);
     window.addEventListener('orientationchange', resizeHandlerDb);
 
@@ -2807,8 +2806,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const destroy = () => {
     // Remove event listeners
-    window.removeEventListener('keyup', () => {});
-    window.removeEventListener('blur', () => {});
     window.removeEventListener('mousedown', mouseDownHandler);
     window.removeEventListener('mouseup', mouseUpHandler);
     window.removeEventListener('mousemove', mouseMoveHandler);
