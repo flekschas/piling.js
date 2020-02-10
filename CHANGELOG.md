@@ -1,7 +1,8 @@
 ### Next
 
 - Add pan&zoom interaction
-- Add a new method `arrangeBy()` for support automatic and data-driven pile arrangements
+- Add mouse-only lasso support to provide a unified interface for using the lasso in the scroll and pan&zoom mode
+- Add `arrangeBy()` for support automatic and data-driven pile arrangements
 - Add `pileItemBrightness` to control the brightness of pile items
 - Add `pileItemTint` to control the [tint of pile items](https://pixijs.download/dev/docs/PIXI.Sprite.html#tint)
 - Add `randomOffsetRange` and `randomRotationRange` properties
@@ -9,6 +10,7 @@
 - Add drop-merge animation when using a preview aggregator
 - Rename `itemOpacity` to `pileItemOpacity` for consistency
 - Change pile border to be scale invariant
+- Change lasso from <kbd>alt</kbd> to <kbd>shift<kbd> + mouse-down + mouse-move
 - Unmagnify magnified piles on drag start
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
