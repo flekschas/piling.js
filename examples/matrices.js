@@ -43,6 +43,7 @@ const createMatrixPiles = async element => {
   const pilingJs = createPilingJs(element);
 
   pilingJs.set({
+    darkMode: true,
     renderer: matrixRenderer,
     previewRenderer,
     aggregateRenderer: coverRenderer,
