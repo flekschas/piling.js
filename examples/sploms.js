@@ -32,7 +32,7 @@ const createSplomPiles = async element => {
   const zPos = d3
     .scaleOrdinal()
     .domain(splomData.map(d => d.Outcomes))
-    .range(d3.schemeCategory10);
+    .range(d3.schemeDark2);
 
   const createSplom = i => {
     const row = Math.floor(i / columns.length);
@@ -48,11 +48,11 @@ const createSplomPiles = async element => {
       .call(
         d3
           .axisBottom(xPos[col])
-          .ticks(6)
+          .ticks(3)
           .tickSize(size - padding)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', '#aaa'))
+      .call(g => g.selectAll('.tick line').attr('stroke', '#666'))
       .call(g => g.selectAll('.tick text').attr('fill', '#fff'));
 
     const yAxis = svg
@@ -63,11 +63,11 @@ const createSplomPiles = async element => {
       .call(
         d3
           .axisLeft(yPos[row])
-          .ticks(6)
+          .ticks(3)
           .tickSize(padding - size)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', '#aaa'))
+      .call(g => g.selectAll('.tick line').attr('stroke', '#666'))
       .call(g => g.selectAll('.tick text').attr('fill', '#fff'));
 
     const cell = svg.append('g');
@@ -117,7 +117,8 @@ const createSplomPiles = async element => {
   const piling = createPilingJs(element, {
     renderer: svgRenderer,
     items: data,
-    columns: columns.length
+    columns: columns.length,
+    pileItemAlignment: 'overlap'
   });
 
   return piling;
