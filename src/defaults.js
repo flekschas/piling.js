@@ -6,6 +6,8 @@ export const CAMERA_VIEW = new Float32Array([
   0, 0, 0, 1
 ]);
 
+export const CSS_EASING_CUBIC_IN_OUT = 'cubic-bezier(0.645, 0.045, 0.355, 1)';
+
 export const DEFAULT_DARK_MODE = false;
 
 export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
@@ -16,6 +18,8 @@ export const EVENT_LISTENER_PASSIVE = { passive: true };
 
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
+
+export const DEFAULT_HALT_BACKGROUND_OPACITY = 0.85;
 
 export const DEFAULT_LASSO_FILL_COLOR = 0xffffff;
 export const DEFAULT_LASSO_FILL_OPACITY = 0.15;

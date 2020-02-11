@@ -7,6 +7,7 @@ import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
 import {
+  array2dTranspose,
   capitalize,
   debounce,
   deepClone,
@@ -55,6 +56,7 @@ import createGrid from './grid';
 import createItem from './item';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
+import createHalt from './halt';
 import createLasso from './lasso';
 
 import { version } from '../package.json';
@@ -152,6 +154,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     gridOpacity: true,
+    haltBackgroundOpacity: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -317,6 +320,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
+
+  const halt = createHalt();
 
   let isMouseDown = false;
   let isLasso = false;
@@ -559,6 +564,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (showGrid) {
       drawGrid();
     }
+  };
+
+  const updateHalt = () => {
+    const { darkMode, haltBackgroundOpacity } = store.getState();
+
+    halt.set({
+      backgroundOpacity: haltBackgroundOpacity,
+      darkMode
+    });
   };
 
   const updateLasso = () => {
@@ -1815,17 +1829,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     aggregatedPileMaxValues.splice(arrangementObjective.length);
   };
 
-  const updateArrangement1dOrderer = pileIds => {
-    updateAggregatedPileValues(pileIds);
-  };
-
   let arrangement2dScales = [];
-  const updateArrangement2dScales = pileIds => {
+  const updateArrangement2dScales = () => {
     const { arrangementObjective } = store.getState();
     const { width, height } = canvas.getBoundingClientRect();
     const rangeMax = [width, height];
-
-    updateAggregatedPileValues(pileIds);
 
     arrangement2dScales = arrangementObjective.map((objective, i) => {
       const currentScale = arrangement2dScales[i];
@@ -1855,16 +1863,38 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const updateArrangementMdReducer = async () => {
+    const { dimensionalityReducer } = store.getState();
+
+    if (!dimensionalityReducer) {
+      console.warn(
+        'No dimensionality reducer provided. Unable to arrange piles by multiple dimensions.'
+      );
+      return;
+    }
+
+    halt.open();
+
+    // Construct the multidimensional data
+    const data = array2dTranspose(aggregatedPileValues);
+
+    await dimensionalityReducer.fit(data);
+
+    halt.close();
+  };
+
   const updateArragnementByData = pileIds => {
     const { arrangementObjective } = store.getState();
 
+    updateAggregatedPileValues(pileIds);
+
     switch (arrangementObjective.length) {
       case 0:
-        console.warn('No arrangement objectives found!');
+        console.error('No arrangement objectives found!');
         break;
 
       case 1:
-        updateArrangement1dOrderer(pileIds);
+        // We only need to update the aggregated values for ordering
         break;
 
       case 2:
@@ -1872,9 +1902,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
 
       default:
-        console.warn(
-          'Multi-dimensional arrangement is not yet available. Will fallback to a 2D scatter plot of the first 2 objectives.'
-        );
+        updateArrangementMdReducer();
         break;
     }
   };
@@ -2102,6 +2130,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.navigationMode !== newState.navigationMode) {
       stateUpdates.add('navigation');
+    }
+
+    if (
+      state.darkMode !== newState.darkMode ||
+      state.haltBackgroundOpacity !== newState.haltBackgroundOpacity
+    ) {
+      updateHalt();
     }
 
     if (
@@ -2829,6 +2864,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
     rootElement.appendChild(lasso.startIndicator);
+    rootElement.appendChild(halt.element);
 
     rootElement.style.overflowX = 'hidden';
     canvas.style.position = 'sticky';

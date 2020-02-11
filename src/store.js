@@ -7,6 +7,7 @@ import createOrderer from './orderer';
 
 import {
   DEFAULT_DARK_MODE,
+  DEFAULT_HALT_BACKGROUND_OPACITY,
   DEFAULT_LASSO_FILL_COLOR,
   DEFAULT_LASSO_FILL_OPACITY,
   DEFAULT_LASSO_SHOW_START_INDICATOR,
@@ -118,6 +119,11 @@ const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
 
 const [showGrid, setShowGrid] = setter('showGrid', false);
+
+const [haltBackgroundOpacity, setHaltBackgroundOpacity] = setter(
+  'haltBackgroundOpacity',
+  DEFAULT_HALT_BACKGROUND_OPACITY
+);
 
 const [lassoFillColor, setLassoFillColor] = setter(
   'lassoFillColor',
@@ -461,6 +467,7 @@ const createStore = () => {
     gridColor,
     gridOpacity,
     darkMode,
+    haltBackgroundOpacity,
     itemRenderer,
     items,
     itemSize,
@@ -559,6 +566,7 @@ export const createAction = {
   setGridColor,
   setGridOpacity,
   setDarkMode,
+  setHaltBackgroundOpacity,
   setItemRenderer,
   setItems,
   setItemSize,
