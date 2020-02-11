@@ -7,7 +7,6 @@ import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
 import {
-  array2dTranspose,
   capitalize,
   debounce,
   deepClone,
@@ -98,6 +97,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let isInitialPositioning = true;
   let isPanZoom = null;
   let isPanZoomed = false;
+
+  let arranging = Promise.resolve();
 
   const root = new PIXI.Container();
   root.interactive = true;
@@ -814,7 +815,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
-    const { arrangementObjective } = store.getState();
+    const { arrangementObjective, dimensionalityReducer } = store.getState();
 
     switch (arrangementObjective.length) {
       case 0:
@@ -832,12 +833,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       case 2:
         return arrangement2dScales.map((scale, i) =>
-          scale(aggregatedPileValues[i][pileId])
+          scale(aggregatedPileValues[pileId][i])
         );
 
       default:
-        return arrangement2dScales.map((scale, i) =>
-          scale(aggregatedPileValues[i][pileId])
+        return layout.uvToXy(
+          ...dimensionalityReducer.transform([aggregatedPileValues[pileId]])[0]
         );
     }
   };
@@ -897,7 +898,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return v.slice(0, 2);
   };
 
-  const positionPiles = (pileIds = [], { immideate = false } = {}) => {
+  const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
     const { items } = store.getState();
 
     if (!pileIds.length) {
@@ -914,6 +915,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .map(id => pileInstances.get(id));
 
     if (readyPiles.length) {
+      await arranging;
+
       readyPiles.forEach(pile => {
         const point = getPilePosition(pile.id, isInitialPositioning);
         lastPilePosition.set(pile.id, point);
@@ -1743,8 +1746,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // When all piles were updated we need to update the min-max value as well
       let shouldUpdateMinMax = allPiles;
 
-      const aggregatedValues = aggregatedPileValues[i] || [];
-
       // Even if not all piles were updated we might still need to update the
       // min-max values. This is the when the user piled-up piles with the
       // lowest or highest aggregated value
@@ -1772,18 +1773,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             newMax = true;
             shouldUpdateMinMax = true;
           }
-
-          return pileSortPosByAggregate[i][id];
         });
 
         minValue = newMin
-          ? aggregatedValues[pileSortPosByAggregate[i].indexOf(minPos)]
+          ? aggregatedPileValues[pileSortPosByAggregate[i].indexOf(minPos)][i]
           : minValue;
 
         maxValue = newMax
-          ? aggregatedValues[pileSortPosByAggregate[i].indexOf(maxPos)]
+          ? aggregatedPileValues[pileSortPosByAggregate[i].indexOf(maxPos)][i]
           : maxValue;
       }
+
+      const tmpAggregatedPileValues = [];
 
       pileIds.forEach(pileId => {
         const pileValues = piles[pileId].items.map((itemId, index) =>
@@ -1802,17 +1803,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           shouldUpdateMinMax = true;
         }
 
-        aggregatedValues[pileId] = Number.isNaN(aggregatedValue)
+        if (!aggregatedPileValues[pileId]) aggregatedPileValues[pileId] = [];
+
+        tmpAggregatedPileValues[pileId] = Number.isNaN(aggregatedValue)
           ? // This will ensure that the value is ignored during the sort process
             null
           : aggregatedValue;
+
+        aggregatedPileValues[pileId][i] = tmpAggregatedPileValues[pileId];
+
+        aggregatedPileValues[pileId].splice(arrangementObjective.length);
       });
 
       // Remove outdated values
-      aggregatedValues.splice(items.length);
+      aggregatedPileValues.splice(items.length);
 
-      aggregatedPileValues[i] = aggregatedValues;
-      pileSortPosByAggregate[i] = sortPos(aggregatedValues, {
+      pileSortPosByAggregate[i] = sortPos(tmpAggregatedPileValues, {
         ignoreNull: true
       });
 
@@ -1823,7 +1829,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     // Remove outdated values
-    aggregatedPileValues.splice(arrangementObjective.length);
     pileSortPosByAggregate.splice(arrangementObjective.length);
     aggregatedPileMinValues.splice(arrangementObjective.length);
     aggregatedPileMaxValues.splice(arrangementObjective.length);
@@ -1861,6 +1866,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .domain(domain)
         .range([meanItemSize / 2, rangeMax[i] - meanItemSize / 2]);
     });
+
+    return Promise.resolve();
   };
 
   const updateArrangementMdReducer = async () => {
@@ -1870,17 +1877,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       console.warn(
         'No dimensionality reducer provided. Unable to arrange piles by multiple dimensions.'
       );
-      return;
+      return Promise.resolve();
     }
 
     halt.open();
 
-    // Construct the multidimensional data
-    const data = array2dTranspose(aggregatedPileValues);
+    const fitting = dimensionalityReducer.fit(aggregatedPileValues);
 
-    await dimensionalityReducer.fit(data);
+    fitting.then(() => {
+      halt.close();
+    });
 
-    halt.close();
+    return fitting;
   };
 
   const updateArragnementByData = pileIds => {
@@ -1891,19 +1899,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (arrangementObjective.length) {
       case 0:
         console.error('No arrangement objectives found!');
-        break;
+        return Promise.resolve();
 
       case 1:
         // We only need to update the aggregated values for ordering
-        break;
+        return Promise.resolve();
 
       case 2:
-        updateArrangement2dScales(pileIds);
-        break;
+        return updateArrangement2dScales(pileIds);
 
       default:
-        updateArrangementMdReducer();
-        break;
+        return updateArrangementMdReducer();
     }
   };
 
@@ -1915,7 +1921,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : range(0, items.length);
 
     if (arrangementType === 'data') {
-      updateArragnementByData(pileIds);
+      arranging = updateArragnementByData(pileIds);
     }
 
     updateNavigationMode();
