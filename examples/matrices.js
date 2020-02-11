@@ -7,6 +7,7 @@ import {
   createMatrixCoverAggregator,
   createMatrixPreviewAggregator
 } from '../src/aggregator';
+import { createUmap } from '../src/dimensionality-reducer';
 
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
@@ -37,15 +38,23 @@ const createMatrixPiles = async element => {
     shape: [16, 16]
   });
 
-  const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
+  const matrixPreviewRenderer = createMatrixRenderer({
+    colorMap,
+    shape: [16, 1]
+  });
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
   const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
+
+  // Build-in dimensionality reducer is using UMAP
+  const umap = createUmap();
+
   const pilingJs = createPilingJs(element);
 
   pilingJs.set({
     darkMode: true,
+    dimensionalityReducer: umap,
     renderer: matrixRenderer,
-    previewRenderer,
+    previewRenderer: matrixPreviewRenderer,
     aggregateRenderer: coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
