@@ -119,6 +119,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const properties = {
     aggregateRenderer: true,
     arrangementObjective: true,
+    arrangementOptions: true,
     arrangementType: true,
     backgroundColor: true,
     darkMode: true,
@@ -814,8 +815,41 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const getPilePositionBy1dOrdering = (pileId, pileWidth, pileHeight) => {
+    return layout.idxToXy(
+      pileSortPosByAggregate[0][pileId],
+      pileWidth,
+      pileHeight
+    );
+  };
+
+  const getPilePositionBy2dScales = pileId => {
+    return arrangement2dScales.map((scale, i) =>
+      scale(aggregatedPileValues[pileId][i])
+    );
+  };
+
+  const cachedMdPilePos = new Map();
+  const getPilePositionByMdTransform = pileId => {
+    const { dimensionalityReducer } = store.getState();
+
+    if (
+      cachedMdPilePos.has(pileId) &&
+      lastMdReducerRun === dimensionalityReducer.runs
+    )
+      return cachedMdPilePos.get(pileId);
+
+    const pilePos = layout.uvToXy(
+      ...dimensionalityReducer.transform([aggregatedPileValues[pileId]])[0]
+    );
+
+    cachedMdPilePos.set(pileId, pilePos);
+
+    return pilePos;
+  };
+
   const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
-    const { arrangementObjective, dimensionalityReducer } = store.getState();
+    const { arrangementObjective } = store.getState();
 
     switch (arrangementObjective.length) {
       case 0:
@@ -825,21 +859,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return [pileState.x, pileState.y];
 
       case 1:
-        return layout.idxToXy(
-          pileSortPosByAggregate[0][pileId],
-          pileWidth,
-          pileHeight
-        );
+        return getPilePositionBy1dOrdering(pileId, pileWidth, pileHeight);
 
       case 2:
-        return arrangement2dScales.map((scale, i) =>
-          scale(aggregatedPileValues[pileId][i])
-        );
+        return getPilePositionBy2dScales(pileId);
 
       default:
-        return layout.uvToXy(
-          ...dimensionalityReducer.transform([aggregatedPileValues[pileId]])[0]
-        );
+        return getPilePositionByMdTransform(pileId);
     }
   };
 
@@ -1079,6 +1105,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItems = (pileState, id) => {
+    cachedMdPilePos.delete(id);
+
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
       if (pileState.items.length === 0) {
@@ -1870,8 +1898,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.resolve();
   };
 
-  const updateArrangementMdReducer = async () => {
-    const { dimensionalityReducer } = store.getState();
+  let lastMdReducerRun = 0;
+  const updateArrangementMdReducer = async newObjectives => {
+    const {
+      arrangementObjective,
+      arrangementOptions,
+      dimensionalityReducer,
+      items
+    } = store.getState();
 
     if (!dimensionalityReducer) {
       console.warn(
@@ -1880,18 +1914,37 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return Promise.resolve();
     }
 
+    if (
+      dimensionalityReducer.runs &&
+      !newObjectives &&
+      !arrangementOptions.runDimReductionOnPiles
+    ) {
+      return Promise.resolve();
+    }
+
     halt.open();
 
-    const fitting = dimensionalityReducer.fit(aggregatedPileValues);
+    const data =
+      arrangementOptions.runDimReductionOnPiles === true
+        ? aggregatedPileValues
+        : items.map((item, itemId) =>
+            arrangementObjective.map(objective =>
+              objective.property(item, itemId, 0)
+            )
+          );
+
+    const fitting = dimensionalityReducer.fit(data);
+    cachedMdPilePos.clear();
 
     fitting.then(() => {
+      lastMdReducerRun = dimensionalityReducer.runs;
       halt.close();
     });
 
     return fitting;
   };
 
-  const updateArragnementByData = pileIds => {
+  const updateArragnementByData = (pileIds, newObjectives) => {
     const { arrangementObjective } = store.getState();
 
     updateAggregatedPileValues(pileIds);
@@ -1909,11 +1962,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return updateArrangement2dScales(pileIds);
 
       default:
-        return updateArrangementMdReducer();
+        return updateArrangementMdReducer(newObjectives);
     }
   };
 
-  const updateArrangement = updatedPileIds => {
+  const updateArrangement = (updatedPileIds, newObjectives) => {
     const { arrangementType, items } = store.getState();
 
     const pileIds = updatedPileIds.length
@@ -1921,7 +1974,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : range(0, items.length);
 
     if (arrangementType === 'data') {
-      arranging = updateArragnementByData(pileIds);
+      arranging = updateArragnementByData(pileIds, newObjectives);
     }
 
     updateNavigationMode();
@@ -2124,13 +2177,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.arrangementObjective !== newState.arrangementObjective ||
         (
           newState.arrangementType &&
-          (updatedItems.length || updatedPileItems.length)
+          (
+            (updatedItems.length || updatedPileItems.length) ||
+            (
+              newState.arrangementObjective.length > 2 &&
+              state.dimensionalityReducer !== newState.dimensionalityReducer
+            )
+          )
         )
       )
     ) {
       stateUpdates.add('layout');
       Promise.all(updatedItems).then(() => {
-        updateArrangement(updatedPileItems);
+        updateArrangement(
+          updatedPileItems,
+          state.arrangementObjective !== newState.arrangementObjective
+        );
       });
     }
 
