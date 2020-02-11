@@ -8,6 +8,7 @@
 - Add `randomOffsetRange` and `randomRotationRange` properties
 - Add item rotation animation
 - Add drop-merge animation when using a preview aggregator
+- Add support for specifying the `width` and `height` of the SVG image
 - Rename `itemOpacity` to `pileItemOpacity` for consistency
 - Change pile border to be scale invariant
 - Change lasso from <kbd>alt</kbd> to <kbd>shift<kbd> + mouse-down + mouse-move

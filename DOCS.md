@@ -535,16 +535,18 @@ const imageRenderer = createImageRenderer();
 
 ```javascript
 import { createSvgRenderer } from 'piling.js';
-const svgRenderer = createSvgRenderer(properties);
+const svgRenderer = createSvgRenderer(options);
 ```
 
 **Src/Data:** The SVG renderer can render SVG strings and SVG DOM elements.
 
-**Properties** is an object of key-value pairs. The list of all understood properties is given below.
+**Options** is an object of key-value pairs with support for the following properties:
 
-| Name       | Type   | Default | Constraints                     |
-| ---------- | ------ | ------- | ------------------------------- |
-| background | string |         | A valid CSS background property |
+| Name       | Type   | Default | Constraints                             |
+| ---------- | ------ | ------- | --------------------------------------- |
+| width      | int    |         | Width of the rendered texture in pixel  |
+| height     | int    |         | Height of the rendered texture in pixel |
+| background | string |         | A valid CSS background property         |
 
 ### Matrix renderer
 
