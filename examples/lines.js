@@ -18,7 +18,7 @@ const createRandomLinePlot = () => {
 };
 
 const createSvgLinesPiles = element => {
-  const svgRenderer = createSvgRenderer();
+  const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
   const data = new Array(100)
     .fill(0)
