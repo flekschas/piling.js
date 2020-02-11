@@ -1,7 +1,6 @@
 import {
   assign,
   pipe,
-  removeAllChildren,
   withConstructor,
   withReadOnlyProperty,
   withStaticProperty
@@ -103,7 +102,6 @@ const createHalt = ({
   const animationEndHandler = () => {
     rootElement.style.zIndex = -1;
     rootElement.style.height = '0px';
-    removeAllChildren(icon);
     paragraph.textContent = null;
   };
 
