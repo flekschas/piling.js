@@ -14,7 +14,8 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
   const xScale = scaleLinear();
   const yScale = scaleLinear();
 
-  let fitting = Promise.reject();
+  let runs = 0;
+  let fitting;
 
   let minX = Infinity;
   let minY = Infinity;
@@ -44,7 +45,6 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
     assign(self, {
       // Same as SciKit Learn's `fit(X, y)`
       fit(data, labels = null) {
-        fitting = true;
         minX = Infinity;
         minY = Infinity;
         maxX = -Infinity;
@@ -53,7 +53,10 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
         if (labels !== null) umap.setSupervisedProjection(labels);
 
         fitting = umap.fitAsync(data);
-        fitting.then(defineScales);
+        fitting.then(embedding => {
+          defineScales(embedding);
+          runs++;
+        });
 
         return fitting;
       },
@@ -64,8 +67,8 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
     });
 
   return pipe(
-    withReadOnlyProperty('bounds', () => [minX, minY, maxX, maxY]),
     withReadOnlyProperty('fitting', () => fitting),
+    withReadOnlyProperty('runs', () => runs),
     withPublicMethods(),
     withConstructor(createUmap)
   )({});
