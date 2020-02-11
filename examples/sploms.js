@@ -1,7 +1,7 @@
+import * as d3 from 'd3';
+
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
-
-const d3 = require('d3');
 
 const createSplomPiles = async element => {
   const svgRenderer = createSvgRenderer();
