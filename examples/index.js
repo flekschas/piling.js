@@ -2,11 +2,13 @@ import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createSplomPiles from './sploms';
+import createSploms from './splom-d3';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const splomEl = document.getElementById('splom');
+const splomD3El = document.getElementById('splom-d3');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
@@ -61,6 +63,7 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       splomEl.style.display = 'none';
       splomCreditEl.style.display = 'none';
+      splomD3El.style.display = 'none';
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -77,6 +80,7 @@ const createPiles = async example => {
       svgCreditEl.style.display = 'none';
       splomEl.style.display = 'none';
       splomCreditEl.style.display = 'none';
+      splomD3El.style.display = 'none';
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -93,6 +97,7 @@ const createPiles = async example => {
       matricesCreditEl.style.display = 'none';
       splomEl.style.display = 'none';
       splomCreditEl.style.display = 'none';
+      splomD3El.style.display = 'none';
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -109,12 +114,28 @@ const createPiles = async example => {
       matricesCreditEl.style.display = 'none';
       svgEl.style.display = 'none';
       svgCreditEl.style.display = 'none';
+      splomD3El.style.display = 'none';
       splomEl.style.display = 'block';
       splomCreditEl.style.display = 'block';
       undoButton.disabled = true;
       piling = await createSplomPiles(splomEl);
       history = [];
       piling.subscribe('update', updateHandler);
+      break;
+
+    case 'splom-d3':
+      if (piling) piling.destroy();
+      photosEl.style.display = 'none';
+      photosCreditEl.style.display = 'none';
+      matricesEl.style.display = 'none';
+      matricesCreditEl.style.display = 'none';
+      svgEl.style.display = 'none';
+      svgCreditEl.style.display = 'none';
+      splomEl.style.display = 'none';
+      splomCreditEl.style.display = 'none';
+      splomD3El.style.display = 'block';
+      undoButton.disabled = true;
+      createSploms(splomD3El);
       break;
 
     default:
@@ -154,6 +175,10 @@ switch (example) {
 
   case 'splom':
     exampleEl.selectedIndex = 3;
+    break;
+
+  case 'splom-d3':
+    exampleEl.selectedIndex = 4;
     break;
 
   default:
