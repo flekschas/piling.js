@@ -342,20 +342,20 @@ The list of all understood properties is given below.
 
   The function should return a value within `[0, 1]`.
 
-#### `piling.arrangeBy(type, objective)`
+#### `piling.arrangeBy(type, objective, options)`
 
 Position piles with user-specified arrangement method.
 
-`type` and the corresponding `objective` can be one of the following:
+`type`, `objective`, and `options` can be one of the following combinations:
 
-| Type      | Objective                                                                             |
-| --------- | ------------------------------------------------------------------------------------- |
-| `null`    | `undefined` _(manual positioning)_                                                    |
-| `'index'` | `function` that returns the linear index                                              |
-| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |
-| `'xy'`    | `function` that returns the final xy position                                         |
-| `'uv'`    | `function` that returns the final uv position of the canvas                           |
-| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      |
+| Type      | Objective                                                                             | Options  |
+| --------- | ------------------------------------------------------------------------------------- | -------- |
+| `null`    | `undefined` _(manual positioning)_                                                    |          |
+| `'index'` | `function` that returns the linear index                                              |          |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |          |
+| `'xy'`    | `function` that returns the final xy position                                         |          |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           |          |
+| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      | `object` |
 
 **Notes and examples:**
 
@@ -368,7 +368,7 @@ Position piles with user-specified arrangement method.
   }
   ```
 
-- With `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
+- When `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
 
   - The `objective` object can contain the following properties:
 
@@ -396,7 +396,7 @@ Position piles with user-specified arrangement method.
 
     - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
 
-    - `inverse` [type `boolean` default: `false`]: If `true` the scale will be inverted
+    - `inverse` [type `boolean` default: `false`]: If `true`, the scale will be inverted
 
   - For convenience the following examples are all equivalent:
 
@@ -422,13 +422,46 @@ Position piles with user-specified arrangement method.
       piling.arrangeBy('data', ['a', 'b', 'c', ...]);
     ```
 
+- When `type === 'data'`, it is possible to further customize the behavior with the following `options`:
+
+  - `forceDimReduction` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is always applied.
+
+    ```javascript
+    // This can be useful when the property itself is multidimensional. E.g.:
+    const items = [
+      {
+        src: [0, 1, 1, 13.37, 9, ...]
+      },
+      ...
+    ]
+    piling.set('items', items);
+    piling.arrangeBy('data', 'src', { forceDimReduction: true });
+    ```
+
+  - `runDimReductionOnPiles` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is run on the current grouping status and updated everytime a pile changes.
+
+    By default this is deactivated because dimensionality reduction transformations are often not deterministic and feeding even the same data to the algorithm can lead to vastly different layout. Therefore, by default we run the dimensionality reduction on the individual items and given that learned model position the piles. This allows us to keep the layout stable even as the piles change. If you want more fine-grain control over transformation updates we suggest running a [`dimensionalityReducer`]() separately and using it's transform function in combination with `piling.arrangeBy('uv')` and [`piling.halt()`]()/[`piling.resume()`]().
+
+    ```javascript
+    // Truning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
+    piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
+    ```
+
 #### `piling.destroy()`
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
 
+#### `piling.halt({ text, spinner = true })`
+
+This will display a popup across the entire piling.js element to temporarily block all interactions. This is useful if you are doing some asynchronous job outside piling and want to prevent user interactions.
+
 #### `piling.render()`
 
 Render the root PIXI container.
+
+#### `piling.resume()`
+
+This will the halting popup.
 
 #### `piling.subscribe(eventName, eventHandler)`
 
@@ -734,6 +767,64 @@ Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 ```javascript
 piling.set('coverAggregator', coverAggregator);
 piling.set('previewAggregator', previewAggregator);
+```
+
+# Dimensionality Reducers
+
+A dimensionality reducer is a transformation function that that reduced multi-dimensional input data down to two normalized dimension.
+
+A dimensionality reducer should be a function that takes as input a 2D nested numerical array, and output promises which resolve to an array of aggregated source value that can be passed to the [renderers](#renderers).
+
+## Predefined dimensionality reducers
+
+We currently a provide predefined dimensionality reducers for [UMAP](https://github.com/PAIR-code/umap-js).
+
+### UMAP dimensionality reducer
+
+The 1D preview aggregator for each matrix on a pile, it will be shown on top of the pile cover.
+
+**Constructor:**
+
+```javascript
+import { createUmap } from 'piling.js';
+const umap = createUmap(config, options);
+```
+
+- **`config`** is an `object` that lets you [customize UMAP's parameters](https://github.com/PAIR-code/umap-js#parameters).
+- **`options`** is an `object` for customizing the output transformation with the follwing properties:
+
+| Name    | Type  | Default | Constraints               |
+| ------- | ----- | ------- | ------------------------- |
+| padding | float | `0.1`   | Must be greater than zero |
+
+## Define your own dimensionality reducer
+
+If you want to define your own dimensionality reducer, you can do something as follows:
+
+```javascript
+// Factory function
+const createCustomAggregator = () => {
+  // Your code here
+
+  return {
+    fit(data) {
+      // The following function must be asynchronous and return a promise that
+      // resolves once the fitting is done.
+      return asyncFitFunction(data);
+    },
+    transform(data) {
+      return getTransformedData(data);
+    }
+  };
+};
+```
+
+## Add dimensionality reducers to piling.js library
+
+Call [set](#pilingsetproperty-value) method to add aggregators to the library.
+
+```javascript
+piling.set('dimensionalityReducer', umap);
 ```
 
 # Interactions
