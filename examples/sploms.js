@@ -4,7 +4,7 @@ import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
 
 const createSplomPiles = async element => {
-  const svgRenderer = createSvgRenderer();
+  const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
   const splomData = d3.csvParse(
     await fetch('data/diabetes.csv').then(body => body.text()),
@@ -68,7 +68,14 @@ const createSplomPiles = async element => {
       )
       .call(g => g.select('.domain').remove())
       .call(g => g.selectAll('.tick line').attr('stroke', '#666'))
-      .call(g => g.selectAll('.tick text').attr('fill', '#fff'));
+      .call(g =>
+        g
+          .selectAll('.tick text')
+          .attr('fill', '#fff')
+          .attr('writing-mode', 'vertical-lr')
+          .attr('x', -6)
+          .attr('dy', 8)
+      );
 
     const cell = svg.append('g');
 
@@ -92,8 +99,6 @@ const createSplomPiles = async element => {
       .attr('r', 2.5)
       .attr('fill-opacity', 0.7)
       .attr('fill', d => zPos(d.Outcome));
-    // .call(circle => circle.append("title")
-    //   .text(d => [columns[col] + ': ' + d[columns[col]], columns[row] + ': ' + d[columns[row]]].join("\n")));
 
     if (row === col) {
       svg
