@@ -734,6 +734,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemRenderer,
       previewBackgroundColor,
       previewBackgroundOpacity,
+      pileBackgroundColor,
+      pileBackgroundOpacity,
       pileItemAlignment,
       pileItemRotation,
       previewAggregator,
@@ -759,9 +761,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
+    const backgroundColor =
+      previewBackgroundColor === 'inherit'
+        ? pileBackgroundColor
+        : previewBackgroundColor;
+    const backgroundOpacity =
+      previewBackgroundOpacity === 'inherit'
+        ? pileBackgroundOpacity
+        : previewBackgroundOpacity;
+
     const previewOptions = {
-      backgroundColor: previewBackgroundColor,
-      backgroundOpacity: previewBackgroundOpacity,
+      backgroundColor,
+      backgroundOpacity,
       padding: previewSpacing
     };
     const createPreview = texture =>

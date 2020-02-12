@@ -231,12 +231,12 @@ const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',
-  0x000000
+  'inherit'
 );
 
 const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
   'previewBackgroundOpacity',
-  0.85
+  'inherit'
 );
 
 const [previewBorderColor, setPreviewBorderColor] = setter(

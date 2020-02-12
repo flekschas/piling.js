@@ -1,5 +1,6 @@
 ### Next
 
+- Add `previewBorderColor` and `previewBorderOpacity`. Set the default value of `previewBackgroundColor` and `previewBackgroundOpacity` to `'inherit'`
 - Add pan&zoom interaction
 - Add mouse-only lasso support to provide a unified interface for using the lasso in the scroll and pan&zoom mode
 - Add `arrangeBy()` for support automatic and data-driven pile arrangements

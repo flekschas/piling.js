@@ -110,12 +110,19 @@ const createPile = (
       if (hasPreviewItem(item)) {
         const {
           previewBackgroundColor,
-          previewBackgroundOpacity
+          previewBackgroundOpacity,
+          pileBackgroundColor,
+          pileBackgroundOpacity
         } = store.getState();
-        item.image.drawBackground(
-          previewBackgroundColor,
-          previewBackgroundOpacity
-        );
+        const backgroundColor =
+          previewBackgroundColor === 'inherit'
+            ? pileBackgroundColor
+            : previewBackgroundColor;
+        const backgroundOpacity =
+          previewBackgroundOpacity === 'inherit'
+            ? pileBackgroundOpacity
+            : previewBackgroundOpacity;
+        item.image.drawBackground(backgroundColor, backgroundOpacity);
       }
       render();
     }
