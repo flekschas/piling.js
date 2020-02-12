@@ -1,9 +1,4 @@
-import {
-  assign,
-  pipe,
-  withReadOnlyProperty,
-  withConstructor
-} from '@flekschas/utils';
+import { assign, pipe, withConstructor } from '@flekschas/utils';
 import { UMAP } from 'umap-js';
 
 import { scaleLinear } from './utils';
@@ -13,9 +8,6 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
 
   const xScale = scaleLinear();
   const yScale = scaleLinear();
-
-  let runs = 0;
-  let fitting;
 
   let minX = Infinity;
   let minY = Infinity;
@@ -52,13 +44,7 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
 
         if (labels !== null) umap.setSupervisedProjection(labels);
 
-        fitting = umap.fitAsync(data);
-        fitting.then(embedding => {
-          defineScales(embedding);
-          runs++;
-        });
-
-        return fitting;
+        return umap.fitAsync(data).then(defineScales);
       },
 
       transform(data) {
@@ -66,12 +52,7 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
       }
     });
 
-  return pipe(
-    withReadOnlyProperty('fitting', () => fitting),
-    withReadOnlyProperty('runs', () => runs),
-    withPublicMethods(),
-    withConstructor(createUmap)
-  )({});
+  return pipe(withPublicMethods(), withConstructor(createUmap))({});
 };
 
 export default createUmap;

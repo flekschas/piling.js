@@ -830,14 +830,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const cachedMdPilePos = new Map();
+  let cachedMdPilePosDimReducerRun = 0;
   const getPilePositionByMdTransform = pileId => {
     const { dimensionalityReducer } = store.getState();
 
     if (
       cachedMdPilePos.has(pileId) &&
-      lastMdReducerRun === dimensionalityReducer.runs
+      lastMdReducerRun === cachedMdPilePosDimReducerRun
     )
       return cachedMdPilePos.get(pileId);
+
+    cachedMdPilePosDimReducerRun = lastMdReducerRun;
 
     const pilePos = layout.uvToXy(
       ...dimensionalityReducer.transform([aggregatedPileValues[pileId]])[0]
@@ -1915,7 +1918,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      dimensionalityReducer.runs &&
+      lastMdReducerRun &&
       !newObjectives &&
       !arrangementOptions.runDimReductionOnPiles
     ) {
@@ -1937,7 +1940,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cachedMdPilePos.clear();
 
     fitting.then(() => {
-      lastMdReducerRun = dimensionalityReducer.runs;
+      lastMdReducerRun++;
       halt.close();
     });
 
@@ -2987,8 +2990,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     destroy,
     exportState,
     get,
+    halt: halt.open,
     importState,
     render: renderRaf,
+    resume: halt.close,
     set: setPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
