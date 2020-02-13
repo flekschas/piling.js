@@ -16,6 +16,7 @@
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
 - Disentangle the pile base scale and magnification
+- Simplify the SVG renderer
 
 ## v0.5.0
 
