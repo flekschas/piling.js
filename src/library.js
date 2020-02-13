@@ -2955,7 +2955,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     scrollContainer.appendChild(lasso.startIndicator);
 
     scrollContainer.style.position = 'absolute';
-    // scrollContainer.style.zIndex = -1;
+    scrollContainer.style.overflowX = 'hidden';
     scrollContainer.style.top = 0;
     scrollContainer.style.right = 0;
     scrollContainer.style.bottom = 0;
