@@ -412,7 +412,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const enableScrolling = () => {
-    if (isPanZoom === false) return;
+    if (isPanZoom === false) return false;
 
     disablePanZoom();
 
@@ -440,6 +440,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       EVENT_LISTENER_PASSIVE
     );
     canvas.addEventListener('wheel', wheelHandler, EVENT_LISTENER_ACTIVE);
+    return true;
   };
 
   const disableScrolling = () => {
@@ -456,7 +457,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const enablePanZoom = () => {
-    if (isPanZoom === true) return;
+    if (isPanZoom === true) return false;
 
     disableScrolling();
 
@@ -472,6 +473,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onWheel: wheelHandler
     });
     camera.set(mat4.clone(CAMERA_VIEW));
+
+    return true;
   };
 
   const disablePanZoom = () => {
@@ -1732,31 +1735,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       navigationMode
     } = store.getState();
 
+    let changed = false;
+
     switch (navigationMode) {
       case NAVIGATION_MODE_PAN_ZOOM:
-        enablePanZoom();
+        changed = enablePanZoom();
         break;
 
       case NAVIGATION_MODE_SCROLL:
-        enableScrolling();
+        changed = enableScrolling();
         break;
 
       case NAVIGATION_MODE_AUTO:
       default:
         switch (arrangementType) {
           case 'data':
-            if (arrangementObjective.length > 1) enablePanZoom();
-            else enableScrolling();
+            if (arrangementObjective.length > 1) changed = enablePanZoom();
+            else changed = enableScrolling();
             break;
 
           case 'xy':
           case 'uv':
-            enablePanZoom();
+            changed = enablePanZoom();
             break;
 
           case 'index':
           case 'ij':
-            enableScrolling();
+            changed = enableScrolling();
             break;
 
           default:
@@ -1765,9 +1770,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
     }
 
-    translatePiles();
-    positionPiles();
-    updateScrollEl();
+    if (changed) {
+      translatePiles();
+      positionPiles();
+      updateScrollEl();
+    }
   };
 
   const aggregatedPileValues = [];
