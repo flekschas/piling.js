@@ -55,7 +55,7 @@ import createGrid from './grid';
 import createItem from './item';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
-import createHalt from './halt';
+import createPopup from './popup';
 import createLasso from './lasso';
 
 import { version } from '../package.json';
@@ -69,6 +69,7 @@ const EXTRA_ROWS = 3;
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
+  const scrollEl = document.createElement('div');
   const canvas = document.createElement('canvas');
 
   const pubSub = createPubSub();
@@ -156,7 +157,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     gridOpacity: true,
-    haltBackgroundOpacity: true,
+    popupBackgroundOpacity: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -323,7 +324,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
 
-  const halt = createHalt();
+  const popup = createPopup();
 
   let isMouseDown = false;
   let isLasso = false;
@@ -402,14 +403,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let layout;
 
-  const updateScrollContainer = () => {
+  const updateScrollEl = () => {
     const canvasHeight = canvas.getBoundingClientRect().height;
     const finalHeight =
       Math.round(layout.rowHeight) * (layout.numRows + EXTRA_ROWS);
-    scrollContainer.style.height = `${Math.max(
-      0,
-      finalHeight - canvasHeight
-    )}px`;
+    scrollEl.style.height = `${Math.max(0, finalHeight - canvasHeight)}px`;
   };
 
   const enableScrolling = () => {
@@ -422,9 +420,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     translatePointFromScreen = identity;
 
     stage.y = 0;
-    rootElement.style.overflowY = 'auto';
-    rootElement.scrollTop = 0;
-    rootElement.addEventListener(
+    scrollContainer.style.overflowY = 'auto';
+    scrollContainer.scrollTop = 0;
+    scrollContainer.addEventListener(
       'scroll',
       mouseScrollHandler,
       EVENT_LISTENER_PASSIVE
@@ -447,9 +445,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (isPanZoom !== false) return;
 
     stage.y = 0;
-    rootElement.style.overflowY = 'hidden';
-    rootElement.scrollTop = 0;
-    rootElement.removeEventListener('scroll', mouseScrollHandler);
+    scrollContainer.style.overflowY = 'hidden';
+    scrollContainer.scrollTop = 0;
+    scrollContainer.removeEventListener('scroll', mouseScrollHandler);
     window.removeEventListener('mousedown', mouseDownHandler);
     window.removeEventListener('mouseup', mouseUpHandler);
     window.removeEventListener('mousemove', mouseMoveHandler);
@@ -484,7 +482,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const drawGrid = () => {
     const height =
-      scrollContainer.getBoundingClientRect().height +
+      scrollEl.getBoundingClientRect().height +
       canvas.getBoundingClientRect().height;
     const { width } = canvas.getBoundingClientRect();
 
@@ -532,7 +530,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight
     });
 
-    updateScrollContainer();
+    updateScrollEl();
   };
 
   const updateGrid = () => {
@@ -561,17 +559,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
-    updateScrollContainer();
+    updateScrollEl();
 
     if (showGrid) {
       drawGrid();
     }
   };
 
+  const halt = options => {
+    popup.open(options);
+
+    if (isPanZoom) camera.set({ isFixed: true });
+    else scrollContainer.style.overflowY = 'hidden';
+  };
+
+  const resume = () => {
+    popup.close();
+
+    if (isPanZoom) camera.set({ isFixed: false });
+    else scrollContainer.style.overflowY = 'auto';
+  };
+
   const updateHalt = () => {
     const { darkMode, haltBackgroundOpacity } = store.getState();
 
-    halt.set({
+    popup.set({
       backgroundOpacity: haltBackgroundOpacity,
       darkMode
     });
@@ -731,7 +743,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.get(focusedPile).focus();
     });
 
-    updateScrollContainer();
+    updateScrollEl();
     renderRaf();
   };
 
@@ -972,7 +984,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.movePiles(movingPiles));
 
     createRBush();
-    updateScrollContainer();
+    updateScrollEl();
     renderRaf();
   };
 
@@ -1284,7 +1296,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!depilePos) {
       depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
       layout.numRows += filterRowNum;
-      updateScrollContainer();
+      updateScrollEl();
     }
 
     return depilePos;
@@ -1750,7 +1762,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     translatePiles();
     positionPiles();
-    updateScrollContainer();
+    updateScrollEl();
   };
 
   const aggregatedPileValues = [];
@@ -1925,7 +1937,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return Promise.resolve();
     }
 
-    halt.open();
+    halt();
 
     const data =
       arrangementOptions.runDimReductionOnPiles === true
@@ -1941,7 +1953,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     fitting.then(() => {
       lastMdReducerRun++;
-      halt.close();
+      resume();
     });
 
     return fitting;
@@ -2691,7 +2703,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseScrollHandler = () => {
-    stage.y = -rootElement.scrollTop;
+    stage.y = -scrollContainer.scrollTop;
     renderRaf();
   };
 
@@ -2731,7 +2743,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (index === pileMovements.length - 1) {
             store.dispatch(createAction.movePiles(pileMovements));
             createRBush();
-            updateScrollContainer();
+            updateScrollEl();
             renderRaf();
           }
         }
@@ -2932,12 +2944,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('updatePileBounds', updatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
-    rootElement.appendChild(canvas);
-    rootElement.appendChild(scrollContainer);
-    rootElement.appendChild(lasso.startIndicator);
-    rootElement.appendChild(halt.element);
 
-    rootElement.style.overflowX = 'hidden';
+    rootElement.appendChild(scrollContainer);
+    rootElement.appendChild(popup.element);
+
+    rootElement.style.overflow = 'hidden';
+
+    scrollContainer.appendChild(canvas);
+    scrollContainer.appendChild(scrollEl);
+    scrollContainer.appendChild(lasso.startIndicator);
+
+    scrollContainer.style.position = 'absolute';
+    // scrollContainer.style.zIndex = -1;
+    scrollContainer.style.top = 0;
+    scrollContainer.style.right = 0;
+    scrollContainer.style.bottom = 0;
+    scrollContainer.style.left = 0;
+
     canvas.style.position = 'sticky';
     canvas.style.display = 'block';
     canvas.style.top = '0px';
@@ -2958,7 +2981,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     window.removeEventListener('resize', resizeHandlerDb);
     window.removeEventListener('orientationchange', resizeHandlerDb);
 
-    rootElement.removeEventListener('scroll', mouseScrollHandler);
+    scrollContainer.removeEventListener('scroll', mouseScrollHandler);
 
     canvas.removeEventListener('contextmenu', contextmenuHandler);
     canvas.removeEventListener('click', mouseClickHandler);
@@ -2973,7 +2996,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       storeUnsubscribor = undefined;
     }
 
-    rootElement.removeChild(scrollContainer);
+    rootElement.removeChild(scrollEl);
 
     pubSub.clear();
   };
@@ -2990,10 +3013,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     destroy,
     exportState,
     get,
-    halt: halt.open,
+    halt,
     importState,
     render: renderRaf,
-    resume: halt.close,
+    resume,
     set: setPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe

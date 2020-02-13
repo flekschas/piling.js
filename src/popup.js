@@ -11,11 +11,11 @@ import createSpinner from './spinner';
 import {
   CSS_EASING_CUBIC_IN_OUT,
   DEFAULT_DARK_MODE,
-  DEFAULT_HALT_BACKGROUND_OPACITY
+  DEFAULT_POPUP_BACKGROUND_OPACITY
 } from './defaults';
 
-const createHalt = ({
-  backgroundOpacity: initialBackgroundOpacity = DEFAULT_HALT_BACKGROUND_OPACITY,
+const createPopup = ({
+  backgroundOpacity: initialBackgroundOpacity = DEFAULT_POPUP_BACKGROUND_OPACITY,
   isDarkMode: initialIsDarkMode = DEFAULT_DARK_MODE
 } = {}) => {
   let backgroundOpacity = initialBackgroundOpacity;
@@ -139,8 +139,8 @@ const createHalt = ({
     withReadOnlyProperty('isOpen', () => isOpen),
     withStaticProperty('element', rootElement),
     withPublicMethods(),
-    withConstructor(createHalt)
+    withConstructor(createPopup)
   )({});
 };
 
-export default createHalt;
+export default createPopup;
