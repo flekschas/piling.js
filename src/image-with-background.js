@@ -6,6 +6,7 @@ import {
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
+import withColorFilters from './with-color-filters';
 import withSize from './with-size';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
@@ -73,6 +74,7 @@ const createImageWithBackground = (
     pipe(
       withStaticProperty('displayObject', backgroundGraphics),
       withStaticProperty('sprite', sprite),
+      withColorFilters(sprite),
       withSize(sprite),
       withPadding(padding),
       withBackground({

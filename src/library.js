@@ -21,8 +21,7 @@ import {
   min,
   range,
   sortPos,
-  sum,
-  throttleAndDebounce
+  sum
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
@@ -31,10 +30,10 @@ import createStore, { overwrite, softOverwrite, createAction } from './store';
 
 import {
   CAMERA_VIEW,
+  EVENT_LISTENER_ACTIVE,
+  EVENT_LISTENER_PASSIVE,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
-  LASSO_MIN_DIST,
-  LASSO_MIN_DELAY,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
@@ -56,6 +55,7 @@ import createGrid from './grid';
 import createItem from './item';
 import createTweener from './tweener';
 import createContextMenu from './context-menu';
+import createLasso from './lasso';
 
 import { version } from '../package.json';
 
@@ -119,12 +119,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     arrangementOnce: true,
     arrangementType: true,
     backgroundColor: true,
+    darkMode: true,
     focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
     easing: true,
     coverAggregator: true,
-    itemOpacity: true,
     items: {
       set: value => [
         createAction.setItems(value),
@@ -138,7 +138,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     pileItemAlignment: true,
+    pileItemBrightness: true,
+    pileItemOpacity: true,
     pileItemRotation: true,
+    pileItemTint: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -159,6 +162,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     lassoFillOpacity: true,
+    lassoShowStartIndicator: true,
+    lassoStartIndicatorOpacity: true,
     lassoStrokeColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -183,6 +188,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBorderOpacity: true,
+    pileBorderColorHover: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBorderColorHover(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBorderOpacityHover(opacity));
+        return actions;
+      }
+    },
+    pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -303,6 +318,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
 
+  let isMouseDown = false;
+  let isLasso = false;
+
+  const lasso = createLasso({
+    onStart: () => {
+      isLasso = true;
+      isMouseDown = true;
+    },
+    onDraw: () => {
+      renderRaf();
+    }
+  });
+
+  stage.addChild(gridGfx);
+  stage.addChild(lasso.fillContainer);
+  stage.addChild(normalPiles);
+  stage.addChild(activePile);
+  stage.addChild(lasso.lineContainer);
+
   const searchIndex = new RBush();
 
   const createRBush = () => {
@@ -383,11 +417,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     stage.y = 0;
     rootElement.style.overflowY = 'auto';
     rootElement.scrollTop = 0;
-    rootElement.addEventListener('scroll', mouseScrollHandler, false);
-    window.addEventListener('mousedown', mouseDownHandler, false);
-    window.addEventListener('mouseup', mouseUpHandler, false);
-    window.addEventListener('mousemove', mouseMoveHandler, false);
-    canvas.addEventListener('wheel', mouseWheelHandler, false);
+    rootElement.addEventListener(
+      'scroll',
+      mouseScrollHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    window.addEventListener(
+      'mousedown',
+      mouseDownHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    window.addEventListener('mouseup', mouseUpHandler, EVENT_LISTENER_PASSIVE);
+    window.addEventListener(
+      'mousemove',
+      mouseMoveHandler,
+      EVENT_LISTENER_PASSIVE
+    );
+    canvas.addEventListener('wheel', wheelHandler, EVENT_LISTENER_ACTIVE);
   };
 
   const disableScrolling = () => {
@@ -396,11 +442,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     stage.y = 0;
     rootElement.style.overflowY = 'hidden';
     rootElement.scrollTop = 0;
-    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
-    window.removeEventListener('mousedown', mouseDownHandler, false);
-    window.removeEventListener('mouseup', mouseUpHandler, false);
-    window.removeEventListener('mousemove', mouseMoveHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    rootElement.removeEventListener('scroll', mouseScrollHandler);
+    window.removeEventListener('mousedown', mouseDownHandler);
+    window.removeEventListener('mouseup', mouseUpHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
+    canvas.removeEventListener('wheel', wheelHandler);
   };
 
   const enablePanZoom = () => {
@@ -417,7 +463,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseDown: mouseDownHandler,
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
-      onWheel: mouseWheelHandler
+      onWheel: wheelHandler
     });
     camera.set(mat4.clone(CAMERA_VIEW));
   };
@@ -513,6 +559,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (showGrid) {
       drawGrid();
     }
+  };
+
+  const updateLasso = () => {
+    const {
+      darkMode,
+      lassoFillColor,
+      lassoFillOpacity,
+      lassoShowStartIndicator,
+      lassoStartIndicatorOpacity,
+      lassoStrokeColor,
+      lassoStrokeOpacity,
+      lassoStrokeSize
+    } = store.getState();
+
+    lasso.set({
+      fillColor: lassoFillColor,
+      fillOpacity: lassoFillOpacity,
+      showStartIndicator: lassoShowStartIndicator,
+      startIndicatorOpacity: lassoStartIndicatorOpacity,
+      strokeColor: lassoStrokeColor,
+      strokeOpacity: lassoStrokeOpacity,
+      strokeSize: lassoStrokeSize,
+      darkMode
+    });
   };
 
   let itemSizeScale = scaleLinear();
@@ -649,11 +719,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const lassoContainer = new PIXI.Container();
-  const lassoBgContainer = new PIXI.Container();
-  const lasso = new PIXI.Graphics();
-  const lassoFill = new PIXI.Graphics();
-
   const createItems = () => {
     const {
       items,
@@ -678,12 +743,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderedItems.clear();
     pileInstances.clear();
 
-    stage.removeChildren();
-
-    stage.addChild(gridGfx);
-    stage.addChild(lassoBgContainer);
-    lassoBgContainer.addChild(lassoFill);
-    stage.addChild(normalPiles);
+    normalPiles.removeChildren();
+    activePile.removeChildren();
 
     const renderImages = itemRenderer(
       items.map(({ src }) => src)
@@ -706,6 +767,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all([renderImages, renderPreviews]).then(
       ([renderedImages, renderedPreviews]) => {
         renderedImages.forEach((image, index) => {
+          const { piles } = store.getState();
           const id = items[index].id || index;
           const preview = renderedPreviews[index];
 
@@ -727,12 +789,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             previewSpacing
           );
           pileInstances.set(index, pile);
+          updatePileStyle(piles[index], index);
+          updatePileItemStyle(piles[index], index);
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
-        stage.addChild(activePile);
-        stage.addChild(lassoContainer);
-        lassoContainer.addChild(lasso);
         renderRaf();
       }
     );
@@ -889,17 +950,39 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
-    const { items, itemOpacity } = store.getState();
+    const {
+      items,
+      pileItemBrightness,
+      pileItemOpacity,
+      pileItemTint
+    } = store.getState();
 
     const pileInstance = pileInstances.get(pileId);
 
-    pileInstance.items.forEach((item, i) => {
-      const itemState = items[item.id];
-      item.animateOpacity(
-        isFunction(itemOpacity)
-          ? itemOpacity(itemState, i, pileState)
-          : itemOpacity
+    pileInstance.items.forEach((pileItem, i) => {
+      const itemState = items[pileItem.id];
+
+      pileItem.animateOpacity(
+        isFunction(pileItemOpacity)
+          ? pileItemOpacity(itemState, i, pileState)
+          : pileItemOpacity
       );
+
+      pileItem.image.brightness(
+        isFunction(pileItemBrightness)
+          ? pileItemBrightness(itemState, i, pileState)
+          : pileItemBrightness
+      );
+
+      // We can't apply a brightness and tint effect as both rely on the same
+      // mechanism. Therefore we decide to give brightness higher precedence.
+      if (!pileItemBrightness) {
+        pileItem.image.tint(
+          isFunction(pileItemTint)
+            ? pileItemTint(itemState, i, pileState)
+            : pileItemTint
+        );
+      }
     });
   };
 
@@ -1209,6 +1292,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const movingPiles = [];
 
     const srcPile = pileInstances.get(srcPileId);
+    srcPile.blur();
     srcPile.drawBorder();
 
     itemIds.forEach((itemId, index) => {
@@ -1328,6 +1412,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     store.dispatch(createAction.depilePiles([depiledPile]));
+    blurPrevHoveredPiles();
 
     if (!store.getState().arrangementType) {
       animateDepile(pileId, items);
@@ -1510,9 +1595,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let mousePosition = [0, 0];
 
-  // Get a copy of the current mouse position
-  const getMousePos = () => mousePosition.slice();
-
   const getRelativeMousePosition = event => {
     const rect = canvas.getBoundingClientRect();
 
@@ -1521,68 +1603,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     return [...mousePosition];
   };
-
-  let lassoPos = [];
-  let lassoPosFlat = [];
-  let lassoPrevMousePos;
-  let isLasso = false;
-
-  const drawlasso = () => {
-    const {
-      lassoFillColor,
-      lassoFillOpacity,
-      lassoStrokeColor,
-      lassoStrokeOpacity,
-      lassoStrokeSize
-    } = store.getState();
-
-    lasso.clear();
-    lassoFill.clear();
-    lasso.lineStyle(lassoStrokeSize, lassoStrokeColor, lassoStrokeOpacity);
-    lasso.moveTo(...lassoPos[0]);
-    lassoPos.forEach(pos => {
-      lasso.lineTo(...pos);
-      lasso.moveTo(...pos);
-    });
-    lassoFill.beginFill(lassoFillColor, lassoFillOpacity);
-    lassoFill.drawPolygon(lassoPosFlat);
-    renderRaf();
-  };
-
-  let mouseDown = false;
-
-  const lassoExtend = () => {
-    const currMousePos = getMousePos();
-
-    if (!lassoPrevMousePos) {
-      lassoPos = [currMousePos];
-      lassoPosFlat = [currMousePos[0], currMousePos[1]];
-      lassoPrevMousePos = currMousePos;
-      lasso.moveTo(...currMousePos);
-    } else {
-      const d = l2PointDist(
-        currMousePos[0],
-        currMousePos[1],
-        lassoPrevMousePos[0],
-        lassoPrevMousePos[1]
-      );
-
-      if (d > LASSO_MIN_DIST) {
-        lassoPos.push(currMousePos);
-        lassoPosFlat.push(currMousePos[0], currMousePos[1]);
-        lassoPrevMousePos = currMousePos;
-        if (lassoPos.length > 1) {
-          drawlasso();
-          isLasso = true;
-        }
-      }
-    }
-  };
-  const lassoExtendDb = throttleAndDebounce(
-    lassoExtend,
-    LASSO_MIN_DELAY,
-    LASSO_MIN_DELAY
-  );
 
   const findPilesInLasso = lassoPolygon => {
     const lassoBBox = getBBox(lassoPolygon);
@@ -1599,6 +1619,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     return pilesInPolygon;
+  };
+
+  const lassoEndHandler = () => {
+    isLasso = false;
+    const lassoPosFlat = lasso.end();
+    const pilesInLasso = findPilesInLasso(lassoPosFlat);
+    if (pilesInLasso.length > 1) {
+      store.dispatch(createAction.setFocusedPiles([]));
+      animateMerge(pilesInLasso);
+    }
   };
 
   const animateMerge = pileIds => {
@@ -1624,24 +1654,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       animateMovePileTo(pile, centerX, centerY, { onDone });
     });
-  };
-
-  const lassoEnd = () => {
-    if (isLasso) {
-      const pilesInLasso = findPilesInLasso(lassoPosFlat);
-      if (pilesInLasso.length > 1) {
-        store.dispatch(createAction.setFocusedPiles([]));
-        animateMerge(pilesInLasso);
-      }
-      lasso.closePath();
-      lasso.clear();
-      lassoFill.clear();
-      renderRaf();
-      isLasso = false;
-    }
-    lassoPos = [];
-    lassoPosFlat = [];
-    lassoPrevMousePos = undefined;
   };
 
   const scalePile = (pileId, wheelDelta) => {
@@ -1921,20 +1933,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (state.piles !== newState.piles) {
       if (state.piles.length !== 0) {
         newState.piles.forEach((pile, id) => {
+          if (pile === state.piles[id]) return;
+
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
-            updatePileStyle(pile, id);
             updatedPileItems.push(id);
           }
+
           if (
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
             updatePilePosition(pile, id);
-            updatePileStyle(pile, id);
           }
+
+          updatePileStyle(pile, id);
         });
       }
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileItemOpacity !== newState.pileItemOpacity ||
+        state.pileItemBrightness !== newState.pileItemBrightness ||
+        state.pileItemTint !== newState.pileItemTint)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileItemStyle(pile, id);
+      });
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileOpacity !== newState.pileOpacity ||
+        state.pileBorderSize !== newState.pileBorderSize ||
+        state.pileScale !== newState.pileScale)
+    ) {
+      newState.piles.forEach((pile, id) => {
+        updatePileStyle(pile, id);
+      });
     }
 
     if (state.orderer !== newState.orderer) {
@@ -2081,6 +2118,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('navigation');
     }
 
+    if (
+      state.darkMode !== newState.darkMode ||
+      state.lassoFillColor !== newState.lassoFillColor ||
+      state.lassoFillOpacity !== newState.lassoFillOpacity ||
+      state.lassoShowStartIndicator !== newState.lassoShowStartIndicator ||
+      state.lassoStartIndicatorOpacity !==
+        newState.lassoStartIndicatorOpacity ||
+      state.lassoStrokeColor !== newState.lassoStrokeColor ||
+      state.lassoStrokeOpacity !== newState.lassoStrokeOpacity ||
+      state.lassoStrokeSize !== newState.lassoStrokeSize
+    ) {
+      updateLasso();
+    }
+
     state = newState;
 
     pubSub.publish('update', { action: store.lastAction });
@@ -2220,9 +2271,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const animateDropMerge = (sourcePileId, targetPileId) => {
+    const { piles } = store.getState();
+    const x = piles[targetPileId].x;
+    const y = piles[targetPileId].y;
+
+    const onDone = () => {
+      store.dispatch(
+        createAction.mergePiles([sourcePileId, targetPileId], true)
+      );
+    };
+
+    animateMovePileTo(pileInstances.get(sourcePileId), x, y, { onDone });
+  };
+
   let hit;
 
-  const handleDragEndPile = ({ pileId }) => {
+  const pileDragEndHandler = ({ pileId }) => {
     hit = false;
     const pile = pileInstances.get(pileId);
     const pileGfx = pile.graphics;
@@ -2235,19 +2300,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        hit = !pileInstances.get(collidePiles[0].id).isTempDepiled;
+        const targetPileId = collidePiles[0].id;
+        hit = !pileInstances.get(targetPileId).isTempDepiled;
         if (hit) {
+          // TODO: The drop merge animation code should be unified
+
+          // This is needed for the drop merge animation of the pile class
           pile.items.forEach(pileItem => {
             pileItem.item.tmpAbsX = pileGfx.x;
             pileItem.item.tmpAbsY = pileGfx.y;
             pileItem.item.tmpRelScale = pile.scale;
           });
-          store.dispatch(
-            createAction.mergePiles([pileId, collidePiles[0].id], true)
-          );
+
+          if (store.getState().previewAggregator) {
+            animateDropMerge(pileId, targetPileId);
+          } else {
+            store.dispatch(
+              createAction.mergePiles([pileId, targetPileId], true)
+            );
+          }
         }
       } else {
-        resetPileBorder();
         // We need to "untranslate" the position of the pile
         const [x, y] = translatePointFromScreen([pile.x, pile.y]);
         store.dispatch(
@@ -2267,33 +2340,39 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let oldResult = [];
-  let newResult = [];
+  let previouslyHoveredPiles = [];
 
-  const handleHighlightPile = pileId => {
-    if (store.getState().temporaryDepiledPiles.length) return;
-
-    oldResult = [...newResult];
-    newResult = searchIndex.search(pileInstances.get(pileId).calcBBox());
-
-    if (oldResult !== []) {
-      oldResult.forEach(collidePile => {
-        if (pileInstances.get(collidePile.id)) {
-          const pile = pileInstances.get(collidePile.id);
-          pile.blur();
-        }
+  const blurPrevHoveredPiles = () => {
+    previouslyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
+        pile.blur();
       });
-    }
 
-    newResult.forEach(collidePile => {
-      if (pileInstances.get(collidePile.id)) {
-        const pile = pileInstances.get(collidePile.id);
-        pile.hover();
-      }
-    });
+    previouslyHoveredPiles = [];
   };
 
-  const handleDragStartPile = ({ pileId, event }) => {
+  const highlightHoveringPiles = pileId => {
+    if (store.getState().temporaryDepiledPiles.length) return;
+
+    const currentlyHoveredPiles = searchIndex.search(
+      pileInstances.get(pileId).calcBBox()
+    );
+
+    blurPrevHoveredPiles();
+
+    currentlyHoveredPiles
+      .map(pile => pileInstances.get(pile.id))
+      .filter(identity)
+      .forEach(pile => {
+        pile.hover();
+      });
+
+    previouslyHoveredPiles = [...currentlyHoveredPiles];
+  };
+
+  const pileDragStartHandler = ({ pileId, event }) => {
     const pile = pileInstances.get(pileId);
 
     if (pile && pile.isMagnified) {
@@ -2311,7 +2390,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.setMagnifiedPiles([]));
 
     activePile.addChild(pileInstances.get(pileId).graphics);
-    handleHighlightPile(pileId);
+    highlightHoveringPiles(pileId);
+  };
+
+  const pileDragMoveHandler = ({ pileId }) => {
+    highlightHoveringPiles(pileId);
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -2382,22 +2465,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         maxY: mouseDownPosition[1] + 1
       });
 
-      if (!result) {
-        mouseDown = true;
-        lassoEnd();
-      }
+      isMouseDown = !result;
     }
   };
 
   const mouseUpHandler = () => {
-    if (mouseDown) {
+    if (isMouseDown) {
       if (isLasso) {
-        lassoEnd();
+        lassoEndHandler();
       } else if (isPanZoom) {
         panZoomEndHandler();
       }
     }
-    mouseDown = false;
+    isMouseDown = false;
+  };
+
+  const mouseMoveHandler = event => {
+    mousePosition = getRelativeMousePosition(event);
+
+    if (isMouseDown) {
+      if (event.shiftKey || isLasso) {
+        lasso.extendDb(mousePosition.slice());
+      } else if (isPanZoom) {
+        panZoomHandler(false);
+      }
+    }
   };
 
   let isClicked = false;
@@ -2463,20 +2555,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
+        lasso.showStartIndicator(mouseDownPosition.slice());
         store.dispatch(createAction.setFocusedPiles([]));
         store.dispatch(createAction.setMagnifiedPiles([]));
-      }
-    }
-  };
-
-  const mouseMoveHandler = event => {
-    mousePosition = getRelativeMousePosition(event);
-
-    if (mouseDown) {
-      if (event.altKey || isLasso) {
-        lassoExtendDb();
-      } else if (isPanZoom) {
-        panZoomHandler(false);
       }
     }
   };
@@ -2509,7 +2590,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const mouseWheelHandler = event => {
+  const wheelHandler = event => {
     if (event.altKey) {
       getRelativeMousePosition(event);
 
@@ -2667,17 +2748,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       depileBtn.addEventListener(
         'click',
         depileBtnClick(element, pile.id),
-        false
+        EVENT_LISTENER_PASSIVE
       );
       tempDepileBtn.addEventListener(
         'click',
         tempDepileBtnClick(element, pile.id, event),
-        false
+        EVENT_LISTENER_PASSIVE
       );
       magnifyBtn.addEventListener(
         'click',
         pileMagnificationHandler(element, pile.id),
-        false
+        EVENT_LISTENER_PASSIVE
       );
 
       pileContextMenuItems.forEach((item, index) => {
@@ -2686,13 +2767,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : element.querySelector(
               `#piling-js-context-menu-custom-item-${index}`
             );
-        button.addEventListener('click', () => {
-          item.callback({
-            id: pile.id,
-            ...store.getState().piles[pile.id]
-          });
-          if (!item.keepOpen) closeContextMenu();
-        });
+        button.addEventListener(
+          'click',
+          () => {
+            item.callback({
+              id: pile.id,
+              ...store.getState().piles[pile.id]
+            });
+            if (!item.keepOpen) closeContextMenu();
+          },
+          {
+            once: true,
+            passive: true
+          }
+        );
       });
     } else {
       depileBtn.style.display = 'none';
@@ -2715,18 +2803,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       toggleGridBtn.addEventListener(
         'click',
         toggleGridBtnClick(element),
-        false
+        EVENT_LISTENER_PASSIVE
       );
-      alignBtn.addEventListener('click', alignByGridClickHandler, false);
+      alignBtn.addEventListener(
+        'click',
+        alignByGridClickHandler,
+        EVENT_LISTENER_PASSIVE
+      );
     }
   };
 
-  const handleAnimate = tweener => {
+  const startAnimationHandler = tweener => {
     tweener.setEasing(store.getState().easing);
     animator.add(tweener);
   };
 
-  const handleCancelAnimation = tweener => {
+  const cancelAnimationHandler = tweener => {
     animator.cancel(tweener);
   };
 
@@ -2734,25 +2826,36 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const init = () => {
     // Setup event handler
-    window.addEventListener('blur', () => {}, false);
-    window.addEventListener('resize', resizeHandlerDb, false);
-    window.addEventListener('orientationchange', resizeHandlerDb, false);
+    window.addEventListener('resize', resizeHandlerDb, EVENT_LISTENER_PASSIVE);
+    window.addEventListener(
+      'orientationchange',
+      resizeHandlerDb,
+      EVENT_LISTENER_PASSIVE
+    );
 
-    canvas.addEventListener('contextmenu', contextmenuHandler, false);
-    canvas.addEventListener('mouseenter', () => {}, false);
-    canvas.addEventListener('mouseleave', () => {}, false);
-    canvas.addEventListener('click', mouseClickHandler, false);
-    canvas.addEventListener('dblclick', mouseDblClickHandler, false);
+    canvas.addEventListener(
+      'contextmenu',
+      contextmenuHandler,
+      EVENT_LISTENER_ACTIVE
+    );
+    canvas.addEventListener('click', mouseClickHandler, EVENT_LISTENER_PASSIVE);
+    canvas.addEventListener(
+      'dblclick',
+      mouseDblClickHandler,
+      EVENT_LISTENER_PASSIVE
+    );
 
-    pubSub.subscribe('pileDragStart', handleDragStartPile);
-    pubSub.subscribe('pileDragEnd', handleDragEndPile);
-    pubSub.subscribe('animate', handleAnimate);
-    pubSub.subscribe('cancelAnimation', handleCancelAnimation);
+    pubSub.subscribe('pileDragStart', pileDragStartHandler);
+    pubSub.subscribe('pileDragMove', pileDragMoveHandler);
+    pubSub.subscribe('pileDragEnd', pileDragEndHandler);
+    pubSub.subscribe('startAnimation', startAnimationHandler);
+    pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
     pubSub.subscribe('updatePileBounds', updatePileBounds);
 
     storeUnsubscribor = store.subscribe(updated);
     rootElement.appendChild(canvas);
     rootElement.appendChild(scrollContainer);
+    rootElement.appendChild(lasso.startIndicator);
 
     rootElement.style.overflowX = 'hidden';
     canvas.style.position = 'sticky';
@@ -2769,24 +2872,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const destroy = () => {
     // Remove event listeners
-    window.removeEventListener('keyup', () => {}, false);
-    window.removeEventListener('blur', () => {}, false);
-    window.removeEventListener('mousedown', mouseDownHandler, false);
-    window.removeEventListener('mouseup', mouseUpHandler, false);
-    window.removeEventListener('mousemove', mouseMoveHandler, false);
-    window.removeEventListener('resize', resizeHandlerDb, false);
-    window.removeEventListener('orientationchange', resizeHandlerDb, false);
+    window.removeEventListener('mousedown', mouseDownHandler);
+    window.removeEventListener('mouseup', mouseUpHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
+    window.removeEventListener('resize', resizeHandlerDb);
+    window.removeEventListener('orientationchange', resizeHandlerDb);
 
-    rootElement.removeEventListener('scroll', mouseScrollHandler, false);
+    rootElement.removeEventListener('scroll', mouseScrollHandler);
 
-    canvas.removeEventListener('contextmenu', contextmenuHandler, false);
-    canvas.removeEventListener('mouseenter', () => {}, false);
-    canvas.removeEventListener('mouseleave', () => {}, false);
-    canvas.removeEventListener('click', mouseClickHandler, false);
-    canvas.removeEventListener('dblclick', mouseDblClickHandler, false);
-    canvas.removeEventListener('wheel', mouseWheelHandler, false);
+    canvas.removeEventListener('contextmenu', contextmenuHandler);
+    canvas.removeEventListener('click', mouseClickHandler);
+    canvas.removeEventListener('dblclick', mouseDblClickHandler);
+    canvas.removeEventListener('wheel', wheelHandler);
 
     renderer.destroy(true);
+    lasso.destroy();
 
     if (storeUnsubscribor) {
       storeUnsubscribor();

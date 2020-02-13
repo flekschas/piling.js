@@ -5,9 +5,16 @@ import * as PIXI from 'pixi.js';
  * @param   {string|object}  svg  SVG string or DOM element to be converted
  * @return  {object}  Promise resolving to the image
  */
-export const svgToImg = (svg, background = null) =>
+export const svgToImg = (
+  svg,
+  { width = null, height = null, background = null } = {}
+) =>
   new Promise((resolve, reject) => {
     const image = new Image();
+    if (width !== null && height !== null) {
+      image.width = width;
+      image.height = height;
+    }
 
     // serialize svg element into a string if needed
     let svgStr =
@@ -33,11 +40,9 @@ export const svgToImg = (svg, background = null) =>
 
 const renderImage = image => PIXI.Texture.from(image);
 
-const createSvgRenderer = ({ background } = {}) => sources =>
+const createSvgRenderer = options => sources =>
   Promise.all(
-    sources.map(src =>
-      svgToImg(src, background).then(image => renderImage(image))
-    )
+    sources.map(src => svgToImg(src, options).then(image => renderImage(image)))
   );
 
 export default createSvgRenderer;

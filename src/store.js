@@ -5,7 +5,20 @@ import { enableBatching } from 'redux-batched-actions';
 
 import createOrderer from './orderer';
 
-import { NAVIGATION_MODE_AUTO, NAVIGATION_MODES } from './defaults';
+import {
+  DEFAULT_DARK_MODE,
+  DEFAULT_LASSO_FILL_COLOR,
+  DEFAULT_LASSO_FILL_OPACITY,
+  DEFAULT_LASSO_SHOW_START_INDICATOR,
+  DEFAULT_LASSO_START_INDICATOR_OPACITY,
+  DEFAULT_LASSO_STROKE_COLOR,
+  DEFAULT_LASSO_STROKE_OPACITY,
+  DEFAULT_LASSO_STROKE_SIZE,
+  DEFAULT_PILE_ITEM_BRIGHTNESS,
+  DEFAULT_PILE_ITEM_TINT,
+  NAVIGATION_MODE_AUTO,
+  NAVIGATION_MODES
+} from './defaults';
 
 const clone = (value, state) => {
   switch (typeof value) {
@@ -96,34 +109,52 @@ const [backgroundColor, setBackgroundColor] = setter(
   0x000000
 );
 
+const [darkMode, setDarkMode] = setter('darkMode', DEFAULT_DARK_MODE);
+
 const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
 
 const [showGrid, setShowGrid] = setter('showGrid', false);
 
-const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor', 0xffffff);
+const [lassoFillColor, setLassoFillColor] = setter(
+  'lassoFillColor',
+  DEFAULT_LASSO_FILL_COLOR
+);
 
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
   'lassoFillOpacity',
-  0.15
+  DEFAULT_LASSO_FILL_OPACITY
+);
+
+const [lassoShowStartIndicator, setLassoShowStartIndicator] = setter(
+  'lassoShowStartIndicator',
+  DEFAULT_LASSO_SHOW_START_INDICATOR
+);
+
+const [lassoStartIndicatorOpacity, setLassoStartIndicatorOpacity] = setter(
+  'lassoStartIndicatorOpacity',
+  DEFAULT_LASSO_START_INDICATOR_OPACITY
 );
 
 const [lassoStrokeColor, setLassoStrokeColor] = setter(
   'lassoStrokeColor',
-  0xffffff
+  DEFAULT_LASSO_STROKE_COLOR
 );
 
 const [lassoStrokeOpacity, setLassoStrokeOpacity] = setter(
   'lassoStrokeOpacity',
-  0.8
+  DEFAULT_LASSO_STROKE_OPACITY
 );
 
-const [lassoStrokeSize, setLassoStrokeSize] = setter('lassoStrokeSize', 1);
+const [lassoStrokeSize, setLassoStrokeSize] = setter(
+  'lassoStrokeSize',
+  DEFAULT_LASSO_STROKE_SIZE
+);
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [itemOpacity, setItemOpacity] = setter('itemOpacity', 1.0);
+const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
@@ -150,9 +181,19 @@ const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
   'right'
 ]);
 
+const [pileItemBrightness, setPileItemBrightness] = setter(
+  'pileItemBrightness',
+  DEFAULT_PILE_ITEM_BRIGHTNESS
+);
+
 const [pileItemRotation, setPileItemRotation] = setter(
   'pileItemRotation',
   false
+);
+
+const [pileItemTint, setPileItemTint] = setter(
+  'pileItemTint',
+  DEFAULT_PILE_ITEM_TINT
 );
 
 const [focusedPiles, setFocusedPiles] = setter('focusedPiles', []);
@@ -207,6 +248,16 @@ const [pileBorderColor, setPileBorderColor] = setter(
 
 const [pileBorderOpacity, setPileBorderOpacity] = setter(
   'pileBorderOpacity',
+  1.0
+);
+
+const [pileBorderColorHover, setPileBorderColorHover] = setter(
+  'pileBorderColorHover',
+  0x808080
+);
+
+const [pileBorderOpacityHover, setPileBorderOpacityHover] = setter(
+  'pileBorderOpacityHover',
   1.0
 );
 
@@ -407,13 +458,15 @@ const createStore = () => {
     focusedPiles,
     gridColor,
     gridOpacity,
-    itemOpacity,
+    darkMode,
     itemRenderer,
     items,
     itemSize,
     itemSizeRange,
     lassoFillColor,
     lassoFillOpacity,
+    lassoShowStartIndicator,
+    lassoStartIndicatorOpacity,
     lassoStrokeColor,
     lassoStrokeOpacity,
     lassoStrokeSize,
@@ -425,14 +478,19 @@ const createStore = () => {
     pileBorderColor,
     pileBorderColorActive,
     pileBorderColorFocus,
+    pileBorderColorHover,
     pileBorderOpacity,
     pileBorderOpacityActive,
     pileBorderOpacityFocus,
+    pileBorderOpacityHover,
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
     pileItemAlignment,
+    pileItemBrightness,
+    pileItemOpacity,
     pileItemRotation,
+    pileItemTint,
     pileOpacity,
     piles,
     pileScale,
@@ -498,13 +556,15 @@ export const createAction = {
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
-  setItemOpacity,
+  setDarkMode,
   setItemRenderer,
   setItems,
   setItemSize,
   setItemSizeRange,
   setLassoFillColor,
   setLassoFillOpacity,
+  setLassoShowStartIndicator,
+  setLassoStartIndicatorOpacity,
   setLassoStrokeColor,
   setLassoStrokeOpacity,
   setLassoStrokeSize,
@@ -516,14 +576,19 @@ export const createAction = {
   setPileBorderColor,
   setPileBorderColorActive,
   setPileBorderColorFocus,
+  setPileBorderColorHover,
   setPileBorderOpacity,
   setPileBorderOpacityActive,
   setPileBorderOpacityFocus,
+  setPileBorderOpacityHover,
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
   setPileItemAlignment,
+  setPileItemBrightness,
+  setPileItemOpacity,
   setPileItemRotation,
+  setPileItemTint,
   setPileOpacity,
   setPileScale,
   setPreviewAggregator,
