@@ -570,14 +570,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const halt = options => {
     popup.open(options);
 
-    if (isPanZoom) camera.set({ isFixed: true });
+    if (isPanZoom) camera.config({ isFixed: true });
     else scrollContainer.style.overflowY = 'hidden';
   };
 
   const resume = () => {
     popup.close();
 
-    if (isPanZoom) camera.set({ isFixed: false });
+    if (isPanZoom) camera.config({ isFixed: false });
     else scrollContainer.style.overflowY = 'auto';
   };
 
@@ -1986,7 +1986,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const updateArrangement = (updatedPileIds, newObjectives) => {
+  const updateArrangement = async (updatedPileIds, newObjectives) => {
     const { arrangementType, items } = store.getState();
 
     const pileIds = updatedPileIds.length
@@ -1996,6 +1996,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (arrangementType === 'data') {
       arranging = updateArragnementByData(pileIds, newObjectives);
     }
+
+    await arranging;
 
     updateNavigationMode();
   };
