@@ -11,6 +11,8 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import { cloneSprite } from './utils';
 
+import { INHERIT } from './defaults';
+
 export const MAX_MAGNIFICATION = 3;
 export const MODE_NORMAL = Symbol('Normal');
 export const MODE_HOVER = Symbol('Hover');
@@ -115,11 +117,11 @@ const createPile = (
           pileBackgroundOpacity
         } = store.getState();
         const backgroundColor =
-          previewBackgroundColor === 'inherit'
+          previewBackgroundColor === INHERIT
             ? pileBackgroundColor
             : previewBackgroundColor;
         const backgroundOpacity =
-          previewBackgroundOpacity === 'inherit'
+          previewBackgroundOpacity === INHERIT
             ? pileBackgroundOpacity
             : previewBackgroundOpacity;
         item.image.drawBackground(backgroundColor, backgroundOpacity);

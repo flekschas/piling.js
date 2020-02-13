@@ -32,6 +32,7 @@ import {
   CAMERA_VIEW,
   EVENT_LISTENER_ACTIVE,
   EVENT_LISTENER_PASSIVE,
+  INHERIT,
   INITIAL_ARRANGEMENT_TYPE,
   INITIAL_ARRANGEMENT_OBJECTIVE,
   NAVIGATION_MODE_AUTO,
@@ -762,18 +763,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
-    const backgroundColor =
-      previewBackgroundColor === 'inherit'
-        ? pileBackgroundColor
-        : previewBackgroundColor;
-    const backgroundOpacity =
-      previewBackgroundOpacity === 'inherit'
-        ? pileBackgroundOpacity
-        : previewBackgroundOpacity;
-
     const previewOptions = {
-      backgroundColor,
-      backgroundOpacity,
+      backgroundColor:
+        previewBackgroundColor === INHERIT
+          ? pileBackgroundColor
+          : previewBackgroundColor,
+      backgroundOpacity:
+        previewBackgroundOpacity === INHERIT
+          ? pileBackgroundOpacity
+          : previewBackgroundOpacity,
       padding: previewSpacing
     };
     const createPreview = texture =>

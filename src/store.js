@@ -16,6 +16,8 @@ import {
   DEFAULT_LASSO_STROKE_SIZE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
+  DEFAULT_PREVIEW_BACKGROUND_COLOR,
+  DEFAULT_PREVIEW_BACKGROUND_OPACITY,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODES
 } from './defaults';
@@ -233,12 +235,12 @@ const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',
-  'inherit'
+  DEFAULT_PREVIEW_BACKGROUND_COLOR
 );
 
 const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
   'previewBackgroundOpacity',
-  'inherit'
+  DEFAULT_PREVIEW_BACKGROUND_OPACITY
 );
 
 const [previewBorderColor, setPreviewBorderColor] = setter(
