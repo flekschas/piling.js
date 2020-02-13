@@ -161,7 +161,7 @@ The list of all understood properties is given below.
 | focusedPiles               | array                   | `[]`                  | the id of current focused pile                                                | `true`     |
 | coverAggregator            | function                |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | depiledPile                | array                   | `[]`                  | the id of the pile to be depiled                                              | `true`     |
-| depileMethod               | string                  | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
+| depileMethod               | string                  | originalPos           | `originalPos` or `closestPos`                                                 | `true`     |
 | easing                     | function                | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
 | gridColor                  | string or int           | `0x787878`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
 | gridOpacity                | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
@@ -192,16 +192,17 @@ The list of all understood properties is given below.
 | pileBorderOpacityFocus     | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
 | pileBorderColorActive      | string or int           | `0xffa5da`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
 | pileBorderOpacityActive    | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderSize             | float or function       | 0                     | see [`notes`](#notes)                                                         | `true`     |
-| pileCellAlignment          | string                  | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
+| pileBorderSize             | float or function       | `0`                   | see [`notes`](#notes)                                                         | `true`     |
+| pileCellAlignment          | string                  | topLeft               | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
 | pileContextMenuItems       | array                   | `[]`                  | see _examples_ below                                                          | `true`     |
 | pileItemAlignment          | array or boolean        | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | pileItemBrightness         | string, int or function | `0`                   | must be in [-1,1] where `-1` refers to black and `1` refers to white          | `false`    |
-| pileItemOpacity            | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
+| pileItemOpacity            | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
 | pileItemRotation           | boolean                 | `false`               | `true` or `false`                                                             | `true`     |
 | pileItemTint               | string, int or function | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `true`     |
-| pileOpacity                | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
-| pileScale                  | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
+| pileOpacity                | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
+| pileScale                  | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
+| popupBackgroundOpacity     | float                   | `0.85`                | must be in [`0`,`1`]                                                          | `false`    |
 | previewAggregator          | function                |                       | see [`aggregators`](#aggregators)                                             | `true`     |
 | previewRenderer            | function                |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | previewSpacing             | number                  | `2`                   | the spacing between 1D previews                                               | `true`     |
@@ -209,7 +210,7 @@ The list of all understood properties is given below.
 | randomRotationRange        | array                   | `[-10, 10]`           | array of two numbers                                                          | `true`     |
 | renderer                   | function                |                       | see [`renderers`](#renderers)                                                 | `false`    |
 | showGrid                   | boolean                 | `false`               |                                                                               | `false`    |
-| tempDepileDirection        | string                  | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
+| tempDepileDirection        | string                  | horizontal            | horizontal or vertical                                                        | `true`     |
 | tempDepileOneDNum          | number                  | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
 | temporaryDepiledPile       | array                   | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
 
