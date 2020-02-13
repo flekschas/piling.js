@@ -102,6 +102,8 @@ const [arrangementObjective, setArrangementObjective] = setter(
   'arrangementObjective'
 );
 
+const [arrangementOnce, setArrangementOnce] = setter('arrangementOnce', false);
+
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
   0x000000
@@ -453,6 +455,7 @@ const createStore = () => {
   const appReducer = combineReducers({
     aggregateRenderer,
     arrangementObjective,
+    arrangementOnce,
     arrangementType,
     backgroundColor,
     cellAspectRatio,
@@ -552,6 +555,7 @@ export const createAction = {
   movePiles,
   setAggregateRenderer,
   setArrangementObjective,
+  setArrangementOnce,
   setArrangementType,
   setBackgroundColor,
   setCellAspectRatio,

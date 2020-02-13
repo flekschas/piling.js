@@ -3,7 +3,7 @@
 - Add `previewBorderColor` and `previewBorderOpacity`. Set the default value of `previewBackgroundColor` and `previewBackgroundOpacity` to `'inherit'`
 - Add pan&zoom interaction
 - Add mouse-only lasso support to provide a unified interface for using the lasso in the scroll and pan&zoom mode
-- Add `arrangeBy()` for support automatic and data-driven pile arrangements
+- Add `arrangeBy()` and `arrangeByOnce()` for automatic and data-driven pile arrangements
 - Add `pileItemBrightness` to control the brightness of pile items
 - Add `pileItemTint` to control the [tint of pile items](https://pixijs.download/dev/docs/PIXI.Sprite.html#tint)
 - Add `randomOffsetRange` and `randomRotationRange` properties
