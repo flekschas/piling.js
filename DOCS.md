@@ -22,6 +22,11 @@
     - [Matrix preview aggregator](#matrix-preview-aggregator)
   - [Define your own aggregator](#define-your-own-aggregator)
   - [Add aggregators to piling.js library](#add-aggregators-to-pilingjs-library)
+- [Dimensionality Reducers](#dimensionality-reducers)
+  - [Predefined dimensionality reducers](#predefined-dimensionality-reducers)
+    - [UMAP dimensionality reducer](#umap-dimensionality-reducer)
+  - [Define your own dimensionality reducer](#define-your-own-dimensionality-reducer)
+  - [Add dimensionality reducers to piling.js library](#add-dimensionality-reducers-to-pilingjs-library)
 - [Interactions](#interactions)
 
 # Get started
@@ -444,7 +449,7 @@ Position piles with user-specified arrangement method.
     By default this is deactivated because dimensionality reduction transformations are often not deterministic and feeding even the same data to the algorithm can lead to vastly different layout. Therefore, by default we run the dimensionality reduction on the individual items and given that learned model position the piles. This allows us to keep the layout stable even as the piles change. If you want more fine-grain control over transformation updates we suggest running a [`dimensionalityReducer`]() separately and using it's transform function in combination with `piling.arrangeBy('uv')` and [`piling.halt()`]()/[`piling.resume()`]().
 
     ```javascript
-    // Truning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
+    // Turning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
     piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
     ```
 
@@ -782,7 +787,7 @@ A dimensionality reducer should be a function that takes as input a 2D nested nu
 
 ## Predefined dimensionality reducers
 
-We currently a provide predefined dimensionality reducers for [UMAP](https://github.com/PAIR-code/umap-js).
+We currently provide predefined dimensionality reducers for [UMAP](https://github.com/PAIR-code/umap-js).
 
 ### UMAP dimensionality reducer
 
