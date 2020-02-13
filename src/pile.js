@@ -11,6 +11,8 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import { cloneSprite } from './utils';
 
+import { INHERIT } from './defaults';
+
 export const MAX_MAGNIFICATION = 3;
 export const MODE_NORMAL = Symbol('Normal');
 export const MODE_HOVER = Symbol('Hover');
@@ -94,14 +96,8 @@ const createPile = (
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
         if (hasPreviewItem(item)) {
-          const {
-            previewBackgroundColor,
-            previewBackgroundOpacity
-          } = store.getState();
-          item.image.drawBackground(
-            previewBackgroundColor,
-            previewBackgroundOpacity
-          );
+          const { previewBorderColor, previewBorderOpacity } = store.getState();
+          item.image.drawBackground(previewBorderColor, previewBorderOpacity);
         }
         render();
       }
@@ -114,8 +110,21 @@ const createPile = (
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
-        const { pileBackgroundColor, pileBackgroundOpacity } = store.getState();
-        item.image.drawBackground(pileBackgroundColor, pileBackgroundOpacity);
+        const {
+          previewBackgroundColor,
+          previewBackgroundOpacity,
+          pileBackgroundColor,
+          pileBackgroundOpacity
+        } = store.getState();
+        const backgroundColor =
+          previewBackgroundColor === INHERIT
+            ? pileBackgroundColor
+            : previewBackgroundColor;
+        const backgroundOpacity =
+          previewBackgroundOpacity === INHERIT
+            ? pileBackgroundOpacity
+            : previewBackgroundOpacity;
+        item.image.drawBackground(backgroundColor, backgroundOpacity);
       }
       render();
     }

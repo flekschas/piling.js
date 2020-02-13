@@ -203,6 +203,10 @@ The list of all understood properties is given below.
 | pileOpacity                | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | pileScale                  | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
 | previewAggregator          | function                |                       | see [`aggregators`](#aggregators)                                             | `true`     |
+| previewBackgroundColor     | string, int             | `'inherit'`           | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
+| previewBackgroundOpacity   | float                   | `'inherit'`           | must be in [`0`,`1`]                                                          | `false`    |
+| previewBorderColor         | string or int           | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
+| previewBorderOpacity       | float                   | `0.85`                | must be in [`0`,`1`]                                                          | `false`    |
 | previewRenderer            | function                |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | previewSpacing             | number                  | `2`                   | the spacing between 1D previews                                               | `true`     |
 | randomOffsetRange          | array                   | `[-30, 30]`           | array of two numbers                                                          | `true`     |
@@ -341,6 +345,8 @@ The list of all understood properties is given below.
   ```
 
   The function should return a value within `[0, 1]`.
+
+- The default value of `previewBackgroundColor` and `previewBackgroundOpacity` is `'inherit'`, which means that their value inherits from `pileBackgroundColor` and `pileBackgroundOpacity`. If you want preview's background color to be different from pile's, you can set a specific color.
 
 #### `piling.arrangeBy(type, objective)`
 
