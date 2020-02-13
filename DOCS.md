@@ -422,6 +422,10 @@ Position piles with user-specified arrangement method.
       piling.arrangeBy('data', ['a', 'b', 'c', ...]);
     ```
 
+#### `piling.arrangeByOnce(type, objective)`
+
+Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the automatic pile arrangement only once and then switches back to manual pile arrangement.
+
 #### `piling.destroy()`
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
