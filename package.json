@@ -72,7 +72,7 @@
     "ndarray": "^1.0.18",
     "ndarray-convolve": "^2.0.0",
     "normalize-wheel": "^1.0.1",
-    "pixi.js": "^5.2.1",
+    "pixi.js": "^5.1.5",
     "pub-sub-es": "^1.2.1",
     "rbush": "^3.0.1",
     "redux": "^4.0.5",
