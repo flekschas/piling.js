@@ -1,5 +1,6 @@
 ### Next
 
+- Add `previewBorderColor` and `previewBorderOpacity`. Set the default value of `previewBackgroundColor` and `previewBackgroundOpacity` to `'inherit'`
 - Add pan&zoom interaction
 - Add mouse-only lasso support to provide a unified interface for using the lasso in the scroll and pan&zoom mode
 - Add `arrangeBy()` and `arrangeByOnce()` for automatic and data-driven pile arrangements
@@ -16,6 +17,7 @@
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
 - Disentangle the pile base scale and magnification
+- Simplify the SVG renderer
 
 ## v0.5.0
 
