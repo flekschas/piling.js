@@ -120,6 +120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const properties = {
     aggregateRenderer: true,
     arrangementObjective: true,
+    arrangementOnce: true,
     arrangementOptions: true,
     arrangementType: true,
     backgroundColor: true,
@@ -979,6 +980,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       isInitialPositioning = false;
+
+      if (store.getState().arrangementOnce) {
+        cancelArrangement();
+      }
     }
 
     store.dispatch(createAction.movePiles(movingPiles));
@@ -1995,6 +2000,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     updateNavigationMode();
   };
 
+  const cancelArrangement = () => {
+    store.dispatch(
+      batchActions([
+        ...set('arrangementType', null, true),
+        ...set('arrangementObjective', null, true),
+        ...set('arrangementOnce', false, true)
+      ])
+    );
+  };
+
   const updated = () => {
     const newState = store.getState();
 
@@ -2358,6 +2373,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true)
+      ])
+    );
+  };
+
+  const arrangeByOnce = (type = null, objective = null) => {
+    const expandedObjective =
+      type === 'data' ? expandArrangementObjective(objective) : objective;
+
+    store.dispatch(
+      batchActions([
+        ...set('arrangementType', type, true),
+        ...set('arrangementObjective', expandedObjective, true),
+        ...set('arrangementOnce', true, true)
       ])
     );
   };
@@ -3010,6 +3038,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     // Methods
     arrangeBy,
+    arrangeByOnce,
     destroy,
     exportState,
     get,
