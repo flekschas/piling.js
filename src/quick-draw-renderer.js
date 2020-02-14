@@ -12,12 +12,10 @@ const renderStroke = strokes => {
     const xPos = stroke[0];
     const yPos = stroke[1];
     const finalPos = xPos.map((x, i) => [x, yPos[i]]);
-    ctx.beginPath();
     ctx.moveTo(...finalPos[0]);
     finalPos.forEach(pos => {
       ctx.lineTo(...pos);
     });
-    ctx.closePath();
     ctx.stroke();
   });
   return PIXI.Texture.from(canvas);
