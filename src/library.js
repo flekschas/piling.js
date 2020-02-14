@@ -1916,7 +1916,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // Remove outdated values
       aggregatedPileValues.splice(items.length);
 
-      pileSortPosByAggregate[i] = sortPos(tmpAggregatedPileValues, {
+      pileSortPosByAggregate[i] = sortPos(aggregatedPileValues, {
+        getter: v => v[i],
         ignoreNull: true
       });
 
