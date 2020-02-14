@@ -64,6 +64,27 @@ const createMatrixPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
+  // const matrixMeanCol = m =>
+  //   m.length
+  //     ? m
+  //         .reduce(
+  //           (v, row) => row.map((x, i) => v[i] + x),
+  //           new Array(m[0].length).fill(0)
+  //         )
+  //         .map(x => x / m.length)
+  //     : [];
+
+  // pilingJs.arrangeBy(
+  //   'data',
+  //   {
+  //     property: item => item.src.data,
+  //     aggregator: matrixMeanCol
+  //   },
+  //   {
+  //     forceDimReduction: true
+  //   }
+  // );
+
   return pilingJs;
 };
 
