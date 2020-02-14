@@ -19,6 +19,7 @@ import {
   max,
   mean,
   min,
+  nextAnimationFrame,
   range,
   sortPos,
   sum
@@ -859,7 +860,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cachedMdPilePosDimReducerRun = lastMdReducerRun;
 
     const pilePos = layout.uvToXy(
-      ...dimensionalityReducer.transform([aggregatedPileValues[pileId]])[0]
+      ...dimensionalityReducer.transform([
+        aggregatedPileValues[pileId].flat()
+      ])[0]
     );
 
     cachedMdPilePos.set(pileId, pilePos);
@@ -868,24 +871,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
-    const { arrangementObjective } = store.getState();
+    const { arrangementObjective, arrangementOptions } = store.getState();
 
-    switch (arrangementObjective.length) {
-      case 0:
-        console.warn(
-          "Can't arrange pile by data. No arrangement objective available."
-        );
-        return [pileState.x, pileState.y];
-
-      case 1:
-        return getPilePositionBy1dOrdering(pileId, pileWidth, pileHeight);
-
-      case 2:
-        return getPilePositionBy2dScales(pileId);
-
-      default:
-        return getPilePositionByMdTransform(pileId);
+    if (
+      arrangementObjective.length > 2 ||
+      arrangementOptions.forceDimReduction
+    ) {
+      return getPilePositionByMdTransform(pileId);
     }
+
+    if (arrangementObjective.length > 1) {
+      return getPilePositionBy2dScales(pileId);
+    }
+
+    if (arrangementObjective.length) {
+      return getPilePositionBy1dOrdering(pileId, pileWidth, pileHeight);
+    }
+
+    console.warn(
+      "Can't arrange pile by data. No arrangement objective available."
+    );
+    return [pileState.x, pileState.y];
   };
 
   const getPilePosition = (pileId, init) => {
@@ -1732,6 +1738,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       arrangementType,
       arrangementObjective,
+      arrangementOptions,
       navigationMode
     } = store.getState();
 
@@ -1750,7 +1757,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       default:
         switch (arrangementType) {
           case 'data':
-            if (arrangementObjective.length > 1) changed = enablePanZoom();
+            if (
+              arrangementObjective.length > 1 ||
+              arrangementOptions.forceDimReduction
+            )
+              changed = enablePanZoom();
             else changed = enableScrolling();
             break;
 
@@ -1783,7 +1794,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const aggregatedPileMaxValues = [];
 
   const updateAggregatedPileValues = pileIds => {
-    const { arrangementObjective, items, piles } = store.getState();
+    const {
+      arrangementObjective,
+      arrangementOptions,
+      items,
+      piles
+    } = store.getState();
 
     const allPiles = pileIds.length >= pileInstances.size;
 
@@ -1804,7 +1820,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // Even if not all piles were updated we might still need to update the
       // min-max values. This is the when the user piled-up piles with the
       // lowest or highest aggregated value
-      if (!allPiles && pileSortPosByAggregate[i]) {
+      if (
+        !allPiles &&
+        pileSortPosByAggregate[i] &&
+        arrangementObjective.length < 3 &&
+        !arrangementOptions.forceDimReduction
+      ) {
         let minPos = 0;
         let maxPos = pileInstances.size;
         let newMin = false;
@@ -1951,11 +1972,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     halt();
 
+    // This will ensure that the popup is displayed before we move on
+    await nextAnimationFrame();
+
     const data =
       arrangementOptions.runDimReductionOnPiles === true
         ? aggregatedPileValues
         : items.map((item, itemId) =>
-            arrangementObjective.map(objective =>
+            arrangementObjective.flatMap(objective =>
               objective.property(item, itemId, 0)
             )
           );
@@ -1972,25 +1996,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateArragnementByData = (pileIds, newObjectives) => {
-    const { arrangementObjective } = store.getState();
+    const { arrangementObjective, arrangementOptions } = store.getState();
 
     updateAggregatedPileValues(pileIds);
 
-    switch (arrangementObjective.length) {
-      case 0:
-        console.error('No arrangement objectives found!');
-        return Promise.resolve();
-
-      case 1:
-        // We only need to update the aggregated values for ordering
-        return Promise.resolve();
-
-      case 2:
-        return updateArrangement2dScales(pileIds);
-
-      default:
-        return updateArrangementMdReducer(newObjectives);
+    if (
+      arrangementObjective.length > 2 ||
+      arrangementOptions.forceDimReduction
+    ) {
+      return updateArrangementMdReducer(newObjectives);
     }
+
+    if (arrangementObjective.length > 1) {
+      return updateArrangement2dScales(pileIds);
+    }
+
+    // We only need to update the aggregated values for ordering
+    return Promise.resolve();
   };
 
   const updateArrangement = async (updatedPileIds, newObjectives) => {
@@ -2014,6 +2036,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       batchActions([
         ...set('arrangementType', null, true),
         ...set('arrangementObjective', null, true),
+        ...set('arrangementOptions', {}, true),
         ...set('arrangementOnce', false, true)
       ])
     );
@@ -2340,20 +2363,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         expandedObjective.property = expandProperty(objective.property);
 
-        switch (objective.aggregator) {
-          case 'max':
-            expandedObjective.aggregator = max;
-            break;
-          case 'min':
-            expandedObjective.aggregator = min;
-            break;
-          case 'sum':
-            expandedObjective.aggregator = sum;
-            break;
-          case 'mean':
-          default:
-            expandedObjective.aggregator = mean;
-            break;
+        if (isFunction(objective.aggregator)) {
+          expandedObjective.aggregator = objective.aggregator;
+        } else {
+          switch (objective.aggregator) {
+            case 'max':
+              expandedObjective.aggregator = max;
+              break;
+            case 'min':
+              expandedObjective.aggregator = min;
+              break;
+            case 'sum':
+              expandedObjective.aggregator = sum;
+              break;
+            case 'mean':
+            default:
+              expandedObjective.aggregator = mean;
+              break;
+          }
         }
 
         if (isFunction(objective.scale)) {
@@ -2374,19 +2401,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return expandedArrangementObjective;
   };
 
-  const arrangeBy = (type = null, objective = null) => {
-    const expandedObjective =
-      type === 'data' ? expandArrangementObjective(objective) : objective;
-
-    store.dispatch(
-      batchActions([
-        ...set('arrangementType', type, true),
-        ...set('arrangementObjective', expandedObjective, true)
-      ])
-    );
-  };
-
-  const arrangeByOnce = (type = null, objective = null) => {
+  const arrangeBy = (type = null, objective = null, options = {}) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
@@ -2394,6 +2409,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true),
+        ...set('arrangementOptions', options, true)
+      ])
+    );
+  };
+
+  const arrangeByOnce = (type = null, objective = null, options = {}) => {
+    const expandedObjective =
+      type === 'data' ? expandArrangementObjective(objective) : objective;
+
+    store.dispatch(
+      batchActions([
+        ...set('arrangementType', type, true),
+        ...set('arrangementObjective', expandedObjective, true),
+        ...set('arrangementOptions', options, true),
         ...set('arrangementOnce', true, true)
       ])
     );
