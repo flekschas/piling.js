@@ -865,6 +865,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       ])[0]
     );
 
+    const pile = pileInstances.get(pileId);
+
+    if (pile.size === 1 && !cachedMdPilePos.has(pileId)) {
+      pile.items[0].item.setOriginalPosition(pilePos);
+    }
+
     cachedMdPilePos.set(pileId, pilePos);
 
     return pilePos;
@@ -1133,9 +1139,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const updatePileItems = (pileState, id) => {
-    cachedMdPilePos.delete(id);
+  const isDimReducerInUse = () => {
+    const { arrangementObjective, arrangementOptions } = store.getState();
 
+    return (
+      arrangementObjective.length > 2 || arrangementOptions.forceDimReduction
+    );
+  };
+
+  const updatePileItems = (pileState, id) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
       if (pileState.items.length === 0) {
@@ -1143,16 +1155,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pileInstance.destroy();
         pileInstances.delete(id);
         lastPilePosition.delete(id);
+        // We *do not* delete the cached multi-dimensional position as that
+        // position can come in handy when we depile the pile again
       } else {
+        cachedMdPilePos.delete(id);
+
+        const itemInstances = pileState.items.map(itemId =>
+          renderedItems.get(itemId)
+        );
+
         if (store.getState().previewAggregator) {
           updatePreviewAndCover(pileState, pileInstance);
         } else {
-          const itemInstances = pileState.items.map(itemId =>
-            renderedItems.get(itemId)
-          );
           pileInstance.setItems(itemInstances);
           positionItems(id);
         }
+
+        if (itemInstances.length === 1 && isDimReducerInUse()) {
+          cachedMdPilePos.set(id, itemInstances[0].originalPosition);
+        }
+
         updatePileBounds(id);
         updatePileItemStyle(pileState, id);
       }
@@ -2250,11 +2272,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       )
     ) {
       stateUpdates.add('layout');
+      const newObjective = state.arrangementObjective !== newState.arrangementObjective;
       Promise.all(updatedItems).then(() => {
-        updateArrangement(
-          updatedPileItems,
-          state.arrangementObjective !== newState.arrangementObjective
-        );
+        updateArrangement(updatedPileItems, newObjective);
       });
     }
 
