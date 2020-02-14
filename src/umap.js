@@ -4,10 +4,10 @@ import { UMAP } from 'umap-js';
 import { scaleLinear } from './utils';
 
 const createUmap = (config, { padding = 0.1 } = {}) => {
-  const umap = new UMAP(config);
-
   const xScale = scaleLinear();
   const yScale = scaleLinear();
+
+  let umap;
 
   let minX = Infinity;
   let minY = Infinity;
@@ -29,6 +29,8 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
 
     xScale.domain([minX - xPad, maxX + xPad]);
     yScale.domain([minY - yPad, maxY + yPad]);
+
+    return embedding;
   };
 
   const scalePoint = pt => [xScale(pt[0]), yScale(pt[1])];
@@ -37,6 +39,8 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
     assign(self, {
       // Same as SciKit Learn's `fit(X, y)`
       fit(data, labels = null) {
+        umap = new UMAP(config);
+
         minX = Infinity;
         minY = Infinity;
         maxX = -Infinity;

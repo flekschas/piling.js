@@ -1999,7 +1999,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const data =
       arrangementOptions.runDimReductionOnPiles === true
-        ? aggregatedPileValues
+        ? aggregatedPileValues.filter(x => x[0] !== null)
         : items.map((item, itemId) =>
             arrangementObjective.flatMap(objective =>
               objective.property(item, itemId, 0)
