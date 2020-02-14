@@ -15,6 +15,7 @@ import * as PIXI from 'pixi.js';
 //     vTexIdx = 0.5 * (1.0 + aPosition);
 //     gl_Position = vec4(aPosition, 0.0, 1.0);
 //   }
+// `;
 
 const VS2 = `
   precision mediump float;
