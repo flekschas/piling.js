@@ -1143,7 +1143,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { arrangementObjective, arrangementOptions } = store.getState();
 
     return (
-      arrangementObjective.length > 2 || arrangementOptions.forceDimReduction
+      arrangementObjective &&
+      (arrangementObjective.length > 2 || arrangementOptions.forceDimReduction)
     );
   };
 
