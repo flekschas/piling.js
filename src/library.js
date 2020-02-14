@@ -1882,8 +1882,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : maxValue;
       }
 
-      const tmpAggregatedPileValues = [];
-
       pileIds.forEach(pileId => {
         const pileValues = piles[pileId].items.map((itemId, index) =>
           objective.property(items[itemId], itemId, index)
@@ -1903,12 +1901,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         if (!aggregatedPileValues[pileId]) aggregatedPileValues[pileId] = [];
 
-        tmpAggregatedPileValues[pileId] = Number.isNaN(aggregatedValue)
+        aggregatedPileValues[pileId][i] = Number.isNaN(aggregatedValue)
           ? // This will ensure that the value is ignored during the sort process
             null
           : aggregatedValue;
-
-        aggregatedPileValues[pileId][i] = tmpAggregatedPileValues[pileId];
 
         aggregatedPileValues[pileId].splice(arrangementObjective.length);
       });
