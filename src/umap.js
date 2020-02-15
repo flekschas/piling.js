@@ -1,13 +1,21 @@
-import { assign, pipe, withConstructor } from '@flekschas/utils';
-import { UMAP } from 'umap-js';
+import { assign, createWorker, pipe, withConstructor } from '@flekschas/utils';
+import umapScriptStr from '../node_modules/umap-js/lib/umap-js.min';
 
+import umapWorkerFn from './umap-worker';
 import { scaleLinear } from './utils';
 
 const createUmap = (config, { padding = 0.1 } = {}) => {
   const xScale = scaleLinear();
   const yScale = scaleLinear();
 
-  let umap;
+  const umapUrl = window.URL.createObjectURL(
+    new Blob([umapScriptStr.replace('window', 'self')], {
+      type: 'text/javascript'
+    })
+  );
+
+  const umapWorker = createWorker(umapWorkerFn);
+  umapWorker.postMessage({ task: 'create', config, umapUrl });
 
   let minX = Infinity;
   let minY = Infinity;
@@ -37,22 +45,41 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
 
   const withPublicMethods = () => self =>
     assign(self, {
+      destroy() {
+        umapWorker.terminate();
+      },
+
       // Same as SciKit Learn's `fit(X, y)`
       fit(data, labels = null) {
-        umap = new UMAP(config);
-
         minX = Infinity;
         minY = Infinity;
         maxX = -Infinity;
         maxY = -Infinity;
 
-        if (labels !== null) umap.setSupervisedProjection(labels);
+        return new Promise(resolve => {
+          umapWorker.onmessage = event => {
+            resolve(defineScales(event.data));
+          };
 
-        return umap.fitAsync(data).then(defineScales);
+          umapWorker.postMessage({
+            task: 'fit',
+            data,
+            labels
+          });
+        });
       },
 
       transform(data) {
-        return umap.transform(data).map(scalePoint);
+        if (!umapWorker)
+          return Promise.reject(new Error('You need to fit data first!'));
+
+        return new Promise(resolve => {
+          umapWorker.onmessage = event => {
+            resolve(event.data.map(scalePoint));
+          };
+
+          umapWorker.postMessage({ task: 'transform', data });
+        });
       }
     });
 

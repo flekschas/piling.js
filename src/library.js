@@ -832,23 +832,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const getPilePositionBy1dOrdering = (pileId, pileWidth, pileHeight) => {
-    return layout.idxToXy(
-      pileSortPosByAggregate[0][pileId],
-      pileWidth,
-      pileHeight
+  const getPilePositionBy1dOrdering = (pileId, pileWidth, pileHeight) =>
+    Promise.resolve(
+      layout.idxToXy(pileSortPosByAggregate[0][pileId], pileWidth, pileHeight)
     );
-  };
 
-  const getPilePositionBy2dScales = pileId => {
-    return arrangement2dScales.map((scale, i) =>
-      scale(aggregatedPileValues[pileId][i])
+  const getPilePositionBy2dScales = pileId =>
+    Promise.resolve(
+      arrangement2dScales.map((scale, i) =>
+        scale(aggregatedPileValues[pileId][i])
+      )
     );
-  };
 
   const cachedMdPilePos = new Map();
   let cachedMdPilePosDimReducerRun = 0;
-  const getPilePositionByMdTransform = pileId => {
+  const getPilePositionByMdTransform = async pileId => {
     const { dimensionalityReducer } = store.getState();
 
     if (
@@ -859,11 +857,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     cachedMdPilePosDimReducerRun = lastMdReducerRun;
 
-    const pilePos = layout.uvToXy(
-      ...dimensionalityReducer.transform([
-        aggregatedPileValues[pileId].flat()
-      ])[0]
-    );
+    const uv = await dimensionalityReducer.transform([
+      aggregatedPileValues[pileId].flat()
+    ]);
+
+    const pilePos = layout.uvToXy(...uv[0]);
 
     const pile = pileInstances.get(pileId);
 
@@ -897,10 +895,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     console.warn(
       "Can't arrange pile by data. No arrangement objective available."
     );
-    return [pileState.x, pileState.y];
+    return Promise.resolve([pileState.x, pileState.y]);
   };
 
-  const getPilePosition = (pileId, init) => {
+  const getPilePosition = async (pileId, init) => {
     const { arrangementType, arrangementObjective, piles } = store.getState();
 
     const type = init
@@ -923,19 +921,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return getPilePositionByData(pileId, pileWidth, pileHeight, pileState);
 
       case 'index':
-        return ijToXy(...layout.idxToIj(objective(pileState, pileId)));
+        return Promise.resolve(
+          ijToXy(...layout.idxToIj(objective(pileState, pileId)))
+        );
 
       case 'ij':
-        return ijToXy(...objective(pileState, pileId));
+        return Promise.resolve(ijToXy(...objective(pileState, pileId)));
 
       case 'xy':
-        return objective(pileState, pileId);
+        return Promise.resolve(objective(pileState, pileId));
 
       case 'uv':
-        return layout.uvToXy(...objective(pileState, pileId));
+        return Promise.resolve(layout.uvToXy(...objective(pileState, pileId)));
 
       default:
-        return [pileState.x, pileState.y];
+        return Promise.resolve([pileState.x, pileState.y]);
     }
   };
 
@@ -971,34 +971,36 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .filter(id => pileInstances.has(id))
       .map(id => pileInstances.get(id));
 
-    if (readyPiles.length) {
-      await arranging;
+    if (!readyPiles.length) return;
 
-      readyPiles.forEach(pile => {
-        const point = getPilePosition(pile.id, isInitialPositioning);
-        lastPilePosition.set(pile.id, point);
+    await arranging;
 
-        const [x, y] = point;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const pile of readyPiles) {
+      // eslint-disable-next-line no-await-in-loop
+      const point = await getPilePosition(pile.id, isInitialPositioning);
+      lastPilePosition.set(pile.id, point);
 
-        if (immideate) movePileToWithUpdate(pile, x, y);
+      const [x, y] = point;
 
-        movingPiles.push({ id: pile.id, x, y });
+      if (immideate) movePileToWithUpdate(pile, x, y);
 
-        layout.numRows = Math.max(
-          layout.numRows,
-          Math.ceil(y / layout.rowHeight)
-        );
+      movingPiles.push({ id: pile.id, x, y });
 
-        if (isInitialPositioning) {
-          renderedItems.get(pile.id).setOriginalPosition([x, y]);
-        }
-      });
+      layout.numRows = Math.max(
+        layout.numRows,
+        Math.ceil(y / layout.rowHeight)
+      );
 
-      isInitialPositioning = false;
-
-      if (store.getState().arrangementOnce) {
-        cancelArrangement();
+      if (isInitialPositioning) {
+        renderedItems.get(pile.id).setOriginalPosition([x, y]);
       }
+    }
+
+    isInitialPositioning = false;
+
+    if (store.getState().arrangementOnce) {
+      cancelArrangement();
     }
 
     store.dispatch(createAction.movePiles(movingPiles));

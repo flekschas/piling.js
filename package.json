@@ -45,7 +45,8 @@
     "pretest": "npm run lint",
     "start": "webpack-dev-server --config ./webpack.config.js --mode development --open",
     "test": "rollup -c; webpack --config ./webpack.config.js",
-    "watch": "rollup -cw"
+    "watch": "rollup -cw",
+    "wbuild": "webpack --config ./webpack.config.js --mode development"
   },
   "lint-staged": {
     "*.js": [
@@ -119,6 +120,7 @@
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
+    "raw-loader": "^4.0.0",
     "rollup": "^1.29.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-filesize": "^6.2.1",

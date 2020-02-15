@@ -14,6 +14,10 @@ module.exports = (env, argv) => ({
   module: {
     rules: [
       {
+        test: /umap-js/,
+        use: ['raw-loader']
+      },
+      {
         test: /\.(js|fs|vs)$/,
         exclude: /node_modules/,
         use: ['babel-loader']
