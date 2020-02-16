@@ -907,6 +907,7 @@ const createPile = (
         coverItemContainer.removeChildAt(0);
       }
     });
+    updateCover();
   };
 
   const removeCover = () => {
