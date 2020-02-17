@@ -10,11 +10,10 @@ export const CSS_EASING_CUBIC_IN_OUT = 'cubic-bezier(0.645, 0.045, 0.355, 1)';
 
 export const DEFAULT_DARK_MODE = false;
 
-export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
-export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
-
 export const EVENT_LISTENER_ACTIVE = { passive: false };
 export const EVENT_LISTENER_PASSIVE = { passive: true };
+
+export const INHERIT = 'inherit';
 
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
@@ -41,5 +40,11 @@ export const NAVIGATION_MODES = [
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL
 ];
+
+export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
+export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
+
+export const DEFAULT_PREVIEW_BACKGROUND_COLOR = INHERIT;
+export const DEFAULT_PREVIEW_BACKGROUND_OPACITY = INHERIT;
 
 export const POSITION_PILES_DEBOUNCE_TIME = 100;

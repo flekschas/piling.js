@@ -17,6 +17,8 @@ import {
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
   DEFAULT_POPUP_BACKGROUND_OPACITY,
+  DEFAULT_PREVIEW_BACKGROUND_COLOR,
+  DEFAULT_PREVIEW_BACKGROUND_OPACITY,
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODES
 } from './defaults';
@@ -248,11 +250,21 @@ const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',
-  0xffffff
+  DEFAULT_PREVIEW_BACKGROUND_COLOR
 );
 
 const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
   'previewBackgroundOpacity',
+  DEFAULT_PREVIEW_BACKGROUND_OPACITY
+);
+
+const [previewBorderColor, setPreviewBorderColor] = setter(
+  'previewBorderColor',
+  0xffffff
+);
+
+const [previewBorderOpacity, setPreviewBorderOpacity] = setter(
+  'previewBorderOpacity',
   0.85
 );
 
@@ -515,6 +527,8 @@ const createStore = () => {
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
+    previewBorderColor,
+    previewBorderOpacity,
     previewRenderer,
     previewSpacing,
     randomOffsetRange,
@@ -615,6 +629,8 @@ export const createAction = {
   setPreviewAggregator,
   setPreviewBackgroundColor,
   setPreviewBackgroundOpacity,
+  setPreviewBorderColor,
+  setPreviewBorderOpacity,
   setPreviewRenderer,
   setPreviewSpacing,
   setRandomOffsetRange,
