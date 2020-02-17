@@ -15,13 +15,22 @@ const createDrawingPiles = async element => {
     return d;
   });
 
-  const testData = data.slice(0, 100);
+  const testData = data.slice(0, 1000);
 
   const quickDrawRenderer = createQuickDrawRenderer();
 
   const pilingJs = createPilingJs(element, {
     renderer: quickDrawRenderer,
-    items: testData
+    items: testData,
+    itemSize: 64,
+    cellPadding: 25,
+    pileItemOpacity: (item, i, pile) =>
+      (1 / pile.items.length) * (2 / 3) + 1 / 3,
+    pileItemAlignment: 'overlap',
+    pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
+    backgroundColor: '#ffffff',
+    lassoFillColor: '#000000',
+    lassoStrokeColor: '#000000'
   });
 
   return pilingJs;

@@ -564,6 +564,8 @@ const createPile = (
             case 'right':
               horizontalPadding += padding;
               break;
+            case 'overlap':
+              break;
             // bottom-right
             default:
               verticalPadding += padding;
