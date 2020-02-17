@@ -365,45 +365,45 @@ const createPile = (
    * Calculate the current anchor box of the pile
    * @return  {object}  Anchor bounding box
    */
-  const calcAnchorBox = () => {
+  const calcAnchorBox = (yOffset = 0) => {
     const bounds = coverItemContainer.children.length
       ? coverItemContainer.getBounds()
       : normalItemContainer.getBounds();
 
     return createPileBBox({
       minX: bounds.x,
-      minY: bounds.y,
+      minY: bounds.y + yOffset,
       maxX: bounds.x + bounds.width,
-      maxY: bounds.y + bounds.height
+      maxY: bounds.y + bounds.height + yOffset
     });
   };
 
-  const updateAnchorBox = () => {
-    anchorBox = calcAnchorBox();
+  const updateAnchorBox = yOffset => {
+    anchorBox = calcAnchorBox(yOffset);
   };
 
   /**
    * Compute the current bounding box of the pile
    * @return  {object}  Pile bounding box
    */
-  const calcBBox = () => {
+  const calcBBox = (yOffset = 0) => {
     const bounds = rootGraphics.getBounds();
 
     return createPileBBox({
       minX: bounds.x,
-      minY: bounds.y,
+      minY: bounds.y + yOffset,
       maxX: bounds.x + bounds.width,
-      maxY: bounds.y + bounds.height
+      maxY: bounds.y + bounds.height + yOffset
     });
   };
 
-  const updateBBox = () => {
-    bBox = calcBBox();
+  const updateBBox = yOffset => {
+    bBox = calcBBox(yOffset);
   };
 
-  const updateBounds = () => {
-    updateAnchorBox();
-    updateBBox();
+  const updateBounds = yOffset => {
+    updateAnchorBox(yOffset);
+    updateBBox(yOffset);
   };
 
   const getRandomArbitrary = (min, max) => {

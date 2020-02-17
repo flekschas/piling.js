@@ -367,7 +367,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach(pile => {
-        pile.updateBounds();
+        pile.updateBounds(-stage.y);
         boxList.push(pile.bBox);
       });
       searchIndex.load(boxList);
@@ -386,7 +386,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => a.id === b.id);
-    pile.updateBounds();
+    pile.updateBounds(-stage.y);
     searchIndex.insert(pile.bBox);
   };
 
@@ -2489,7 +2489,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileGfx = pile.graphics;
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
-      const searchBBox = pileInstances.get(pileId).calcBBox();
+      const searchBBox = pileInstances.get(pileId).calcBBox(-stage.y);
       const collidePiles = searchIndex
         .search(searchBBox)
         .filter(collidePile => collidePile.id !== pileId);
@@ -2553,7 +2553,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
     const currentlyHoveredPiles = searchIndex.search(
-      pileInstances.get(pileId).calcBBox()
+      pileInstances.get(pileId).calcBBox(-stage.y)
     );
 
     blurPrevHoveredPiles();
@@ -2595,7 +2595,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const hideContextMenu = contextMenuElement => {
     contextMenuElement.style.display = 'none';
-    rootElement.removeChild(contextMenuElement);
+    scrollContainer.removeChild(contextMenuElement);
   };
 
   const depileBtnClick = (contextMenuElement, pileId) => () => {
