@@ -2,7 +2,8 @@ import {
   identity,
   interpolateNumber,
   interpolateVector,
-  mergeMaps
+  mergeMaps,
+  toVoid
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -316,8 +317,6 @@ const createPile = (
     dragMove = false;
 
     pubSub.publish('pileDragStart', { pileId: id, event });
-
-    render();
   };
 
   const onDragEnd = event => {
@@ -327,11 +326,8 @@ const createPile = (
     rootGraphics.draggingMouseOffset = null;
 
     if (dragMove) {
-      pubSub.publish('updatePileBounds', id);
       pubSub.publish('pileDragEnd', { pileId: id, event });
     }
-
-    render();
   };
 
   const onDragMove = event => {
@@ -645,6 +641,8 @@ const createPile = (
     newScale,
     { isMagnification = false, onDone = identity } = {}
   ) => {
+    if (getScale() === newScale) return;
+
     if (!isMagnification) {
       baseScale = newScale;
     }
@@ -708,7 +706,7 @@ const createPile = (
   };
 
   let moveToTweener;
-  const animateMoveTo = (x, y, { onDone = identity } = {}) => {
+  const animateMoveTo = (x, y, { onDone = toVoid } = {}) => {
     isMoving = true;
     let duration = 250;
     if (moveToTweener) {
