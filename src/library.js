@@ -374,7 +374,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const deleteSearchIndex = pileId => {
+  const deletePileFromSearchIndex = pileId => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => {
@@ -1173,7 +1173,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
       if (pileState.items.length === 0) {
-        deleteSearchIndex(id);
+        deletePileFromSearchIndex(id);
         pileInstance.destroy();
         pileInstances.delete(id);
         lastPilePosition.delete(id);
@@ -2703,10 +2703,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isClicked = false;
     }, 500);
 
-    const contextMenuElement = rootElement.querySelector(
+    const contextMenuElement = scrollContainer.querySelector(
       '#piling-js-context-menu'
     );
-    if (contextMenuElement) rootElement.removeChild(contextMenuElement);
+    if (contextMenuElement) scrollContainer.removeChild(contextMenuElement);
 
     getRelativeMousePosition(event);
 
@@ -2894,7 +2894,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         item => item.label && item.callback
       )
     });
-    rootElement.appendChild(element);
+    scrollContainer.appendChild(element);
 
     const depileBtn = element.querySelector('#depile-button');
     const tempDepileBtn = element.querySelector('#temp-depile-button');
