@@ -29,7 +29,7 @@ const createSvgLinesPiles = element => {
     items: data,
     pileItemOpacity: (item, i, pile) =>
       (1 / pile.items.length) * (2 / 3) + 1 / 3,
-    pileItemAlignment: ['top', 'bottom', 'left', 'right'],
+    pileItemAlignment: 'overlap',
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',

@@ -438,6 +438,11 @@ const createPile = (
     pubSub.publish('startAnimation', opacityTweener);
   };
 
+  const setVisibilityItems = visibility => {
+    normalItemContainer.visible = visibility;
+    previewItemContainer.visible = visibility;
+  };
+
   // Map to store calls for after the pile position animation
   const postPilePositionAnimation = new Map();
   const animatePositionItems = (
@@ -559,6 +564,8 @@ const createPile = (
               break;
             case 'right':
               horizontalPadding += padding;
+              break;
+            case 'overlap':
               break;
             // bottom-right
             default:
@@ -927,8 +934,10 @@ const createPile = (
     coverItem.then(coverImage => {
       const cover = coverImage.displayObject;
       const coverRatio = cover.height / cover.width;
-      cover.width =
-        previewItemContainer.width - store.getState().previewSpacing;
+      const width = previewItemContainer.children.length
+        ? previewItemContainer.width
+        : normalItemContainer.width;
+      cover.width = width - store.getState().previewSpacing;
       cover.height = coverRatio * cover.width;
     });
   };
@@ -1049,14 +1058,15 @@ const createPile = (
     drawBorder,
     getItemById,
     hasItem,
+    magnifyByWheel,
+    magnify,
     moveTo,
     opacity,
     positionItems,
     removeAllItems,
-    setScale,
-    magnifyByWheel,
-    magnify,
     setItems,
+    setScale,
+    setVisibilityItems,
     updateBounds,
     updateCover,
     unmagnify
