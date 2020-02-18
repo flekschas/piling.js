@@ -728,6 +728,7 @@ const createPile = (
 
     if (d < 3) {
       moveTo(x, y);
+      pubSub.publish('updatePileBounds', id);
       return;
     }
 
