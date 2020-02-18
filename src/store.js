@@ -331,8 +331,8 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
   []
 );
 
-const [pileItemVisibility, setPileItemVisibility] = setter(
-  'pileItemVisibility',
+const [pileVisibilityItems, setPileVisibilityItems] = setter(
+  'pileVisibilityItems',
   true
 );
 
@@ -531,7 +531,7 @@ const createStore = () => {
     pileItemOpacity,
     pileItemRotation,
     pileItemTint,
-    pileItemVisibility,
+    pileVisibilityItems,
     pileOpacity,
     piles,
     pileScale,
@@ -636,7 +636,7 @@ export const createAction = {
   setPileItemOpacity,
   setPileItemRotation,
   setPileItemTint,
-  setPileItemVisibility,
+  setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
   setPreviewAggregator,

@@ -154,7 +154,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOpacity: true,
     pileItemRotation: true,
     pileItemTint: true,
-    pileItemVisibility: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -247,6 +246,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileContextMenuItems: true,
     pileOpacity: true,
     pileScale: true,
+    pileVisibilityItems: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -1164,7 +1164,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileOpacity,
       pileBorderSize,
       pileScale,
-      pileItemVisibility
+      pileVisibilityItems
     } = store.getState();
 
     pileInstance.opacity(
@@ -1179,10 +1179,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
 
-    pileInstance.itemVisibility(
-      isFunction(pileItemVisibility)
-        ? pileItemVisibility(pile)
-        : pileItemVisibility
+    pileInstance.setVisibilityItems(
+      isFunction(pileVisibilityItems)
+        ? pileVisibilityItems(pile)
+        : pileVisibilityItems
     );
   };
 
