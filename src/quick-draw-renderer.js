@@ -1,26 +1,25 @@
 import * as PIXI from 'pixi.js';
 
-const renderStroke = strokes => {
+const renderStroke = (strokes, size = 64) => {
   const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  strokes.forEach(stroke => {
-    const xPos = stroke[0];
-    const yPos = stroke[1];
-    const finalPos = xPos.map((x, i) => [(x / 256) * 64, (yPos[i] / 256) * 64]);
-    ctx.moveTo(...finalPos[0]);
-    finalPos.forEach(pos => {
-      ctx.lineTo(...pos);
-    });
+  for (let s = 0; s < strokes.length; s++) {
+    const xPos = strokes[s][0];
+    const yPos = strokes[s][1];
+    ctx.moveTo((xPos[0] / 256) * size, (yPos[0] / 256) * size);
+    for (let i = 0; i < xPos.length; i++) {
+      ctx.lineTo((xPos[i] / 256) * size, (yPos[i] / 256) * size);
+    }
     ctx.stroke();
-  });
+  }
   return PIXI.Texture.from(canvas);
 };
 
-const createQuickDrawRenderer = () => sources =>
-  Promise.all(sources.map(src => renderStroke(src)));
+const createQuickDrawRenderer = size => sources =>
+  Promise.all(sources.map(src => renderStroke(src, size)));
 
 export default createQuickDrawRenderer;
