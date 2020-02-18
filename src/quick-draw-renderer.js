@@ -5,7 +5,7 @@ const renderStroke = (strokes, size = 64) => {
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, size, size);
 
   for (let s = 0; s < strokes.length; s++) {
     const xPos = strokes[s][0];
@@ -16,6 +16,7 @@ const renderStroke = (strokes, size = 64) => {
     }
     ctx.stroke();
   }
+
   return PIXI.Texture.from(canvas);
 };
 
