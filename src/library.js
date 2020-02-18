@@ -365,7 +365,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const spatialIndex = new RBush();
 
-  const drawSpatialIndex = mousePos => {
+  const drawSpatialIndex = (mousePos, lassoPolygon) => {
     if (!store.getState().showSpatialIndex) return;
 
     spatialIndexGfx.clear();
@@ -378,6 +378,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       spatialIndexGfx.beginFill(0xff0000, 1.0);
       spatialIndexGfx.drawRect(mousePos[0] - 1, mousePos[1] - 1, 3, 3);
       spatialIndexGfx.endFill();
+    }
+    if (lassoPolygon) {
+      spatialIndexGfx.lineStyle(1, 0xff0000, 1.0);
+      spatialIndexGfx.moveTo(lassoPolygon[0], lassoPolygon[1]);
+      for (let i = 0; i < lassoPolygon.length; i += 2) {
+        spatialIndexGfx.lineTo(lassoPolygon[i], lassoPolygon[i + 1]);
+        spatialIndexGfx.moveTo(lassoPolygon[i], lassoPolygon[i + 1]);
+      }
     }
   };
 
@@ -1799,6 +1807,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     isLasso = false;
     const lassoPoints = lasso.end();
     const lassoPolygon = lassoPoints.flatMap(translatePointFromScreen);
+    drawSpatialIndex(
+      [lassoPolygon.length - 2, lassoPolygon.length - 1],
+      lassoPolygon
+    );
     const pilesInLasso = findPilesInLasso(lassoPolygon);
     if (pilesInLasso.length > 1) {
       store.dispatch(createAction.setFocusedPiles([]));
