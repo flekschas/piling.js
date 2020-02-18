@@ -1,7 +1,10 @@
 import {
+  cubicOut,
   identity,
   interpolateNumber,
   interpolateVector,
+  isClose,
+  l2PointDist,
   mergeMaps,
   toVoid
 } from '@flekschas/utils';
@@ -215,13 +218,6 @@ const createPile = (
     render();
   };
 
-  // eslint-disable-next-line consistent-return
-  const borderSize = newBorderSize => {
-    if (Number.isNaN(+newBorderSize)) return getBorderSize();
-
-    setBorderSize(newBorderSize);
-  };
-
   const blur = () => {
     mode = MODE_NORMAL;
     drawBorder();
@@ -413,14 +409,15 @@ const createPile = (
 
   let opacityTweener;
   // eslint-disable-next-line consistent-return
-  const opacity = (newOpacity, noAnimate) => {
-    if (Number.isNaN(+newOpacity)) return getOpacity();
+  const animateOpacity = newOpacity => {
+    const d = Math.abs(newOpacity - getOpacity());
 
-    if (noAnimate) {
+    if (d < 1 / 100) {
       setOpacity(newOpacity);
+      return;
     }
 
-    let duration = 250;
+    let duration = cubicOut(d) * 250;
     if (opacityTweener) {
       pubSub.publish('cancelAnimation', opacityTweener);
       if (opacityTweener.dt < opacityTweener.duration) {
@@ -648,14 +645,27 @@ const createPile = (
     newScale,
     { isMagnification = false, onDone = identity } = {}
   ) => {
-    if (getScale() === newScale) return;
+    if (isClose(getScale(), newScale, 3)) {
+      setScale(newScale);
+      return;
+    }
 
     if (!isMagnification) {
       baseScale = newScale;
     }
 
+    // Current size
+    const size = Math.max(bBox.width, bBox.height);
+    // Size difference in pixel
+    const d = Math.abs((newScale / getScale()) * size - size);
+
+    if (d < 2) {
+      setScale(newScale, { isMagnification });
+      return;
+    }
+
     isScaling = true;
-    let duration = 250;
+    let duration = cubicOut(Math.min(d, 50) / 50) * 250;
     if (scaleTweener) {
       pubSub.publish('cancelAnimation', scaleTweener);
       if (scaleTweener.dt < scaleTweener.duration) {
@@ -714,8 +724,15 @@ const createPile = (
 
   let moveToTweener;
   const animateMoveTo = (x, y, { onDone = toVoid } = {}) => {
+    const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
+
+    if (d < 3) {
+      moveTo(x, y);
+      return;
+    }
+
     isMoving = true;
-    let duration = 250;
+    let duration = cubicOut(Math.min(d, 250) / 250) * 250;
     if (moveToTweener) {
       pubSub.publish('cancelAnimation', moveToTweener);
       if (moveToTweener.dt < moveToTweener.duration) {
@@ -1043,8 +1060,9 @@ const createPile = (
     borderGraphics,
     id,
     // Methods
-    animateScale,
     animateMoveTo,
+    animateOpacity,
+    animateScale,
     blur,
     cover,
     hover,
@@ -1052,7 +1070,6 @@ const createPile = (
     active,
     addItem,
     animatePositionItems,
-    borderSize,
     calcBBox,
     destroy,
     drawBorder,
@@ -1061,11 +1078,12 @@ const createPile = (
     magnifyByWheel,
     magnify,
     moveTo,
-    opacity,
     positionItems,
     removeAllItems,
+    setBorderSize,
     setItems,
     setScale,
+    setOpacity,
     setVisibilityItems,
     updateBounds,
     updateCover,

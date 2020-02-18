@@ -1167,7 +1167,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileVisibilityItems
     } = store.getState();
 
-    pileInstance.opacity(
+    pileInstance.animateOpacity(
       isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
     );
 
@@ -1175,7 +1175,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileScale) ? pileScale(pile) : pileScale
     );
 
-    pileInstance.borderSize(
+    pileInstance.setBorderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
 
@@ -1852,15 +1852,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     centerX /= pileIds.length;
     centerY /= pileIds.length;
 
-    pileIds.forEach((id, index) => {
+    const onAllDone = () => {
+      updatePileBounds(pileIds[0]);
+      store.dispatch(createAction.mergePiles(pileIds, false));
+    };
+
+    let done = 0;
+    pileIds.forEach(id => {
       const pile = pileInstances.get(id);
-      const onDone =
-        index === pileIds.length - 1
-          ? () => {
-              updatePileBounds(pile.id);
-              store.dispatch(createAction.mergePiles(pileIds, false));
-            }
-          : identity;
+      const onDone = () => {
+        done++;
+        if (done === pileIds.length) onAllDone();
+      };
 
       animateMovePileTo(pile, centerX, centerY, { onDone });
     });
