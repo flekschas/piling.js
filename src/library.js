@@ -447,7 +447,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePiles();
-    // positionPiles();
   };
 
   let layout;
@@ -2398,9 +2397,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updatedItems.length > 0 ||
       updatedPileItems.length > 0
     ) {
+      const currUpdatedPileItems = [...updatedPileItems];
       Promise.all(updatedItems).then(() => {
         // Reposition of all piles
-        positionPiles();
+        positionPiles(currUpdatedPileItems);
       });
     }
 
