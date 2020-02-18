@@ -8,6 +8,7 @@ import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
 import {
   capitalize,
+  cubicOut,
   debounce,
   deepClone,
   identity,
@@ -1498,48 +1499,65 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateDepile = (srcPileId, itemIds, itemPositions = []) => {
+    const { easing } = store.getState();
     const movingPiles = [];
 
     const srcPile = pileInstances.get(srcPileId);
     srcPile.blur();
     srcPile.drawBorder();
 
-    itemIds.forEach((itemId, index) => {
-      const pile = pileInstances.get(itemId);
-      const pileItem = pile.getItemById(itemId);
-      animator.add(
-        createTweener({
-          duration: 250,
-          delay: 0,
+    const onAllDone = () => {
+      movingPiles.forEach(pileMove => {
+        updatePileBounds(pileMove.id);
+      });
+      store.dispatch(createAction.movePiles(movingPiles));
+    };
+
+    let done = 0;
+    const onDone = () => {
+      done++;
+      if (done === itemIds.length) onAllDone();
+    };
+
+    animator.addBatch(
+      itemIds.map((itemId, index) => {
+        const pile = pileInstances.get(itemId);
+        const pileItem = pile.getItemById(itemId);
+
+        movingPiles.push({
+          id: pile.id,
+          x: pileItem.item.originalPosition[0],
+          y: pileItem.item.originalPosition[1]
+        });
+
+        const endPos =
+          itemPositions.length > 0
+            ? itemPositions[index]
+            : transformPointToScreen(pileItem.item.originalPosition);
+
+        const d = l2PointDist(...endPos, pile.x, pile.y);
+
+        const duration = cubicOut(Math.min(d, 250) / 250) * 250;
+
+        return createTweener({
+          duration,
+          easing,
           interpolator: interpolateVector,
           endValue: [
             ...(itemPositions.length > 0
               ? itemPositions[index]
               : transformPointToScreen(pileItem.item.originalPosition)),
-            0
+            0 // angle
           ],
-          getter: () => {
-            return [pile.x, pile.y, pileItem.displayObject.angle];
-          },
+          getter: () => [pile.x, pile.y, pileItem.displayObject.angle],
           setter: newValue => {
             pile.moveTo(newValue[0], newValue[1]);
             pileItem.displayObject.angle = newValue[2];
           },
-          onDone: () => {
-            movingPiles.push({
-              id: pile.id,
-              x: pileItem.item.originalPosition[0],
-              y: pileItem.item.originalPosition[1]
-            });
-            updatePileBounds(pile.id);
-            // when animation is done, dispatch move piles
-            if (index === itemIds.length - 1) {
-              store.dispatch(createAction.movePiles(movingPiles));
-            }
-          }
-        })
-      );
-    });
+          onDone
+        });
+      })
+    );
   };
 
   const depile = pileId => {
