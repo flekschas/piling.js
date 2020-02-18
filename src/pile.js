@@ -438,12 +438,8 @@ const createPile = (
     pubSub.publish('startAnimation', opacityTweener);
   };
 
-  const visibility = pileItemVisibility => {
-    if (allItems.length > 1) {
-      normalItemContainer.visible = pileItemVisibility;
-    } else {
-      normalItemContainer.visible = true;
-    }
+  const itemVisibility = visibility => {
+    normalItemContainer.visible = visibility;
   };
 
   // Map to store calls for after the pile position animation
@@ -1061,6 +1057,7 @@ const createPile = (
     drawBorder,
     getItemById,
     hasItem,
+    itemVisibility,
     magnifyByWheel,
     magnify,
     moveTo,
@@ -1071,8 +1068,7 @@ const createPile = (
     setScale,
     updateBounds,
     updateCover,
-    unmagnify,
-    visibility
+    unmagnify
   };
 };
 

@@ -1179,7 +1179,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
 
-    pileInstance.visibility(pileItemVisibility);
+    pileInstance.itemVisibility(
+      isFunction(pileItemVisibility)
+        ? pileItemVisibility(pile)
+        : pileItemVisibility
+    );
   };
 
   const createScaledImage = texture => {
