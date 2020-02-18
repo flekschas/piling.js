@@ -1,4 +1,4 @@
-import { cubicInOut, identity } from '@flekschas/utils';
+import { cubicInOut, toVoid } from '@flekschas/utils';
 
 const DEFAULT_DELAY = 0;
 const DEFAULT_DURATION = 250;
@@ -22,7 +22,7 @@ const createTweener = ({
   endValue: initialEndValue,
   getter,
   setter,
-  onDone = identity
+  onDone = toVoid
 } = {}) => {
   let startValue;
   let startTime;
