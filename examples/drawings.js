@@ -1,6 +1,10 @@
 import { ndjsonToJsonText } from 'ndjson-to-json-text';
 import createPilingJs from '../src/library';
-import { createQuickDrawRenderer } from '../src/renderer';
+import {
+  createQuickDrawRenderer,
+  createQuickDrawCoverRenderer
+} from '../src/renderer';
+import { createQuickDrawCoverAggregator } from '../src/aggregator';
 
 const createDrawingPiles = async element => {
   const ndjsonText = await fetch('data/apple.ndjson').then(body =>
@@ -18,9 +22,13 @@ const createDrawingPiles = async element => {
   const testData = data.slice(0, 1000);
 
   const quickDrawRenderer = createQuickDrawRenderer();
+  const quickDrawCoverAggregator = createQuickDrawCoverAggregator();
+  const quickDrawCoverRenderer = createQuickDrawCoverRenderer();
 
   const pilingJs = createPilingJs(element, {
     renderer: quickDrawRenderer,
+    aggregateRenderer: quickDrawCoverRenderer,
+    coverAggregator: quickDrawCoverAggregator,
     items: testData,
     itemSize: 64,
     cellPadding: 25,
