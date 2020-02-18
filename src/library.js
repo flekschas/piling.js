@@ -1231,6 +1231,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => createScaledImage(coverTexture));
 
+      coverImage.then(renderRaf);
+
       pileInstance.cover(coverImage);
 
       coverImage.then(() => {
