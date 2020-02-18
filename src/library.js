@@ -2845,7 +2845,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
-        lasso.showStartIndicator(mouseDownPosition.slice());
+        lasso.showStartIndicator(mouseDownPosition);
         store.dispatch(createAction.setFocusedPiles([]));
         store.dispatch(createAction.setMagnifiedPiles([]));
       }
