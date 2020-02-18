@@ -2690,7 +2690,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const hideContextMenu = contextMenuElement => {
     contextMenuElement.style.display = 'none';
-    scrollContainer.removeChild(contextMenuElement);
+    rootElement.removeChild(contextMenuElement);
   };
 
   const depileBtnClick = (contextMenuElement, pileId) => () => {
@@ -2796,10 +2796,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isClicked = false;
     }, 500);
 
-    const contextMenuElement = scrollContainer.querySelector(
+    const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
     );
-    if (contextMenuElement) scrollContainer.removeChild(contextMenuElement);
+    if (contextMenuElement) rootElement.removeChild(contextMenuElement);
 
     const currMousePos = getMousePosition(event);
 
@@ -2991,7 +2991,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         item => item.label && item.callback
       )
     });
-    scrollContainer.appendChild(element);
+    rootElement.appendChild(element);
 
     const depileBtn = element.querySelector('#depile-button');
     const tempDepileBtn = element.querySelector('#temp-depile-button');
