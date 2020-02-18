@@ -154,6 +154,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOpacity: true,
     pileItemRotation: true,
     pileItemTint: true,
+    pileItemVisibility: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -1159,7 +1160,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!pileInstance) return;
 
-    const { pileOpacity, pileBorderSize, pileScale } = store.getState();
+    const {
+      pileOpacity,
+      pileBorderSize,
+      pileScale,
+      pileItemVisibility
+    } = store.getState();
 
     pileInstance.opacity(
       isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
@@ -1172,6 +1178,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileInstance.borderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
+
+    pileInstance.visibility(pileItemVisibility);
   };
 
   const createScaledImage = texture => {
@@ -1183,7 +1191,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePreviewAndCover = (pileState, pileInstance) => {
-    const { items, aggregateRenderer, coverAggregator } = store.getState();
+    const {
+      items,
+      aggregateRenderer,
+      coverAggregator,
+      previewAggregator
+    } = store.getState();
 
     if (pileState.items.length === 1) {
       pileInstance.cover(null);
@@ -1204,7 +1217,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         itemInstances.push(itemInstance);
       });
 
-      pileInstance.setItems(itemInstances, { asPreview: true });
+      if (previewAggregator) {
+        pileInstance.setItems(itemInstances, { asPreview: true });
+      } else {
+        pileInstance.setItems(itemInstances);
+      }
 
       const coverImage = coverAggregator(itemSrcs)
         .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
@@ -1259,7 +1276,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           renderedItems.get(itemId)
         );
 
-        if (store.getState().previewAggregator) {
+        if (store.getState().coverAggregator) {
           updatePreviewAndCover(pileState, pileInstance);
         } else {
           pileInstance.setItems(itemInstances);
