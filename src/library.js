@@ -739,9 +739,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     updatePileBounds(pile.id);
   };
 
-  const animateMovePileTo = (pile, x, y, options) => {
+  const animateMovePileTo = (pile, x, y, options) =>
     pile.animateMoveTo(...transformPointToScreen([x, y]), options);
-  };
 
   const updateLayout = oldLayout => {
     const { arrangementType } = store.getState();
@@ -1231,12 +1230,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => createScaledImage(coverTexture));
 
-      coverImage.then(renderRaf);
-
       pileInstance.cover(coverImage);
 
       coverImage.then(() => {
+        renderRaf();
         positionItems(pileInstance.id);
+        updatePileBounds(pileInstance.id);
       });
 
       //   coverAggregator(itemSrcs)
@@ -1842,7 +1841,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateMerge = pileIds => {
-    const { piles } = store.getState();
+    const { easing, piles } = store.getState();
     let centerX = 0;
     let centerY = 0;
     pileIds.forEach(id => {
@@ -1863,9 +1862,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     let done = 0;
-    pileIds.forEach(id => {
-      animateMovePileTo(pileInstances.get(id), centerX, centerY, { onDone });
-    });
+    animator.addBatch(
+      pileIds
+        .map(id =>
+          animateMovePileTo(pileInstances.get(id), centerX, centerY, {
+            easing,
+            isBatch: true,
+            onDone
+          })
+        )
+        .filter(identity)
+    );
   };
 
   const scalePile = (pileId, wheelDelta) => {

@@ -5,10 +5,10 @@ import withRaf from 'with-raf';
  * @param {function} render - Render funtion
  */
 const createAnimator = render => {
-  const tweeners = new Set();
+  const currentTweeners = new Set();
 
   const onCall = () => {
-    if (tweeners.size) {
+    if (currentTweeners.size) {
       // eslint-disable-next-line no-use-before-define
       animateRaf();
     }
@@ -16,7 +16,7 @@ const createAnimator = render => {
 
   const animate = () => {
     const done = [];
-    tweeners.forEach(tweener => {
+    currentTweeners.forEach(tweener => {
       if (tweener.update()) done.push(tweener);
     });
     render();
@@ -24,24 +24,33 @@ const createAnimator = render => {
     // Remove tweeners that are done updating
     done.forEach(tweener => {
       tweener.onDone();
-      tweeners.delete(tweener);
+      currentTweeners.delete(tweener);
     });
   };
 
   const animateRaf = withRaf(animate, onCall);
 
   const add = tweener => {
-    tweeners.add(tweener);
+    currentTweeners.add(tweener);
     tweener.register();
     animateRaf();
   };
 
+  const addBatch = tweeners => {
+    tweeners.forEach(tweener => {
+      currentTweeners.add(tweener);
+      tweener.register();
+    });
+    animateRaf();
+  };
+
   const cancel = tweener => {
-    tweeners.delete(tweener);
+    currentTweeners.delete(tweener);
   };
 
   return {
     add,
+    addBatch,
     cancel
   };
 };

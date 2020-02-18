@@ -726,14 +726,18 @@ const createPile = (
   };
 
   let moveToTweener;
-  const animateMoveTo = (x, y, { onDone = toVoid } = {}) => {
+  const animateMoveTo = (
+    x,
+    y,
+    { easing, isBatch = false, onDone = toVoid } = {}
+  ) => {
     const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
 
     if (d < 3) {
       moveTo(x, y);
       pubSub.publish('updatePileBounds', id);
       onDone();
-      return;
+      return null;
     }
 
     isMoving = true;
@@ -747,6 +751,7 @@ const createPile = (
     moveToTweener = createTweener({
       duration,
       delay: 0,
+      easing,
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => [rootGraphics.x, rootGraphics.y],
@@ -757,7 +762,8 @@ const createPile = (
         onDone();
       }
     });
-    pubSub.publish('startAnimation', moveToTweener);
+    if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
+    return moveToTweener;
   };
 
   const moveTo = (x, y) => {
