@@ -1,6 +1,5 @@
 import {
   cubicOut,
-  identity,
   interpolateNumber,
   interpolateVector,
   isClose,
@@ -643,10 +642,17 @@ const createPile = (
   let scaleTweener;
   const animateScale = (
     newScale,
-    { isMagnification = false, onDone = identity } = {}
+    { isMagnification = false, onDone = toVoid } = {}
   ) => {
+    const done = () => {
+      drawBorder();
+      pubSub.publish('updatePileBounds', id);
+      onDone();
+    };
+
     if (isClose(getScale(), newScale, 3)) {
       setScale(newScale);
+      done();
       return;
     }
 
@@ -661,6 +667,7 @@ const createPile = (
 
     if (d < 2) {
       setScale(newScale, { isMagnification });
+      done();
       return;
     }
 
@@ -683,13 +690,9 @@ const createPile = (
       },
       onDone: () => {
         isScaling = false;
-        drawBorder();
-        postPilePositionAnimation.forEach(fn => {
-          fn();
-        });
+        postPilePositionAnimation.forEach(fn => fn());
         postPilePositionAnimation.clear();
-        pubSub.publish('updatePileBounds', id);
-        onDone();
+        done();
       }
     });
     pubSub.publish('startAnimation', scaleTweener);
@@ -729,6 +732,7 @@ const createPile = (
     if (d < 3) {
       moveTo(x, y);
       pubSub.publish('updatePileBounds', id);
+      onDone();
       return;
     }
 
