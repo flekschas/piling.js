@@ -32,8 +32,7 @@ const createDrawingPiles = async element => {
     items: testData,
     itemSize: 64,
     cellPadding: 25,
-    pileItemOpacity: (item, i, pile) =>
-      (1 / pile.items.length) * (2 / 3) + 1 / 3,
+    pileVisibilityItems: pile => pile.items.length === 1,
     pileItemAlignment: 'overlap',
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
