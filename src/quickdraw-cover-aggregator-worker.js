@@ -42,8 +42,8 @@ const worker = function worker() {
 
     const scale = scaleLinearMaxToUint8(max);
 
-    let j = 0;
-    for (let i = 3; i < data.length; i++) {
+    let j = 3; // We only need to populate the alpha values
+    for (let i = 0; i < data.length; i++) {
       rgba[j] = scale(data[i]);
       j += 4;
     }
