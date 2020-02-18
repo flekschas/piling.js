@@ -250,13 +250,13 @@ const createLasso = ({
 
   const end = () => {
     isLasso = false;
-    const lassoPolygon = [...lassoPosFlat];
+    const lassoPoints = [...lassoPos];
 
     extendDb.cancel();
 
     clear();
 
-    return lassoPolygon;
+    return lassoPoints;
   };
 
   const ifNotNull = (v, alternative) => (v === null ? alternative : v);

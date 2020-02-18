@@ -14,7 +14,8 @@ const bundleConfigurator = (file, plugins = [], format = 'umd') => ({
     file,
     globals: {
       'pixi.js': 'PIXI',
-      regl: 'createREGL'
+      regl: 'createREGL',
+      'umap-js': 'UMAP'
     }
   },
   plugins: [
