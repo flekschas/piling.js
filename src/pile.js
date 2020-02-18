@@ -2,7 +2,8 @@ import {
   identity,
   interpolateNumber,
   interpolateVector,
-  mergeMaps
+  mergeMaps,
+  toVoid
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -316,8 +317,6 @@ const createPile = (
     dragMove = false;
 
     pubSub.publish('pileDragStart', { pileId: id, event });
-
-    render();
   };
 
   const onDragEnd = event => {
@@ -327,11 +326,8 @@ const createPile = (
     rootGraphics.draggingMouseOffset = null;
 
     if (dragMove) {
-      pubSub.publish('updatePileBounds', id);
       pubSub.publish('pileDragEnd', { pileId: id, event });
     }
-
-    render();
   };
 
   const onDragMove = event => {
@@ -365,45 +361,45 @@ const createPile = (
    * Calculate the current anchor box of the pile
    * @return  {object}  Anchor bounding box
    */
-  const calcAnchorBox = () => {
+  const calcAnchorBox = (xOffset = 0, yOffset = 0) => {
     const bounds = coverItemContainer.children.length
       ? coverItemContainer.getBounds()
       : normalItemContainer.getBounds();
 
     return createPileBBox({
-      minX: bounds.x,
-      minY: bounds.y,
-      maxX: bounds.x + bounds.width,
-      maxY: bounds.y + bounds.height
+      minX: bounds.x - xOffset,
+      minY: bounds.y - yOffset,
+      maxX: bounds.x + bounds.width - xOffset,
+      maxY: bounds.y + bounds.height - yOffset
     });
   };
 
-  const updateAnchorBox = () => {
-    anchorBox = calcAnchorBox();
+  const updateAnchorBox = (xOffset, yOffset) => {
+    anchorBox = calcAnchorBox(xOffset, yOffset);
   };
 
   /**
    * Compute the current bounding box of the pile
    * @return  {object}  Pile bounding box
    */
-  const calcBBox = () => {
+  const calcBBox = (xOffset = 0, yOffset = 0) => {
     const bounds = rootGraphics.getBounds();
 
     return createPileBBox({
-      minX: bounds.x,
-      minY: bounds.y,
-      maxX: bounds.x + bounds.width,
-      maxY: bounds.y + bounds.height
+      minX: bounds.x - xOffset,
+      minY: bounds.y - yOffset,
+      maxX: bounds.x + bounds.width - xOffset,
+      maxY: bounds.y + bounds.height - yOffset
     });
   };
 
-  const updateBBox = () => {
-    bBox = calcBBox();
+  const updateBBox = (xOffset, yOffset) => {
+    bBox = calcBBox(xOffset, yOffset);
   };
 
-  const updateBounds = () => {
-    updateAnchorBox();
-    updateBBox();
+  const updateBounds = (xOffset, yOffset) => {
+    updateAnchorBox(xOffset, yOffset);
+    updateBBox(xOffset, yOffset);
   };
 
   const getRandomArbitrary = (min, max) => {
@@ -645,6 +641,8 @@ const createPile = (
     newScale,
     { isMagnification = false, onDone = identity } = {}
   ) => {
+    if (getScale() === newScale) return;
+
     if (!isMagnification) {
       baseScale = newScale;
     }
@@ -708,7 +706,7 @@ const createPile = (
   };
 
   let moveToTweener;
-  const animateMoveTo = (x, y, { onDone = identity } = {}) => {
+  const animateMoveTo = (x, y, { onDone = toVoid } = {}) => {
     isMoving = true;
     let duration = 250;
     if (moveToTweener) {

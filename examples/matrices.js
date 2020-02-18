@@ -7,6 +7,7 @@ import {
   createMatrixCoverAggregator,
   createMatrixPreviewAggregator
 } from '../src/aggregator';
+import { createUmap } from '../src/dimensionality-reducer';
 
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
@@ -37,15 +38,23 @@ const createMatrixPiles = async element => {
     shape: [16, 16]
   });
 
-  const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
+  const matrixPreviewRenderer = createMatrixRenderer({
+    colorMap,
+    shape: [16, 1]
+  });
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
   const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
+
+  // Build-in dimensionality reducer is using UMAP
+  const umap = createUmap();
+
   const pilingJs = createPilingJs(element);
 
   pilingJs.set({
     darkMode: true,
+    dimensionalityReducer: umap,
     renderer: matrixRenderer,
-    previewRenderer,
+    previewRenderer: matrixPreviewRenderer,
     aggregateRenderer: coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
@@ -54,6 +63,27 @@ const createMatrixPiles = async element => {
     pileCellAlignment: 'center',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
+
+  // const matrixMeanCol = m =>
+  //   m.length
+  //     ? m
+  //         .reduce(
+  //           (v, row) => row.map((x, i) => v[i] + x),
+  //           new Array(m[0].length).fill(0)
+  //         )
+  //         .map(x => x / m.length)
+  //     : [];
+
+  // pilingJs.arrangeBy(
+  //   'data',
+  //   {
+  //     property: item => item.src.data,
+  //     aggregator: matrixMeanCol
+  //   },
+  //   {
+  //     forceDimReduction: true
+  //   }
+  // );
 
   return pilingJs;
 };

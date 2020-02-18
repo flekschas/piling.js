@@ -16,6 +16,7 @@ import {
   DEFAULT_LASSO_STROKE_SIZE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
+  DEFAULT_POPUP_BACKGROUND_OPACITY,
   DEFAULT_PREVIEW_BACKGROUND_COLOR,
   DEFAULT_PREVIEW_BACKGROUND_OPACITY,
   NAVIGATION_MODE_AUTO,
@@ -106,6 +107,11 @@ const [arrangementObjective, setArrangementObjective] = setter(
 
 const [arrangementOnce, setArrangementOnce] = setter('arrangementOnce', false);
 
+const [arrangementOptions, setArrangementOptions] = setter(
+  'arrangementOptions',
+  {}
+);
+
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
   0x000000
@@ -113,11 +119,20 @@ const [backgroundColor, setBackgroundColor] = setter(
 
 const [darkMode, setDarkMode] = setter('darkMode', DEFAULT_DARK_MODE);
 
+const [dimensionalityReducer, setDimensionalityReducer] = setter(
+  'dimensionalityReducer'
+);
+
 const [gridColor, setGridColor] = setter('gridColor', 0x787878);
 
 const [gridOpacity, setGridOpacity] = setter('gridOpacity', 1);
 
 const [showGrid, setShowGrid] = setter('showGrid', false);
+
+const [popupBackgroundOpacity, setPopupBackgroundOpacity] = setter(
+  'popupBackgroundOpacity',
+  DEFAULT_POPUP_BACKGROUND_OPACITY
+);
 
 const [lassoFillColor, setLassoFillColor] = setter(
   'lassoFillColor',
@@ -451,6 +466,11 @@ const depilePiles = depiledPiles => ({
   payload: { piles: depiledPiles }
 });
 
+const [showSpatialIndex, setShowSpatialIndex] = setter(
+  'showSpatialIndex',
+  false
+);
+
 const createStore = () => {
   let lastAction = null;
 
@@ -458,6 +478,7 @@ const createStore = () => {
     aggregateRenderer,
     arrangementObjective,
     arrangementOnce,
+    arrangementOptions,
     arrangementType,
     backgroundColor,
     cellAspectRatio,
@@ -466,11 +487,13 @@ const createStore = () => {
     coverAggregator,
     depiledPile,
     depileMethod,
+    dimensionalityReducer,
     easing,
     focusedPiles,
     gridColor,
     gridOpacity,
     darkMode,
+    popupBackgroundOpacity,
     itemRenderer,
     items,
     itemSize,
@@ -517,6 +540,7 @@ const createStore = () => {
     randomRotationRange,
     rowHeight,
     showGrid,
+    showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles
@@ -558,6 +582,7 @@ export const createAction = {
   setAggregateRenderer,
   setArrangementObjective,
   setArrangementOnce,
+  setArrangementOptions,
   setArrangementType,
   setBackgroundColor,
   setCellAspectRatio,
@@ -566,11 +591,13 @@ export const createAction = {
   setCoverAggregator,
   setDepiledPile,
   setDepileMethod,
+  setDimensionalityReducer,
   setEasing,
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
   setDarkMode,
+  setPopupBackgroundOpacity,
   setItemRenderer,
   setItems,
   setItemSize,
@@ -616,6 +643,7 @@ export const createAction = {
   setRandomRotationRange,
   setRowHeight,
   setShowGrid,
+  setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setTemporaryDepiledPiles
