@@ -114,8 +114,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const gridGfx = new PIXI.Graphics();
   stage.addChild(gridGfx);
 
-  const rbushGfx = new PIXI.Graphics();
-  stage.addChild(rbushGfx);
+  const spatialIndexGfx = new PIXI.Graphics();
+  stage.addChild(spatialIndexGfx);
 
   root.addChild(stage);
 
@@ -276,6 +276,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       set: value => [createAction.setItemRenderer(value)]
     },
     showGrid: true,
+    showSpatialIndex: true,
     temporaryDepiledPiles: true,
     tempDepileDirection: true,
     tempDepileOneDNum: true
@@ -362,24 +363,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.addChild(activePile);
   stage.addChild(lasso.lineContainer);
 
-  const searchIndex = new RBush();
+  const spatialIndex = new RBush();
 
-  const drawRBush = mousePos => {
-    rbushGfx.clear();
-    rbushGfx.beginFill(0x00ff00, 0.5);
-    searchIndex.all().forEach(bBox => {
-      rbushGfx.drawRect(bBox.minX, bBox.minY, bBox.width, bBox.height);
+  const drawSpatialIndex = mousePos => {
+    if (!store.getState().showSpatialIndex) return;
+
+    spatialIndexGfx.clear();
+    spatialIndexGfx.beginFill(0x00ff00, 0.5);
+    spatialIndex.all().forEach(bBox => {
+      spatialIndexGfx.drawRect(bBox.minX, bBox.minY, bBox.width, bBox.height);
     });
-    rbushGfx.endFill();
+    spatialIndexGfx.endFill();
     if (mousePos) {
-      rbushGfx.beginFill(0xff0000, 1.0);
-      rbushGfx.drawRect(...mousePos, 2, 2);
-      rbushGfx.endFill();
+      spatialIndexGfx.beginFill(0xff0000, 1.0);
+      spatialIndexGfx.drawRect(mousePos[0] - 1, mousePos[1] - 1, 3, 3);
+      spatialIndexGfx.endFill();
     }
   };
 
   const createRBush = () => {
-    searchIndex.clear();
+    spatialIndex.clear();
 
     const boxList = [];
 
@@ -388,18 +391,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pile.updateBounds(...getXyOffset());
         boxList.push(pile.bBox);
       });
-      searchIndex.load(boxList);
-      drawRBush();
+      spatialIndex.load(boxList);
+      drawSpatialIndex();
     }
   };
 
   const deletePileFromSearchIndex = pileId => {
     const pile = pileInstances.get(pileId);
 
-    searchIndex.remove(pile.bBox, (a, b) => {
+    spatialIndex.remove(pile.bBox, (a, b) => {
       return a.id === b.id;
     });
-    drawRBush();
+    drawSpatialIndex();
   };
 
   const getXyOffset = () => {
@@ -417,10 +420,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileBounds = pileId => {
     const pile = pileInstances.get(pileId);
 
-    searchIndex.remove(pile.bBox, (a, b) => a.id === b.id);
+    spatialIndex.remove(pile.bBox, (a, b) => a.id === b.id);
     pile.updateBounds(...getXyOffset());
-    searchIndex.insert(pile.bBox);
-    drawRBush();
+    spatialIndex.insert(pile.bBox);
+    drawSpatialIndex();
   };
 
   const translatePiles = () => {
@@ -1778,7 +1781,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const findPilesInLasso = lassoPolygon => {
     const lassoBBox = getBBox(lassoPolygon);
-    const pileBBoxes = searchIndex.search(lassoBBox);
+    const pileBBoxes = spatialIndex.search(lassoBBox);
     const pilesInPolygon = [];
     pileBBoxes.forEach(pileBBox => {
       if (
@@ -2549,7 +2552,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
       const searchBBox = calcPileBBox(pileId);
-      const collidePiles = searchIndex
+      const collidePiles = spatialIndex
         .search(searchBBox)
         .filter(collidePile => collidePile.id !== pileId);
 
@@ -2611,7 +2614,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const highlightHoveringPiles = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
-    const currentlyHoveredPiles = searchIndex.search(calcPileBBox(pileId));
+    const currentlyHoveredPiles = spatialIndex.search(calcPileBBox(pileId));
 
     blurPrevHoveredPiles();
 
@@ -2712,13 +2715,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const mouseDownPosRel = translatePointFromScreen(mouseDownPosition);
 
       // whether mouse click on any pile
-      isMouseDown = !searchIndex.collides({
+      isMouseDown = !spatialIndex.collides({
         minX: mouseDownPosRel[0],
         minY: mouseDownPosRel[1],
         maxX: mouseDownPosRel[0] + 1,
         maxY: mouseDownPosRel[1] + 1
       });
-      drawRBush(mouseDownPosRel);
+      drawSpatialIndex(mouseDownPosRel);
     }
   };
 
@@ -2771,7 +2774,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       currMousePos[1] === mouseDownPosition[1]
     ) {
       const currMousePosRel = translatePointFromScreen(currMousePos);
-      const results = searchIndex.search({
+      const results = spatialIndex.search({
         minX: currMousePosRel[0],
         minY: currMousePosRel[1],
         maxX: currMousePosRel[0] + 1,
@@ -2820,7 +2823,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { temporaryDepiledPiles, piles } = store.getState();
 
-    const result = searchIndex.search({
+    const result = spatialIndex.search({
       minX: currMousePosRel[0],
       minY: currMousePosRel[1],
       maxX: currMousePosRel[0] + 1,
@@ -2848,7 +2851,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const currMousePos = getMousePosition(event);
       const currMousePosRel = translatePointFromScreen(currMousePos);
 
-      const result = searchIndex.search({
+      const result = spatialIndex.search({
         minX: currMousePosRel[0],
         minY: currMousePosRel[1],
         maxX: currMousePosRel[0] + 1,
@@ -2939,7 +2942,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     event.preventDefault();
 
-    const results = searchIndex.search({
+    const results = spatialIndex.search({
       minX: currMousePosRel[0],
       minY: currMousePosRel[1],
       maxX: currMousePosRel[0] + 1,

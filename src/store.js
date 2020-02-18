@@ -466,6 +466,11 @@ const depilePiles = depiledPiles => ({
   payload: { piles: depiledPiles }
 });
 
+const [showSpatialIndex, setShowSpatialIndex] = setter(
+  'showSpatialIndex',
+  false
+);
+
 const createStore = () => {
   let lastAction = null;
 
@@ -535,6 +540,7 @@ const createStore = () => {
     randomRotationRange,
     rowHeight,
     showGrid,
+    showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles
@@ -637,6 +643,7 @@ export const createAction = {
   setRandomRotationRange,
   setRowHeight,
   setShowGrid,
+  setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setTemporaryDepiledPiles
