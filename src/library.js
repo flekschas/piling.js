@@ -81,7 +81,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let gridMat;
 
-  let translatePointToScreen;
+  let transformPointToScreen;
+  let transformPointFromScreen;
   let translatePointFromScreen;
   let camera;
   const scratch = new Float32Array(16);
@@ -112,6 +113,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const gridGfx = new PIXI.Graphics();
   stage.addChild(gridGfx);
+
+  const rbushGfx = new PIXI.Graphics();
+  stage.addChild(rbushGfx);
 
   root.addChild(stage);
 
@@ -360,6 +364,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const searchIndex = new RBush();
 
+  const drawRBush = mousePos => {
+    rbushGfx.clear();
+    rbushGfx.beginFill(0x00ff00, 0.5);
+    searchIndex.all().forEach(bBox => {
+      rbushGfx.drawRect(bBox.minX, bBox.minY, bBox.width, bBox.height);
+    });
+    rbushGfx.endFill();
+    if (mousePos) {
+      rbushGfx.beginFill(0xff0000, 1.0);
+      rbushGfx.drawRect(...mousePos, 2, 2);
+      rbushGfx.endFill();
+    }
+  };
+
   const createRBush = () => {
     searchIndex.clear();
 
@@ -367,10 +385,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach(pile => {
-        pile.updateBounds(-stage.y);
+        pile.updateBounds(...getXyOffset());
         boxList.push(pile.bBox);
       });
       searchIndex.load(boxList);
+      drawRBush();
     }
   };
 
@@ -380,14 +399,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     searchIndex.remove(pile.bBox, (a, b) => {
       return a.id === b.id;
     });
+    drawRBush();
+  };
+
+  const getXyOffset = () => {
+    if (isPanZoom) {
+      return camera.translation;
+    }
+
+    return [0, stage.y];
+  };
+
+  const calcPileBBox = pileId => {
+    return pileInstances.get(pileId).calcBBox(...getXyOffset());
   };
 
   const updatePileBounds = pileId => {
     const pile = pileInstances.get(pileId);
 
     searchIndex.remove(pile.bBox, (a, b) => a.id === b.id);
-    pile.updateBounds(-stage.y);
+    pile.updateBounds(...getXyOffset());
     searchIndex.insert(pile.bBox);
+    drawRBush();
   };
 
   const translatePiles = () => {
@@ -411,12 +444,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePiles();
-    positionPiles();
+    // positionPiles();
   };
 
   let layout;
 
-  const updateScrollEl = () => {
+  const updateScrollHeight = () => {
     const canvasHeight = canvas.getBoundingClientRect().height;
     const finalHeight =
       Math.round(layout.rowHeight) * (layout.numRows + EXTRA_ROWS);
@@ -429,7 +462,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     disablePanZoom();
 
     isPanZoom = false;
-    translatePointToScreen = identity;
+    transformPointToScreen = identity;
+    transformPointFromScreen = identity;
     translatePointFromScreen = identity;
 
     stage.y = 0;
@@ -474,7 +508,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     disableScrolling();
 
     isPanZoom = true;
-    translatePointToScreen = translatePointToCamera;
+    transformPointToScreen = transformPointToCamera;
+    transformPointFromScreen = transformPointFromCamera;
     translatePointFromScreen = translatePointFromCamera;
 
     camera = createDom2dCamera(canvas, {
@@ -546,7 +581,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight
     });
 
-    updateScrollEl();
+    updateScrollHeight();
   };
 
   const updateGrid = () => {
@@ -575,7 +610,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
-    updateScrollEl();
+    updateScrollHeight();
 
     if (showGrid) {
       drawGrid();
@@ -685,7 +720,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const movePileTo = (pile, x, y) => {
-    pile.moveTo(...translatePointToScreen([x, y]));
+    pile.moveTo(...transformPointToScreen([x, y]));
   };
 
   const movePileToWithUpdate = (pile, x, y) => {
@@ -694,7 +729,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateMovePileTo = (pile, x, y, options) => {
-    pile.animateMoveTo(...translatePointToScreen([x, y]), options);
+    pile.animateMoveTo(...transformPointToScreen([x, y]), options);
   };
 
   const updateLayout = oldLayout => {
@@ -759,7 +794,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.get(focusedPile).focus();
     });
 
-    updateScrollEl();
+    updateScrollHeight();
     renderRaf();
   };
 
@@ -958,26 +993,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const translatePointToCamera = ([x, y]) => {
-    const v = toHomogeneous(x, y);
+  /**
+   * Transform a point from screen to camera coordinates
+   * @param {array} point - Point in screen coordinates
+   * @return {array} Point in camera coordinates
+   */
+  const transformPointToCamera = point => {
+    const v = toHomogeneous(point[0], point[1]);
 
     vec4.transformMat4(v, v, camera.view);
 
     return v.slice(0, 2);
   };
 
-  const translatePointFromCamera = ([x, y]) => {
-    const v = toHomogeneous(x, y);
+  /**
+   * Transform a point from camera to screen coordinates
+   * @param {array} point - Point in camera coordinates
+   * @return {array} Point in screen coordinates
+   */
+  const transformPointFromCamera = point => {
+    const v = toHomogeneous(point[0], point[1]);
 
     vec4.transformMat4(v, v, mat4.invert(scratch, camera.view));
 
     return v.slice(0, 2);
   };
 
+  /**
+   * Translate a point according to the camera position.
+   *
+   * @description This methis is similar to `transformPointFromCamera` but it
+   *   does not incorporate the zoom level. We use this method together with the
+   *   search index as the search index is zoom-invariant.
+   *
+   * @param {array} point - Point to be translated
+   * @return {array} Translated point
+   */
+  const translatePointFromCamera = point => [
+    point[0] - camera.translation[0],
+    point[1] - camera.translation[1]
+  ];
+
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
     const { items } = store.getState();
+    const positionAllPiles = !pileIds.length;
 
-    if (!pileIds.length) {
+    if (positionAllPiles) {
       const { piles } = store.getState();
       pileIds.splice(0, pileIds.length - 1, ...range(0, piles.length));
     }
@@ -1024,8 +1085,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(createAction.movePiles(movingPiles));
 
-    createRBush();
-    updateScrollEl();
+    if (positionAllPiles) {
+      createRBush();
+    }
+    updateScrollHeight();
     renderRaf();
   };
 
@@ -1201,7 +1264,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         updatePileItemStyle(pileState, id);
       }
     } else {
-      const [x, y] = translatePointToScreen([pileState.x, pileState.y]);
+      const [x, y] = transformPointToScreen([pileState.x, pileState.y]);
       const newPile = createPile(
         {
           items: [renderedItems.get(id)],
@@ -1354,7 +1417,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!depilePos) {
       depilePos = [resultMat.shape[0] + 1, Math.floor(filterRowNum / 2)];
       layout.numRows += filterRowNum;
-      updateScrollEl();
+      updateScrollHeight();
     }
 
     return depilePos;
@@ -1420,7 +1483,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           endValue: [
             ...(itemPositions.length > 0
               ? itemPositions[index]
-              : translatePointToScreen(pileItem.item.originalPosition)),
+              : transformPointToScreen(pileItem.item.originalPosition)),
             0
           ],
           getter: () => {
@@ -1707,15 +1770,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  let mousePosition = [0, 0];
-
-  const getRelativeMousePosition = event => {
+  const getMousePosition = event => {
     const rect = canvas.getBoundingClientRect();
 
-    mousePosition[0] = event.clientX - rect.left;
-    mousePosition[1] = event.clientY - rect.top - stage.y;
-
-    return [...mousePosition];
+    return [event.clientX - rect.left, event.clientY - rect.top - stage.y];
   };
 
   const findPilesInLasso = lassoPolygon => {
@@ -1737,8 +1795,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const lassoEndHandler = () => {
     isLasso = false;
-    const lassoPosFlat = lasso.end();
-    const pilesInLasso = findPilesInLasso(lassoPosFlat);
+    const lassoPoints = lasso.end();
+    const lassoPolygon = lassoPoints.flatMap(translatePointFromScreen);
+    const pilesInLasso = findPilesInLasso(lassoPolygon);
     if (pilesInLasso.length > 1) {
       store.dispatch(createAction.setFocusedPiles([]));
       animateMerge(pilesInLasso);
@@ -1828,7 +1887,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (changed) {
       translatePiles();
       positionPiles();
-      updateScrollEl();
+      updateScrollHeight();
     }
   };
 
@@ -2489,7 +2548,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileGfx = pile.graphics;
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
-      const searchBBox = pileInstances.get(pileId).calcBBox(-stage.y);
+      const searchBBox = calcPileBBox(pileId);
       const collidePiles = searchIndex
         .search(searchBBox)
         .filter(collidePile => collidePile.id !== pileId);
@@ -2517,8 +2576,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
         }
       } else {
-        // We need to "untranslate" the position of the pile
-        const [x, y] = translatePointFromScreen([pile.x, pile.y]);
+        // We need to "untransform" the position of the pile
+        const [x, y] = transformPointFromScreen([pile.x, pile.y]);
         store.dispatch(
           createAction.movePiles([
             {
@@ -2552,9 +2611,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const highlightHoveringPiles = pileId => {
     if (store.getState().temporaryDepiledPiles.length) return;
 
-    const currentlyHoveredPiles = searchIndex.search(
-      pileInstances.get(pileId).calcBBox(-stage.y)
-    );
+    const currentlyHoveredPiles = searchIndex.search(calcPileBBox(pileId));
 
     blurPrevHoveredPiles();
 
@@ -2651,17 +2708,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (event.button === 0) {
       renderRaf();
 
-      mouseDownPosition = getRelativeMousePosition(event);
+      mouseDownPosition = getMousePosition(event);
+      const mouseDownPosRel = translatePointFromScreen(mouseDownPosition);
 
       // whether mouse click on any pile
-      const result = searchIndex.collides({
-        minX: mouseDownPosition[0],
-        minY: mouseDownPosition[1],
-        maxX: mouseDownPosition[0] + 1,
-        maxY: mouseDownPosition[1] + 1
+      isMouseDown = !searchIndex.collides({
+        minX: mouseDownPosRel[0],
+        minY: mouseDownPosRel[1],
+        maxX: mouseDownPosRel[0] + 1,
+        maxY: mouseDownPosRel[1] + 1
       });
-
-      isMouseDown = !result;
+      drawRBush(mouseDownPosRel);
     }
   };
 
@@ -2677,11 +2734,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseMoveHandler = event => {
-    mousePosition = getRelativeMousePosition(event);
-
     if (isMouseDown) {
       if (event.shiftKey || isLasso) {
-        lasso.extendDb(mousePosition.slice());
+        lasso.extendDb(getMousePosition(event));
       } else if (isPanZoom) {
         panZoomHandler(false);
       }
@@ -2708,18 +2763,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
     if (contextMenuElement) scrollContainer.removeChild(contextMenuElement);
 
-    getRelativeMousePosition(event);
+    const currMousePos = getMousePosition(event);
 
     // click event: only when mouse down pos and mouse up pos are the same
     if (
-      mousePosition[0] === mouseDownPosition[0] &&
-      mousePosition[1] === mouseDownPosition[1]
+      currMousePos[0] === mouseDownPosition[0] &&
+      currMousePos[1] === mouseDownPosition[1]
     ) {
+      const currMousePosRel = translatePointFromScreen(currMousePos);
       const results = searchIndex.search({
-        minX: mousePosition[0],
-        minY: mousePosition[1],
-        maxX: mousePosition[0] + 1,
-        maxY: mousePosition[1] + 1
+        minX: currMousePosRel[0],
+        minY: currMousePosRel[1],
+        maxX: currMousePosRel[0] + 1,
+        maxY: currMousePosRel[1] + 1
       });
 
       if (results.length !== 0) {
@@ -2759,15 +2815,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseDblClickHandler = event => {
-    getRelativeMousePosition(event);
+    const currMousePos = getMousePosition(event);
+    const currMousePosRel = translatePointFromScreen(currMousePos);
 
     const { temporaryDepiledPiles, piles } = store.getState();
 
     const result = searchIndex.search({
-      minX: mouseDownPosition[0],
-      minY: mouseDownPosition[1],
-      maxX: mouseDownPosition[0] + 1,
-      maxY: mouseDownPosition[1] + 1
+      minX: currMousePosRel[0],
+      minY: currMousePosRel[1],
+      maxX: currMousePosRel[0] + 1,
+      maxY: currMousePosRel[1] + 1
     });
 
     if (result.length !== 0 && !temporaryDepiledPiles.length) {
@@ -2788,13 +2845,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const wheelHandler = event => {
     if (event.altKey) {
-      getRelativeMousePosition(event);
+      const currMousePos = getMousePosition(event);
+      const currMousePosRel = translatePointFromScreen(currMousePos);
 
       const result = searchIndex.search({
-        minX: mousePosition[0],
-        minY: mousePosition[1],
-        maxX: mousePosition[0] + 1,
-        maxY: mousePosition[1] + 1
+        minX: currMousePosRel[0],
+        minY: currMousePosRel[1],
+        maxX: currMousePosRel[0] + 1,
+        maxY: currMousePosRel[1] + 1
       });
 
       if (result.length !== 0) {
@@ -2848,7 +2906,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (index === pileMovements.length - 1) {
             store.dispatch(createAction.movePiles(pileMovements));
             createRBush();
-            updateScrollEl();
+            updateScrollHeight();
             renderRaf();
           }
         }
@@ -2872,7 +2930,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const contextmenuHandler = event => {
     closeContextMenu();
 
-    getRelativeMousePosition(event);
+    const currMousePos = getMousePosition(event);
+    const currMousePosRel = translatePointFromScreen(currMousePos);
 
     if (event.altKey) return;
 
@@ -2881,10 +2940,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     event.preventDefault();
 
     const results = searchIndex.search({
-      minX: mousePosition[0],
-      minY: mousePosition[1],
-      maxX: mousePosition[0] + 1,
-      maxY: mousePosition[1] + 1
+      minX: currMousePosRel[0],
+      minY: currMousePosRel[1],
+      maxX: currMousePosRel[0] + 1,
+      maxY: currMousePosRel[1] + 1
     });
 
     const clickedOnPile = results.length > 0;
@@ -2934,12 +2993,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       element.style.display = 'block';
 
       const { width } = element.getBoundingClientRect();
-      if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
-        element.style.left = `${mousePosition[0] - width}px`;
+      if (currMousePos[0] > canvas.getBoundingClientRect().width - width) {
+        element.style.left = `${currMousePos[0] - width}px`;
       } else {
-        element.style.left = `${mousePosition[0]}px`;
+        element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${mousePosition[1]}px`;
+      element.style.top = `${currMousePos[1]}px`;
 
       depileBtn.addEventListener(
         'click',
@@ -2989,12 +3048,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       element.style.display = 'block';
 
       const { width } = element.getBoundingClientRect();
-      if (mousePosition[0] > canvas.getBoundingClientRect().width - width) {
-        element.style.left = `${mousePosition[0] - width}px`;
+      if (currMousePos[0] > canvas.getBoundingClientRect().width - width) {
+        element.style.left = `${currMousePos[0] - width}px`;
       } else {
-        element.style.left = `${mousePosition[0]}px`;
+        element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${mousePosition[1]}px`;
+      element.style.top = `${currMousePos[1]}px`;
 
       toggleGridBtn.addEventListener(
         'click',
