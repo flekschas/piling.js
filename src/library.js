@@ -3151,13 +3151,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     storeUnsubscribor = store.subscribe(updated);
 
     rootElement.appendChild(scrollContainer);
-    rootElement.appendChild(lasso.startIndicator);
     rootElement.appendChild(popup.element);
 
     rootElement.style.overflow = 'hidden';
 
     scrollContainer.appendChild(canvas);
     scrollContainer.appendChild(scrollEl);
+    scrollContainer.appendChild(lasso.startIndicator);
 
     scrollContainer.style.position = 'absolute';
     scrollContainer.style.overflowX = 'hidden';
