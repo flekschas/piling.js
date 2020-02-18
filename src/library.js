@@ -1857,15 +1857,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       store.dispatch(createAction.mergePiles(pileIds, false));
     };
 
+    const onDone = () => {
+      done++;
+      if (done === pileIds.length) onAllDone();
+    };
+
     let done = 0;
     pileIds.forEach(id => {
-      const pile = pileInstances.get(id);
-      const onDone = () => {
-        done++;
-        if (done === pileIds.length) onAllDone();
-      };
-
-      animateMovePileTo(pile, centerX, centerY, { onDone });
+      animateMovePileTo(pileInstances.get(id), centerX, centerY, { onDone });
     });
   };
 
