@@ -15,10 +15,20 @@ const createAnimator = render => {
   };
 
   const animate = () => {
-    tweeners.forEach((tweener, index) => {
-      if (tweener.update(index)) tweeners.delete(tweener);
+    // const start = performance.now();
+    const done = [];
+    tweeners.forEach(tweener => {
+      if (tweener.update()) done.push(tweener);
     });
+    // const dt = performance.now() - start;
     render();
+
+    // Remove tweeners that are done updating
+    done.forEach(tweener => {
+      tweener.onDone();
+      tweeners.delete(tweener);
+    });
+    // console.log(`One animation step took ${dt} msec`);
   };
 
   const animateRaf = withRaf(animate, onCall);
