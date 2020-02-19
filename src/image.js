@@ -2,6 +2,7 @@ import { pipe, withConstructor, withStaticProperty } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 import withColorFilters from './with-color-filters';
+import withDestroy from './with-destroy';
 import withSize from './with-size';
 
 const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
@@ -13,6 +14,7 @@ const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
     withStaticProperty('sprite', sprite),
     withColorFilters(sprite),
     withSize(sprite),
+    withDestroy(sprite),
     withConstructor(createImage)
   )({});
 };
