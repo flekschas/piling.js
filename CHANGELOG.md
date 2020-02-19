@@ -1,5 +1,6 @@
 ### Next
 
+- Add an example of _perfectly overlapping_ piles using a subset of Google Quickdraw Dataset
 - Add `previewBorderColor` and `previewBorderOpacity`. Set the default value of `previewBackgroundColor` and `previewBackgroundOpacity` to `'inherit'`
 - Add pan&zoom interaction
 - Add mouse-only lasso support to provide a unified interface for using the lasso in the scroll and pan&zoom mode
