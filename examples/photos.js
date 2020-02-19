@@ -22,7 +22,7 @@ const createPhotoPiles = async element => {
   piling.set('pileItemAlignment', false);
   piling.set('pileItemRotation', true);
 
-  return piling;
+  return [piling];
 };
 
 export default createPhotoPiles;

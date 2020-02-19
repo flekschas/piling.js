@@ -52,6 +52,8 @@ const updateHandler = ({ action }) => {
 };
 
 const createPiles = async example => {
+  let additionalOptions;
+
   switch (example) {
     case 'photos':
       if (piling) piling.destroy();
@@ -64,7 +66,7 @@ const createPiles = async example => {
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createPhotoPiles(photosEl);
+      [piling, additionalOptions] = await createPhotoPiles(photosEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -80,7 +82,7 @@ const createPiles = async example => {
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createMatrixPiles(matricesEl);
+      [piling, additionalOptions] = await createMatrixPiles(matricesEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -96,7 +98,7 @@ const createPiles = async example => {
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createSvgLinesPiles(svgEl);
+      [piling, additionalOptions] = await createSvgLinesPiles(svgEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -112,7 +114,7 @@ const createPiles = async example => {
       drawingsEl.style.display = 'block';
       drawingsCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createDrawingPiles(drawingsEl);
+      [piling, additionalOptions] = await createDrawingPiles(drawingsEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -122,7 +124,7 @@ const createPiles = async example => {
       break;
   }
 
-  return piling;
+  return [piling, additionalOptions];
 };
 
 const exampleEl = document.getElementById('example');
@@ -178,7 +180,7 @@ const handleOptionsTogglerClick = event => {
 
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
-createPiles(exampleEl.value).then(pilingLib => {
+createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   const firstItem = pilingLib.get('items')[0];
   const numericalProps = Object.keys(firstItem).filter(
     prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
@@ -252,7 +254,8 @@ createPiles(exampleEl.value).then(pilingLib => {
           values: ['auto', 'panZoom', 'scroll']
         }
       ]
-    }
+    },
+    ...additionalOptions
   ];
 
   const dtypeToInputType = {
@@ -270,7 +273,9 @@ createPiles(exampleEl.value).then(pilingLib => {
   };
 
   const createInput = field => {
-    const currentValue = pilingLib.get(field.name);
+    const currentValue = field.defaultValue
+      ? field.defaultValue
+      : pilingLib.get(field.name);
 
     if (field.values) {
       if (field.multiple) {

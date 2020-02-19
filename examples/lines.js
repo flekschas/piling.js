@@ -30,7 +30,6 @@ const createSvgLinesPiles = element => {
     });
     data = [...data];
     piling.set('items', data);
-    piling.arrangeByOnce('index', (_, i) => i);
   };
 
   const piling = createPilingJs(element, {
@@ -63,7 +62,7 @@ const createSvgLinesPiles = element => {
   piling.subscribe('pileDrag', log('pileDrag'));
   piling.subscribe('pileDrop', log('pileDrop'));
 
-  return piling;
+  return [piling];
 };
 
 export default createSvgLinesPiles;
