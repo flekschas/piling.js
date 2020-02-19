@@ -826,6 +826,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!items.length || !itemRenderer) return null;
 
+    isInitialPositioning = true;
+
     renderedItems.forEach(item => {
       item.destroy();
     });
@@ -864,8 +866,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     return Promise.all([renderImages, renderPreviews]).then(
       ([renderedImages, renderedPreviews]) => {
+        const { piles } = store.getState();
+
         renderedImages.forEach((image, index) => {
-          const { piles } = store.getState();
+          const pileState = piles[index];
           const id = items[index].id || index;
           const preview = renderedPreviews[index];
 
@@ -887,11 +891,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             previewSpacing
           );
           pileInstances.set(index, pile);
-          updatePileStyle(piles[index], index);
-          updatePileItemStyle(piles[index], index);
+          updatePileStyle(pileState, index);
+          updatePileItemStyle(pileState, index);
           normalPiles.addChild(pile.graphics);
+
+          // FIX ME: This is hacky. A much better solution would be to start
+          // with a clean state.
+          if (pileState.x !== null && pileState.x !== null) {
+            updatePilePosition(pileState, index);
+          }
         });
         scaleItems();
+        updatePilePosition();
         renderRaf();
       }
     );
