@@ -1,4 +1,5 @@
 import {
+  assign,
   pipe,
   withConstructor,
   withProperty,
@@ -14,8 +15,16 @@ import {
 const createItem = (
   { id, image },
   { preview = null, originalPosition = [0, 0] } = {}
-) =>
-  pipe(
+) => {
+  const withDestroy = () => self =>
+    assign(self, {
+      destroy() {
+        if (self.image) self.image.destroy();
+        if (self.preview) self.preview.destroy();
+      }
+    });
+
+  return pipe(
     withStaticProperty('id', id),
     withStaticProperty('image', image),
     withStaticProperty('preview', preview),
@@ -23,7 +32,9 @@ const createItem = (
       initialValue: originalPosition,
       cloner: v => [...v]
     }),
+    withDestroy(),
     withConstructor(createItem)
   )({});
+};
 
 export default createItem;
