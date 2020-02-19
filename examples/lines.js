@@ -30,6 +30,7 @@ const createSvgLinesPiles = element => {
     });
     data = [...data];
     piling.set('items', data);
+    piling.arrangeByOnce('index', (_, i) => i);
   };
 
   const piling = createPilingJs(element, {
