@@ -771,6 +771,10 @@ const createPile = (
     rootGraphics.y = y;
   };
 
+  const updateItemImage = () => {
+    allItems.forEach(item => item.updateImage());
+  };
+
   const getItemById = itemId =>
     normalItemIndex.get(itemId) || previewItemIndex.get(itemId);
 
@@ -1098,6 +1102,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
+    updateItemImage,
     unmagnify
   };
 };
