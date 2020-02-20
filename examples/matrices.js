@@ -64,21 +64,12 @@ const createMatrixPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
-  // const matrixMeanCol = m =>
-  //   m.length
-  //     ? m
-  //         .reduce(
-  //           (v, row) => row.map((x, i) => v[i] + x),
-  //           new Array(m[0].length).fill(0)
-  //         )
-  //         .map(x => x / m.length)
-  //     : [];
-
+  // Uncomment the following code to apply UMAP on the raw data
   // pilingJs.arrangeBy(
   //   'data',
   //   {
   //     property: item => item.src.data,
-  //     aggregator: matrixMeanCol
+  //     propertyIsVector: true
   //   },
   //   {
   //     forceDimReduction: true
