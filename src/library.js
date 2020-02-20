@@ -809,6 +809,48 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const updateItemTexture = (updatedItems = []) => {
+    const {
+      items,
+      itemRenderer,
+      previewAggregator,
+      previewRenderer
+    } = store.getState();
+
+    // eslint-disable-next-line no-param-reassign
+    updatedItems = updatedItems.length ? updatedItems : [...items];
+
+    const renderTextures = itemRenderer(
+      updatedItems.map(({ src }) => src)
+    ).then(textures => textures);
+
+    const renderPreviews = previewAggregator
+      ? previewAggregator(updatedItems.map(({ src }) => src))
+          .then(previewRenderer)
+          .then(textures => textures)
+      : Promise.resolve([]);
+
+    Promise.all([renderTextures, renderPreviews]).then(
+      ([renderedTextures, renderedPreviews]) => {
+        renderedTextures.forEach((texture, index) => {
+          const id = updatedItems[index].id || index;
+          if (renderedItems.has(id)) {
+            renderedItems.get(id).image.updateSprite(texture);
+            const preview = renderedItems.get(id).preview;
+            if (preview) {
+              preview.updateSprite(renderedPreviews[index]);
+            }
+            if (pileInstances.has(id)) {
+              pileInstances.get(id).updateItemImage();
+            }
+          }
+        });
+        scaleItems();
+        renderRaf();
+      }
+    );
+  };
+
   const createItems = () => {
     const {
       items,
@@ -826,7 +868,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!items.length || !itemRenderer) return null;
 
-    isInitialPositioning = true;
+    // isInitialPositioning = true;
 
     renderedItems.forEach(item => {
       item.destroy();
@@ -897,12 +939,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
           // FIX ME: This is hacky. A much better solution would be to start
           // with a clean state.
-          if (pileState.x !== null && pileState.x !== null) {
-            updatePilePosition(pileState, index);
-          }
+          // if (pileState.x !== null && pileState.x !== null) {
+          //   updatePilePosition(pileState, index);
+          // }
         });
         scaleItems();
-        updatePilePosition();
+        // updatePilePosition();
         renderRaf();
       }
     );
@@ -2225,15 +2267,34 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const updatedItems = [];
     const updatedPileItems = [];
 
+    if (state.items !== newState.items) {
+      if (state.items.length) {
+        const newItems = [];
+        newState.items.forEach((item, id) => {
+          if (item.src !== state.items[id].src) {
+            newItems.push({
+              id,
+              src: item.src
+            });
+            updatedPileItems.push(id);
+          }
+        });
+        updatedItems.push(updateItemTexture(newItems));
+      }
+    }
+
     if (
-      state.items !== newState.items ||
       state.itemRenderer !== newState.itemRenderer ||
       state.previewRenderer !== newState.previewRenderer ||
       state.aggregateRenderer !== newState.aggregateRenderer ||
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {
-      updatedItems.push(createItems());
+      if (renderedItems.size) {
+        updatedItems.push(updateItemTexture());
+      } else {
+        updatedItems.push(createItems());
+      }
     }
 
     if (state.itemSizeRange !== newState.itemSizeRange) {
@@ -2511,7 +2572,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resetPileBorder();
   };
 
-  // eslint-disable-next-line consistent-return
   const expandProperty = objective => {
     if (isFunction(objective)) {
       return objective;
