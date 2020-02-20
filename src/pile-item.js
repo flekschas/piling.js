@@ -47,6 +47,16 @@ const createPileItem = ({ image, item, pubSub }) => {
 
   const container = new PIXI.Container();
 
+  const updateImage = () => {
+    container.removeChildren();
+    container.addChild(image.displayObject);
+  };
+
+  const withPublicMethods = () => self =>
+    assign(self, {
+      updateImage
+    });
+
   return init(
     pipe(
       withStaticProperty('displayObject', container),
@@ -69,6 +79,7 @@ const createPileItem = ({ image, item, pubSub }) => {
       ),
       withDestroy(container),
       withMoveTo(),
+      withPublicMethods(),
       withConstructor(createPileItem)
     )({})
   );
