@@ -39,6 +39,10 @@ const createGrid = (
   }
 
   if (!+rowHeight) {
+    if (!+cellAspectRatio) {
+      // eslint-disable-next-line no-param-reassign
+      cellAspectRatio = 1;
+    }
     // eslint-disable-next-line no-param-reassign
     rowHeight = columnWidth / cellAspectRatio;
   } else {
