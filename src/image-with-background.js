@@ -59,7 +59,7 @@ const createImageWithBackground = (
   } = {}
 ) => {
   const backgroundGraphics = new PIXI.Graphics();
-  const sprite = new PIXI.Sprite(texture);
+  let sprite = new PIXI.Sprite(texture);
   sprite.anchor.set(...anchor);
 
   const init = self => {
@@ -67,6 +67,15 @@ const createImageWithBackground = (
 
     return self;
   };
+
+  const updateSprite = newTexture => {
+    sprite = new PIXI.Sprite(newTexture);
+  };
+
+  const withPublicMethods = () => self =>
+    assign(self, {
+      updateSprite
+    });
 
   return init(
     pipe(
@@ -81,6 +90,7 @@ const createImageWithBackground = (
         backgroundOpacity
       }),
       withDestroy(backgroundGraphics),
+      withPublicMethods(),
       withConstructor(createImageWithBackground)
     )({})
   );
