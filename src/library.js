@@ -18,12 +18,16 @@ import {
   interpolateNumber,
   l2PointDist,
   max,
+  maxVector,
   mean,
+  meanVector,
   min,
+  minVector,
   nextAnimationFrame,
   range,
   sortPos,
-  sum
+  sum,
+  sumVector
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
@@ -2525,7 +2529,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (objective.constructor !== Object) {
         expandedObjective.property = expandProperty(objective);
-        expandedObjective.aggregator = mean;
+        expandedObjective.aggregator = objective.propertyIsVector
+          ? meanVector
+          : mean;
         expandedObjective.scale = scaleLinear;
         expandedObjective.inverse = false;
       } else {
@@ -2536,17 +2542,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else {
           switch (objective.aggregator) {
             case 'max':
-              expandedObjective.aggregator = max;
+              expandedObjective.aggregator = objective.propertyIsVector
+                ? maxVector
+                : max;
               break;
             case 'min':
-              expandedObjective.aggregator = min;
+              expandedObjective.aggregator = objective.propertyIsVector
+                ? minVector
+                : min;
               break;
             case 'sum':
-              expandedObjective.aggregator = sum;
+              expandedObjective.aggregator = objective.propertyIsVector
+                ? sumVector
+                : sum;
               break;
             case 'mean':
             default:
-              expandedObjective.aggregator = mean;
+              expandedObjective.aggregator = objective.propertyIsVector
+                ? meanVector
+                : mean;
               break;
           }
         }
@@ -2564,6 +2578,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         expandedObjective.inverse = !!objective.inverse;
       }
+
       expandedArrangementObjective.push(expandedObjective);
     });
     return expandedArrangementObjective;
