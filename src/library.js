@@ -944,13 +944,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
-    const { arrangementObjective, arrangementOptions } = store.getState();
+    const {
+      arrangementObjective,
+      arrangementOptions,
+      dimensionalityReducer
+    } = store.getState();
 
     if (
       arrangementObjective.length > 2 ||
       arrangementOptions.forceDimReduction
     ) {
-      return getPilePositionByMdTransform(pileId);
+      if (dimensionalityReducer) return getPilePositionByMdTransform(pileId);
+      return Promise.resolve([pileState.x, pileState.y]);
     }
 
     if (arrangementObjective.length > 1) {
