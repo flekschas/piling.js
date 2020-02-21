@@ -2152,13 +2152,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // This will ensure that the popup is displayed before we move on
     await nextAnimationFrame();
-
     const data =
       arrangementOptions.runDimReductionOnPiles === true
         ? aggregatedPileValues.filter(x => x[0] !== null)
         : items.map((item, itemId) =>
             arrangementObjective.flatMap(objective =>
-              objective.property(item, itemId, 0)
+              objective.property(item, itemId, 0, renderedItems.get(itemId))
             )
           );
 
