@@ -47,14 +47,16 @@ const createPileItem = ({ image, item, pubSub }) => {
 
   const container = new PIXI.Container();
 
-  const updateImage = () => {
+  const replaceImage = newImage => {
+    // eslint-disable-next-line no-param-reassign
+    image = newImage;
     container.removeChildren();
     container.addChild(image.displayObject);
   };
 
   const withPublicMethods = () => self =>
     assign(self, {
-      updateImage
+      replaceImage
     });
 
   return init(
@@ -63,7 +65,7 @@ const createPileItem = ({ image, item, pubSub }) => {
       withReadOnlyProperty('x', () => container.x),
       withReadOnlyProperty('y', () => container.y),
       withStaticProperty('id', item.id),
-      withStaticProperty('image', image),
+      withReadOnlyProperty('image', () => image),
       withStaticProperty('item', item),
       withAnimatedProperty(
         {

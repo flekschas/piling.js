@@ -3,6 +3,7 @@ import {
   pipe,
   withConstructor,
   withProperty,
+  withReadOnlyProperty,
   withStaticProperty
 } from '@flekschas/utils';
 
@@ -24,15 +25,32 @@ const createItem = (
       }
     });
 
+  const replaceImage = (newImage, newPreview) => {
+    image.destroy();
+    // eslint-disable-next-line no-param-reassign
+    image = newImage;
+    if (newPreview) {
+      preview.destroy();
+      // eslint-disable-next-line no-param-reassign
+      preview = newPreview;
+    }
+  };
+
+  const withPublicMethods = () => self =>
+    assign(self, {
+      replaceImage
+    });
+
   return pipe(
     withStaticProperty('id', id),
-    withStaticProperty('image', image),
-    withStaticProperty('preview', preview),
+    withReadOnlyProperty('image', () => image),
+    withReadOnlyProperty('preview', () => preview),
     withProperty('originalPosition', {
       initialValue: originalPosition,
       cloner: v => [...v]
     }),
     withDestroy(),
+    withPublicMethods(),
     withConstructor(createItem)
   )({});
 };
