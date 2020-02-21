@@ -898,6 +898,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
               animator,
               previewSpacing
             );
+            pile.blur();
             updatePileStyle(pileState, index);
             updatePileItemStyle(pileState, index);
             addToNormalPiles(pile.graphics);
