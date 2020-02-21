@@ -809,78 +809,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const updateItemTexture = (updatedItems = []) => {
+  const createImagesAndPreviews = items => {
     const {
-      items,
-      itemRenderer,
-      previewAggregator,
-      previewRenderer
-    } = store.getState();
-
-    // eslint-disable-next-line no-param-reassign
-    updatedItems = updatedItems.length ? updatedItems : [...items];
-
-    const renderTextures = itemRenderer(
-      updatedItems.map(({ src }) => src)
-    ).then(textures => textures);
-
-    const renderPreviews = previewAggregator
-      ? previewAggregator(updatedItems.map(({ src }) => src))
-          .then(previewRenderer)
-          .then(textures => textures)
-      : Promise.resolve([]);
-
-    Promise.all([renderTextures, renderPreviews]).then(
-      ([renderedTextures, renderedPreviews]) => {
-        renderedTextures.forEach((texture, index) => {
-          const id = updatedItems[index].id || index;
-          if (renderedItems.has(id)) {
-            renderedItems.get(id).image.updateSprite(texture);
-            const preview = renderedItems.get(id).preview;
-            if (preview) {
-              preview.updateSprite(renderedPreviews[index]);
-            }
-            if (pileInstances.has(id)) {
-              pileInstances.get(id).updateItemImage();
-            }
-          }
-        });
-        scaleItems();
-        renderRaf();
-      }
-    );
-  };
-
-  const createItems = () => {
-    const {
-      items,
       itemRenderer,
       previewBackgroundColor,
       previewBackgroundOpacity,
       pileBackgroundColor,
       pileBackgroundOpacity,
-      pileItemAlignment,
-      pileItemRotation,
       previewAggregator,
       previewRenderer,
       previewSpacing
     } = store.getState();
-
-    if (!items.length || !itemRenderer) return null;
-
-    // isInitialPositioning = true;
-
-    renderedItems.forEach(item => {
-      item.destroy();
-    });
-    pileInstances.forEach(pile => {
-      pile.destroy();
-    });
-    renderedItems.clear();
-    pileInstances.clear();
-
-    normalPiles.removeChildren();
-    activePile.removeChildren();
 
     const renderImages = itemRenderer(
       items.map(({ src }) => src)
@@ -906,7 +845,76 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
 
-    return Promise.all([renderImages, renderPreviews]).then(
+    return [renderImages, renderPreviews];
+  };
+
+  const updateItemTexture = (updatedItems = []) => {
+    const {
+      items,
+      pileItemAlignment,
+      pileItemRotation,
+      previewSpacing
+    } = store.getState();
+
+    // eslint-disable-next-line no-param-reassign
+    updatedItems = updatedItems.length ? updatedItems : [...items];
+
+    Promise.all(createImagesAndPreviews(updatedItems)).then(
+      ([renderedImages, renderedPreviews]) => {
+        const { piles } = store.getState();
+        renderedImages.forEach((image, index) => {
+          const id = updatedItems[index].id || index;
+          const preview = renderedPreviews[index];
+          if (renderedItems.has(id)) {
+            renderedItems.get(id).replaceImage(image, preview);
+          }
+        });
+        updatedItems.forEach((item, index) => {
+          const id = item.id || index;
+          if (pileInstances.has(id)) {
+            const pile = pileInstances.get(id);
+            const pileState = piles[id];
+            pile.replaceImage();
+            pile.positionItems(
+              pileItemAlignment,
+              pileItemRotation,
+              animator,
+              previewSpacing
+            );
+            updatePileStyle(pileState, index);
+            updatePileItemStyle(pileState, index);
+          }
+        });
+        scaleItems();
+        renderRaf();
+      }
+    );
+  };
+
+  const createItems = () => {
+    const {
+      items,
+      itemRenderer,
+      pileItemAlignment,
+      pileItemRotation,
+      previewSpacing
+    } = store.getState();
+
+    if (!items.length || !itemRenderer) return null;
+
+    renderedItems.forEach(item => {
+      item.destroy();
+    });
+    pileInstances.forEach(pile => {
+      pile.destroy();
+    });
+    renderedItems.clear();
+    pileInstances.clear();
+
+    normalPiles.removeChildren();
+    activePile.removeChildren();
+
+    return Promise.all(createImagesAndPreviews(items)).then(
       ([renderedImages, renderedPreviews]) => {
         const { piles } = store.getState();
 
@@ -936,15 +944,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           updatePileStyle(pileState, index);
           updatePileItemStyle(pileState, index);
           normalPiles.addChild(pile.graphics);
-
-          // FIX ME: This is hacky. A much better solution would be to start
-          // with a clean state.
-          // if (pileState.x !== null && pileState.x !== null) {
-          //   updatePilePosition(pileState, index);
-          // }
         });
         scaleItems();
-        // updatePilePosition();
         renderRaf();
       }
     );
