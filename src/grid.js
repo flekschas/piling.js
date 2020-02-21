@@ -28,7 +28,12 @@ const createGrid = (
 
   let numColumns = columns;
   let numRows = 0;
-  let columnWidth = width / columns;
+
+  if (!+itemSize && !+columns) {
+    numColumns = 10;
+  }
+
+  let columnWidth = width / numColumns;
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
 
