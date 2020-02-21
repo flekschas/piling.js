@@ -1,7 +1,8 @@
-import { vectorMean } from '@flekschas/utils';
+import * as PIXI from 'pixi.js';
 import { openArray } from 'zarr';
 import createPilingJs from '../src/library';
 import createVitessceRenderer from './vitessce-renderer';
+import { createUmap } from '../src/dimensionality-reducer';
 
 const ZARR_URL =
   'https://vitessce-demo-data.storage.googleapis.com/test-data/vanderbilt-data/vanderbilt_mxif_ims.zarr/mxif_pyramid';
@@ -86,16 +87,19 @@ const createVitessce = async element => {
     size: itemSize
   });
 
+  const umap = createUmap();
+
   const umapHandler = () => {
-    piling.arrangeBy(
+    piling.arrangeByOnce(
       'data',
       {
         property: (item, id, index, instance) => {
-          const pixels = piling.renderer.extract.pixels(instance.image.sprite);
-          // console.log(pixels);
+          const gfx = new PIXI.Graphics();
+          gfx.addChild(instance.image.sprite);
+          const pixels = piling.renderer.extract.pixels(gfx);
           return pixels;
         },
-        aggregator: vectorMean
+        propertyIsVector: true
       },
       {
         forceDimReduction: true
@@ -105,6 +109,7 @@ const createVitessce = async element => {
 
   const piling = createPilingJs(element, {
     darkMode: true,
+    dimensionalityReducer: umap,
     renderer: vitessceRenderer,
     items,
     itemSize,
