@@ -2,18 +2,34 @@ import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createDrawingPiles from './drawings';
+import createVitessce from './vitessce';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const drawingsEl = document.getElementById('drawings');
+const vitessceEl = document.getElementById('vitessce');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
+const vitessceCreditEl = document.getElementById('vitessce-credit');
 const optionsEl = document.getElementById('options');
 const optionsTogglerEl = document.getElementById('options-toggler');
 const undoButton = document.getElementById('undo');
+
+const allConditionalEls = [
+  photosEl,
+  matricesEl,
+  svgEl,
+  drawingsEl,
+  vitessceEl,
+  photosCreditEl,
+  matricesCreditEl,
+  svgCreditEl,
+  drawingsCreditEl,
+  vitessceCreditEl
+];
 
 let piling;
 
@@ -55,12 +71,9 @@ const createPiles = async example => {
   switch (example) {
     case 'photos':
       if (piling) piling.destroy();
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      allConditionalEls.forEach(el => {
+        el.style.display = 'none';
+      });
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -71,12 +84,9 @@ const createPiles = async example => {
 
     case 'matrices':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      allConditionalEls.forEach(el => {
+        el.style.display = 'none';
+      });
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -87,12 +97,9 @@ const createPiles = async example => {
 
     case 'lines':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      allConditionalEls.forEach(el => {
+        el.style.display = 'none';
+      });
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -103,16 +110,26 @@ const createPiles = async example => {
 
     case 'drawings':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
+      allConditionalEls.forEach(el => {
+        el.style.display = 'none';
+      });
       drawingsEl.style.display = 'block';
       drawingsCreditEl.style.display = 'block';
       undoButton.disabled = true;
       piling = await createDrawingPiles(drawingsEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
+    case 'vitessce':
+      if (piling) piling.destroy();
+      allConditionalEls.forEach(el => {
+        el.style.display = 'none';
+      });
+      vitessceEl.style.display = 'block';
+      vitessceCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      piling = await createVitessce(vitessceEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -156,6 +173,10 @@ switch (example) {
     exampleEl.selectedIndex = 3;
     break;
 
+  case 'vitessce':
+    exampleEl.selectedIndex = 4;
+    break;
+
   default:
   // Nothing
 }
@@ -179,6 +200,7 @@ const handleOptionsTogglerClick = event => {
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
 createPiles(exampleEl.value).then(pilingLib => {
+  if (!pilingLib) return;
   const firstItem = pilingLib.get('items')[0];
   const numericalProps = Object.keys(firstItem).filter(
     prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
