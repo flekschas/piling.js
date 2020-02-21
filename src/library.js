@@ -2029,7 +2029,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileIds.forEach(pileId => {
         const pileValues = piles[pileId].items.map((itemId, index) =>
-          objective.property(items[itemId], itemId, index)
+          objective.property(
+            items[itemId],
+            itemId,
+            index,
+            renderedItems.get(itemId)
+          )
         );
 
         const aggregatedValue = objective.aggregator(pileValues);
@@ -3063,7 +3068,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${currMousePos[1]}px`;
+      element.style.top = `${currMousePos[1] + stage.y}px`;
 
       depileBtn.addEventListener(
         'click',
@@ -3097,7 +3102,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             if (!item.keepOpen) closeContextMenu();
           },
           {
-            once: true,
+            once: !item.keepOpen,
             passive: true
           }
         );
@@ -3118,7 +3123,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${currMousePos[1]}px`;
+      element.style.top = `${currMousePos[1] + stage.y}px`;
 
       toggleGridBtn.addEventListener(
         'click',
@@ -3130,6 +3135,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         alignByGridClickHandler,
         EVENT_LISTENER_PASSIVE
       );
+
+      pileContextMenuItems.forEach((item, index) => {
+        const button = item.id
+          ? element.querySelector(`#${item.id}`)
+          : element.querySelector(
+              `#piling-js-context-menu-custom-item-${index}`
+            );
+        button.addEventListener(
+          'click',
+          () => {
+            item.callback();
+            if (!item.keepOpen) closeContextMenu();
+          },
+          {
+            once: !item.keepOpen,
+            passive: true
+          }
+        );
+      });
     }
   };
 
@@ -3246,6 +3270,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     halt,
     importState,
     render: renderRaf,
+    renderer,
     resume,
     set: setPublic,
     subscribe: pubSub.subscribe,
