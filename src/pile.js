@@ -85,8 +85,13 @@ const createPile = (
 
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
-    clonedSprite.x = coverItemContainer.x;
-    clonedSprite.y = coverItemContainer.y;
+    if (getCover()) {
+      clonedSprite.x = coverItemContainer.x;
+      clonedSprite.y = coverItemContainer.y;
+    } else {
+      clonedSprite.x = pileItem.displayObject.x;
+      clonedSprite.y = pileItem.displayObject.y;
+    }
     clonedSprite.angle = pileItem.displayObject.angle;
 
     return clonedSprite;
