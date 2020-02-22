@@ -56,8 +56,8 @@ const createPile = (
 
   const createPileBBox = createBBox({ id });
 
-  let bBox = {};
-  let anchorBox = {};
+  let bBox = createPileBBox();
+  let anchorBox = createPileBBox();
 
   let coverItem;
 
@@ -650,9 +650,13 @@ const createPile = (
       onDone();
     };
 
-    if (isClose(getScale(), newScale, 3)) {
-      setScale(newScale);
+    const immideate = () => {
+      setScale(newScale, { isMagnification });
       done();
+    };
+
+    if (isClose(getScale(), newScale, 3)) {
+      immideate();
       return;
     }
 
@@ -666,8 +670,7 @@ const createPile = (
     const d = Math.abs((newScale / getScale()) * size - size);
 
     if (d < 2) {
-      setScale(newScale, { isMagnification });
-      done();
+      immideate();
       return;
     }
 
