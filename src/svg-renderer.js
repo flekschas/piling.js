@@ -7,7 +7,7 @@ import * as PIXI from 'pixi.js';
  */
 const renderSvg = (
   svg,
-  { width = null, height = null, background = null } = {}
+  { width = null, height = null, color = null, background = null } = {}
 ) => {
   let svgStr =
     typeof svg === 'string' || svg instanceof String
@@ -18,8 +18,9 @@ const renderSvg = (
   const heightAttr = height && `height="${height}"`;
   const attrs = [widthAttr, heightAttr].filter(s => s).join(' ');
 
+  const colorStyle = color && `color: ${color}`;
   const backgroundStyle = background && `background: ${background}`;
-  const styles = [backgroundStyle].filter(s => s);
+  const styles = [colorStyle, backgroundStyle].filter(s => s);
   const style = `style="${styles.join('; ')}"`;
 
   svgStr = `${svgStr.slice(0, 5)} ${attrs} ${style} ${svgStr.slice(5)}`;
