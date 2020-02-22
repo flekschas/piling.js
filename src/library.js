@@ -702,10 +702,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let maxSize = 0;
 
     renderedItems.forEach(item => {
-      const size = Math.max(
-        item.image.displayObject.width,
-        item.image.displayObject.height
-      );
+      const size = Math.max(item.image.width, item.image.height);
       if (size > maxSize) maxSize = size;
       if (size < minSize) minSize = size;
     });
@@ -735,12 +732,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     renderedItems.forEach(item => {
       const scaleFactor = itemSizeScale(item.image.size) / item.image.size;
-      item.image.sprite.width *= scaleFactor;
-      item.image.sprite.height *= scaleFactor;
+      item.image.scale(scaleFactor);
 
       if (item.preview) {
-        item.preview.sprite.width *= scaleFactor;
-        item.preview.sprite.height *= scaleFactor;
+        item.preview.scale(scaleFactor);
         item.preview.drawBackground();
       }
     });
