@@ -2482,10 +2482,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const exportState = () => store.exportState();
+  const exportState = () => store.export();
 
   const importState = (newState, overwriteState = false) => {
-    store.importState(newState, overwriteState);
+    store.import(newState, overwriteState);
     resetPileBorder();
   };
 

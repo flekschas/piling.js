@@ -612,8 +612,8 @@ const createStore = () => {
     withForwardedMethod('dispatch', reduxStore.dispatch),
     withForwardedMethod('subscribe', reduxStore.subscribe)
   )({
-    exportState,
-    importState
+    export: exportState,
+    import: importState
   });
 };
 
