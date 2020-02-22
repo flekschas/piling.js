@@ -20,8 +20,8 @@ const createItem = (
   const withDestroy = () => self =>
     assign(self, {
       destroy() {
-        if (self.image) self.image.destroy();
-        if (self.preview) self.preview.destroy();
+        if (image) image.destroy();
+        if (preview) preview.destroy();
       }
     });
 
