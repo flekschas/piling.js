@@ -1,7 +1,18 @@
-import { camelToConst, deepClone, cubicInOut, update } from '@flekschas/utils';
+import {
+  pipe,
+  camelToConst,
+  deepClone,
+  cubicInOut,
+  update,
+  withForwardedMethod,
+  withReadOnlyProperty,
+  withStaticProperty
+} from '@flekschas/utils';
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
+
+import { version } from '../package.json';
 
 import createOrderer from './orderer';
 
@@ -575,7 +586,35 @@ const createStore = () => {
     get: () => lastAction
   });
 
-  return reduxStore;
+  const exportState = () => {
+    const clonedState = deepClone(reduxStore.getState());
+    clonedState.version = { version };
+    return clonedState;
+  };
+
+  const importState = (newState, overwriteState = false) => {
+    if (newState.version !== { version }) {
+      console.warn(
+        `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
+      );
+    }
+
+    delete newState.version;
+
+    if (overwriteState) reduxStore.dispatch(overwrite(newState));
+    else reduxStore.dispatch(softOverwrite(newState));
+  };
+
+  return pipe(
+    withStaticProperty('reduxStore', reduxStore),
+    withReadOnlyProperty('lastAction', () => lastAction),
+    withReadOnlyProperty('state', reduxStore.getState),
+    withForwardedMethod('dispatch', reduxStore.dispatch),
+    withForwardedMethod('subscribe', reduxStore.subscribe)
+  )({
+    exportState,
+    importState
+  });
 };
 
 export default createStore;

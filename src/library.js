@@ -10,7 +10,6 @@ import {
   capitalize,
   cubicOut,
   debounce,
-  deepClone,
   identity,
   isFunction,
   isPointInPolygon,
@@ -32,7 +31,7 @@ import {
 
 import createAnimator from './animator';
 
-import createStore, { overwrite, softOverwrite, createAction } from './store';
+import createStore, { createAction } from './store';
 
 import {
   CAMERA_VIEW,
@@ -82,7 +81,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const pubSub = createPubSub();
   const store = createStore();
 
-  let state = store.getState();
+  let state = store.state;
 
   let gridMat;
 
@@ -372,7 +371,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const spatialIndex = new RBush();
 
   const drawSpatialIndex = (mousePos, lassoPolygon) => {
-    if (!store.getState().showSpatialIndex) return;
+    if (!store.state.showSpatialIndex) return;
 
     spatialIndexGfx.clear();
     spatialIndexGfx.beginFill(0x00ff00, 0.5);
@@ -556,7 +555,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const vLineNum = Math.ceil(width / layout.columnWidth);
     const hLineNum = Math.ceil(height / layout.rowHeight);
 
-    const { gridColor, gridOpacity } = store.getState();
+    const { gridColor, gridOpacity } = store.state;
 
     gridGfx.clear();
     gridGfx.lineStyle(1, gridColor, gridOpacity);
@@ -585,7 +584,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       orderer,
       pileCellAlignment,
       rowHeight
-    } = store.getState();
+    } = store.state;
 
     layout = createGrid(canvas, {
       cellAspectRatio,
@@ -612,7 +611,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileCellAlignment,
       rowHeight,
       showGrid
-    } = store.getState();
+    } = store.state;
 
     layout = createGrid(canvas, {
       itemSize,
@@ -648,7 +647,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateHalt = () => {
-    const { darkMode, haltBackgroundOpacity } = store.getState();
+    const { darkMode, haltBackgroundOpacity } = store.state;
 
     popup.set({
       backgroundOpacity: haltBackgroundOpacity,
@@ -666,7 +665,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       lassoStrokeColor,
       lassoStrokeOpacity,
       lassoStrokeSize
-    } = store.getState();
+    } = store.state;
 
     lasso.set({
       fillColor: lassoFillColor,
@@ -697,7 +696,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (size < minSize) minSize = size;
     });
 
-    const { itemSizeRange } = store.getState();
+    const { itemSizeRange } = store.state;
     let scaleRange;
 
     const minRange = Math.min(layout.cellWidth, layout.cellHeight);
@@ -748,7 +747,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pile.animateMoveTo(...transformPointToScreen([x, y]), options);
 
   const updateLayout = oldLayout => {
-    const { arrangementType } = store.getState();
+    const { arrangementType } = store.state;
 
     scaleItems();
 
@@ -777,13 +776,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileInstances.forEach(pile => {
         if (pile.cover()) {
-          const { pileItemAlignment, pileItemRotation } = store.getState();
+          const { pileItemAlignment, pileItemRotation } = store.state;
 
           pile.positionItems(
             pileItemAlignment,
             pileItemRotation,
             animator,
-            store.getState().previewSpacing
+            store.state.previewSpacing
           );
         }
       });
@@ -805,7 +804,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     createRBush();
 
-    store.getState().focusedPiles.forEach(focusedPile => {
+    store.state.focusedPiles.forEach(focusedPile => {
       pileInstances.get(focusedPile).focus();
     });
 
@@ -826,7 +825,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       previewAggregator,
       previewRenderer,
       previewSpacing
-    } = store.getState();
+    } = store.state;
 
     if (!items.length || !itemRenderer) return null;
 
@@ -869,7 +868,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all([renderImages, renderPreviews]).then(
       ([renderedImages, renderedPreviews]) => {
         renderedImages.forEach((image, index) => {
-          const { piles } = store.getState();
+          const { piles } = store.state;
           const id = items[index].id || index;
           const preview = renderedPreviews[index];
 
@@ -916,7 +915,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const cachedMdPilePos = new Map();
   let cachedMdPilePosDimReducerRun = 0;
   const getPilePositionByMdTransform = async pileId => {
-    const { dimensionalityReducer } = store.getState();
+    const { dimensionalityReducer } = store.state;
 
     if (
       cachedMdPilePos.has(pileId) &&
@@ -944,7 +943,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
-    const { arrangementObjective, arrangementOptions } = store.getState();
+    const { arrangementObjective, arrangementOptions } = store.state;
 
     if (
       arrangementObjective.length > 2 ||
@@ -968,7 +967,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePosition = async (pileId, init) => {
-    const { arrangementType, arrangementObjective, piles } = store.getState();
+    const { arrangementType, arrangementObjective, piles } = store.state;
 
     const type = init
       ? arrangementType || INITIAL_ARRANGEMENT_TYPE
@@ -1050,11 +1049,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   ];
 
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
-    const { items } = store.getState();
+    const { items } = store.state;
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
-      const { piles } = store.getState();
+      const { piles } = store.state;
       pileIds.splice(0, pileIds.length - 1, ...range(0, piles.length));
     }
 
@@ -1094,7 +1093,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     isInitialPositioning = false;
 
-    if (store.getState().arrangementOnce) {
+    if (store.state.arrangementOnce) {
       cancelArrangement();
     }
 
@@ -1110,7 +1109,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = pileId => {
-    const { pileItemAlignment, pileItemRotation } = store.getState();
+    const { pileItemAlignment, pileItemRotation } = store.state;
 
     pileInstances
       .get(pileId)
@@ -1118,7 +1117,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pileItemAlignment,
         pileItemRotation,
         animator,
-        store.getState().previewSpacing
+        store.state.previewSpacing
       );
   };
 
@@ -1128,7 +1127,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileItemBrightness,
       pileItemOpacity,
       pileItemTint
-    } = store.getState();
+    } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
 
@@ -1169,7 +1168,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileBorderSize,
       pileScale,
       pileVisibilityItems
-    } = store.getState();
+    } = store.state;
 
     pileInstance.animateOpacity(
       isFunction(pileOpacity) ? pileOpacity(pile) : pileOpacity
@@ -1204,7 +1203,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       aggregateRenderer,
       coverAggregator,
       previewAggregator
-    } = store.getState();
+    } = store.state;
 
     if (pileState.items.length === 1) {
       pileInstance.cover(null);
@@ -1261,7 +1260,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const isDimReducerInUse = () => {
-    const { arrangementObjective, arrangementOptions } = store.getState();
+    const { arrangementObjective, arrangementOptions } = store.state;
 
     return (
       arrangementObjective &&
@@ -1286,7 +1285,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           renderedItems.get(itemId)
         );
 
-        if (store.getState().coverAggregator) {
+        if (store.state.coverAggregator) {
           updatePreviewAndCover(pileState, pileInstance);
         } else {
           pileInstance.setItems(itemInstances);
@@ -1503,7 +1502,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateDepile = (srcPileId, itemIds, itemPositions = []) => {
-    const { easing } = store.getState();
+    const { easing } = store.state;
     const movingPiles = [];
 
     const srcPile = pileInstances.get(srcPileId);
@@ -1605,7 +1604,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       filterRowNum = rowNum;
     }
 
-    const { piles } = store.getState();
+    const { piles } = store.state;
     const depiledPiles = [];
     const items = [...piles[pileId].items];
     const itemPositions = [];
@@ -1631,7 +1630,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const depileToOriginPos = pileId => {
-    const { piles } = store.getState();
+    const { piles } = store.state;
 
     const items = [...piles[pileId].items];
 
@@ -1645,7 +1644,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.depilePiles([depiledPile]));
     blurPrevHoveredPiles();
 
-    if (!store.getState().arrangementType) {
+    if (!store.state.arrangementType) {
       animateDepile(pileId, items);
     }
   };
@@ -1798,7 +1797,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       tempDepileDirection,
       tempDepileOneDNum,
       orderer
-    } = store.getState();
+    } = store.state;
 
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
@@ -1863,7 +1862,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateMerge = pileIds => {
-    const { easing, piles } = store.getState();
+    const { easing, piles } = store.state;
     let centerX = 0;
     let centerY = 0;
     pileIds.forEach(id => {
@@ -1911,7 +1910,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       arrangementObjective,
       arrangementOptions,
       navigationMode
-    } = store.getState();
+    } = store.state;
 
     let changed = false;
 
@@ -1970,7 +1969,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       arrangementOptions,
       items,
       piles
-    } = store.getState();
+    } = store.state;
 
     const allPiles = pileIds.length >= pileInstances.size;
 
@@ -2080,7 +2079,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let arrangement2dScales = [];
   const updateArrangement2dScales = () => {
-    const { arrangementObjective } = store.getState();
+    const { arrangementObjective } = store.state;
     const { width, height } = canvas.getBoundingClientRect();
     const rangeMax = [width, height];
 
@@ -2121,7 +2120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       arrangementOptions,
       dimensionalityReducer,
       items
-    } = store.getState();
+    } = store.state;
 
     if (!dimensionalityReducer) {
       console.warn(
@@ -2164,7 +2163,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateArragnementByData = (pileIds, newObjectives) => {
-    const { arrangementObjective, arrangementOptions } = store.getState();
+    const { arrangementObjective, arrangementOptions } = store.state;
 
     updateAggregatedPileValues(pileIds);
 
@@ -2184,7 +2183,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateArrangement = async (updatedPileIds, newObjectives) => {
-    const { arrangementType, items } = store.getState();
+    const { arrangementType, items } = store.state;
 
     const pileIds = updatedPileIds.length
       ? updatedPileIds
@@ -2211,7 +2210,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updated = () => {
-    const newState = store.getState();
+    const newState = store.state;
 
     const stateUpdates = new Set();
 
@@ -2483,24 +2482,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const exportState = () => {
-    const clonedState = deepClone(state);
-    clonedState.version = { version };
-    return clonedState;
-  };
+  const exportState = () => store.exportState();
 
   const importState = (newState, overwriteState = false) => {
-    if (newState.version !== { version }) {
-      console.warn(
-        `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
-      );
-    }
-
-    delete newState.version;
-
-    if (overwriteState) store.dispatch(overwrite(newState));
-    else store.dispatch(softOverwrite(newState));
-
+    store.importState(newState, overwriteState);
     resetPileBorder();
   };
 
@@ -2607,7 +2592,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {
-    const { piles } = store.getState();
+    const { piles } = store.state;
     const x = piles[targetPileId].x;
     const y = piles[targetPileId].y;
 
@@ -2647,7 +2632,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pileItem.item.tmpRelScale = pile.scale;
           });
 
-          if (store.getState().previewAggregator) {
+          if (store.state.previewAggregator) {
             animateDropMerge(pileId, targetPileId);
           } else {
             store.dispatch(
@@ -2689,7 +2674,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const highlightHoveringPiles = pileId => {
-    if (store.getState().temporaryDepiledPiles.length) return;
+    if (store.state.temporaryDepiledPiles.length) return;
 
     const currentlyHoveredPiles = spatialIndex.search(calcPileBBox(pileId));
 
@@ -2736,7 +2721,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const depileBtnClick = (contextMenuElement, pileId) => () => {
-    const { depileMethod } = store.getState();
+    const { depileMethod } = store.state;
 
     if (depileMethod === 'originalPos') {
       depileToOriginPos(pileId);
@@ -2748,7 +2733,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const tempDepileBtnClick = (contextMenuElement, pileId) => () => {
-    const { piles, temporaryDepiledPiles } = store.getState();
+    const { piles, temporaryDepiledPiles } = store.state;
     if (piles[pileId].items.length > 1) {
       let temp = [...temporaryDepiledPiles];
       if (temp.includes(pileId)) {
@@ -2762,7 +2747,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const toggleGridBtnClick = contextMenuElement => () => {
-    const { showGrid } = store.getState();
+    const { showGrid } = store.state;
 
     store.dispatch(createAction.setShowGrid(!showGrid));
 
@@ -2860,7 +2845,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (results.length !== 0) {
         if (event.shiftKey) {
-          const { depileMethod } = store.getState();
+          const { depileMethod } = store.state;
           if (depileMethod === 'originalPos') {
             depileToOriginPos(results[0].id);
           } else if (depileMethod === 'cloestPos') {
@@ -2898,7 +2883,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const currMousePos = getMousePosition(event);
     const currMousePosRel = translatePointFromScreen(currMousePos);
 
-    const { temporaryDepiledPiles, piles } = store.getState();
+    const { temporaryDepiledPiles, piles } = store.state;
 
     const result = spatialIndex.search({
       minX: currMousePosRel[0],
@@ -3015,7 +3000,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (event.altKey) return;
 
-    const { pileContextMenuItems, showGrid } = store.getState();
+    const { pileContextMenuItems, showGrid } = store.state;
 
     event.preventDefault();
 
@@ -3107,7 +3092,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           () => {
             item.callback({
               id: pile.id,
-              ...store.getState().piles[pile.id]
+              ...store.state.piles[pile.id]
             });
             if (!item.keepOpen) closeContextMenu();
           },
@@ -3149,7 +3134,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const startAnimationHandler = tweener => {
-    tweener.setEasing(store.getState().easing);
+    tweener.setEasing(store.state.easing);
     animator.add(tweener);
   };
 
