@@ -344,21 +344,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
 
-  const addToActivePile = pileGfx => {
+  const clearActivePileLayer = () => {
     if (activePile.children.length) {
       normalPiles.addChild(activePile.getChildAt(0));
       activePile.removeChildren();
     }
-    activePile.addChild(pileGfx);
   };
 
-  const addToNormalPiles = pileGfx => {
-    if (activePile.children.length) {
-      if (activePile.getChildAt(0) === pileGfx) {
-        normalPiles.addChild(pileGfx);
-        activePile.removeChildren();
-      }
-    }
+  const moveToActivePileLayer = pileGfx => {
+    clearActivePileLayer();
+    activePile.addChild(pileGfx);
   };
 
   const popup = createPopup();
@@ -896,7 +891,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             pile.blur();
             updatePileStyle(pileState, index);
             updatePileItemStyle(pileState, index);
-            addToNormalPiles(pile.graphics);
+            clearActivePileLayer();
           }
         });
         scaleItems();
@@ -2450,7 +2445,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           // previously magnified piles are reset
           scaledPileInstance.unmagnify();
           updatePileBounds(scaledPileInstance.id);
-          addToNormalPiles(scaledPileInstance.graphics);
+          clearActivePileLayer();
         });
 
       newState.magnifiedPiles
@@ -2458,7 +2453,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
           scaledPileInstance.magnify();
-          addToActivePile(scaledPileInstance.graphics);
+          moveToActivePileLayer(scaledPileInstance.graphics);
         });
 
       renderRaf();
@@ -2741,7 +2736,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
     // if not colliding, add the pile back to normalPiles container
     if (!hit) {
-      addToNormalPiles(pileGfx);
+      clearActivePileLayer();
     }
   };
 
@@ -2792,7 +2787,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(createAction.setMagnifiedPiles([]));
 
-    addToActivePile(pileInstances.get(pileId).graphics);
+    moveToActivePileLayer(pileInstances.get(pileId).graphics);
     highlightHoveringPiles(pileId);
   };
 
