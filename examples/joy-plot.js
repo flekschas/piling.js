@@ -59,7 +59,7 @@ const createSvgLinesPiles = async element => {
   const piling = createPilingJs(element, {
     renderer: svgRenderer,
     items,
-    cols: 12,
+    columns: 12,
     pileItemAlignment: ['bottom'],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
