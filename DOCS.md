@@ -200,7 +200,7 @@ The list of all understood properties is given below.
 | pileBorderSize             | float or function       | `0`                   | see [`notes`](#notes)                                                         | `true`     |
 | pileCellAlignment          | string                  | topLeft               | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
 | pileContextMenuItems       | array                   | `[]`                  | see _examples_ below                                                          | `true`     |
-| pileItemAlignment          | array or boolean        | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
+| pileItemOffset          | array or function        | `[5, 5]`                | see [`notes`](#notes)                                                         | `true`     |
 | pileItemBrightness         | string, int or function | `0`                   | must be in [-1,1] where `-1` refers to black and `1` refers to white          | `false`    |
 | pileItemOpacity            | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
 | pileItemRotation           | boolean                 | `false`               | `true` or `false`                                                             | `true`     |
@@ -308,6 +308,18 @@ The list of all understood properties is given below.
     }
   ]);
   ```
+
+- `pileItemOffset` can be set to an array or a callback function. The array should either be a tuple specifying the x and y offset in pixel, or be empty to indicate randomly offset. E.g.,
+
+  ```javascript
+  // Align items in y-axis
+  piling.set('pileItemOffset', [0, 5]);
+
+  // Random alignment
+  piling.set('pileItemOffset', []);
+  ```
+
+  See the next note for the signature of the callback function ⬇️
 
 - `pileBorderSize`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
 
