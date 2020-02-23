@@ -2295,6 +2295,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
         });
         updatedItems.push(updateItemTexture(newItems));
+      } else if (state.itemRenderer) {
+        updatedItems.push(createItems());
       }
     }
 
