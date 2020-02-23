@@ -141,9 +141,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     easing: true,
     coverAggregator: true,
     items: {
-      set: value => [
-        createAction.setItems(value),
-        createAction.initPiles(value.length)
+      get: () => Object.values(state.items),
+      set: newItems => [
+        createAction.setItems(newItems),
+        createAction.initPiles(newItems)
       ]
     },
     itemSize: true,
@@ -276,7 +277,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     randomOffsetRange: true,
     randomRotationRange: true,
     renderer: {
-      get: 'itemRenderer',
+      get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
     },
     showGrid: true,
@@ -287,8 +288,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const get = property => {
-    if (properties[property])
-      return state[properties[property].get || property];
+    if (properties[property]) {
+      if (properties[property].get) return properties[property].get();
+      return state[property];
+    }
 
     console.warn(`Unknown property "${property}"`);
     return undefined;
@@ -826,7 +829,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       previewSpacing
     } = store.state;
 
-    if (!items.length || !itemRenderer) return null;
+    const itemList = Object.values(items);
+
+    if (!itemList.length || !itemRenderer) return null;
 
     renderedItems.forEach(item => {
       item.destroy();
@@ -841,7 +846,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     activePile.removeChildren();
 
     const renderImages = itemRenderer(
-      items.map(({ src }) => src)
+      itemList.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
     const previewOptions = {
@@ -859,7 +864,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       createImageWithBackground(texture, previewOptions);
 
     const renderPreviews = previewAggregator
-      ? previewAggregator(items.map(({ src }) => src))
+      ? previewAggregator(itemList.map(({ src }) => src))
           .then(previewRenderer)
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
@@ -869,7 +874,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         renderedImages.forEach((image, index) => {
           const { piles } = store.state;
           const pileId = index.toString();
-          const itemId = items[index].id || pileId;
+          const itemId = itemList[index].id || pileId;
           const preview = renderedPreviews[index];
 
           const newItem = createItem(
@@ -2402,7 +2407,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // prettier-ignore
     if (
-      newState.items.length &&
+      Object.keys(newState.items).length &&
       (
         state.arrangementType !== newState.arrangementType ||
         state.arrangementObjective !== newState.arrangementObjective ||

@@ -192,8 +192,6 @@ const [previewAggregator, setPreviewAggregator] = setter('previewAggregator');
 
 const [coverAggregator, setCoverAggregator] = setter('coverAggregator');
 
-const [items, setItems] = setter('items', []);
-
 const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
 // Grid
@@ -361,21 +359,35 @@ const [
   setRandomRotationRange
 ] = setter('randomRotationRange', [-10, 10]);
 
-// reducer
+const items = (previousState = {}, action) => {
+  switch (action.type) {
+    case 'SET_ITEMS':
+      return action.payload.items.reduce((newState, item, index) => {
+        newState[index || item.id] = item;
+        return newState;
+      }, {});
+
+    default:
+      return previousState;
+  }
+};
+
+const setItems = newItems => ({
+  type: 'SET_ITEMS',
+  payload: { items: newItems }
+});
+
 const piles = (previousState = {}, action) => {
   switch (action.type) {
-    case 'INIT_PILES': {
-      return new Array(action.payload.itemLength)
-        .fill()
-        .reduce((newState, _, id) => {
-          newState[id] = {
-            items: [id.toString()],
-            x: null,
-            y: null
-          };
-          return newState;
-        }, {});
-    }
+    case 'INIT_PILES':
+      return action.payload.newItems.reduce((newState, item, index) => {
+        newState[index] = {
+          items: [item.id || index.toString()],
+          x: null,
+          y: null
+        };
+        return newState;
+      }, {});
 
     case 'MERGE_PILES': {
       const newState = { ...previousState };
@@ -471,9 +483,9 @@ const piles = (previousState = {}, action) => {
 };
 
 // action
-const initPiles = itemLength => ({
+const initPiles = newItems => ({
   type: 'INIT_PILES',
-  payload: { itemLength }
+  payload: { newItems }
 });
 
 const mergePiles = (pileIds, isDropped) => ({
