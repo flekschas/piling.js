@@ -4,16 +4,29 @@ import createPilingJs from '../src/library';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 
-const ZARR_URL =
-  'https://vitessce-demo-data.storage.googleapis.com/test-data/vanderbilt-data/vanderbilt_mxif_ims.zarr/mxif_pyramid';
+// const ZARR_URL =
+//   'https://vitessce-demo-data.storage.googleapis.com/test-data/vanderbilt-data/vanderbilt_mxif_ims.zarr/mxif_pyramid';
 
-const ZARR_MIN_ZOOM = -8;
+// const ZARR_MIN_ZOOM = -8;
+
+// const ZARR_CHANNELS = {
+//   'Cy3 - Synaptopodin (glomerular)': ZARR_URL,
+//   'Cy5 - THP (thick limb)': ZARR_URL,
+//   'DAPI - Hoescht (nuclei)': ZARR_URL,
+//   'FITC - Laminin (basement membrane)': ZARR_URL
+// };
+
+// const METADATA_URL =
+//   'https://vitessce-data.s3.amazonaws.com/0.0.20/master_release/linnarsson/linnarsson.cells.json';
+
+const ZARR_URL =
+  'https://vitessce-data.storage.googleapis.com/linnarsson.images.zarr/pyramid';
+
+const ZARR_MIN_ZOOM = -6;
 
 const ZARR_CHANNELS = {
-  'Cy3 - Synaptopodin (glomerular)': ZARR_URL,
-  'Cy5 - THP (thick limb)': ZARR_URL,
-  'DAPI - Hoescht (nuclei)': ZARR_URL,
-  'FITC - Laminin (basement membrane)': ZARR_URL
+  polyT: ZARR_URL,
+  nuclei: ZARR_URL
 };
 
 async function getZarrMetadata({
@@ -61,8 +74,9 @@ const createVitessce = async element => {
   const { width: baseWidth } = element.getBoundingClientRect();
 
   const { imageHeight, imageWidth } = await getZarrMetadata();
+  // const metadata = await fetch(METADATA_URL);
 
-  const numCols = 20;
+  const numCols = 10;
   const itemSize = Math.floor(baseWidth / numCols);
   const stepSize = imageWidth / numCols;
   const offset = stepSize / 2;
@@ -81,11 +95,19 @@ const createVitessce = async element => {
     }))
   );
 
-  const vitessceRenderer = createVitessceRenderer({
-    channels: ZARR_CHANNELS,
-    minZoom: ZARR_MIN_ZOOM,
-    size: itemSize
-  });
+  const vitessceRenderer = createVitessceRenderer(
+    {
+      channels: ZARR_CHANNELS,
+      minZoom: ZARR_MIN_ZOOM,
+      size: itemSize
+    },
+    {
+      colors: [
+        [255, 128, 0],
+        [0, 128, 255]
+      ]
+    }
+  );
 
   const umap = createUmap();
 
