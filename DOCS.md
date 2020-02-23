@@ -402,7 +402,9 @@ Position piles with user-specified arrangement method.
       piling.arrangeBy('data', itemState => itemState.a);
       ```
 
-    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the numerical values of the pile's items into a single numerical value.
+    - `propertyIsVector` [type: `boolean` default: `false`]: If `true` we assume that `property()` is returning a numerical vector instead of a scalar.
+
+    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the property values of the piles' items.
 
       For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
 
