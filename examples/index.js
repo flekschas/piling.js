@@ -2,15 +2,32 @@ import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createDrawingPiles from './drawings';
+import createJoyPlotPiles from './joy-plot';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const drawingsEl = document.getElementById('drawings');
+const joyplotEl = document.getElementById('joyplot');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
+const joyplotCreditEl = document.getElementById('joyplot-credit');
+
+const conditionalElements = [
+  photosEl,
+  matricesEl,
+  svgEl,
+  drawingsEl,
+  joyplotEl,
+  photosCreditEl,
+  matricesCreditEl,
+  svgCreditEl,
+  drawingsCreditEl,
+  joyplotCreditEl
+];
+
 const optionsEl = document.getElementById('options');
 const optionsTogglerEl = document.getElementById('options-toggler');
 const undoButton = document.getElementById('undo');
@@ -51,18 +68,17 @@ const updateHandler = ({ action }) => {
   if (history.length > 5) history.shift();
 };
 
+const hideEl = el => {
+  el.style.display = 'none';
+};
+
 const createPiles = async example => {
   let additionalOptions;
 
   switch (example) {
     case 'photos':
       if (piling) piling.destroy();
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -73,12 +89,7 @@ const createPiles = async example => {
 
     case 'matrices':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -89,12 +100,7 @@ const createPiles = async example => {
 
     case 'lines':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      drawingsEl.style.display = 'none';
-      drawingsCreditEl.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -105,16 +111,22 @@ const createPiles = async example => {
 
     case 'drawings':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       drawingsEl.style.display = 'block';
       drawingsCreditEl.style.display = 'block';
       undoButton.disabled = true;
       [piling, additionalOptions] = await createDrawingPiles(drawingsEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
+    case 'joyplot':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      joyplotEl.style.display = 'block';
+      joyplotCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      piling = await createJoyPlotPiles(joyplotEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -158,11 +170,16 @@ switch (example) {
     exampleEl.selectedIndex = 3;
     break;
 
+  case 'joyplot':
+    exampleEl.selectedIndex = 4;
+    break;
+
   default:
   // Nothing
 }
 
 let isOptionsOpen = false;
+const bodyClasses = document.body.className;
 
 const handleOptionsTogglerClick = event => {
   event.preventDefault();
@@ -171,10 +188,10 @@ const handleOptionsTogglerClick = event => {
 
   if (isOptionsOpen) {
     optionsEl.setAttribute('class', 'open');
-    document.body.setAttribute('class', `${window.example} options-open`);
+    document.body.setAttribute('class', `${bodyClasses} options-open`);
   } else {
     optionsEl.removeAttribute('class');
-    document.body.setAttribute('class', window.example);
+    document.body.setAttribute('class', bodyClasses);
   }
 };
 

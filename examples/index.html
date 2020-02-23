@@ -90,8 +90,7 @@
         background: black;
       }
 
-      body.drawings,
-      body.lines {
+      body.white-mode {
         color: black;
         background: white;
       }
@@ -101,10 +100,8 @@
         color: white;
       }
 
-      body.drawings a,
-      body.drawings a:visited,
-      body.lines a,
-      body.lines a:visited {
+      body.white-mode a,
+      body.white-mode a:visited {
         color: black;
       }
 
@@ -113,10 +110,8 @@
         color: #ff7ff6;
       }
 
-      body.drawings a:hover,
-      body.drawings .credits a:hover,
-      body.lines a:hover,
-      body.lines .credits a:hover {
+      body.white-mode a:hover,
+      body.white-mode .credits a:hover {
         color: #d900ca;
       }
 
@@ -139,8 +134,7 @@
         border-radius: 0.25rem;
       }
 
-      body.drawings h1,
-      body.lines h1 {
+      body.white-mode h1 {
         color: white;
         background: black;
       }
@@ -228,15 +222,12 @@
         transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
-      body.lines #options,
-      body.drawings #options {
-        border-left: 1px solid #333;
-        color: black;
-        background: white;
-      }
-
       #options.open {
         transform: translate(0, 0);
+      }
+
+      body.white-mode #options .toggler {
+        border-color: black;
       }
 
       #options .toggler {
@@ -269,13 +260,6 @@
         box-shadow: 0 0 0 2px rgba(255, 127, 246, 0.9);
       }
 
-      body.drawings #options .toggler,
-      body.lines #options .toggler {
-        color: black;
-        border-color: #ccc;
-        background: white;
-      }
-
       #options .toggler svg {
         width: 100%;
         height: 100%;
@@ -289,10 +273,8 @@
         background: black;
       }
 
-      body.drawings #options.open .toggler,
-      body.lines #options.open .toggler {
-        border-color: black;
-        background: white;
+      body.white-mode #options.open .toggler {
+        background: black;
       }
 
       #options .content {
@@ -343,21 +325,9 @@
           box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
-      body.lines #undo,
-      body.drawings #undo {
-        color: white;
-        border: 1px solid black;
-        background: black;
-      }
-
       #undo:focus {
         outline: none;
         box-shadow: 0 0 0 1px black, 0 0 0 3px rgba(255, 127, 246, 0.9);
-      }
-
-      body.lines #undo:focus,
-      body.drawings #undo:focus {
-        box-shadow: 0 0 0 1px white, 0 0 0 3px rgba(255, 127, 246, 0.9);
       }
 
       #undo:disabled {
@@ -370,7 +340,19 @@
 
   <body>
     <script>
-      document.body.setAttribute('class', window.example);
+      let mode = 'dark-mode';
+      switch (window.example) {
+        case 'lines':
+        case 'drawings':
+        case 'joyplot':
+          mode = 'white-mode';
+          break;
+
+        default:
+          mode = 'dark-mode';
+          break;
+      }
+      document.body.setAttribute('class', [window.example, mode].join(' '));
     </script>
 
     <header>
@@ -392,6 +374,7 @@
               <option value="matrices">Matrices (Array)</option>
               <option value="lines">Lines (SVG)</option>
               <option value="drawings">Drawings</option>
+              <option value="joyplot">Joy Plot</option>
             </select>
             <div class="credits">
               <em id="photos-credit">
@@ -417,6 +400,14 @@
                   >Google Quickdraw Dataset</a
                 >)
               </em>
+              <em id="joyplot-credit">
+                (From
+                <a
+                  href="https://www.dwd.de/EN/climate_environment/cdc/cdc_node.html"
+                  target="_blank"
+                  >Deutscher Wetterdienst</a
+                >)
+              </em>
             </div>
           </div>
         </div>
@@ -427,6 +418,7 @@
     <div id="matrices" class="container"></div>
     <div id="svg" class="container"></div>
     <div id="drawings" class="container"></div>
+    <div id="joyplot" class="container"></div>
 
     <aside id="options">
       <button id="options-toggler" class="toggler">

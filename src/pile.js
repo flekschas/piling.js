@@ -56,8 +56,8 @@ const createPile = (
 
   const createPileBBox = createBBox({ id });
 
-  let bBox = {};
-  let anchorBox = {};
+  let bBox = createPileBBox();
+  let anchorBox = createPileBBox();
 
   let coverItem;
 
@@ -85,8 +85,13 @@ const createPile = (
 
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
-    clonedSprite.x = coverItemContainer.x;
-    clonedSprite.y = coverItemContainer.y;
+    if (getCover()) {
+      clonedSprite.x = coverItemContainer.x;
+      clonedSprite.y = coverItemContainer.y;
+    } else {
+      clonedSprite.x = pileItem.displayObject.x;
+      clonedSprite.y = pileItem.displayObject.y;
+    }
     clonedSprite.angle = pileItem.displayObject.angle;
 
     return clonedSprite;
@@ -656,9 +661,13 @@ const createPile = (
       onDone();
     };
 
-    if (isClose(getScale(), newScale, 3)) {
-      setScale(newScale);
+    const immideate = () => {
+      setScale(newScale, { isMagnification });
       done();
+    };
+
+    if (isClose(getScale(), newScale, 3)) {
+      immideate();
       return;
     }
 
@@ -672,8 +681,7 @@ const createPile = (
     const d = Math.abs((newScale / getScale()) * size - size);
 
     if (d < 2) {
-      setScale(newScale, { isMagnification });
-      done();
+      immideate();
       return;
     }
 

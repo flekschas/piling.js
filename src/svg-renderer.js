@@ -7,7 +7,7 @@ import * as PIXI from 'pixi.js';
  */
 const svgToImg = (
   svg,
-  { width = null, height = null, background = null } = {}
+  { width = null, height = null, color = null, background = null } = {}
 ) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -17,13 +17,14 @@ const svgToImg = (
         ? svg
         : new XMLSerializer().serializeToString(svg);
 
+    const colorStyle = color && `color: ${color}`;
+    const backgroundStyle = background && `background: ${background}`;
+    const styles = [colorStyle, backgroundStyle].filter(s => s);
+    const style = `style="${styles.join('; ')}"`;
+
     const widthAttr = width && `width="${width}"`;
     const heightAttr = height && `height="${height}"`;
     const attrs = [widthAttr, heightAttr].filter(s => s).join(' ');
-
-    const backgroundStyle = background && `background: ${background}`;
-    const styles = [backgroundStyle].filter(s => s);
-    const style = `style="${styles.join('; ')}"`;
 
     svgStr = `${svgStr.slice(0, 5)} ${attrs} ${style} ${svgStr.slice(5)}`;
 
