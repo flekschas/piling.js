@@ -228,13 +228,15 @@
         transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
-      #options.open {
-        transform: translate(0, 0);
+      body.lines #options,
+      body.drawings #options {
+        border-left: 1px solid #333;
+        color: black;
+        background: white;
       }
 
-      body.drawings #options .toggler,
-      body.lines #options .toggler {
-        border-color: black;
+      #options.open {
+        transform: translate(0, 0);
       }
 
       #options .toggler {
@@ -267,6 +269,13 @@
         box-shadow: 0 0 0 2px rgba(255, 127, 246, 0.9);
       }
 
+      body.drawings #options .toggler,
+      body.lines #options .toggler {
+        color: black;
+        border-color: #ccc;
+        background: white;
+      }
+
       #options .toggler svg {
         width: 100%;
         height: 100%;
@@ -282,7 +291,8 @@
 
       body.drawings #options.open .toggler,
       body.lines #options.open .toggler {
-        background: black;
+        border-color: black;
+        background: white;
       }
 
       #options .content {
@@ -333,9 +343,21 @@
           box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
+      body.lines #undo,
+      body.drawings #undo {
+        color: white;
+        border: 1px solid black;
+        background: black;
+      }
+
       #undo:focus {
         outline: none;
         box-shadow: 0 0 0 1px black, 0 0 0 3px rgba(255, 127, 246, 0.9);
+      }
+
+      body.lines #undo:focus,
+      body.drawings #undo:focus {
+        box-shadow: 0 0 0 1px white, 0 0 0 3px rgba(255, 127, 246, 0.9);
       }
 
       #undo:disabled {

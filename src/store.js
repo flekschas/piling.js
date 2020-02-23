@@ -354,6 +354,10 @@ const [
 const piles = (previousState = [], action) => {
   switch (action.type) {
     case 'INIT_PILES': {
+      const len = previousState.length;
+      if (len) {
+        if (len === action.payload.itemLength) return previousState;
+      }
       return new Array(action.payload.itemLength).fill().map((x, id) => ({
         items: [id],
         x: null,

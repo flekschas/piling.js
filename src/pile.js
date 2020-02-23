@@ -299,6 +299,8 @@ const createPile = (
   let dragMove;
 
   const onDragStart = event => {
+    if (event.data.button === 2) return;
+
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     rootGraphics.draggingMouseOffset = [
@@ -315,6 +317,8 @@ const createPile = (
   };
 
   const onDragEnd = event => {
+    if (event.data.button === 2) return;
+
     if (!rootGraphics.isDragging) return;
     rootGraphics.alpha = 1;
     rootGraphics.isDragging = false;
@@ -326,6 +330,8 @@ const createPile = (
   };
 
   const onDragMove = event => {
+    if (event.data.button === 2) return;
+
     if (rootGraphics.isDragging) {
       dragMove = true;
 
@@ -771,6 +777,17 @@ const createPile = (
     rootGraphics.y = y;
   };
 
+  const replaceItemsImage = () => {
+    normalItemIndex.forEach(pileItem => {
+      const newImage = pileItem.item.image;
+      pileItem.replaceImage(newImage);
+    });
+    previewItemIndex.forEach(pileItem => {
+      const newImage = pileItem.item.preview;
+      pileItem.replaceImage(newImage);
+    });
+  };
+
   const getItemById = itemId =>
     normalItemIndex.get(itemId) || previewItemIndex.get(itemId);
 
@@ -1098,6 +1115,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
+    replaceItemsImage,
     unmagnify
   };
 };

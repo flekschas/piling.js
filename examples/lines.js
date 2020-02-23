@@ -20,9 +20,17 @@ const createRandomLinePlot = () => {
 const createSvgLinesPiles = element => {
   const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
-  const data = new Array(100)
-    .fill(0)
-    .map(() => ({ src: createRandomLinePlot() }));
+  const createRandomLine = () => ({ src: createRandomLinePlot() });
+
+  let data = new Array(100).fill().map(createRandomLine);
+
+  const redrawHandler = pile => {
+    pile.items.forEach(itemId => {
+      data[itemId] = createRandomLine();
+    });
+    data = [...data];
+    piling.set('items', data);
+  };
 
   const piling = createPilingJs(element, {
     renderer: svgRenderer,
@@ -33,7 +41,13 @@ const createSvgLinesPiles = element => {
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000'
+    lassoStrokeColor: '#000000',
+    pileContextMenuItems: [
+      {
+        label: 'Redraw',
+        callback: redrawHandler
+      }
+    ]
   });
 
   // eslint-disable-next-line no-console
@@ -48,7 +62,7 @@ const createSvgLinesPiles = element => {
   piling.subscribe('pileDrag', log('pileDrag'));
   piling.subscribe('pileDrop', log('pileDrop'));
 
-  return piling;
+  return [piling];
 };
 
 export default createSvgLinesPiles;
