@@ -30,6 +30,7 @@ import {
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
+import createLevels from './levels';
 import createStore, { createAction } from './store';
 
 import {
@@ -79,6 +80,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const pubSub = createPubSub();
   const store = createStore();
+
+  const levels = createLevels(store);
 
   let state = store.state;
 
@@ -1279,12 +1282,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
       if (pileState.items.length === 0) {
-        deletePileFromSearchIndex(id);
-        pileInstance.destroy();
-        pileInstances.delete(id);
-        lastPilePosition.delete(id);
-        // We *do not* delete the cached multi-dimensional position as that
-        // position can come in handy when we depile the pile again
+        deletePileHandler(id);
       } else {
         cachedMdPilePos.delete(id);
 
@@ -1307,22 +1305,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         updatePileItemStyle(pileState, id);
       }
     } else {
-      const [x, y] = transformPointToScreen([pileState.x, pileState.y]);
-      const newPile = createPile(
-        {
-          items: [renderedItems.get(id)],
-          render: renderRaf,
-          id,
-          pubSub,
-          store
-        },
-        { x, y }
-      );
-      pileInstances.set(id, newPile);
-      normalPiles.addChild(newPile.graphics);
-      updatePileBounds(id);
-      updatePileItemStyle(pileState, id);
-      lastPilePosition.set(id, [pileState.x, pileState.y]);
+      createPileHandler(id, pileState);
     }
   };
 
@@ -1911,6 +1894,34 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const createPileHandler = (pileId, pileState) => {
+    const [x, y] = transformPointToScreen([pileState.x, pileState.y]);
+    const newPile = createPile(
+      {
+        items: [renderedItems.get(pileId)],
+        render: renderRaf,
+        id: pileId,
+        pubSub,
+        store
+      },
+      { x, y }
+    );
+    pileInstances.set(pileId, newPile);
+    normalPiles.addChild(newPile.graphics);
+    updatePileBounds(pileId);
+    updatePileItemStyle(pileState, pileId);
+    lastPilePosition.set(pileId, [pileState.x, pileState.y]);
+  };
+
+  const deletePileHandler = pileId => {
+    if (pileInstances.has(pileId)) pileInstances.get(pileId).destroy();
+    deletePileFromSearchIndex(pileId);
+    pileInstances.delete(pileId);
+    lastPilePosition.delete(pileId);
+    // We *do not* delete the cached multi-dimensional position as that
+    // position can come in handy when we depile the pile again
+  };
+
   const updateNavigationMode = () => {
     const {
       arrangementType,
@@ -2240,10 +2251,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.piles !== newState.piles) {
-      if (Object.keys(state.piles).length !== 0) {
-        Object.entries(newState.piles).forEach(([id, pile]) => {
-          if (pile === state.piles[id]) return;
+      const prevPileIdIndex = new Set(Object.keys(state.piles));
+      if (prevPileIdIndex.size !== 0) {
+        const deletedPiles = new Set(prevPileIdIndex);
 
+        const newPiles = {};
+        const updatedPiles = {};
+
+        Object.entries(newState.piles).forEach(([id, pile]) => {
+          if (state.piles[id]) {
+            if (pile !== state.piles[id]) {
+              updatedPiles[id] = pile;
+            }
+          } else {
+            newPiles[id] = pile;
+          }
+          deletedPiles.delete(id);
+        });
+
+        Object.entries(newPiles).forEach(createPileHandler);
+
+        // Update piles
+        Object.entries(updatedPiles).forEach(([id, pile]) => {
           if (pile.items.length !== state.piles[id].items.length) {
             updatePileItems(pile, id);
             updatedPileItems.push(id);
@@ -2258,6 +2287,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
           updatePileStyle(pile, id);
         });
+
+        deletedPiles.forEach(deletePileHandler);
       }
     }
 
@@ -2999,6 +3030,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     closeContextMenu();
   };
 
+  const browseSeparatelyHandler = (contextMenuElement, pileId) => () => {
+    levels.enter([pileId]);
+    depileToOriginPos(pileId);
+    hideContextMenu(contextMenuElement);
+  };
+
   const contextmenuHandler = event => {
     closeContextMenu();
 
@@ -3029,6 +3066,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const depileBtn = element.querySelector('#depile-button');
     const tempDepileBtn = element.querySelector('#temp-depile-button');
+    const browseSeparatelyBtn = element.querySelector('#browse-separately');
     const toggleGridBtn = element.querySelector('#grid-button');
     const alignBtn = element.querySelector('#align-button');
     const magnifyBtn = element.querySelector('#magnify-button');
@@ -3050,11 +3088,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         depileBtn.setAttribute('class', 'inactive');
         tempDepileBtn.setAttribute('disabled', '');
         tempDepileBtn.setAttribute('class', 'inactive');
+        browseSeparatelyBtn.setAttribute('disabled', '');
+        browseSeparatelyBtn.setAttribute('class', 'inactive');
       } else if (pile.isTempDepiled) {
         depileBtn.setAttribute('disabled', '');
         depileBtn.setAttribute('class', 'inactive');
         magnifyBtn.setAttribute('disabled', '');
         magnifyBtn.setAttribute('class', 'inactive');
+        browseSeparatelyBtn.setAttribute('disabled', '');
+        browseSeparatelyBtn.setAttribute('class', 'inactive');
         tempDepileBtn.innerHTML = 'close temp depile';
       }
 
@@ -3080,6 +3122,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       tempDepileBtn.addEventListener(
         'click',
         tempDepileBtnClick(element, pile.id, event),
+        EVENT_LISTENER_PASSIVE
+      );
+      browseSeparatelyBtn.addEventListener(
+        'click',
+        browseSeparatelyHandler(element, pile.id, event),
         EVENT_LISTENER_PASSIVE
       );
       magnifyBtn.addEventListener(
@@ -3112,6 +3159,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else {
       depileBtn.style.display = 'none';
       tempDepileBtn.style.display = 'none';
+      browseSeparatelyBtn.style.display = 'none';
       magnifyBtn.style.display = 'none';
 
       if (showGrid) {
