@@ -32,7 +32,7 @@ const createDrawingPiles = async element => {
     items: testData,
     itemSize: 32,
     cellPadding: 16,
-    pileItemAlignment: 'overlap',
+    pileItemOffset: [0, 0],
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
     pileVisibilityItems: pile => pile.items.length === 1,
