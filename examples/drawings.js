@@ -41,7 +41,7 @@ const createDrawingPiles = async element => {
     lassoStrokeColor: '#000000'
   });
 
-  return pilingJs;
+  return [pilingJs];
 };
 
 export default createDrawingPiles;
