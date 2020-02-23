@@ -352,6 +352,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
 
+  const clearActivePileLayer = () => {
+    if (activePile.children.length) {
+      normalPiles.addChild(activePile.getChildAt(0));
+      activePile.removeChildren();
+    }
+  };
+
+  const moveToActivePileLayer = pileGfx => {
+    clearActivePileLayer();
+    activePile.addChild(pileGfx);
+  };
+
   const popup = createPopup();
 
   let isMouseDown = false;
@@ -684,27 +696,43 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  let itemSizeScale = scaleLinear();
+  let itemWidthScale = scaleLinear();
+  let itemHeightScale = scaleLinear();
+
+  const getImageScaleFactor = image =>
+    image.aspectRatio > layout.cellAspectRatio
+      ? itemWidthScale(image.originalWidth) / image.originalWidth
+      : itemHeightScale(image.originalHeight) / image.originalHeight;
 
   const scaleItems = () => {
     if (!renderedItems.size) return;
 
-    let minSize = Infinity;
-    let maxSize = 0;
+    let minWidth = Infinity;
+    let maxWidth = 0;
+    let minHeight = Infinity;
+    let maxHeight = 0;
+    let minAspectRatio = Infinity;
+    let maxAspectRatio = 0;
 
     renderedItems.forEach(item => {
-      const size = Math.max(
-        item.image.displayObject.width,
-        item.image.displayObject.height
-      );
-      if (size > maxSize) maxSize = size;
-      if (size < minSize) minSize = size;
+      const width = item.image.originalWidth;
+      const height = item.image.originalHeight;
+
+      if (width > maxWidth) maxWidth = width;
+      if (width < minWidth) minWidth = width;
+
+      if (height > maxHeight) maxHeight = height;
+      if (height < minHeight) minHeight = height;
+
+      const aspectRatio = width / height;
+      if (aspectRatio > maxAspectRatio) maxAspectRatio = aspectRatio;
+      if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
     const { itemSizeRange } = store.state;
-    let scaleRange;
 
-    const minRange = Math.min(layout.cellWidth, layout.cellHeight);
+    let widthRange;
+    let heightRange;
 
     // if it's within [0, 1] assume it's relative
     if (
@@ -713,25 +741,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] > 0 &&
       itemSizeRange[1] <= 1
     ) {
-      scaleRange = [minRange * itemSizeRange[0], minRange * itemSizeRange[1]];
-    }
-    // else assume absolute values in pixels
-    else {
-      scaleRange = itemSizeRange;
+      widthRange = [
+        layout.cellWidth * itemSizeRange[0],
+        layout.cellWidth * itemSizeRange[1]
+      ];
+      heightRange = [
+        layout.cellHeight * itemSizeRange[0],
+        layout.cellHeight * itemSizeRange[1]
+      ];
+    } else {
+      widthRange = [0, layout.cellWidth];
+      heightRange = [0, layout.cellHeight];
     }
 
-    itemSizeScale = scaleLinear()
-      .domain([minSize, maxSize])
-      .range(scaleRange);
+    itemWidthScale = scaleLinear()
+      .domain([minWidth, maxWidth])
+      .range(widthRange);
+
+    itemHeightScale = scaleLinear()
+      .domain([minHeight, maxHeight])
+      .range(heightRange);
 
     renderedItems.forEach(item => {
-      const scaleFactor = itemSizeScale(item.image.size) / item.image.size;
-      item.image.sprite.width *= scaleFactor;
-      item.image.sprite.height *= scaleFactor;
+      const scaleFactor = getImageScaleFactor(item.image);
+      item.image.scale(scaleFactor);
 
       if (item.preview) {
-        item.preview.sprite.width *= scaleFactor;
-        item.preview.sprite.height *= scaleFactor;
+        item.preview.scale(scaleFactor);
         item.preview.drawBackground();
       }
     });
@@ -817,36 +853,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const createItems = () => {
+  const createImagesAndPreviews = items => {
     const {
-      items,
       itemRenderer,
       previewBackgroundColor,
       previewBackgroundOpacity,
       pileBackgroundColor,
       pileBackgroundOpacity,
-      pileItemAlignment,
-      pileItemRotation,
       previewAggregator,
       previewRenderer,
       previewSpacing
     } = store.state;
 
     const itemList = Object.values(items);
-
-    if (!itemList.length || !itemRenderer) return null;
-
-    renderedItems.forEach(item => {
-      item.destroy();
-    });
-    pileInstances.forEach(pile => {
-      pile.destroy();
-    });
-    renderedItems.clear();
-    pileInstances.clear();
-
-    normalPiles.removeChildren();
-    activePile.removeChildren();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
@@ -872,13 +891,92 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
 
-    return Promise.all([renderImages, renderPreviews]).then(
+    return [renderImages, renderPreviews];
+  };
+
+  const updateItemTexture = (updatedItems = []) => {
+    const { items } = store.state;
+
+    // eslint-disable-next-line no-param-reassign
+    updatedItems = updatedItems.length ? updatedItems : Object.values(items);
+
+    return Promise.all(createImagesAndPreviews(updatedItems)).then(
       ([renderedImages, renderedPreviews]) => {
+        const {
+          pileItemAlignment,
+          pileItemRotation,
+          piles,
+          previewSpacing
+        } = store.state;
+
         renderedImages.forEach((image, index) => {
-          const { piles } = store.state;
+          const pileId = index.toString();
+          const itemId = updatedItems[index].id || pileId;
+          const preview = renderedPreviews[itemId];
+          if (renderedItems.has(itemId)) {
+            renderedItems.get(itemId).replaceImage(image, preview);
+          }
+        });
+
+        updatedItems.forEach(item => {
+          const id = item.id;
+          if (pileInstances.has(id)) {
+            const pile = pileInstances.get(id);
+            const pileState = piles[id];
+            pile.replaceItemsImage();
+            pile.positionItems(
+              pileItemAlignment,
+              pileItemRotation,
+              animator,
+              previewSpacing
+            );
+            pile.blur();
+            updatePileStyle(pileState, id);
+            updatePileItemStyle(pileState, id);
+            clearActivePileLayer();
+          }
+        });
+
+        scaleItems();
+        renderRaf();
+      }
+    );
+  };
+
+  const createItems = () => {
+    const {
+      items,
+      itemRenderer,
+      pileItemAlignment,
+      pileItemRotation,
+      previewSpacing
+    } = store.state;
+
+    const itemList = Object.values(items);
+
+    if (!itemList.length || !itemRenderer) return null;
+
+    renderedItems.forEach(item => {
+      item.destroy();
+    });
+    pileInstances.forEach(pile => {
+      pile.destroy();
+    });
+    renderedItems.clear();
+    pileInstances.clear();
+
+    normalPiles.removeChildren();
+    activePile.removeChildren();
+
+    return Promise.all(createImagesAndPreviews(items)).then(
+      ([renderedImages, renderedPreviews]) => {
+        const { piles } = store.state;
+
+        renderedImages.forEach((image, index) => {
           const pileId = index.toString();
           const itemId = itemList[index].id || pileId;
-          const preview = renderedPreviews[index];
+          const pileState = piles[pileId];
+          const preview = renderedPreviews[itemId];
 
           const newItem = createItem(
             { id: itemId, image, pubSub },
@@ -901,8 +999,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             previewSpacing
           );
           pileInstances.set(pileId, pile);
-          updatePileStyle(piles[pileId], pileId);
-          updatePileItemStyle(piles[pileId], pileId);
+          updatePileStyle(pileState, pileId);
+          updatePileItemStyle(pileState, pileId);
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
@@ -1201,9 +1299,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const createScaledImage = texture => {
     const image = createImage(texture);
-    const scaleFactor = itemSizeScale(image.size) / image.size;
-    image.sprite.width *= scaleFactor;
-    image.sprite.height *= scaleFactor;
+    image.scale(getImageScaleFactor(image));
     return image;
   };
 
@@ -1222,14 +1318,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else {
       const itemSrcs = [];
       const itemInstances = [];
-      let width = -Infinity;
+      // let width = -Infinity;
 
       pileState.items.forEach(itemId => {
         const itemInstance = renderedItems.get(itemId);
 
         itemSrcs.push(items[itemId].src);
 
-        width = Math.max(width, itemInstance.image.width);
+        // width = Math.max(width, itemInstance.image.width);
 
         itemInstances.push(itemInstance);
       });
@@ -2118,14 +2214,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ? [maxValue, minValue]
         : [minValue, maxValue];
 
-      const meanItemSize = mean(
-        itemSizeScale.domain().map(size => itemSizeScale(size))
-      );
+      const meanWidth = mean(itemWidthScale.range());
+      const meanHeight = mean(itemWidthScale.range());
 
       return objective
         .scale()
         .domain(domain)
-        .range([meanItemSize / 2, rangeMax[i] - meanItemSize / 2]);
+        .range([meanWidth / 2, rangeMax[i] - meanHeight / 2]);
     });
 
     return Promise.resolve();
@@ -2235,15 +2330,36 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const updatedItems = [];
     const updatedPileItems = [];
 
+    if (state.items !== newState.items && state.itemRenderer) {
+      if (Object.keys(state.items).length) {
+        const newItems = [];
+        Object.entries(newState.items)
+          .filter(([id, item]) => item.src !== state.items[id].src)
+          .forEach(([id, item]) => {
+            newItems.push({
+              id,
+              src: item.src
+            });
+            updatedPileItems.push(id);
+          });
+        updatedItems.push(updateItemTexture(newItems));
+      } else {
+        updatedItems.push(createItems());
+      }
+    }
+
     if (
-      state.items !== newState.items ||
       state.itemRenderer !== newState.itemRenderer ||
       state.previewRenderer !== newState.previewRenderer ||
       state.aggregateRenderer !== newState.aggregateRenderer ||
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {
-      updatedItems.push(createItems());
+      if (renderedItems.size) {
+        updatedItems.push(updateItemTexture());
+      } else {
+        updatedItems.push(createItems());
+      }
     }
 
     if (state.itemSizeRange !== newState.itemSizeRange) {
@@ -2404,8 +2520,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           // previously magnified piles are reset
           scaledPileInstance.unmagnify();
           updatePileBounds(scaledPileInstance.id);
-          activePile.removeChildren();
-          normalPiles.addChild(scaledPileInstance.graphics);
+          clearActivePileLayer();
         });
 
       newState.magnifiedPiles
@@ -2413,7 +2528,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
           scaledPileInstance.magnify();
-          activePile.addChild(scaledPileInstance.graphics);
+          moveToActivePileLayer(scaledPileInstance.graphics);
         });
 
       renderRaf();
@@ -2527,7 +2642,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resetPileBorder();
   };
 
-  // eslint-disable-next-line consistent-return
   const expandProperty = objective => {
     if (isFunction(objective)) {
       return objective;
@@ -2694,7 +2808,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
     // if not colliding, add the pile back to normalPiles container
     if (!hit) {
-      normalPiles.addChild(pileGfx);
+      clearActivePileLayer();
     }
   };
 
@@ -2745,7 +2859,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(createAction.setMagnifiedPiles([]));
 
-    activePile.addChild(pileInstances.get(pileId).graphics);
+    moveToActivePileLayer(pileInstances.get(pileId).graphics);
     highlightHoveringPiles(pileId);
   };
 

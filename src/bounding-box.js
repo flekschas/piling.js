@@ -1,6 +1,11 @@
 import { pipe, withStaticProperty } from '@flekschas/utils';
 
-const createBBox = (metadata = {}) => ({ minX, minY, maxX, maxY }) =>
+const createBBox = (metadata = {}) => ({
+  minX = 0,
+  minY = 0,
+  maxX = 1,
+  maxY = 1
+} = {}) =>
   pipe(
     withStaticProperty('minX', minX),
     withStaticProperty('minY', minY),

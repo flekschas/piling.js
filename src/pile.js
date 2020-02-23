@@ -56,8 +56,8 @@ const createPile = (
 
   const createPileBBox = createBBox({ id });
 
-  let bBox = {};
-  let anchorBox = {};
+  let bBox = createPileBBox();
+  let anchorBox = createPileBBox();
 
   let coverItem;
 
@@ -85,8 +85,13 @@ const createPile = (
 
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
-    clonedSprite.x = coverItemContainer.x;
-    clonedSprite.y = coverItemContainer.y;
+    if (getCover()) {
+      clonedSprite.x = coverItemContainer.x;
+      clonedSprite.y = coverItemContainer.y;
+    } else {
+      clonedSprite.x = pileItem.displayObject.x;
+      clonedSprite.y = pileItem.displayObject.y;
+    }
     clonedSprite.angle = pileItem.displayObject.angle;
 
     return clonedSprite;
@@ -299,6 +304,8 @@ const createPile = (
   let dragMove;
 
   const onDragStart = event => {
+    if (event.data.button === 2) return;
+
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     rootGraphics.draggingMouseOffset = [
@@ -315,6 +322,8 @@ const createPile = (
   };
 
   const onDragEnd = event => {
+    if (event.data.button === 2) return;
+
     if (!rootGraphics.isDragging) return;
     rootGraphics.alpha = 1;
     rootGraphics.isDragging = false;
@@ -326,6 +335,8 @@ const createPile = (
   };
 
   const onDragMove = event => {
+    if (event.data.button === 2) return;
+
     if (rootGraphics.isDragging) {
       dragMove = true;
 
@@ -650,9 +661,13 @@ const createPile = (
       onDone();
     };
 
-    if (isClose(getScale(), newScale, 3)) {
-      setScale(newScale);
+    const immideate = () => {
+      setScale(newScale, { isMagnification });
       done();
+    };
+
+    if (isClose(getScale(), newScale, 3)) {
+      immideate();
       return;
     }
 
@@ -666,8 +681,7 @@ const createPile = (
     const d = Math.abs((newScale / getScale()) * size - size);
 
     if (d < 2) {
-      setScale(newScale, { isMagnification });
-      done();
+      immideate();
       return;
     }
 
@@ -769,6 +783,17 @@ const createPile = (
   const moveTo = (x, y) => {
     rootGraphics.x = x;
     rootGraphics.y = y;
+  };
+
+  const replaceItemsImage = () => {
+    normalItemIndex.forEach(pileItem => {
+      const newImage = pileItem.item.image;
+      pileItem.replaceImage(newImage);
+    });
+    previewItemIndex.forEach(pileItem => {
+      const newImage = pileItem.item.preview;
+      pileItem.replaceImage(newImage);
+    });
   };
 
   const getItemById = itemId =>
@@ -1098,6 +1123,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
+    replaceItemsImage,
     unmagnify
   };
 };
