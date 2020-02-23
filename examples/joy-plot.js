@@ -10,7 +10,7 @@ const createSvgLinesPiles = async element => {
   const absHeight = 100 * relHeight;
   const svgRenderer = createSvgRenderer({
     width: 600,
-    height: 600,
+    height: 150,
     color: '#ccc'
   });
   const numBins = data[0][0].length;
