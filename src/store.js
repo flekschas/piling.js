@@ -193,10 +193,7 @@ const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
-const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
-  'bottom',
-  'right'
-]);
+const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
@@ -530,7 +527,7 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
-    pileItemAlignment,
+    pileItemOffset,
     pileItemBrightness,
     pileItemOpacity,
     pileItemRotation,
@@ -635,7 +632,7 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
-  setPileItemAlignment,
+  setPileItemOffset,
   setPileItemBrightness,
   setPileItemOpacity,
   setPileItemRotation,

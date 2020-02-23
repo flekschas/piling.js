@@ -3,6 +3,7 @@ import {
   interpolateNumber,
   interpolateVector,
   isClose,
+  isFunction,
   l2PointDist,
   mergeMaps,
   toVoid
@@ -500,13 +501,18 @@ const createPile = (
   };
 
   const positionItems = (
-    itemAlignment,
+    pileItemOffset,
     itemRotation,
     animator,
     previewSpacing
   ) => {
     isPositioning = true;
     let angle = 0;
+
+    const offset = isFunction(pileItemOffset)
+      ? pileItemOffset(store.getState().piles[id])
+      : pileItemOffset;
+
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
@@ -523,7 +529,7 @@ const createPile = (
           );
         });
       });
-    } else if (itemAlignment || allItems.length === 1) {
+    } else if (offset.length || allItems.length === 1) {
       // image
       newItems.forEach(pileItem => {
         const item = pileItem.item;
@@ -553,38 +559,13 @@ const createPile = (
       });
 
       normalItemContainer.children.forEach((item, index) => {
-        // eslint-disable-next-line no-param-reassign
-        if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
-        const padding = index * 5;
-        let verticalPadding = 0;
-        let horizontalPadding = 0;
-        itemAlignment.forEach(alignment => {
-          switch (alignment) {
-            case 'top':
-              verticalPadding -= padding;
-              break;
-            case 'left':
-              horizontalPadding -= padding;
-              break;
-            case 'bottom':
-              verticalPadding += padding;
-              break;
-            case 'right':
-              horizontalPadding += padding;
-              break;
-            case 'overlap':
-              break;
-            // bottom-right
-            default:
-              verticalPadding += padding;
-              horizontalPadding += padding;
-          }
-        });
+        const offsetX = index * offset[0];
+        const offsetY = index * offset[1];
 
         animatePositionItems(
           item,
-          horizontalPadding,
-          verticalPadding,
+          offsetX,
+          offsetY,
           angle,
           animator,
           index === normalItemContainer.children.length - 1
