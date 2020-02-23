@@ -361,11 +361,16 @@ const [
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
-    case 'SET_ITEMS':
+    case 'SET_ITEMS': {
+      const useCustomId = action.payload.items.length
+        ? typeof action.payload.items[0].id !== 'undefined'
+        : false;
+
       return action.payload.items.reduce((newState, item, index) => {
-        newState[index || item.id] = item;
+        newState[useCustomId ? item.id : index] = item;
         return newState;
       }, {});
+    }
 
     default:
       return previousState;
@@ -379,15 +384,20 @@ const setItems = newItems => ({
 
 const piles = (previousState = {}, action) => {
   switch (action.type) {
-    case 'INIT_PILES':
+    case 'INIT_PILES': {
+      const useCustomItemId = action.payload.newItems.length
+        ? typeof action.payload.newItems[0].id !== 'undefined'
+        : false;
+
       return action.payload.newItems.reduce((newState, item, index) => {
         newState[index] = {
-          items: [item.id || index.toString()],
+          items: [useCustomItemId ? item.id : index.toString()],
           x: null,
           y: null
         };
         return newState;
       }, {});
+    }
 
     case 'MERGE_PILES': {
       const newState = { ...previousState };
