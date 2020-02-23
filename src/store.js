@@ -614,13 +614,13 @@ const createStore = () => {
   };
 
   const importState = (newState, overwriteState = false) => {
-    if (newState.version !== { version }) {
+    if (newState.version !== version) {
       console.warn(
-        `The version of the imported state "${newState.version}" doesn't match the library version "${VERSION}". Use at your own risk!`
+        `The version of the imported state "${newState.version}" doesn't match the library version "${version}". Use at your own risk!`
       );
     }
 
-    delete newState.version;
+    if (newState.version) delete newState.version;
 
     if (overwriteState) reduxStore.dispatch(overwrite(newState));
     else reduxStore.dispatch(softOverwrite(newState));
