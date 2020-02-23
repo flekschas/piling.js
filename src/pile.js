@@ -777,7 +777,7 @@ const createPile = (
     rootGraphics.y = y;
   };
 
-  const replaceImage = () => {
+  const replaceItemsImage = () => {
     normalItemIndex.forEach(pileItem => {
       const newImage = pileItem.item.image;
       pileItem.replaceImage(newImage);
@@ -1115,7 +1115,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
-    replaceImage,
+    replaceItemsImage,
     unmagnify
   };
 };

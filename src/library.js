@@ -881,7 +881,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           if (pileInstances.has(id)) {
             const pile = pileInstances.get(id);
             const pileState = piles[id];
-            pile.replaceImage();
+            pile.replaceItemsImage();
             pile.positionItems(
               pileItemAlignment,
               pileItemRotation,
@@ -2281,6 +2281,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (state.items.length) {
         const newItems = [];
         newState.items.forEach((item, id) => {
+          // We're not using .filter() here because that will change the `id`
           if (item.src !== state.items[id].src) {
             newItems.push({
               id,
