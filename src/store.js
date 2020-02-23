@@ -362,17 +362,23 @@ const [
 ] = setter('randomRotationRange', [-10, 10]);
 
 // reducer
-const piles = (previousState = [], action) => {
+const piles = (previousState = {}, action) => {
   switch (action.type) {
     case 'INIT_PILES': {
-      return new Array(action.payload.itemLength).fill().map((x, id) => ({
-        items: [id],
-        x: null,
-        y: null
-      }));
+      return new Array(action.payload.itemLength)
+        .fill()
+        .reduce((newState, _, id) => {
+          newState[id] = {
+            items: [id.toString()],
+            x: null,
+            y: null
+          };
+          return newState;
+        }, {});
     }
+
     case 'MERGE_PILES': {
-      const newState = [...previousState];
+      const newState = { ...previousState };
 
       if (action.payload.isDropped) {
         const source = action.payload.pileIds[0];
@@ -391,7 +397,7 @@ const piles = (previousState = [], action) => {
           y: null
         };
       } else {
-        const target = Math.min(...action.payload.pileIds);
+        const target = Math.min.apply([], action.payload.pileIds).toString();
         const sourcePileIds = action.payload.pileIds.filter(
           id => id !== target
         );
@@ -424,8 +430,9 @@ const piles = (previousState = [], action) => {
       }
       return newState;
     }
+
     case 'MOVE_PILES': {
-      const newState = [...previousState];
+      const newState = { ...previousState };
       action.payload.movingPiles.forEach(({ id, x, y }) => {
         newState[id] = {
           ...newState[id],
@@ -435,6 +442,7 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+
     case 'DEPILE_PILES': {
       const depilePiles = action.payload.piles.filter(
         pile => pile.items.length > 1
@@ -442,7 +450,7 @@ const piles = (previousState = [], action) => {
 
       if (!depilePiles.length) return previousState;
 
-      const newState = [...previousState];
+      const newState = { ...previousState };
 
       depilePiles.forEach(pile => {
         pile.items.forEach(itemId => {
@@ -456,6 +464,7 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+
     default:
       return previousState;
   }

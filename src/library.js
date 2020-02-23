@@ -30,7 +30,6 @@ import {
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
-
 import createStore, { createAction } from './store';
 
 import {
@@ -869,17 +868,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       ([renderedImages, renderedPreviews]) => {
         renderedImages.forEach((image, index) => {
           const { piles } = store.state;
-          const id = items[index].id || index;
+          const pileId = index.toString();
+          const itemId = items[index].id || pileId;
           const preview = renderedPreviews[index];
 
-          const newItem = createItem({ id, image, pubSub }, { preview });
+          const newItem = createItem(
+            { id: itemId, image, pubSub },
+            { preview }
+          );
 
-          renderedItems.set(id, newItem);
+          renderedItems.set(itemId, newItem);
 
           const pile = createPile({
             items: [newItem],
             render: renderRaf,
-            id: index,
+            id: pileId,
             pubSub,
             store
           });
@@ -889,9 +892,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             animator,
             previewSpacing
           );
-          pileInstances.set(index, pile);
-          updatePileStyle(piles[index], index);
-          updatePileItemStyle(piles[index], index);
+          pileInstances.set(pileId, pile);
+          updatePileStyle(piles[pileId], pileId);
+          updatePileItemStyle(piles[pileId], pileId);
           normalPiles.addChild(pile.graphics);
         });
         scaleItems();
@@ -1053,8 +1056,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
-      const { piles } = store.state;
-      pileIds.splice(0, pileIds.length - 1, ...range(0, piles.length));
+      pileIds.splice(0, 0, ...Object.keys(store.state.piles));
     }
 
     if (items.length === 0) return;
@@ -2233,8 +2235,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.piles !== newState.piles) {
-      if (state.piles.length !== 0) {
-        newState.piles.forEach((pile, id) => {
+      if (Object.keys(state.piles).length !== 0) {
+        Object.entries(newState.piles).forEach(([id, pile]) => {
           if (pile === state.piles[id]) return;
 
           if (pile.items.length !== state.piles[id].items.length) {
@@ -2260,7 +2262,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.pileItemBrightness !== newState.pileItemBrightness ||
         state.pileItemTint !== newState.pileItemTint)
     ) {
-      newState.piles.forEach((pile, id) => {
+      Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileItemStyle(pile, id);
       });
     }
@@ -2271,7 +2273,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.pileBorderSize !== newState.pileBorderSize ||
         state.pileScale !== newState.pileScale)
     ) {
-      newState.piles.forEach((pile, id) => {
+      Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);
       });
     }
