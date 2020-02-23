@@ -3,28 +3,48 @@ import { toVoid } from '@flekschas/utils';
 import { VivViewerLayer } from '@hubmap/vitessce-image-viewer';
 import * as PIXI from 'pixi.js';
 
-const createVitessceRenderer = ({
-  channels,
-  minZoom,
-  size
-}) => async sources => {
-  const canvas = document.createElement('canvas');
+// VIV currently supports up to 6 right now
+const DEFAULT_ACTIVE_CHANNELS = [true, true, true, true, true, true];
 
+const DEFAULT_COLORS = [
+  [255, 0, 0],
+  [0, 255, 0],
+  [0, 0, 255],
+  [255, 128, 0],
+  [0, 128, 255],
+  [128, 0, 255]
+];
+
+// These domains define the color scaling. Give uint16 values the domain can
+// be in [0, 256^2 - 1]
+const DEFAULT_DOMAINS = [
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1]
+];
+
+const createVitessceRenderer = (
+  { channels, minZoom, size },
+  {
+    activeChannels = DEFAULT_ACTIVE_CHANNELS,
+    domains = DEFAULT_DOMAINS,
+    colors = DEFAULT_COLORS
+  }
+) => async sources => {
+  const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl2');
 
   const sliderValues = {};
   const colorValues = {};
   const channelsOn = {};
-  const colorOptions = [
-    [255, 0, 0],
-    [0, 255, 0],
-    [0, 0, 255],
-    [255, 128, 0]
-  ];
+
   Object.keys(channels).forEach((channel, i) => {
-    sliderValues[channel] = [0, 20000];
-    colorValues[channel] = colorOptions[i];
-    channelsOn[channel] = true;
+    sliderValues[channel] = domains[i];
+    colorValues[channel] = colors[i];
+    channelsOn[channel] = activeChannels[i];
   });
 
   let tilesLoaded;
