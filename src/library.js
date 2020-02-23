@@ -697,8 +697,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const getImageScaleFactor = image =>
     image.aspectRatio > layout.cellAspectRatio
-      ? itemWidthScale(image.width) / image.width
-      : itemHeightScale(image.height) / image.height;
+      ? itemWidthScale(image.originalWidth) / image.originalWidth
+      : itemHeightScale(image.originalHeight) / image.originalHeight;
 
   const scaleItems = () => {
     if (!renderedItems.size) return;
@@ -711,13 +711,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let maxAspectRatio = 0;
 
     renderedItems.forEach(item => {
-      if (item.image.width > maxWidth) maxWidth = item.image.width;
-      if (item.image.width < minWidth) minWidth = item.image.width;
+      const width = item.image.originalWidth;
+      const height = item.image.originalHeight;
 
-      if (item.image.height > maxHeight) maxHeight = item.image.height;
-      if (item.image.height < minHeight) minHeight = item.image.height;
+      if (width > maxWidth) maxWidth = width;
+      if (width < minWidth) minWidth = width;
 
-      const aspectRatio = item.image.width / item.image.height;
+      if (height > maxHeight) maxHeight = height;
+      if (height < minHeight) minHeight = height;
+
+      const aspectRatio = width / height;
       if (aspectRatio > maxAspectRatio) maxAspectRatio = aspectRatio;
       if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
@@ -1300,14 +1303,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else {
       const itemSrcs = [];
       const itemInstances = [];
-      let width = -Infinity;
+      // let width = -Infinity;
 
       pileState.items.forEach(itemId => {
         const itemInstance = renderedItems.get(itemId);
 
         itemSrcs.push(items[itemId].src);
 
-        width = Math.max(width, itemInstance.image.width);
+        // width = Math.max(width, itemInstance.image.width);
 
         itemInstances.push(itemInstance);
       });

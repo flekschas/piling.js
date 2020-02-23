@@ -8,11 +8,17 @@ const withSize = sprite => self =>
     get height() {
       return sprite.height;
     },
+    get originalHeight() {
+      return sprite.texture.height;
+    },
     get size() {
       return Math.max(sprite.width, sprite.height);
     },
     get width() {
       return sprite.width;
+    },
+    get originalWidth() {
+      return sprite.texture.width;
     }
   });
 

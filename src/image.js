@@ -15,7 +15,7 @@ const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
     withStaticProperty('sprite', sprite),
     withColorFilters(sprite),
     withScale(sprite),
-    withSize(texture),
+    withSize(sprite),
     withDestroy(sprite),
     withConstructor(createImage)
   )({});
