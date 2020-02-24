@@ -672,6 +672,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const updateLevels = () => {
+    const { darkMode } = store.state;
+
+    levels.set({
+      darkMode
+    });
+  };
+
   const updateLasso = () => {
     const {
       darkMode,
@@ -2587,6 +2595,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updateHalt();
     }
 
+    if (state.darkMode !== newState.darkMode) {
+      updateLevels();
+    }
+
     if (
       state.darkMode !== newState.darkMode ||
       state.lassoFillColor !== newState.lassoFillColor ||
@@ -3344,6 +3356,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     storeUnsubscribor = store.subscribe(updated);
 
     rootElement.appendChild(scrollContainer);
+    rootElement.appendChild(levels.nav);
     rootElement.appendChild(popup.element);
 
     rootElement.style.overflow = 'hidden';
