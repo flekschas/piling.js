@@ -275,8 +275,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBorderOpacity: true,
-    randomOffsetRange: true,
-    randomRotationRange: true,
     renderer: {
       get: 'itemRenderer',
       set: value => [createAction.setItemRenderer(value)]

@@ -200,10 +200,7 @@ const [pileItemBrightness, setPileItemBrightness] = setter(
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
 
-const [pileItemRotation, setPileItemRotation] = setter(
-  'pileItemRotation',
-  false
-);
+const [pileItemRotation, setPileItemRotation] = setter('pileItemRotation', 0);
 
 const [pileItemTint, setPileItemTint] = setter(
   'pileItemTint',
@@ -336,16 +333,6 @@ const [pileVisibilityItems, setPileVisibilityItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
-
-const [randomOffsetRange, setRandomOffsetRange] = setter('randomOffsetRange', [
-  -30,
-  30
-]);
-
-const [
-  randomRotationRange,
-  setRandomRotationRange
-] = setter('randomRotationRange', [-10, 10]);
 
 // reducer
 const piles = (previousState = [], action) => {
@@ -543,8 +530,6 @@ const createStore = () => {
     previewBorderOpacity,
     previewRenderer,
     previewSpacing,
-    randomOffsetRange,
-    randomRotationRange,
     rowHeight,
     showGrid,
     showSpatialIndex,
@@ -647,8 +632,6 @@ export const createAction = {
   setPreviewBorderOpacity,
   setPreviewRenderer,
   setPreviewSpacing,
-  setRandomOffsetRange,
-  setRandomRotationRange,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,
