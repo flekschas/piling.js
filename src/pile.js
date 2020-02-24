@@ -409,10 +409,6 @@ const createPile = (
     updateBBox(xOffset, yOffset);
   };
 
-  const getRandomArbitrary = (min, max) => {
-    return Math.random() * (max - min) + min;
-  };
-
   const getOpacity = () => rootGraphics.alpha;
   const setOpacity = newOpacity => {
     rootGraphics.alpha = newOpacity;
@@ -502,16 +498,12 @@ const createPile = (
 
   const positionItems = (
     pileItemOffset,
-    itemRotation,
+    pileItemRotation,
     animator,
     previewSpacing
   ) => {
     isPositioning = true;
     let angle = 0;
-
-    const offset = isFunction(pileItemOffset)
-      ? pileItemOffset(store.getState().piles[id])
-      : pileItemOffset;
 
     if (getCover()) {
       getCover().then(coverImage => {
@@ -529,8 +521,7 @@ const createPile = (
           );
         });
       });
-    } else if (offset.length || allItems.length === 1) {
-      // image
+    } else {
       newItems.forEach(pileItem => {
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
@@ -559,6 +550,17 @@ const createPile = (
       });
 
       normalItemContainer.children.forEach((item, index) => {
+        const pileState = store.getState().piles[id];
+        const itemState = store.getState().items[pileState.items[index]];
+
+        const offset = isFunction(pileItemOffset)
+          ? pileItemOffset(itemState, index, pileState)
+          : pileItemOffset;
+
+        angle = isFunction(pileItemRotation)
+          ? pileItemRotation(itemState, index, pileState)
+          : pileItemRotation;
+
         const offsetX = index * offset[0];
         const offsetY = index * offset[1];
 
@@ -569,53 +571,6 @@ const createPile = (
           angle,
           animator,
           index === normalItemContainer.children.length - 1
-        );
-      });
-    } else {
-      const { randomOffsetRange, randomRotationRange } = store.getState();
-      let num = 0;
-      newItems.forEach(pileItem => {
-        num++;
-
-        const item = pileItem.item;
-        const displayObject = pileItem.displayObject;
-
-        // eslint-disable-next-line no-use-before-define
-        const currentScale = getScale();
-
-        displayObject.tmpTargetScale = displayObject.scale.x;
-        if (!Number.isNaN(+item.tmpRelScale)) {
-          const relItemScale = item.tmpRelScale / currentScale;
-          displayObject.scale.x *= relItemScale;
-          displayObject.scale.y = displayObject.scale.x;
-          delete item.tmpRelScale;
-        }
-
-        let offsetX = getRandomArbitrary(...randomOffsetRange);
-        let offsetY = getRandomArbitrary(...randomOffsetRange);
-
-        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          offsetX += pileItem.x;
-          offsetY += pileItem.y;
-          pileItem.moveTo(
-            (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-            (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
-          );
-          delete item.tmpAbsX;
-          delete item.tmpAbsY;
-        }
-
-        if (itemRotation) {
-          angle = getRandomArbitrary(...randomRotationRange);
-        }
-
-        animatePositionItems(
-          displayObject,
-          offsetX,
-          offsetY,
-          angle,
-          animator,
-          num === newItems.size
         );
       });
     }
