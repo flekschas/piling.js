@@ -2,33 +2,30 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  const getPixelsFromStrokes = (pixels, size, strokes, total) => {
-    const canvas = new OffscreenCanvas(size, size);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, size, size);
+  const getPixelHistFromDrawings = ({ hist, size, drawings, lineWidth }) => {
+    drawings.forEach(strokes => {
+      const canvas = new OffscreenCanvas(size, size);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, size, size);
 
-    for (let s = 0; s < strokes.length; s++) {
-      const xPos = strokes[s][0];
-      const yPos = strokes[s][1];
-      ctx.moveTo((xPos[0] / 256) * size, (yPos[0] / 256) * size);
-      for (let i = 0; i < xPos.length; i++) {
-        ctx.lineTo((xPos[i] / 256) * size, (yPos[i] / 256) * size);
+      for (let s = 0; s < strokes.length; s++) {
+        const xPos = strokes[s][0];
+        const yPos = strokes[s][1];
+        ctx.moveTo((xPos[0] / 256) * size, (yPos[0] / 256) * size);
+        for (let i = 0; i < xPos.length; i++) {
+          ctx.lineTo((xPos[i] / 256) * size, (yPos[i] / 256) * size);
+        }
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
       }
-      ctx.stroke();
-    }
 
-    const pixelValues = ctx.getImageData(0, 0, size, size).data;
+      const pixelValues = ctx.getImageData(0, 0, size, size).data;
 
-    let j = 0;
-    for (let i = 3; i < pixelValues.length; i += 4) {
-      pixels[j] += pixelValues[i] / 255 / total;
-      j++;
-    }
-  };
-
-  const createHist = (hist, size, sources) => {
-    sources.forEach((src, i) => {
-      getPixelsFromStrokes(hist, size, src, sources.length, i === 0);
+      let j = 0;
+      for (let i = 3; i < pixelValues.length; i += 4) {
+        hist[j] += pixelValues[i] / 255 / drawings.length;
+        j++;
+      }
     });
   };
 
@@ -38,7 +35,11 @@ const worker = function worker() {
   const toRgba = data => {
     const rgba = new Uint8ClampedArray(data.length * 4);
 
-    const max = Math.max.apply(null, data);
+    // const max = Math.max.apply(null, data);
+    let max = -Infinity;
+    for (let i = 0; i < data.length; i++) {
+      max = max > data[i] ? max : data[i];
+    }
 
     const scale = scaleLinearMaxToUint8(max);
 
@@ -61,7 +62,12 @@ const worker = function worker() {
     const hist = new Float32Array(event.data.size ** 2);
 
     try {
-      createHist(hist, event.data.size, event.data.sources);
+      getPixelHistFromDrawings({
+        hist,
+        size: event.data.size,
+        drawings: event.data.sources,
+        lineWidth: event.data.lineWidth
+      });
     } catch (error) {
       self.postMessage({ error });
     }
