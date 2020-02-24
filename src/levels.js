@@ -5,6 +5,7 @@ import {
   randomString,
   removeAllChildren,
   removeLastChild,
+  toVoid,
   withConstructor,
   withReadOnlyProperty,
   withStaticProperty
@@ -55,9 +56,17 @@ const CSS_BTN_RIGHT_ARROW = [
 }`
 ];
 
-const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
-  let darkMode = options.darkMode;
-  let maxDepth = options.maxDepth;
+const createLevels = (
+  { element, store },
+  {
+    darkMode: initialDarkMode = false,
+    maxDepth: initialMaxDepth = 3,
+    onEnter = toVoid,
+    onLeave = toVoid
+  } = {}
+) => {
+  let darkMode = initialDarkMode;
+  let maxDepth = initialMaxDepth;
 
   const breadcrumbsEl = document.createElement('nav');
   breadcrumbsEl.style.position = 'absolute';
@@ -74,6 +83,7 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
   CSS_BTN_RIGHT_ARROW.forEach(stylesheet.addRule);
 
   let prevStates = [];
+  let prevSizes = [];
   let currStateIds = [];
 
   const styleNavButtons = () => {
@@ -182,6 +192,9 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
     const currentState = store.export();
     prevStates = [...prevStates, currentState];
 
+    const { width, height } = element.getBoundingClientRect();
+    prevSizes = [...prevSizes, { width, height }];
+
     if (prevStates.length === 1) addBreadcrumb(currentState, 0);
 
     const nextState = getNextState(pileIds);
@@ -189,6 +202,8 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
     currStateIds = [...currStateIds, nextStateId];
 
     addBreadcrumb(nextState, prevStates.length);
+
+    onEnter();
   };
 
   const leave = () => {
@@ -203,6 +218,9 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
     currStateIds.pop();
     const prevState = prevStates.pop();
     store.import(prevState);
+
+    const prevSize = prevSizes.pop();
+    onLeave(prevSize);
   };
 
   const leaveAll = () => {
@@ -214,8 +232,11 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
     removeAllChildren(breadcrumbsListEl);
 
     store.import(prevStates[0]);
+    onLeave(prevSizes[0]);
+
     currStateIds = [];
     prevStates = [];
+    prevSizes = [];
   };
 
   const ifNotNull = (v, alternative) => (v === null ? alternative : v);

@@ -81,8 +81,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const pubSub = createPubSub();
   const store = createStore();
 
-  const levels = createLevels(store);
-
   let state = store.state;
 
   let gridMat;
@@ -345,7 +343,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const renderRaf = withRaf(render);
 
-  const animator = createAnimator(render);
+  const animator = createAnimator(render, pubSub);
 
   const renderedItems = new Map();
   const pileInstances = new Map();
@@ -603,15 +601,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       rowHeight
     } = store.state;
 
-    layout = createGrid(canvas, {
-      cellAspectRatio,
-      cellPadding,
-      columns,
-      itemSize,
-      orderer,
-      pileCellAlignment,
-      rowHeight
-    });
+    const { width, height } = canvas.getBoundingClientRect();
+
+    layout = createGrid(
+      { width, height },
+      {
+        cellAspectRatio,
+        cellPadding,
+        columns,
+        itemSize,
+        orderer,
+        pileCellAlignment,
+        rowHeight
+      }
+    );
 
     updateScrollHeight();
   };
@@ -630,15 +633,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       showGrid
     } = store.state;
 
-    layout = createGrid(canvas, {
-      itemSize,
-      columns,
-      rowHeight,
-      cellAspectRatio,
-      orderer,
-      pileCellAlignment,
-      cellPadding
-    });
+    const { width, height } = canvas.getBoundingClientRect();
+
+    layout = createGrid(
+      { width, height },
+      {
+        itemSize,
+        columns,
+        rowHeight,
+        cellAspectRatio,
+        orderer,
+        pileCellAlignment,
+        cellPadding
+      }
+    );
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
@@ -648,6 +656,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       drawGrid();
     }
   };
+
+  const levelLeaveHandler = ({ width, height }) => {
+    pubSub.subscribe(
+      'animationEnd',
+      () => {
+        // Set layout to the old layout given the old element width and height
+        layout = createGrid({ width, height }, store.state);
+        updateGrid();
+      },
+      1
+    );
+  };
+
+  const levels = createLevels(
+    { element: canvas, pubSub, store },
+    { onLeave: levelLeaveHandler }
+  );
 
   const halt = options => {
     popup.open(options);
