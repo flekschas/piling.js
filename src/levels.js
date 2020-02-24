@@ -121,14 +121,14 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
     return currentState;
   };
 
-  const getNumNonEmptyPiles = state =>
+  const countItems = state =>
     Object.values(state.piles)
       .filter(pile => pile.items.length)
       .reduce((num, pile) => num + pile.items.length, 0);
 
   const createBreadcrumbTemplate = (state, level) => {
     const label = level === 0 ? 'Root' : `${level}. Level`;
-    const size = getNumNonEmptyPiles(state);
+    const size = countItems(state);
     return `<li><button><span><strong>${label}</strong> (${size})</span></button></li>`;
   };
 
