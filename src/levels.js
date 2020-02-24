@@ -99,7 +99,13 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
 
   const getCurrentStateId = () => currStateIds[currStateIds.length - 1];
 
-  const stringifyPileIds = pileIds => pileIds.sort().join('-');
+  const getStateId = pileIds => {
+    const { piles } = store.state;
+    return pileIds
+      .flatMap(pileId => piles[pileId].items)
+      .sort()
+      .join('-');
+  };
 
   const getNextState = pileIds => {
     const currentState = store.export();
@@ -160,7 +166,7 @@ const createLevels = (store, options = { darkMode: false, maxDepth: 3 }) => {
   };
 
   const enter = pileIds => {
-    const nextStateId = stringifyPileIds(pileIds);
+    const nextStateId = getStateId(pileIds);
     const currStateId = getCurrentStateId();
 
     if (prevStates.length >= maxDepth) {
