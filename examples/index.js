@@ -142,7 +142,7 @@ const createPiles = async example => {
       vitessceEl.style.display = 'block';
       vitessceCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createVitessce(vitessceEl);
+      [piling, additionalOptions] = await createVitessce(vitessceEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -356,10 +356,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       if (field.values.length > 3) {
         const select = document.createElement('select');
 
-        field.values.forEach(value => {
+        field.values.forEach((value, i) => {
           const option = document.createElement('option');
           option.setAttribute('value', value);
-          option.textContent = value;
+          option.textContent = (field.labels && field.labels[i]) || value;
           if (currentValue === value) option.selected = true;
           select.appendChild(option);
         });
