@@ -1385,6 +1385,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileItems = (pileState, id) => {
     if (pileInstances.has(id)) {
       const pileInstance = pileInstances.get(id);
+
       if (pileState.items.length === 0) {
         deletePileHandler(id);
       } else {
@@ -2000,9 +2001,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const createPileHandler = (pileId, pileState) => {
     const [x, y] = transformPointToScreen([pileState.x, pileState.y]);
+
+    const items = pileState.items.length
+      ? pileState.items.map(itemId => renderedItems.get(itemId))
+      : [renderedItems.get(pileId)];
+
     const newPile = createPile(
       {
-        items: [renderedItems.get(pileId)],
+        items,
         render: renderRaf,
         id: pileId,
         pubSub,
