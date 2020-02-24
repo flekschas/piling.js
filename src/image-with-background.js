@@ -75,7 +75,7 @@ const createImageWithBackground = (
       withStaticProperty('sprite', sprite),
       withColorFilters(sprite),
       withScale(sprite),
-      withSize(texture),
+      withSize(sprite),
       withPadding(padding),
       withBackground({
         backgroundColor,

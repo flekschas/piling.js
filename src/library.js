@@ -692,24 +692,43 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  let itemSizeScale = scaleLinear();
+  let itemWidthScale = scaleLinear();
+  let itemHeightScale = scaleLinear();
+
+  const getImageScaleFactor = image =>
+    image.aspectRatio > layout.cellAspectRatio
+      ? itemWidthScale(image.originalWidth) / image.originalWidth
+      : itemHeightScale(image.originalHeight) / image.originalHeight;
 
   const scaleItems = () => {
     if (!renderedItems.size) return;
 
-    let minSize = Infinity;
-    let maxSize = 0;
+    let minWidth = Infinity;
+    let maxWidth = 0;
+    let minHeight = Infinity;
+    let maxHeight = 0;
+    let minAspectRatio = Infinity;
+    let maxAspectRatio = 0;
 
     renderedItems.forEach(item => {
-      const size = Math.max(item.image.width, item.image.height);
-      if (size > maxSize) maxSize = size;
-      if (size < minSize) minSize = size;
+      const width = item.image.originalWidth;
+      const height = item.image.originalHeight;
+
+      if (width > maxWidth) maxWidth = width;
+      if (width < minWidth) minWidth = width;
+
+      if (height > maxHeight) maxHeight = height;
+      if (height < minHeight) minHeight = height;
+
+      const aspectRatio = width / height;
+      if (aspectRatio > maxAspectRatio) maxAspectRatio = aspectRatio;
+      if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
     const { itemSizeRange } = store.getState();
-    let scaleRange;
 
-    const minRange = Math.min(layout.cellWidth, layout.cellHeight);
+    let widthRange;
+    let heightRange;
 
     // if it's within [0, 1] assume it's relative
     if (
@@ -718,19 +737,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] > 0 &&
       itemSizeRange[1] <= 1
     ) {
-      scaleRange = [minRange * itemSizeRange[0], minRange * itemSizeRange[1]];
-    }
-    // else assume absolute values in pixels
-    else {
-      scaleRange = itemSizeRange;
+      widthRange = [
+        layout.cellWidth * itemSizeRange[0],
+        layout.cellWidth * itemSizeRange[1]
+      ];
+      heightRange = [
+        layout.cellHeight * itemSizeRange[0],
+        layout.cellHeight * itemSizeRange[1]
+      ];
+    } else {
+      widthRange = [0, layout.cellWidth];
+      heightRange = [0, layout.cellHeight];
     }
 
-    itemSizeScale = scaleLinear()
-      .domain([minSize, maxSize])
-      .range(scaleRange);
+    itemWidthScale = scaleLinear()
+      .domain([minWidth, maxWidth])
+      .range(widthRange);
+
+    itemHeightScale = scaleLinear()
+      .domain([minHeight, maxHeight])
+      .range(heightRange);
 
     renderedItems.forEach(item => {
-      const scaleFactor = itemSizeScale(item.image.size) / item.image.size;
+      const scaleFactor = getImageScaleFactor(item.image);
       item.image.scale(scaleFactor);
 
       if (item.preview) {
@@ -1255,9 +1284,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const createScaledImage = texture => {
     const image = createImage(texture);
-    const scaleFactor = itemSizeScale(image.size) / image.size;
-    image.sprite.width *= scaleFactor;
-    image.sprite.height *= scaleFactor;
+    image.scale(getImageScaleFactor(image));
     return image;
   };
 
@@ -1276,14 +1303,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } else {
       const itemSrcs = [];
       const itemInstances = [];
-      let width = -Infinity;
+      // let width = -Infinity;
 
       pileState.items.forEach(itemId => {
         const itemInstance = renderedItems.get(itemId);
 
         itemSrcs.push(items[itemId].src);
 
-        width = Math.max(width, itemInstance.image.width);
+        // width = Math.max(width, itemInstance.image.width);
 
         itemInstances.push(itemInstance);
       });
@@ -2164,14 +2191,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ? [maxValue, minValue]
         : [minValue, maxValue];
 
-      const meanItemSize = mean(
-        itemSizeScale.domain().map(size => itemSizeScale(size))
-      );
+      const meanWidth = mean(itemWidthScale.range());
+      const meanHeight = mean(itemWidthScale.range());
 
       return objective
         .scale()
         .domain(domain)
-        .range([meanItemSize / 2, rangeMax[i] - meanItemSize / 2]);
+        .range([meanWidth / 2, rangeMax[i] - meanHeight / 2]);
     });
 
     return Promise.resolve();
