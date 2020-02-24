@@ -621,7 +621,7 @@ const createStore = () => {
 
   const exportState = () => {
     const clonedState = deepClone(reduxStore.getState());
-    clonedState.version = { version };
+    clonedState.version = version;
     return clonedState;
   };
 
