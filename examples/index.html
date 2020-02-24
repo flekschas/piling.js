@@ -90,8 +90,7 @@
         background: black;
       }
 
-      body.drawings,
-      body.lines {
+      body.white-mode {
         color: black;
         background: white;
       }
@@ -101,10 +100,8 @@
         color: white;
       }
 
-      body.drawings a,
-      body.drawings a:visited,
-      body.lines a,
-      body.lines a:visited {
+      body.white-mode a,
+      body.white-mode a:visited {
         color: black;
       }
 
@@ -113,10 +110,8 @@
         color: #ff7ff6;
       }
 
-      body.drawings a:hover,
-      body.drawings .credits a:hover,
-      body.lines a:hover,
-      body.lines .credits a:hover {
+      body.white-mode a:hover,
+      body.white-mode .credits a:hover {
         color: #d900ca;
       }
 
@@ -139,8 +134,7 @@
         border-radius: 0.25rem;
       }
 
-      body.drawings h1,
-      body.lines h1 {
+      body.white-mode h1 {
         color: white;
         background: black;
       }
@@ -232,8 +226,7 @@
         transform: translate(0, 0);
       }
 
-      body.drawings #options .toggler,
-      body.lines #options .toggler {
+      body.white-mode #options .toggler {
         border-color: black;
       }
 
@@ -280,8 +273,7 @@
         background: black;
       }
 
-      body.drawings #options.open .toggler,
-      body.lines #options.open .toggler {
+      body.white-mode #options.open .toggler {
         background: black;
       }
 
@@ -348,7 +340,19 @@
 
   <body>
     <script>
-      document.body.setAttribute('class', window.example);
+      let mode = 'dark-mode';
+      switch (window.example) {
+        case 'lines':
+        case 'drawings':
+        case 'joyplot':
+          mode = 'white-mode';
+          break;
+
+        default:
+          mode = 'dark-mode';
+          break;
+      }
+      document.body.setAttribute('class', [window.example, mode].join(' '));
     </script>
 
     <header>
@@ -366,10 +370,11 @@
           <div id="selection">
             <label for="example">Examples:</label>
             <select id="example">
-              <option value="photos">Photos (Image)</option>
-              <option value="matrices">Matrices (Array)</option>
+              <option value="photos">Photos (HTML Image)</option>
+              <option value="matrices">Matrices (Numerical Array)</option>
               <option value="lines">Lines (SVG)</option>
-              <option value="drawings">Drawings</option>
+              <option value="drawings">Drawings (Custom)</option>
+              <option value="joyplot">Joy Plot (SVG)</option>
               <option value="vitessce">Vitessce</option>
             </select>
             <div class="credits">
@@ -398,6 +403,14 @@
                   >Google Quickdraw Dataset</a
                 >)
               </em>
+              <em id="joyplot-credit" style="display: none">
+                (From
+                <a
+                  href="https://www.dwd.de/EN/climate_environment/cdc/cdc_node.html"
+                  target="_blank"
+                  >Deutscher Wetterdienst</a
+                >)
+              </em>
               <em id="vitessce-credit" style="display: none">
                 (From
                 <a href="http://linnarssonlab.org/osmFISH/" target="_blank"
@@ -421,6 +434,7 @@
     <div id="matrices" class="container"></div>
     <div id="svg" class="container"></div>
     <div id="drawings" class="container"></div>
+    <div id="joyplot" class="container"></div>
     <div id="vitessce" class="container"></div>
 
     <aside id="options">

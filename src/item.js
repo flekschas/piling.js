@@ -1,7 +1,9 @@
 import {
+  assign,
   pipe,
   withConstructor,
   withProperty,
+  withReadOnlyProperty,
   withStaticProperty
 } from '@flekschas/utils';
 
@@ -14,16 +16,43 @@ import {
 const createItem = (
   { id, image },
   { preview = null, originalPosition = [0, 0] } = {}
-) =>
-  pipe(
+) => {
+  const withDestroy = () => self =>
+    assign(self, {
+      destroy() {
+        if (image) image.destroy();
+        if (preview) preview.destroy();
+      }
+    });
+
+  const replaceImage = (newImage, newPreview) => {
+    image.destroy();
+    // eslint-disable-next-line no-param-reassign
+    image = newImage;
+    if (newPreview) {
+      preview.destroy();
+      // eslint-disable-next-line no-param-reassign
+      preview = newPreview;
+    }
+  };
+
+  const withPublicMethods = () => self =>
+    assign(self, {
+      replaceImage
+    });
+
+  return pipe(
     withStaticProperty('id', id),
-    withStaticProperty('image', image),
-    withStaticProperty('preview', preview),
+    withReadOnlyProperty('image', () => image),
+    withReadOnlyProperty('preview', () => preview),
     withProperty('originalPosition', {
       initialValue: originalPosition,
       cloner: v => [...v]
     }),
+    withDestroy(),
+    withPublicMethods(),
     withConstructor(createItem)
   )({});
+};
 
 export default createItem;

@@ -12,7 +12,7 @@ uniform sampler2D uSamplers[%count%];
 void main(void){
     vec4 color;
     %forloop%
-    gl_FragColor = color + (1.0 - color) * vColor;
+    gl_FragColor = vec4(color.rgb + (1.0 - color.rgb) * vColor.rgb * color.w, color.w);
 }
 `;
 
