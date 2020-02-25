@@ -191,7 +191,9 @@ const createPile = (
 
     const state = store.getState();
 
-    const offset = Math.ceil(size / 2) + 1;
+    const x = contentBounds.x - borderBounds.x;
+    const y = contentBounds.y - borderBounds.y;
+    const offset = Math.ceil(size / 2);
 
     // draw black background
     borderGraphics.beginFill(
@@ -199,8 +201,8 @@ const createPile = (
       state.pileBackgroundOpacity
     );
     borderGraphics.drawRect(
-      contentBounds.x - borderBounds.x - offset,
-      contentBounds.y - borderBounds.y - offset,
+      x - offset,
+      y - offset,
       contentBounds.width + 2 * offset,
       contentBounds.height + 2 * offset
     );
@@ -213,8 +215,8 @@ const createPile = (
       state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
     );
     borderGraphics.drawRect(
-      contentBounds.x - borderBounds.x - offset,
-      contentBounds.y - borderBounds.y - offset,
+      x - offset,
+      y - offset,
       contentBounds.width + 2 * offset,
       contentBounds.height + 2 * offset
     );
@@ -511,6 +513,8 @@ const createPile = (
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
         const halfHeight = coverImage.height / 2;
+
+        isPositioning = previewItemContainer.children > 0;
 
         previewItemContainer.children.forEach((item, index) => {
           animatePositionItems(
@@ -959,12 +963,6 @@ const createPile = (
 
   const setCover = newCover => {
     coverItem = newCover;
-    coverItem.then(coverImage => {
-      coverItemContainer.addChild(coverImage.displayObject);
-      while (coverItemContainer.children.length > 1) {
-        coverItemContainer.removeChildAt(0);
-      }
-    });
     updateCover();
   };
 
@@ -983,8 +981,11 @@ const createPile = (
 
   const updateCover = () => {
     if (!coverItem) return;
-
     coverItem.then(coverImage => {
+      coverItemContainer.addChild(coverImage.displayObject);
+      while (coverItemContainer.children.length > 1) {
+        coverItemContainer.removeChildAt(0);
+      }
       const cover = coverImage.displayObject;
       const coverRatio = cover.height / cover.width;
       const width = previewItemContainer.children.length
@@ -992,6 +993,8 @@ const createPile = (
         : normalItemContainer.width;
       cover.width = width - store.getState().previewSpacing;
       cover.height = coverRatio * cover.width;
+      pubSub.publish('updatePileBounds', id);
+      drawBorder();
     });
   };
 
