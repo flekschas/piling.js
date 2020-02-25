@@ -1137,17 +1137,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       case 'index':
         return Promise.resolve(
-          ijToXy(...layout.idxToIj(objective(pileState, pileId)))
+          ijToXy(...layout.idxToIj(objective(pileState, pileState.index)))
         );
 
       case 'ij':
-        return Promise.resolve(ijToXy(...objective(pileState, pileId)));
+        return Promise.resolve(
+          ijToXy(...objective(pileState, pileState.index))
+        );
 
       case 'xy':
-        return Promise.resolve(objective(pileState, pileId));
+        return Promise.resolve(objective(pileState, pileState.index));
 
       case 'uv':
-        return Promise.resolve(layout.uvToXy(...objective(pileState, pileId)));
+        return Promise.resolve(
+          layout.uvToXy(...objective(pileState, pileState.index))
+        );
 
       default:
         return Promise.resolve([pileState.x, pileState.y]);
