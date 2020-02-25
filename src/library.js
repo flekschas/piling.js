@@ -951,8 +951,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
         });
 
-        updatedItems.forEach(item => {
-          const id = item.id;
+        updatedItems.forEach((item, index) => {
+          const id = item.id || index.toString();
           if (pileInstances.has(id)) {
             const pile = pileInstances.get(id);
             const pileState = piles[id];
