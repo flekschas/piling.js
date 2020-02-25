@@ -2211,7 +2211,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       // Remove outdated values
-      aggregatedPileValues.splice(items.length);
+      aggregatedPileValues.splice(Object.keys(items).length);
 
       pileSortPosByAggregate[i] = sortPos(aggregatedPileValues, {
         getter: v => v[i],
@@ -2297,7 +2297,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const data =
       arrangementOptions.runDimReductionOnPiles === true
         ? aggregatedPileValues.filter(x => x[0] !== null)
-        : items.map((item, itemId) =>
+        : Object.entries(items).map(([itemId, item]) =>
             arrangementObjective.flatMap(objective =>
               objective.property(item, itemId, 0)
             )
