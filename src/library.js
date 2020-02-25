@@ -985,9 +985,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       previewSpacing
     } = store.state;
 
-    const itemList = Object.values(items);
+    const itemIds = Object.keys(items);
 
-    if (!itemList.length || !itemRenderer) return null;
+    if (!itemIds.length || !itemRenderer) return null;
 
     renderedItems.forEach(item => {
       item.destroy();
@@ -1006,8 +1006,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const { piles } = store.state;
 
         renderedImages.forEach((image, index) => {
-          const pileId = index.toString();
-          const itemId = itemList[index].id || pileId;
+          const itemId = itemIds[index];
+          const pileId = itemId;
           const pileState = piles[pileId];
           const preview = renderedPreviews[itemId];
 
@@ -1203,7 +1203,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileIds.splice(0, 0, ...Object.keys(store.state.piles));
     }
 
-    if (items.length === 0) return;
+    if (Object.keys(items).length === 0) return;
 
     const movingPiles = [];
 

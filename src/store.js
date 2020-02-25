@@ -391,11 +391,11 @@ const piles = (previousState = {}, action) => {
 
       return action.payload.newItems.reduce((newState, item, index) => {
         const itemId = useCustomItemId ? item.id : index.toString();
-        newState[index] = {
+        newState[itemId] = {
           items: [itemId],
           x: null,
           y: null,
-          ...previousState[index]
+          ...previousState[itemId]
         };
         return newState;
       }, {});
