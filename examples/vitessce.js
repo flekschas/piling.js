@@ -93,7 +93,7 @@ const createVitessce = async element => {
     cellsByFactor[subcluster][id] = cell;
   }, {});
 
-  const selectedFactor = 'Microglia';
+  const selectedFactor = 'Oligodendrocyte MF';
 
   // From previous image tiling:
   // const columns = 10;
@@ -123,6 +123,9 @@ const createVitessce = async element => {
       )
     );
 
+  const padding = 0.25;
+  let maxYCenterId = -1;
+
   const createItems = factor =>
     Object.entries(cellsByFactor[factor]).map(([id, cell]) => {
       const item = {
@@ -136,9 +139,19 @@ const createVitessce = async element => {
       });
 
       const bBox = polyToBbox(cell.poly);
-      const target = [bBox.cX, bBox.cY];
+      const target = cell.xy;
       const cellSize = Math.max(bBox.width, bBox.height);
-      const zoom = Math.max(ZARR_MIN_ZOOM, -Math.log2(cellSize / itemSize));
+      const paddedCellSize = cellSize * (1 + padding * 2);
+      const zoom = Math.max(
+        ZARR_MIN_ZOOM,
+        -Math.log2(paddedCellSize / itemSize)
+      );
+
+      maxYCenterId =
+        maxYCenterId === -1 ||
+        target[1] >= cellsByFactor[factor][maxYCenterId].xy[1]
+          ? id
+          : maxYCenterId;
 
       item.src = {
         target,
@@ -149,6 +162,16 @@ const createVitessce = async element => {
     });
 
   const items = createItems(selectedFactor);
+
+  // console.log(imageWidth, imageHeight);
+
+  // console.log(
+  //   selectedFactor,
+  //   items.length,
+  //   maxYCenterId,
+  //   cellsByFactor[selectedFactor][maxYCenterId].xy,
+  //   items.find(item => item.id === maxYCenterId)
+  // );
 
   // From previous image tiling:
   // const items = new Array(numRows).fill().flatMap((_, i) =>
@@ -201,7 +224,7 @@ const createVitessce = async element => {
     darkMode: true,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer,
-    items: items.slice(0, 2),
+    items: [items.find(item => item.id === maxYCenterId)],
     itemSize,
     cellPadding: 8,
     pileItemAlignment: false,
@@ -233,7 +256,7 @@ const createVitessce = async element => {
             )
           ],
           setter: factor => {
-            piling.set('items', factor);
+            piling.set('items', createItems(factor));
           }
         }
       ]
