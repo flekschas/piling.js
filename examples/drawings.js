@@ -21,9 +21,11 @@ const createDrawingPiles = async element => {
 
   const testData = data.slice(0, 1000);
 
+  const coverOptions = { size: 128, lineWidth: 3 };
+
   const quickDrawRenderer = createQuickDrawRenderer();
-  const quickDrawCoverAggregator = createQuickDrawCoverAggregator();
-  const quickDrawCoverRenderer = createQuickDrawCoverRenderer();
+  const quickDrawCoverAggregator = createQuickDrawCoverAggregator(coverOptions);
+  const quickDrawCoverRenderer = createQuickDrawCoverRenderer(coverOptions);
 
   const pilingJs = createPilingJs(element, {
     renderer: quickDrawRenderer,
