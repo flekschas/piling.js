@@ -90,7 +90,6 @@ const createVitessceRenderer = (
 
   const drawToCanvas = () => {
     const newCanvas = document.createElement('canvas');
-    newCanvas.style.boxShadow = 'inset 0 0 0 1px red';
     newCanvas.width = size;
     newCanvas.height = size;
     const ctx = newCanvas.getContext('2d');
