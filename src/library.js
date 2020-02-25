@@ -3021,7 +3021,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
     );
-    if (contextMenuElement) rootElement.removeChild(contextMenuElement);
+    const closedContextMenu = !!contextMenuElement;
+    if (closedContextMenu) rootElement.removeChild(contextMenuElement);
 
     const currMousePos = getMousePosition(event);
 
@@ -3067,7 +3068,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
-        lasso.showStartIndicator(mouseDownPosition);
+        if (!closedContextMenu) lasso.showStartIndicator(mouseDownPosition);
         store.dispatch(createAction.setFocusedPiles([]));
         store.dispatch(createAction.setMagnifiedPiles([]));
       }
