@@ -315,7 +315,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       : pilingLib.get(field.name);
 
     if (field.values) {
-      if (field.multiple) {
+      if (field.values.length <= 5 && field.multiple) {
         const checkboxes = document.createElement('div');
 
         field.values.forEach(value => {
