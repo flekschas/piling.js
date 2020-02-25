@@ -2339,7 +2339,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const pileIds = updatedPileIds.length
       ? updatedPileIds
-      : range(0, items.length);
+      : range(0, Object.keys(items).length);
 
     if (arrangementType === 'data') {
       arranging = updateArragnementByData(pileIds, newObjectives);
