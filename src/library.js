@@ -3269,7 +3269,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${currMousePos[1]}px`;
+      element.style.top = `${currMousePos[1] + stage.y}px`;
 
       depileBtn.addEventListener(
         'click',
@@ -3330,7 +3330,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         element.style.left = `${currMousePos[0]}px`;
       }
-      element.style.top = `${currMousePos[1]}px`;
+      element.style.top = `${currMousePos[1] + stage.y}px`;
 
       toggleGridBtn.addEventListener(
         'click',
