@@ -526,7 +526,7 @@ const createPile = (
         });
       });
     } else {
-      newItems.forEach(pileItem => {
+      newItems.forEach((pileItem, index) => {
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
 
@@ -551,30 +551,26 @@ const createPile = (
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }
-      });
 
-      normalItemContainer.children.forEach((item, index) => {
-        const pileState = store.state.piles[id];
-        const itemState = store.state.items[pileState.items[index]];
+        const pileState = store.state.piles[pileItem.id];
+        const itemState = store.state.items[item.id];
+        const itemIndex = pileState.items.indexOf(item.id);
 
         const offset = isFunction(pileItemOffset)
-          ? pileItemOffset(itemState, index, pileState)
-          : pileItemOffset;
+          ? pileItemOffset(itemState, itemIndex, pileState)
+          : pileItemOffset.map(_offset => _offset * itemIndex);
 
         angle = isFunction(pileItemRotation)
-          ? pileItemRotation(itemState, index, pileState)
+          ? pileItemRotation(itemState, itemIndex, pileState)
           : pileItemRotation;
 
-        const offsetX = index * offset[0];
-        const offsetY = index * offset[1];
-
         animatePositionItems(
-          item,
-          offsetX,
-          offsetY,
+          pileItem.displayObject,
+          offset[0],
+          offset[1],
           angle,
           animator,
-          index === normalItemContainer.children.length - 1
+          index === newItems.length - 1
         );
       });
     }
