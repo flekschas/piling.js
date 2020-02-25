@@ -51,16 +51,16 @@ const createSvgLinesPiles = element => {
   });
 
   // eslint-disable-next-line no-console
-  const log = message => () => console.log(message);
+  // const log = message => () => console.log(message);
 
-  piling.subscribe('pileFocus', log('pileFocus'));
-  piling.subscribe('pileBlur', log('pileBlur'));
-  piling.subscribe('pileActive', log('pileActive'));
-  piling.subscribe('pileInactive', log('pileInactive'));
-  piling.subscribe('pileEnter', log('pileEnter'));
-  piling.subscribe('pileLeave', log('pileLeave'));
-  piling.subscribe('pileDrag', log('pileDrag'));
-  piling.subscribe('pileDrop', log('pileDrop'));
+  // piling.subscribe('pileFocus', log('pileFocus'));
+  // piling.subscribe('pileBlur', log('pileBlur'));
+  // piling.subscribe('pileActive', log('pileActive'));
+  // piling.subscribe('pileInactive', log('pileInactive'));
+  // piling.subscribe('pileEnter', log('pileEnter'));
+  // piling.subscribe('pileLeave', log('pileLeave'));
+  // piling.subscribe('pileDrag', log('pileDrag'));
+  // piling.subscribe('pileDrop', log('pileDrop'));
 
   return [piling];
 };

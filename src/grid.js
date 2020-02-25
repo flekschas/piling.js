@@ -13,7 +13,7 @@ import { l1Dist } from './utils';
  * @param {number} cellPadding - The padding between items
  */
 const createGrid = (
-  canvas,
+  { width, height },
   {
     itemSize = null,
     columns = 10,
@@ -24,8 +24,6 @@ const createGrid = (
     cellPadding = 0
   } = {}
 ) => {
-  const { width, height } = canvas.getBoundingClientRect();
-
   let numColumns = columns;
   let numRows = 0;
 

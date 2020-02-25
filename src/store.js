@@ -1,7 +1,18 @@
-import { camelToConst, deepClone, cubicInOut, update } from '@flekschas/utils';
+import {
+  pipe,
+  camelToConst,
+  deepClone,
+  cubicInOut,
+  update,
+  withForwardedMethod,
+  withReadOnlyProperty,
+  withStaticProperty
+} from '@flekschas/utils';
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
 import { enableBatching } from 'redux-batched-actions';
+
+import { version } from '../package.json';
 
 import createOrderer from './orderer';
 
@@ -181,8 +192,6 @@ const [previewAggregator, setPreviewAggregator] = setter('previewAggregator');
 
 const [coverAggregator, setCoverAggregator] = setter('coverAggregator');
 
-const [items, setItems] = setter('items', []);
-
 const [orderer, setOrderer] = setter('orderer', createOrderer().rowMajor);
 
 // Grid
@@ -334,22 +343,50 @@ const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
-// reducer
-const piles = (previousState = [], action) => {
+const items = (previousState = {}, action) => {
+  switch (action.type) {
+    case 'SET_ITEMS': {
+      const useCustomId = action.payload.items.length
+        ? typeof action.payload.items[0].id !== 'undefined'
+        : false;
+
+      return action.payload.items.reduce((newState, item, index) => {
+        newState[useCustomId ? item.id : index] = item;
+        return newState;
+      }, {});
+    }
+
+    default:
+      return previousState;
+  }
+};
+
+const setItems = newItems => ({
+  type: 'SET_ITEMS',
+  payload: { items: newItems }
+});
+
+const piles = (previousState = {}, action) => {
   switch (action.type) {
     case 'INIT_PILES': {
-      const len = previousState.length;
-      if (len) {
-        if (len === action.payload.itemLength) return previousState;
-      }
-      return new Array(action.payload.itemLength).fill().map((x, id) => ({
-        items: [id],
-        x: null,
-        y: null
-      }));
+      const useCustomItemId = action.payload.newItems.length
+        ? typeof action.payload.newItems[0].id !== 'undefined'
+        : false;
+
+      return action.payload.newItems.reduce((newState, item, index) => {
+        const itemId = useCustomItemId ? item.id : index.toString();
+        newState[index] = {
+          items: [itemId],
+          x: null,
+          y: null,
+          ...previousState[index]
+        };
+        return newState;
+      }, {});
     }
+
     case 'MERGE_PILES': {
-      const newState = [...previousState];
+      const newState = { ...previousState };
 
       if (action.payload.isDropped) {
         const source = action.payload.pileIds[0];
@@ -368,7 +405,7 @@ const piles = (previousState = [], action) => {
           y: null
         };
       } else {
-        const target = Math.min(...action.payload.pileIds);
+        const target = Math.min.apply([], action.payload.pileIds).toString();
         const sourcePileIds = action.payload.pileIds.filter(
           id => id !== target
         );
@@ -401,8 +438,9 @@ const piles = (previousState = [], action) => {
       }
       return newState;
     }
+
     case 'MOVE_PILES': {
-      const newState = [...previousState];
+      const newState = { ...previousState };
       action.payload.movingPiles.forEach(({ id, x, y }) => {
         newState[id] = {
           ...newState[id],
@@ -412,6 +450,7 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+
     case 'DEPILE_PILES': {
       const depilePiles = action.payload.piles.filter(
         pile => pile.items.length > 1
@@ -419,7 +458,7 @@ const piles = (previousState = [], action) => {
 
       if (!depilePiles.length) return previousState;
 
-      const newState = [...previousState];
+      const newState = { ...previousState };
 
       depilePiles.forEach(pile => {
         pile.items.forEach(itemId => {
@@ -433,15 +472,16 @@ const piles = (previousState = [], action) => {
       });
       return newState;
     }
+
     default:
       return previousState;
   }
 };
 
 // action
-const initPiles = itemLength => ({
+const initPiles = newItems => ({
   type: 'INIT_PILES',
-  payload: { itemLength }
+  payload: { newItems }
 });
 
 const mergePiles = (pileIds, isDropped) => ({
@@ -561,7 +601,35 @@ const createStore = () => {
     get: () => lastAction
   });
 
-  return reduxStore;
+  const exportState = () => {
+    const clonedState = deepClone(reduxStore.getState());
+    clonedState.version = version;
+    return clonedState;
+  };
+
+  const importState = (newState, overwriteState = false) => {
+    if (newState.version !== version) {
+      console.warn(
+        `The version of the imported state "${newState.version}" doesn't match the library version "${version}". Use at your own risk!`
+      );
+    }
+
+    if (newState.version) delete newState.version;
+
+    if (overwriteState) reduxStore.dispatch(overwrite(newState));
+    else reduxStore.dispatch(softOverwrite(newState));
+  };
+
+  return pipe(
+    withStaticProperty('reduxStore', reduxStore),
+    withReadOnlyProperty('lastAction', () => lastAction),
+    withReadOnlyProperty('state', reduxStore.getState),
+    withForwardedMethod('dispatch', reduxStore.dispatch),
+    withForwardedMethod('subscribe', reduxStore.subscribe)
+  )({
+    export: exportState,
+    import: importState
+  });
 };
 
 export default createStore;

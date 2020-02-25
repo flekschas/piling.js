@@ -105,7 +105,7 @@ const createPile = (
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
         if (hasPreviewItem(item)) {
-          const { previewBorderColor, previewBorderOpacity } = store.getState();
+          const { previewBorderColor, previewBorderOpacity } = store.state;
           item.image.drawBackground(previewBorderColor, previewBorderOpacity);
         }
         render();
@@ -124,7 +124,7 @@ const createPile = (
           previewBackgroundOpacity,
           pileBackgroundColor,
           pileBackgroundOpacity
-        } = store.getState();
+        } = store.state;
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
@@ -190,9 +190,11 @@ const createPile = (
     const borderBounds = borderGraphics.getBounds();
     const contentBounds = contentGraphics.getBounds();
 
-    const state = store.getState();
+    const state = store.state;
 
-    const offset = Math.ceil(size / 2) + 1;
+    const x = contentBounds.x - borderBounds.x;
+    const y = contentBounds.y - borderBounds.y;
+    const offset = Math.ceil(size / 2);
 
     // draw black background
     borderGraphics.beginFill(
@@ -200,8 +202,8 @@ const createPile = (
       state.pileBackgroundOpacity
     );
     borderGraphics.drawRect(
-      contentBounds.x - borderBounds.x - offset,
-      contentBounds.y - borderBounds.y - offset,
+      x - offset,
+      y - offset,
       contentBounds.width + 2 * offset,
       contentBounds.height + 2 * offset
     );
@@ -214,8 +216,8 @@ const createPile = (
       state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
     );
     borderGraphics.drawRect(
-      contentBounds.x - borderBounds.x - offset,
-      contentBounds.y - borderBounds.y - offset,
+      x - offset,
+      y - offset,
       contentBounds.width + 2 * offset,
       contentBounds.height + 2 * offset
     );
@@ -510,6 +512,8 @@ const createPile = (
         const halfSpacing = previewSpacing / 2;
         const halfHeight = coverImage.height / 2;
 
+        isPositioning = previewItemContainer.children > 0;
+
         previewItemContainer.children.forEach((item, index) => {
           animatePositionItems(
             item,
@@ -550,8 +554,8 @@ const createPile = (
       });
 
       normalItemContainer.children.forEach((item, index) => {
-        const pileState = store.getState().piles[id];
-        const itemState = store.getState().items[pileState.items[index]];
+        const pileState = store.state.piles[id];
+        const itemState = store.state.items[pileState.items[index]];
 
         const offset = isFunction(pileItemOffset)
           ? pileItemOffset(itemState, index, pileState)
@@ -895,12 +899,6 @@ const createPile = (
 
   const setCover = newCover => {
     coverItem = newCover;
-    coverItem.then(coverImage => {
-      coverItemContainer.addChild(coverImage.displayObject);
-      while (coverItemContainer.children.length > 1) {
-        coverItemContainer.removeChildAt(0);
-      }
-    });
     updateCover();
   };
 
@@ -919,15 +917,20 @@ const createPile = (
 
   const updateCover = () => {
     if (!coverItem) return;
-
     coverItem.then(coverImage => {
+      coverItemContainer.addChild(coverImage.displayObject);
+      while (coverItemContainer.children.length > 1) {
+        coverItemContainer.removeChildAt(0);
+      }
       const cover = coverImage.displayObject;
       const coverRatio = cover.height / cover.width;
       const width = previewItemContainer.children.length
         ? previewItemContainer.width
         : normalItemContainer.width;
-      cover.width = width - store.getState().previewSpacing;
+      cover.width = width - store.state.previewSpacing;
       cover.height = coverRatio * cover.width;
+      pubSub.publish('updatePileBounds', id);
+      drawBorder();
     });
   };
 

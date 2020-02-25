@@ -2,6 +2,7 @@
 
 - Remove `randomOffsetRange` and `randomRotationRange`
 - Replace `pileItemAlignment` with `pileItemOffset`. Allow `pileItemOffset` and `pileItemRotation` to either be a static value or a callback function
+- Add support for browsing in isolation
 - Add a joy plot like example for monthly temperature distributions in Berlin Tempelhofer Feld
 - Add support for dynamically re-render the items either when their data changes or when the renderer changes
 - Add an example of _perfectly overlapping_ piles using a subset of Google Quickdraw Dataset
