@@ -200,10 +200,10 @@ The list of all understood properties is given below.
 | pileBorderSize             | float or function       | `0`                   | see [`notes`](#notes)                                                         | `true`     |
 | pileCellAlignment          | string                  | topLeft               | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
 | pileContextMenuItems       | array                   | `[]`                  | see _examples_ below                                                          | `true`     |
-| pileItemAlignment          | array or boolean        | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
 | pileItemBrightness         | string, int or function | `0`                   | must be in [-1,1] where `-1` refers to black and `1` refers to white          | `false`    |
+| pileItemOffset          | array or function        | `[5, 5]`                | see [`notes`](#notes)                                                         | `true`     |
 | pileItemOpacity            | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
-| pileItemRotation           | boolean                 | `false`               | `true` or `false`                                                             | `true`     |
+| pileItemRotation           | float or function        | `0`                  | see [`notes`](#notes)                                                         | `true`     |
 | pileItemTint               | string, int or function | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `true`     |
 | pileOpacity                | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
 | pileScale                  | float or function       | `1.0`                 | see [`notes`](#notes)                                                         | `true`     |
@@ -215,8 +215,6 @@ The list of all understood properties is given below.
 | previewBorderOpacity       | float                   | `0.85`                | must be in [`0`,`1`]                                                          | `false`    |
 | previewRenderer            | function                |                       | see [`renderers`](#renderers)                                                 | `true`     |
 | previewSpacing             | number                  | `2`                   | the spacing between 1D previews                                               | `true`     |
-| randomOffsetRange          | array                   | `[-30, 30]`           | array of two numbers                                                          | `true`     |
-| randomRotationRange        | array                   | `[-10, 10]`           | array of two numbers                                                          | `true`     |
 | renderer                   | function                |                       | see [`renderers`](#renderers)                                                 | `false`    |
 | showGrid                   | boolean                 | `false`               |                                                                               | `false`    |
 | tempDepileDirection        | string                  | horizontal            | horizontal or vertical                                                        | `true`     |
@@ -328,7 +326,16 @@ The list of all understood properties is given below.
   }
   ```
 
-- `pileItemBrightness`, `pileItemOpacity`, and `pileItemTint` can either be set to a static value or a callback function to dynamically style items. E.g.,
+- `pileItemOffset` can be set to an array or a callback function. The array should be a tuple specifying the x and y offset in pixel. E.g.,
+
+  ```javascript
+  // Align items in y-axis
+  piling.set('pileItemOffset', [0, 5]);
+  ```
+
+  See the next note for the signature of the callback function ⬇️
+
+- `pileItemBrightness`, `pileItemOpacity`, `pileItemRotation` and `pileItemTint` can either be set to a static value or a callback function to dynamically style items. E.g.,
 
   ```javascript
   // Set to a static number

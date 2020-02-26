@@ -154,7 +154,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rowHeight: true,
     cellAspectRatio: true,
     cellPadding: true,
-    pileItemAlignment: true,
+    pileItemOffset: true,
     pileItemBrightness: true,
     pileItemOpacity: true,
     pileItemRotation: true,
@@ -275,8 +275,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBorderOpacity: true,
-    randomOffsetRange: true,
-    randomRotationRange: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
@@ -850,10 +848,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileInstances.forEach(pile => {
         if (pile.cover()) {
-          const { pileItemAlignment, pileItemRotation } = store.state;
+          const { pileItemOffset, pileItemRotation } = store.state;
 
           pile.positionItems(
-            pileItemAlignment,
+            pileItemOffset,
             pileItemRotation,
             animator,
             store.state.previewSpacing
@@ -936,7 +934,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all(createImagesAndPreviews(updatedItems)).then(
       ([renderedImages, renderedPreviews]) => {
         const {
-          pileItemAlignment,
+          pileItemOffset,
           pileItemRotation,
           piles,
           previewSpacing
@@ -958,7 +956,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             const pileState = piles[id];
             pile.replaceItemsImage();
             pile.positionItems(
-              pileItemAlignment,
+              pileItemOffset,
               pileItemRotation,
               animator,
               previewSpacing
@@ -980,7 +978,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       items,
       itemRenderer,
-      pileItemAlignment,
+      pileItemOffset,
       pileItemRotation,
       previewSpacing
     } = store.state;
@@ -1026,7 +1024,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             store
           });
           pile.positionItems(
-            pileItemAlignment,
+            pileItemOffset,
             pileItemRotation,
             animator,
             previewSpacing
@@ -1250,12 +1248,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = pileId => {
-    const { pileItemAlignment, pileItemRotation } = store.state;
+    const { pileItemOffset, pileItemRotation } = store.state;
 
     pileInstances
       .get(pileId)
       .positionItems(
-        pileItemAlignment,
+        pileItemOffset,
         pileItemRotation,
         animator,
         store.state.previewSpacing
@@ -2486,7 +2484,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
-    if (state.pileItemAlignment !== newState.pileItemAlignment) {
+    if (state.pileItemOffset !== newState.pileItemOffset) {
       stateUpdates.add('layout');
     }
 
