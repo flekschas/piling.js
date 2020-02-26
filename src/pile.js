@@ -3,6 +3,7 @@ import {
   interpolateNumber,
   interpolateVector,
   isClose,
+  isFunction,
   l2PointDist,
   mergeMaps,
   toVoid
@@ -410,10 +411,6 @@ const createPile = (
     updateBBox(xOffset, yOffset);
   };
 
-  const getRandomArbitrary = (min, max) => {
-    return Math.random() * (max - min) + min;
-  };
-
   const getOpacity = () => rootGraphics.alpha;
   const setOpacity = newOpacity => {
     rootGraphics.alpha = newOpacity;
@@ -502,13 +499,14 @@ const createPile = (
   };
 
   const positionItems = (
-    itemAlignment,
-    itemRotation,
+    pileItemOffset,
+    pileItemRotation,
     animator,
     previewSpacing
   ) => {
     isPositioning = true;
     let angle = 0;
+
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
@@ -527,9 +525,8 @@ const createPile = (
           );
         });
       });
-    } else if (itemAlignment || allItems.length === 1) {
-      // image
-      newItems.forEach(pileItem => {
+    } else {
+      newItems.forEach((pileItem, index) => {
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
 
@@ -554,91 +551,26 @@ const createPile = (
           delete item.tmpAbsX;
           delete item.tmpAbsY;
         }
-      });
 
-      normalItemContainer.children.forEach((item, index) => {
-        // eslint-disable-next-line no-param-reassign
-        if (!Array.isArray(itemAlignment)) itemAlignment = [itemAlignment];
-        const padding = index * 5;
-        let verticalPadding = 0;
-        let horizontalPadding = 0;
-        itemAlignment.forEach(alignment => {
-          switch (alignment) {
-            case 'top':
-              verticalPadding -= padding;
-              break;
-            case 'left':
-              horizontalPadding -= padding;
-              break;
-            case 'bottom':
-              verticalPadding += padding;
-              break;
-            case 'right':
-              horizontalPadding += padding;
-              break;
-            case 'overlap':
-              break;
-            // bottom-right
-            default:
-              verticalPadding += padding;
-              horizontalPadding += padding;
-          }
-        });
+        const pileState = store.state.piles[pileItem.id];
+        const itemState = store.state.items[item.id];
+        const itemIndex = pileState.items.indexOf(item.id);
+
+        const offset = isFunction(pileItemOffset)
+          ? pileItemOffset(itemState, itemIndex, pileState)
+          : pileItemOffset.map(_offset => _offset * itemIndex);
+
+        angle = isFunction(pileItemRotation)
+          ? pileItemRotation(itemState, itemIndex, pileState)
+          : pileItemRotation;
 
         animatePositionItems(
-          item,
-          horizontalPadding,
-          verticalPadding,
+          pileItem.displayObject,
+          offset[0],
+          offset[1],
           angle,
           animator,
-          index === normalItemContainer.children.length - 1
-        );
-      });
-    } else {
-      const { randomOffsetRange, randomRotationRange } = store.state;
-      let num = 0;
-      newItems.forEach(pileItem => {
-        num++;
-
-        const item = pileItem.item;
-        const displayObject = pileItem.displayObject;
-
-        // eslint-disable-next-line no-use-before-define
-        const currentScale = getScale();
-
-        displayObject.tmpTargetScale = displayObject.scale.x;
-        if (!Number.isNaN(+item.tmpRelScale)) {
-          const relItemScale = item.tmpRelScale / currentScale;
-          displayObject.scale.x *= relItemScale;
-          displayObject.scale.y = displayObject.scale.x;
-          delete item.tmpRelScale;
-        }
-
-        let offsetX = getRandomArbitrary(...randomOffsetRange);
-        let offsetY = getRandomArbitrary(...randomOffsetRange);
-
-        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          offsetX += pileItem.x;
-          offsetY += pileItem.y;
-          pileItem.moveTo(
-            (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-            (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
-          );
-          delete item.tmpAbsX;
-          delete item.tmpAbsY;
-        }
-
-        if (itemRotation) {
-          angle = getRandomArbitrary(...randomRotationRange);
-        }
-
-        animatePositionItems(
-          displayObject,
-          offsetX,
-          offsetY,
-          angle,
-          animator,
-          num === newItems.size
+          index === newItems.length - 1
         );
       });
     }

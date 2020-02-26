@@ -202,20 +202,14 @@ const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
-const [pileItemAlignment, setPileItemAlignment] = setter('pileItemAlignment', [
-  'bottom',
-  'right'
-]);
+const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
 
-const [pileItemRotation, setPileItemRotation] = setter(
-  'pileItemRotation',
-  false
-);
+const [pileItemRotation, setPileItemRotation] = setter('pileItemRotation', 0);
 
 const [pileItemTint, setPileItemTint] = setter(
   'pileItemTint',
@@ -348,16 +342,6 @@ const [pileVisibilityItems, setPileVisibilityItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
-
-const [randomOffsetRange, setRandomOffsetRange] = setter('randomOffsetRange', [
-  -30,
-  30
-]);
-
-const [
-  randomRotationRange,
-  setRandomRotationRange
-] = setter('randomRotationRange', [-10, 10]);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -577,7 +561,7 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
-    pileItemAlignment,
+    pileItemOffset,
     pileItemBrightness,
     pileItemOpacity,
     pileItemRotation,
@@ -593,8 +577,6 @@ const createStore = () => {
     previewBorderOpacity,
     previewRenderer,
     previewSpacing,
-    randomOffsetRange,
-    randomRotationRange,
     rowHeight,
     showGrid,
     showSpatialIndex,
@@ -710,7 +692,7 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
-  setPileItemAlignment,
+  setPileItemOffset,
   setPileItemBrightness,
   setPileItemOpacity,
   setPileItemRotation,
@@ -725,8 +707,6 @@ export const createAction = {
   setPreviewBorderOpacity,
   setPreviewRenderer,
   setPreviewSpacing,
-  setRandomOffsetRange,
-  setRandomRotationRange,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,

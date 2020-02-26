@@ -67,8 +67,8 @@ const createSvgLinesPiles = async element => {
     cellPadding: 5,
     renderer: svgRenderer,
     items,
-    columns,
-    pileItemAlignment: ['bottom'],
+    columns: 12,
+    pileItemOffset: [-1, 5],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',

@@ -19,8 +19,11 @@ const createPhotoPiles = async element => {
 
   piling.set('pileBorderSize', pile => pile.items.length - 1);
 
-  piling.set('pileItemAlignment', false);
-  piling.set('pileItemRotation', true);
+  piling.set('pileItemOffset', () => [
+    Math.random() * 20 - 10,
+    Math.random() * 20 - 10
+  ]);
+  piling.set('pileItemRotation', () => Math.random() * 20 - 10);
 
   return [piling];
 };
