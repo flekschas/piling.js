@@ -505,7 +505,6 @@ const createPile = (
     previewSpacing
   ) => {
     isPositioning = true;
-    let angle = 0;
 
     if (getCover()) {
       getCover().then(coverImage => {
@@ -519,14 +518,17 @@ const createPile = (
             item,
             0,
             -halfHeight - item.height * (index + 0.5) - halfSpacing,
-            angle,
+            0,
             animator,
             index === previewItemContainer.children.length - 1
           );
         });
       });
     } else {
-      newItems.forEach((pileItem, index) => {
+      let count = 0;
+      newItems.forEach(pileItem => {
+        count++;
+
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
 
@@ -552,7 +554,7 @@ const createPile = (
           delete item.tmpAbsY;
         }
 
-        const pileState = store.state.piles[pileItem.id];
+        const pileState = store.state.piles[id];
         const itemState = store.state.items[item.id];
         const itemIndex = pileState.items.indexOf(item.id);
 
@@ -560,17 +562,17 @@ const createPile = (
           ? pileItemOffset(itemState, itemIndex, pileState)
           : pileItemOffset.map(_offset => _offset * itemIndex);
 
-        angle = isFunction(pileItemRotation)
+        const angle = isFunction(pileItemRotation)
           ? pileItemRotation(itemState, itemIndex, pileState)
           : pileItemRotation;
 
         animatePositionItems(
-          pileItem.displayObject,
+          displayObject,
           offset[0],
           offset[1],
           angle,
           animator,
-          index === newItems.length - 1
+          count === newItems.size
         );
       });
     }
