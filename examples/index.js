@@ -5,6 +5,8 @@ import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
 
+import './index.scss';
+
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
@@ -315,11 +317,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       : pilingLib.get(field.name);
 
     if (field.values) {
-      if (field.values.length <= 5 && field.multiple) {
+      if (field.multiple) {
         const checkboxes = document.createElement('div');
+        checkboxes.className =
+          field.values.length > 5 ? 'checkboxes scrollbar' : 'checkboxes';
 
         field.values.forEach(value => {
           const checkboxLabel = document.createElement('label');
+          checkboxLabel.className = 'checkbox';
           checkboxes.appendChild(checkboxLabel);
 
           const checkbox = document.createElement('input');
@@ -388,6 +393,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
       field.values.forEach(value => {
         const radioLabel = document.createElement('label');
+        radioLabel.className = 'radio';
         radios.appendChild(radioLabel);
 
         const radio = document.createElement('input');
@@ -425,16 +431,19 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     if (!Number.isNaN(+field.min)) {
       input.setAttribute('type', 'range');
       input.setAttribute('min', +field.min);
+      input.className = 'range-slider';
     }
 
     if (!Number.isNaN(+field.max)) {
       input.setAttribute('type', 'range');
       input.setAttribute('max', +field.max);
+      input.className = 'range-slider';
     }
 
     if (!Number.isNaN(+field.step)) {
       input.setAttribute('type', 'range');
       input.setAttribute('step', +field.step);
+      input.className = 'range-slider';
     }
 
     input.setAttribute('value', currentValue);

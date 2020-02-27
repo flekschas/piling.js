@@ -1,0 +1,444 @@
+// Variables
+@import 'styles/colors';
+@import 'styles/transitions';
+
+// Constructors
+@import 'styles/checkbox';
+@import 'styles/input-range';
+@import 'styles/radio';
+
+/*
+ * -----------------------------------------------------------------------------
+ * Global styles
+ * -----------------------------------------------------------------------------
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 16px;
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: $black;
+  background: $white;
+}
+
+body.dark-mode {
+  color: $white;
+  background: $black;
+}
+
+a {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: inherit;
+}
+
+a:hover {
+  color: $primary;
+}
+
+a:focus {
+  color: $primary;
+  background: transparentize($primary, 0.9);
+  box-shadow: inset 0 0 0 1px transparentize($primary, 0.95);
+  outline: none;
+  border-radius: 0.125rem;
+  text-decoration: none;
+}
+
+header {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  left: 1rem;
+  height: 3rem;
+  display: flex;
+}
+
+h1 {
+  margin: 0 1rem 0 0;
+  padding: 0 0.5rem;
+  font-size: 2rem;
+  line-height: 3rem;
+  color: $white;
+  background: $black;
+  border-radius: 0.25rem;
+}
+
+body.dark-mode h1 {
+  color: $black;
+  background: $white;
+}
+
+abbr,
+abbr[title] {
+  border-bottom: 0;
+  text-decoration: none !important;
+}
+
+input,
+button {
+  color: inherit;
+  font-size: inherit;
+}
+
+button:active {
+  outline: none;
+}
+
+button {
+  background: $gray-light;
+  border: 0;
+  border-radius: 0.25rem;
+}
+
+input[type='text'],
+input[type='number'] {
+  width: 100%;
+  padding: 0.125rem;
+  border: 1px solid $gray-lighter;
+  border-radius: 0.25rem;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-darker;
+    box-shadow: 0 0 0 1px $primary-darker;
+  }
+}
+
+body.dark-mode {
+  input[type='text'],
+  input[type='number'] {
+    border-color: $gray-dark;
+    background: $black;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 1px $primary;
+    }
+  }
+}
+
+::-webkit-selection {
+  color: $black;
+  background: $primary-rgba;
+}
+
+::-moz-selection {
+  color: $black;
+  background: $primary-rgba;
+}
+
+::selection {
+  color: $black;
+  background: $primary-rgba;
+}
+
+@include range($white, $black, $gray-lighter, $primary-darker);
+
+body.dark-mode {
+  @include range($black, $white, $gray-dark, $primary);
+}
+
+@include radio($white, $black, $gray-lighter, $primary-darker);
+
+body.dark-mode {
+  @include radio($black, $white, $gray-dark, $primary);
+}
+
+/*
+ * -----------------------------------------------------------------------------
+ * General styles, i.e. classes
+ * -----------------------------------------------------------------------------
+ */
+
+@include checkbox($white, $black, $gray-lighter, $primary-darker);
+
+body.dark-mode {
+  @include checkbox($black, $white, $gray-dark, $primary);
+}
+
+.container {
+  position: absolute;
+  top: 5rem;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  transition: right $normal $ease;
+}
+
+body.options-open .container {
+  right: 16rem;
+}
+
+.credits {
+  margin-left: 0.5rem;
+}
+
+.credits,
+.credits a {
+  color: $gray-medium;
+}
+
+.inputs {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.inputs > select {
+  width: 100%;
+}
+
+.checkboxes.scrollbar {
+  width: 100%;
+  max-height: 6.25rem;
+  overflow: auto;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 0.8rem;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  border: 0.2rem solid rgba(0, 0, 0, 0);
+  border-radius: 0.85rem;
+  background: $black-lighter-rgba;
+  background-clip: padding-box;
+}
+
+.scrollbar:hover::-webkit-scrollbar-thumb {
+  background: $black-medium-rgba;
+  background-clip: padding-box;
+}
+
+body.dark-mode {
+  .scrollbar::-webkit-scrollbar-thumb {
+    border: 0.2rem solid rgba(0, 0, 0, 0);
+    border-radius: 0.85rem;
+    background: $white-lighter-rgba;
+    background-clip: padding-box;
+  }
+
+  .scrollbar:hover::-webkit-scrollbar-thumb {
+    background: $white-medium-rgba;
+    background-clip: padding-box;
+  }
+}
+
+/*
+ * -----------------------------------------------------------------------------
+ * Specific styles, i.e. ids
+ * -----------------------------------------------------------------------------
+ */
+
+header #description {
+  position: relative;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+#description .wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#description .wrapper > * {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin: 0;
+  height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+#selection {
+  display: flex !important;
+  align-items: center;
+}
+
+#selection label {
+  margin-right: 0.5rem;
+}
+
+#matrices,
+#matrices-credit,
+#svg,
+#svg-credit {
+  display: none;
+}
+
+#options {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 15rem;
+  background: $white;
+  border-left: 1px solid $gray-lighter;
+  color: $black;
+  transform: translate(15rem, 0);
+  transition: transform $normal $ease;
+
+  &.open {
+    transform: translate(0, 0);
+  }
+
+  .toggler {
+    position: absolute;
+    display: block;
+    top: 1rem;
+    left: 0;
+    height: 3rem;
+    width: 3rem;
+    padding: 0.5rem;
+    background: $white;
+    color: $black;
+    border: 1px solid $gray-lighter;
+    border-radius: 0.25rem;
+    opacity: 0.2;
+    transform: translate(-4rem, 0);
+    transition: transform $normal $ease, border-radius $normal $ease,
+      background $normal $ease, opacity $normal $ease, box-shadow $normal $ease;
+
+    &:hover {
+      opacity: 0.4;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px $primary-rgba;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &.open .toggler {
+    opacity: 1;
+    transform: translate(-3rem, 0);
+    border-right: 0;
+    border-radius: 0.25rem 0 0 0.25rem;
+    background: $white;
+  }
+
+  .content {
+    margin: 0.5rem;
+  }
+
+  .content h4 {
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .content h4:after {
+    content: ':';
+  }
+
+  label {
+    display: block;
+    margin: 0.25rem 0;
+  }
+
+  label div {
+    display: block;
+    font-size: 0.8rem;
+  }
+
+  .title:after {
+    content: ':';
+    margin-right: 0.25rem;
+  }
+
+  .inputs {
+    display: flex;
+    align-items: center;
+  }
+}
+
+body.dark-mode #options {
+  color: $white;
+  border-left-color: $gray-darker;
+  background: $black;
+
+  .toggler {
+    color: $white;
+    border-color: $gray-darker;
+    background: $black;
+  }
+
+  &.open .toggler {
+    background: $black;
+  }
+}
+
+#undo {
+  position: relative;
+  display: block;
+  width: 100%;
+  line-height: 1.5rem;
+  border-radius: 0.25rem;
+  color: $white;
+  border: 1px solid white;
+  background: $black;
+  transition: color $normal $ease, border $normal $ease,
+    background $normal $ease, opacity $normal $ease, box-shadow $normal $ease;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
+  }
+
+  :disabled {
+    color: $black;
+    background: $white;
+    opacity: 0.33;
+  }
+}
+
+body.dark-mode #undo {
+  color: $black;
+  background: $white;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
+  }
+
+  :disabled {
+    color: $white;
+    background: $black;
+  }
+}
+
+/*
+ * -----------------------------------------------------------------------------
+ * Media Queries
+ * -----------------------------------------------------------------------------
+ */
