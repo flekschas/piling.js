@@ -7,7 +7,7 @@ uniform sampler2D uTexSampler1;
 uniform vec3 uColors[2];
 uniform vec2 uDomains[2];
 
-in vec2 vTexCoord;
+in vec2 vTextureCoord;
 
 out vec4 outColor;
 
@@ -18,8 +18,8 @@ vec3 hsv2rgb(vec3 c) {
 }
 
 void main() {
-  float colorValue0 = (texture(uTexSampler0, vTexCoord).r - uDomains[0][0]) / uDomains[0][1];
-  float colorValue1 = (texture(uTexSampler1, vTexCoord).r - uDomains[1][0]) / uDomains[1][1];
+  float colorValue0 = (texture(uTexSampler0, vTextureCoord).r - uDomains[0][0]) / uDomains[0][1];
+  float colorValue1 = (texture(uTexSampler1, vTextureCoord).r - uDomains[1][0]) / uDomains[1][1];
 
   vec3 rgbCombo = vec3(0.0);
   vec3 hsvCombo = vec3(0.0);
