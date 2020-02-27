@@ -29,32 +29,20 @@ const createVitessceRenderer = (
     colors = DEFAULT_COLORS
   }
 ) => async sources => {
-  // const canvas = document.createElement('canvas');
-
   const geometry = new PIXI.Geometry();
-  geometry.addAttribute('aPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
-  geometry.addAttribute('aTexCoords', [0, 1, 1, 1, 1, 0, 0, 0], 2);
+  geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
+  geometry.addAttribute('aTextureCoord', [0, 1, 1, 1, 1, 0, 0, 0], 2);
   geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
   const hsvColors = colors.flatMap(rgb2hsv);
-
-  // PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL2;
-
-  // const renderer = PIXI.autoDetectRenderer();
-
-  // const renderer = new PIXI.Renderer({
-  //   view: canvas,
-  //   width: size,
-  //   height: size
-  // });
-
-  // const stage = new PIXI.Container();
 
   return Promise.all(
     sources.map(async source => {
       const channels = await getData(source);
 
-      const createTexture = (data, { width, height }) => {
+      const [height, width] = channels[0].shape;
+
+      const createTexture = data => {
         const resource = new CustomBufferResource(data, {
           width,
           height,
@@ -63,16 +51,15 @@ const createVitessceRenderer = (
           type: 'FLOAT'
         });
 
-        return new PIXI.BaseTexture(resource, {
-          scaleMode: PIXI.SCALE_MODES.NEAREST
-        });
+        return new PIXI.Texture(
+          new PIXI.BaseTexture(resource, {
+            scaleMode: PIXI.SCALE_MODES.NEAREST
+          })
+        );
       };
 
       const textures = channels.reduce((t, tensor, i) => {
-        t[`uTexSampler${i}`] = createTexture(tensor.values, {
-          width: tensor.shape[1],
-          height: tensor.shape[0]
-        });
+        t[`uTexSampler${i}`] = createTexture(tensor.values);
         return t;
       }, {});
 
@@ -87,18 +74,10 @@ const createVitessceRenderer = (
       const state = new PIXI.State();
 
       const mesh = new PIXI.Mesh(geometry, shader, state);
+      mesh.width = width;
+      mesh.height = height;
 
       return mesh;
-
-      // const graphics = new PIXI.Graphics();
-      // graphics.addChild(mesh);
-
-      // const renderTexture = PIXI.RenderTexture.create(64, 64);
-      // renderer.render(mesh, renderTexture);
-
-      // console.log(renderTexture);
-
-      // return renderTexture.baseTexture;
     })
   );
 };
