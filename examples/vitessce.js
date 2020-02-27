@@ -169,8 +169,8 @@ const createVitessce = async element => {
 
   const vitessceRenderer = createVitessceRenderer(getData, {
     colors: [
-      [0, 0, 255],
-      [0, 255, 0]
+      [255, 128, 0],
+      [0, 128, 255]
     ]
   });
 
@@ -198,7 +198,7 @@ const createVitessce = async element => {
     darkMode: true,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer,
-    items: [items[0]],
+    items,
     itemSize,
     cellPadding: 8,
     pileItemAlignment: false,
