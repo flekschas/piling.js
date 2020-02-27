@@ -15,18 +15,18 @@ const DEFAULT_COLORS = [
 
 // prettier-ignore
 const DEFAULT_DOMAINS = [
-  0, 256 ** 2 - 1,
-  0, 256 ** 2 - 1,
-  0, 256 ** 2 - 1,
-  0, 256 ** 2 - 1
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1],
+  [0, 256 ** 2 - 1]
 ];
 
 const createVitessceRenderer = (
   getData,
   {
     // activeChannels = DEFAULT_ACTIVE_CHANNELS,
-    domains = DEFAULT_DOMAINS,
-    colors = DEFAULT_COLORS
+    domains: customDomains = [],
+    colors: customColors = []
   }
 ) => async sources => {
   const geometry = new PIXI.Geometry();
@@ -34,7 +34,15 @@ const createVitessceRenderer = (
   geometry.addAttribute('aTextureCoord', [0, 1, 1, 1, 1, 0, 0, 0], 2);
   geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
-  const hsvColors = colors.flatMap(rgb2hsv);
+  const colors = DEFAULT_COLORS.flatMap((domain, i) => {
+    if (customColors[i]) return rgb2hsv(customColors[i]);
+    return rgb2hsv(domain);
+  });
+
+  const domains = DEFAULT_DOMAINS.flatMap((domain, i) => {
+    if (customDomains[i]) return customDomains[i];
+    return domain;
+  });
 
   return Promise.all(
     sources.map(async source => {
@@ -64,7 +72,7 @@ const createVitessceRenderer = (
       }, {});
 
       const uniforms = new PIXI.UniformGroup({
-        uColors: hsvColors,
+        uColors: colors,
         uDomains: domains,
         ...textures
       });
