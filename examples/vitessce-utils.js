@@ -3,6 +3,8 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as PIXI from 'pixi.js';
 import { openArray } from 'zarr';
 
+tf.setBackend('cpu');
+
 function decode({ data, shape }) {
   const channelSize = data.length / shape[0];
   return Array(shape[0])
@@ -109,7 +111,6 @@ export const getExactData = async ({
   tileSize
 }) => {
   const tiles = await Promise.all(tileIndices.map(getData));
-
   let minI = Infinity;
   let maxI = -Infinity;
   let minJ = Infinity;
@@ -154,8 +155,9 @@ export const getExactData = async ({
     });
   });
 
-  if (numRows === 1 && numCols === 1)
+  if (numRows === 1 && numCols === 1) {
     return Promise.all(tileData2d.map(channel => channel[0][0].buffer()));
+  }
 
   return Promise.all(
     tileData2d.map(channel => {
