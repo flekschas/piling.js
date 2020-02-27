@@ -1,10 +1,9 @@
+import { min, max } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 import FS from './vitessce.fs';
 import VS from './vitessce.vs';
 import { CustomBufferResource, rgb2hsv } from './vitessce-utils';
-
-// const DEFAULT_ACTIVE_CHANNELS = [true, true, true, true];
 
 const DEFAULT_COLORS = [
   [255, 0, 0],
@@ -23,11 +22,7 @@ const DEFAULT_DOMAINS = [
 
 const createVitessceRenderer = (
   getData,
-  {
-    // activeChannels = DEFAULT_ACTIVE_CHANNELS,
-    domains: customDomains = [],
-    colors: customColors = []
-  }
+  { domains: customDomains = null, colors: customColors = [] }
 ) => async sources => {
   const geometry = new PIXI.Geometry();
   geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
@@ -39,10 +34,12 @@ const createVitessceRenderer = (
     return rgb2hsv(domain);
   });
 
-  const domains = DEFAULT_DOMAINS.flatMap((domain, i) => {
-    if (customDomains[i]) return customDomains[i];
-    return domain;
-  });
+  const domains = Array.isArray(customDomains)
+    ? DEFAULT_DOMAINS.flatMap((domain, i) => {
+        if (customDomains[i]) return customDomains[i];
+        return domain;
+      })
+    : null;
 
   return Promise.all(
     sources.map(async source => {
@@ -66,6 +63,11 @@ const createVitessceRenderer = (
         );
       };
 
+      const valueRanges =
+        domains === null
+          ? channels.flatMap(tensor => [min(tensor.values), max(tensor.values)])
+          : domains;
+
       const textures = channels.reduce((t, tensor, i) => {
         t[`uTexSampler${i}`] = createTexture(tensor.values);
         return t;
@@ -73,7 +75,7 @@ const createVitessceRenderer = (
 
       const uniforms = new PIXI.UniformGroup({
         uColors: colors,
-        uDomains: domains,
+        uDomains: valueRanges,
         ...textures
       });
 

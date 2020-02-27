@@ -1,23 +1,9 @@
 import * as PIXI from 'pixi.js';
-// From previous image tiling:
-// import { openArray } from 'zarr';
 import createPilingJs from '../src/library';
 import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 import createBBox from '../src/bounding-box';
-
-// const ZARR_URL =
-//   'https://vitessce-demo-data.storage.googleapis.com/test-data/vanderbilt-data/vanderbilt_mxif_ims.zarr/mxif_pyramid';
-
-// const ZARR_MIN_ZOOM = -8;
-
-// const ZARR_CHANNELS = {
-//   'Cy3 - Synaptopodin (glomerular)': ZARR_URL,
-//   'Cy5 - THP (thick limb)': ZARR_URL,
-//   'DAPI - Hoescht (nuclei)': ZARR_URL,
-//   'FITC - Laminin (basement membrane)': ZARR_URL
-// };
 
 const METADATA_URL =
   'https://vitessce-data.s3.amazonaws.com/0.0.20/master_release/linnarsson/linnarsson.cells.json';
@@ -32,10 +18,11 @@ const ZARR_CHANNELS = {
   nuclei: ZARR_URL
 };
 
-const ZARR_RANGES = {
-  polyT: [0, 3834],
-  nuclei: [0, 3790]
-};
+// Absolute value ranges.
+// const ZARR_RANGES = {
+//   polyT: [0, 3834],
+//   nuclei: [0, 3790]
+// };
 
 const createVitessce = async element => {
   const response = await fetch(METADATA_URL);
@@ -123,7 +110,7 @@ const createVitessce = async element => {
       [0, 255, 0],
       [0, 0, 255]
     ],
-    domains: Object.values(ZARR_RANGES)
+    domains: null // Auto-scale channels
   });
 
   const umap = createUmap();
