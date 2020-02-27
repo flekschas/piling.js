@@ -23,7 +23,7 @@ const METADATA_URL =
   'https://vitessce-data.s3.amazonaws.com/0.0.20/master_release/linnarsson/linnarsson.cells.json';
 
 const ZARR_URL =
-  'https://vitessce-data.storage.googleapis.com/linnarsson.images.zarr/pyramid';
+  'https://vitessce-data.storage.googleapis.com/0.0.20/master_release/linnarsson/linnarsson.images.zarr/pyramid/';
 
 const ZARR_MIN_ZOOM = -6;
 
@@ -32,53 +32,12 @@ const ZARR_CHANNELS = {
   nuclei: ZARR_URL
 };
 
-// From previous image tiling:
-// async function getZarrMetadata({
-//   channels = ZARR_CHANNELS,
-//   minZoom = ZARR_MIN_ZOOM
-// } = {}) {
-//   function range(len) {
-//     return [...Array(len).keys()];
-//   }
-
-//   const rootZarrUrl = Object.values(channels)[0]; // all are the same so get first
-
-//   // Known issue with how zarr.js does string concatenation for urls
-//   // The prefix gets chunked off for some reason and must be repeating in the config.
-//   // https://github.com/gzuidhof/zarr.js/issues/36
-//   const prefix = rootZarrUrl.split('/').slice(-1)[0];
-
-//   // Not necessary but this is something we should be parsing from metadata
-//   const maxLevel = -minZoom;
-
-//   const zarrStores = range(maxLevel).map(i => {
-//     const config = {
-//       store: rootZarrUrl,
-//       path: `${prefix}/${String(i).padStart(2, '0')}`,
-//       mode: 'r'
-//     };
-//     return openArray(config);
-//   });
-//   const connections = await Promise.all(zarrStores);
-
-//   // Get other properties for image viewer
-
-//   // Somewhat hard coded for now, but good to keep all this logic in the data loaders so we can edit in the future.
-//   const baseLayer = connections[0]; // shape [4, 36040, 52660]
-//   // last two dimensions of the 3D array are width and height
-//   const [imageHeight, imageWidth] = baseLayer.shape.slice(1);
-//   // chunks are [4, 512, 512], grab last dimentsion. Maybe add check for if last two are the same?
-//   const tileSize = baseLayer.chunks.slice(-1)[0];
-
-//   // Ideally we will also have metadata here about the minZoom so it's not a parameter supplied in App.js
-//   return { connections, imageHeight, imageWidth, tileSize, minZoom };
-// }
+const ZARR_RANGES = {
+  polyT: [0, 3834],
+  nuclei: [0, 3790]
+};
 
 const createVitessce = async element => {
-  // From previous image tiling:
-  // const { width: baseWidth } = element.getBoundingClientRect();
-  // const { imageHeight, imageWidth } = await getZarrMetadata();
-
   const response = await fetch(METADATA_URL);
   const metadata = await response.json();
 
@@ -95,14 +54,6 @@ const createVitessce = async element => {
   }, {});
 
   const selectedFactor = 'Oligodendrocyte MF';
-
-  // From previous image tiling:
-  // const columns = 10;
-  // const itemSize = Math.floor(baseWidth / columns);
-  // const stepSize = imageWidth / columns;
-  // const offset = stepSize / 2;
-  // const numRows = Math.ceil(imageHeight / stepSize);
-  // const zoomOutLevel = -Math.log2(imageWidth / baseWidth);
 
   const itemSize = 64;
 
@@ -169,9 +120,10 @@ const createVitessce = async element => {
 
   const vitessceRenderer = createVitessceRenderer(getData, {
     colors: [
-      [255, 128, 0],
-      [0, 128, 255]
-    ]
+      [0, 255, 0],
+      [0, 0, 255]
+    ],
+    domains: Object.values(ZARR_RANGES)
   });
 
   const umap = createUmap();
