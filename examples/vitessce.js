@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 // From previous image tiling:
 // import { openArray } from 'zarr';
 import createPilingJs from '../src/library';
+import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 import createBBox from '../src/bounding-box';
@@ -124,7 +125,6 @@ const createVitessce = async element => {
     );
 
   const padding = 0.25;
-  let maxYCenterId = -1;
 
   const createItems = factor =>
     Object.entries(cellsByFactor[factor]).map(([id, cell]) => {
@@ -139,7 +139,6 @@ const createVitessce = async element => {
       });
 
       const bBox = polyToBbox(cell.poly);
-      const target = cell.xy;
       const cellSize = Math.max(bBox.width, bBox.height);
       const paddedCellSize = cellSize * (1 + padding * 2);
       const zoom = Math.max(
@@ -147,15 +146,15 @@ const createVitessce = async element => {
         -Math.log2(paddedCellSize / itemSize)
       );
 
-      maxYCenterId =
-        maxYCenterId === -1 ||
-        target[1] >= cellsByFactor[factor][maxYCenterId].xy[1]
-          ? id
-          : maxYCenterId;
-
       item.src = {
-        target,
-        zoom
+        minX: bBox.minX - bBox.width * padding,
+        minY: bBox.minY - bBox.height * padding,
+        maxX: bBox.maxX + bBox.width * padding,
+        maxY: bBox.maxY + bBox.height * padding,
+        cX: bBox.cX,
+        cY: bBox.cY,
+        zoom,
+        zoomLevel: Math.ceil(zoom)
       };
 
       return item;
@@ -163,42 +162,17 @@ const createVitessce = async element => {
 
   const items = createItems(selectedFactor);
 
-  // console.log(imageWidth, imageHeight);
+  const getData = await createVitessceDataFetcher({
+    channels: ZARR_CHANNELS,
+    minZoom: ZARR_MIN_ZOOM
+  });
 
-  // console.log(
-  //   selectedFactor,
-  //   items.length,
-  //   maxYCenterId,
-  //   cellsByFactor[selectedFactor][maxYCenterId].xy,
-  //   items.find(item => item.id === maxYCenterId)
-  // );
-
-  // From previous image tiling:
-  // const items = new Array(numRows).fill().flatMap((_, i) =>
-  //   // eslint-disable-next-line no-shadow
-  //   new Array(columns).fill().map((_, j) => ({
-  //     src: {
-  //       target: [offset + stepSize * j, offset + stepSize * i, 0],
-  //       zoom: zoomOutLevel
-  //     },
-  //     cX: offset + stepSize * j,
-  //     cY: offset + stepSize * i
-  //   }))
-  // );
-
-  const vitessceRenderer = createVitessceRenderer(
-    {
-      channels: ZARR_CHANNELS,
-      minZoom: ZARR_MIN_ZOOM,
-      size: itemSize
-    },
-    {
-      colors: [
-        [255, 128, 0],
-        [0, 128, 255]
-      ]
-    }
-  );
+  const vitessceRenderer = createVitessceRenderer(getData, {
+    colors: [
+      [0, 0, 255],
+      [0, 255, 0]
+    ]
+  });
 
   const umap = createUmap();
 
@@ -224,7 +198,7 @@ const createVitessce = async element => {
     darkMode: true,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer,
-    items: [items.find(item => item.id === maxYCenterId)],
+    items: [items[0]],
     itemSize,
     cellPadding: 8,
     pileItemAlignment: false,

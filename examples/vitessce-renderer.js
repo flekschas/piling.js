@@ -1,132 +1,95 @@
-import { Deck, OrthographicView } from '@deck.gl/core';
-import { toVoid } from '@flekschas/utils';
-import { VivViewerLayer } from '@hubmap/vitessce-image-viewer';
 import * as PIXI from 'pixi.js';
 
-// VIV currently supports up to 6 right now
-const DEFAULT_ACTIVE_CHANNELS = [true, true, true, true, true, true];
+import FS from './vitessce.fs';
+import VS from './vitessce.vs';
+import { CustomBufferResource, rgb2hsv } from './vitessce-utils';
+
+// const DEFAULT_ACTIVE_CHANNELS = [true, true, true, true];
 
 const DEFAULT_COLORS = [
-  [255, 0, 0],
-  [0, 255, 0],
-  [0, 0, 255],
-  [255, 128, 0],
-  [0, 128, 255],
-  [128, 0, 255]
+  ...rgb2hsv(255, 0, 0),
+  ...rgb2hsv(0, 255, 0),
+  ...rgb2hsv(0, 0, 255),
+  ...rgb2hsv(255, 128, 0)
 ];
 
-// These domains define the color scaling. Give uint16 values the domain can
-// be in [0, 256^2 - 1]
+// prettier-ignore
 const DEFAULT_DOMAINS = [
-  [0, 256 ** 2 - 1],
-  [0, 256 ** 2 - 1],
-  [0, 256 ** 2 - 1],
-  [0, 256 ** 2 - 1],
-  [0, 256 ** 2 - 1],
-  [0, 256 ** 2 - 1]
+  0, 256 ** 2 - 1,
+  0, 256 ** 2 - 1,
+  0, 256 ** 2 - 1,
+  0, 256 ** 2 - 1
 ];
 
 const createVitessceRenderer = (
-  { channels, minZoom, size },
+  getData,
   {
-    activeChannels = DEFAULT_ACTIVE_CHANNELS,
+    // activeChannels = DEFAULT_ACTIVE_CHANNELS,
     domains = DEFAULT_DOMAINS,
     colors = DEFAULT_COLORS
   }
 ) => async sources => {
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl2');
+  // const canvas = document.createElement('canvas');
 
-  const sliderValues = {};
-  const colorValues = {};
-  const channelsOn = {};
+  const geometry = new PIXI.Geometry();
+  geometry.addAttribute('aPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
+  geometry.addAttribute('aTexCoords', [0, 1, 1, 1, 1, 0, 0, 0], 2);
+  geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
-  Object.keys(channels).forEach((channel, i) => {
-    sliderValues[channel] = domains[i];
-    colorValues[channel] = colors[i];
-    channelsOn[channel] = activeChannels[i];
-  });
+  // PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL2;
 
-  let tilesLoaded;
+  // const renderer = new PIXI.Renderer({
+  //   view: canvas,
+  //   width: size,
+  //   height: size
+  // });
 
-  const layers = [
-    new VivViewerLayer({
-      useTiff: false,
-      useZarr: true,
-      sourceChannels: channels,
-      minZoom,
-      sliderValues,
-      colorValues,
-      channelsOn,
-      onTileError: error => {
-        console.error(error);
-      },
-      onViewportLoad: () => {
-        tilesLoaded = true;
-      }
-    })
-  ];
+  // const stage = new PIXI.Container();
 
-  const views = [new OrthographicView()];
+  return Promise.all(
+    sources.map(async source => {
+      const channels = await getData(source);
 
-  let loaded;
-  const isLoaded = new Promise(resolve => {
-    loaded = resolve;
-  });
+      const createTexture = (data, { width, height }) => {
+        const resource = new CustomBufferResource(data, {
+          width,
+          height,
+          internalFormat: 'R32F',
+          format: 'RED',
+          type: 'FLOAT'
+        });
 
-  const onLoad = () => {
-    loaded();
-  };
+        return new PIXI.BaseTexture(resource, {
+          scaleMode: PIXI.SCALE_MODES.NEAREST
+        });
+      };
 
-  const deck = new Deck({
-    onLoad,
-    gl,
-    layers,
-    views,
-    width: `${size}px`,
-    height: `${size}px`,
-    viewState: { target: [0, 0, 0] }
-  });
+      const textures = channels.reduce((t, tensor, i) => {
+        t[`uTexSampler${i}`] = createTexture(tensor.values, {
+          width: tensor.shape[1],
+          height: tensor.shape[0]
+        });
+        return t;
+      }, {});
 
-  const drawToCanvas = () => {
-    const newCanvas = document.createElement('canvas');
-    newCanvas.width = size;
-    newCanvas.height = size;
-    const ctx = newCanvas.getContext('2d');
-
-    ctx.drawImage(gl.canvas, 0, 0);
-
-    return newCanvas;
-  };
-
-  const render = ({ target, zoom }) =>
-    new Promise(resolve => {
-      tilesLoaded = false;
-      deck.setProps({
-        viewState: {
-          target,
-          zoom
-        },
-        onAfterRender: () => {
-          if (!deck.needsRedraw() && tilesLoaded) {
-            resolve(PIXI.Texture.from(drawToCanvas()));
-            deck.setProps({ onAfterRender: toVoid });
-          }
-        }
+      const uniforms = new PIXI.UniformGroup({
+        uColors: colors,
+        uDomains: domains,
+        ...textures
       });
-    });
 
-  await isLoaded;
+      const shader = PIXI.Shader.from(VS, FS, uniforms);
 
-  const textures = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const source of sources) {
-    // eslint-disable-next-line no-await-in-loop
-    const texture = await render(source);
-    textures.push(texture);
-  }
+      const state = new PIXI.State();
 
-  return textures;
+      const mesh = new PIXI.Mesh(geometry, shader, state);
+
+      // const graphics = new PIXI.Graphics();
+      // graphics.addChild(mesh);
+
+      return new PIXI.Texture(mesh);
+    })
+  );
 };
 
 export default createVitessceRenderer;
