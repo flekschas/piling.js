@@ -7,10 +7,10 @@ import { CustomBufferResource, rgb2hsv } from './vitessce-utils';
 // const DEFAULT_ACTIVE_CHANNELS = [true, true, true, true];
 
 const DEFAULT_COLORS = [
-  ...rgb2hsv(255, 0, 0),
-  ...rgb2hsv(0, 255, 0),
-  ...rgb2hsv(0, 0, 255),
-  ...rgb2hsv(255, 128, 0)
+  [255, 0, 0],
+  [0, 255, 0],
+  [0, 0, 255],
+  [255, 128, 0]
 ];
 
 // prettier-ignore
@@ -36,7 +36,11 @@ const createVitessceRenderer = (
   geometry.addAttribute('aTexCoords', [0, 1, 1, 1, 1, 0, 0, 0], 2);
   geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
+  const hsvColors = colors.flatMap(rgb2hsv);
+
   // PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL2;
+
+  // const renderer = PIXI.autoDetectRenderer();
 
   // const renderer = new PIXI.Renderer({
   //   view: canvas,
@@ -73,7 +77,7 @@ const createVitessceRenderer = (
       }, {});
 
       const uniforms = new PIXI.UniformGroup({
-        uColors: colors,
+        uColors: hsvColors,
         uDomains: domains,
         ...textures
       });
@@ -84,10 +88,17 @@ const createVitessceRenderer = (
 
       const mesh = new PIXI.Mesh(geometry, shader, state);
 
+      return mesh;
+
       // const graphics = new PIXI.Graphics();
       // graphics.addChild(mesh);
 
-      return new PIXI.Texture(mesh);
+      // const renderTexture = PIXI.RenderTexture.create(64, 64);
+      // renderer.render(mesh, renderTexture);
+
+      // console.log(renderTexture);
+
+      // return renderTexture.baseTexture;
     })
   );
 };

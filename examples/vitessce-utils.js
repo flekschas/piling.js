@@ -247,7 +247,7 @@ export function getRasterTileIndices({
   return indices;
 }
 
-export const rgb2hsv = (r, g, b) => {
+export const rgb2hsv = ([r, g, b]) => {
   let h;
   let s;
   const rabs = r / 255;
