@@ -479,7 +479,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       }
       labelTitle.appendChild(valueEl);
 
-      const inputs = document.createElement('inputs');
+      const inputs = document.createElement('div');
       inputs.setAttribute('class', 'inputs');
       const input = createInput(field);
 
