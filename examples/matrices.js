@@ -108,7 +108,7 @@ const createMatrixPiles = async element => {
   });
 
   // Uncomment the following code to apply UMAP on the raw data
-  // pilingJs.arrangeBy(
+  // piling.arrangeBy(
   //   'data',
   //   {
   //     property: item => item.src.data,
