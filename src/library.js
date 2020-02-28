@@ -803,7 +803,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     });
 
-    pileInstances.forEach(pile => pile.updateCover());
+    pileInstances.forEach(pile => {
+      pile.updateCover();
+      pile.updateOffset();
+    });
   };
 
   const movePileTo = (pile, x, y) => {
@@ -839,8 +842,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const [x, y] = layout.idxToXy(
           cellIndex,
-          pile.graphics.width,
-          pile.graphics.height
+          pile.width,
+          pile.height,
+          pile.offset
         );
 
         movingPiles.push({ id: pile.id, x, y });
@@ -865,8 +869,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         item.setOriginalPosition(
           layout.idxToXy(
             item.id,
-            item.image.displayObject.width,
-            item.image.displayObject.height
+            item.image.width,
+            item.image.height,
+            item.image.center
           )
         );
       });
@@ -1040,10 +1045,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const getPilePositionBy1dOrdering = (pileId, pileWidth, pileHeight) =>
-    Promise.resolve(
-      layout.idxToXy(pileSortPosByAggregate[0][pileId], pileWidth, pileHeight)
+  const getPilePositionBy1dOrdering = pileId => {
+    const pile = pileInstances.get(pileId);
+    return Promise.resolve(
+      layout.idxToXy(
+        pileSortPosByAggregate[0][pileId],
+        pile.width,
+        pile.height,
+        pile.offset
+      )
     );
+  };
 
   const getPilePositionBy2dScales = pileId =>
     Promise.resolve(
@@ -1082,7 +1094,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return pilePos;
   };
 
-  const getPilePositionByData = (pileId, pileWidth, pileHeight, pileState) => {
+  const getPilePositionByData = (pileId, pileState) => {
     const { arrangementObjective, arrangementOptions } = store.state;
 
     if (
@@ -1097,7 +1109,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (arrangementObjective.length) {
-      return getPilePositionBy1dOrdering(pileId, pileWidth, pileHeight);
+      return getPilePositionBy1dOrdering(pileId);
     }
 
     console.warn(
@@ -1117,16 +1129,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       ? arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE
       : arrangementObjective;
 
-    const pileInstance = pileInstances.get(pileId);
+    const pile = pileInstances.get(pileId);
     const pileState = piles[pileId];
-    const pileWidth = pileInstance.graphics.width;
-    const pileHeight = pileInstance.graphics.height;
 
-    const ijToXy = (i, j) => layout.ijToXy(i, j, pileWidth, pileHeight);
+    const ijToXy = (i, j) =>
+      layout.ijToXy(i, j, pile.width, pile.height, pile.offset);
 
     switch (type) {
       case 'data':
-        return getPilePositionByData(pileId, pileWidth, pileHeight, pileState);
+        return getPilePositionByData(pileId, pileState);
 
       case 'index':
         return Promise.resolve(
@@ -3168,7 +3179,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         tweeners.push(
           createTweener({
-            duration: cubicOut(Math.min(d, 250) / 250) * 250,
+            duration: Math.max(125, cubicOut(Math.min(d, 250) / 250) * 250),
             interpolator: interpolateVector,
             endValue: [x, y],
             getter: () => {
