@@ -4,6 +4,7 @@ import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 import createBBox from '../src/bounding-box';
+import { rgb2hsv } from './vitessce-utils';
 
 const METADATA_URL =
   'https://vitessce-data.s3.amazonaws.com/0.0.20/master_release/linnarsson/linnarsson.cells.json';
@@ -105,11 +106,13 @@ const createVitessce = async element => {
     minZoom: ZARR_MIN_ZOOM
   });
 
+  const colors = {
+    polyT: [255, 128, 0],
+    nuclei: [0, 128, 255]
+  };
+
   const vitessceRenderer = createVitessceRenderer(getData, {
-    colors: [
-      [0, 255, 0],
-      [0, 0, 255]
-    ],
+    colors: Object.values(colors),
     domains: null // Auto-scale channels
   });
 
@@ -136,7 +139,7 @@ const createVitessce = async element => {
   const piling = createPilingJs(element, {
     darkMode: true,
     dimensionalityReducer: umap,
-    renderer: vitessceRenderer,
+    renderer: vitessceRenderer.renderer,
     items,
     itemSize,
     cellPadding: 8,
@@ -170,6 +173,44 @@ const createVitessce = async element => {
           ],
           setter: factor => {
             piling.set('items', createItems(factor));
+          }
+        }
+      ]
+    },
+    {
+      id: 'coloring',
+      title: 'Coloring',
+      fields: [
+        {
+          name: 'poly-T hue',
+          id: 'polyt-hue',
+          dtype: 'float',
+          min: 0,
+          max: 1,
+          numSteps: 360,
+          defaultValue: rgb2hsv(colors.polyT)[0],
+          onInput: true,
+          setter: hue => {
+            vitessceRenderer.uniforms.forEach(({ uniforms }) => {
+              uniforms.uColors[0] = hue;
+            });
+            piling.render();
+          }
+        },
+        {
+          name: 'nuclei',
+          id: 'nuclei-hue',
+          dtype: 'float',
+          min: 0,
+          max: 1,
+          numSteps: 360,
+          defaultValue: rgb2hsv(colors.nuclei)[0],
+          onInput: true,
+          setter: hue => {
+            vitessceRenderer.uniforms.forEach(({ uniforms }) => {
+              uniforms.uColors[3] = hue;
+            });
+            piling.render();
           }
         }
       ]

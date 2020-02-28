@@ -23,7 +23,7 @@ const DEFAULT_DOMAINS = [
 const createVitessceRenderer = (
   getData,
   { domains: customDomains = null, colors: customColors = [] }
-) => async sources => {
+) => {
   const geometry = new PIXI.Geometry();
   geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
   geometry.addAttribute('aTextureCoord', [0, 1, 1, 1, 1, 0, 0, 0], 2);
@@ -35,61 +35,76 @@ const createVitessceRenderer = (
   });
 
   const domains = Array.isArray(customDomains)
-    ? DEFAULT_DOMAINS.flatMap((domain, i) => {
-        if (customDomains[i]) return customDomains[i];
-        return domain;
-      })
+    ? new Float32Array(
+        DEFAULT_DOMAINS.flatMap((domain, i) => {
+          if (customDomains[i]) return customDomains[i];
+          return domain;
+        })
+      )
     : null;
 
-  return Promise.all(
-    sources.map(async source => {
-      const channels = await getData(source);
+  const allUniforms = [];
 
-      const [height, width] = channels[0].shape;
+  const renderer = async sources =>
+    Promise.all(
+      sources.map(async source => {
+        const channels = await getData(source);
 
-      const createTexture = data => {
-        const resource = new CustomBufferResource(data, {
-          width,
-          height,
-          internalFormat: 'R32F',
-          format: 'RED',
-          type: 'FLOAT'
+        const [height, width] = channels[0].shape;
+
+        const createTexture = data => {
+          const resource = new CustomBufferResource(data, {
+            width,
+            height,
+            internalFormat: 'R32F',
+            format: 'RED',
+            type: 'FLOAT'
+          });
+
+          return new PIXI.Texture(
+            new PIXI.BaseTexture(resource, {
+              scaleMode: PIXI.SCALE_MODES.NEAREST
+            })
+          );
+        };
+
+        const valueRanges =
+          domains === null
+            ? channels.flatMap(tensor => [
+                min(tensor.values),
+                max(tensor.values)
+              ])
+            : domains;
+
+        const textures = channels.reduce((t, tensor, i) => {
+          t[`uTexSampler${i}`] = createTexture(tensor.values);
+          return t;
+        }, {});
+
+        const uniforms = new PIXI.UniformGroup({
+          uColors: colors,
+          uDomains: valueRanges,
+          ...textures
         });
 
-        return new PIXI.Texture(
-          new PIXI.BaseTexture(resource, {
-            scaleMode: PIXI.SCALE_MODES.NEAREST
-          })
-        );
-      };
+        allUniforms.push(uniforms);
 
-      const valueRanges =
-        domains === null
-          ? channels.flatMap(tensor => [min(tensor.values), max(tensor.values)])
-          : domains;
+        const shader = PIXI.Shader.from(VS, FS, uniforms);
 
-      const textures = channels.reduce((t, tensor, i) => {
-        t[`uTexSampler${i}`] = createTexture(tensor.values);
-        return t;
-      }, {});
+        const state = new PIXI.State();
 
-      const uniforms = new PIXI.UniformGroup({
-        uColors: colors,
-        uDomains: valueRanges,
-        ...textures
-      });
+        const mesh = new PIXI.Mesh(geometry, shader, state);
+        mesh.width = width;
+        mesh.height = height;
 
-      const shader = PIXI.Shader.from(VS, FS, uniforms);
+        return mesh;
+      })
+    );
 
-      const state = new PIXI.State();
-
-      const mesh = new PIXI.Mesh(geometry, shader, state);
-      mesh.width = width;
-      mesh.height = height;
-
-      return mesh;
-    })
-  );
+  return {
+    uniforms: allUniforms,
+    renderer
+  };
 };
 
 export default createVitessceRenderer;

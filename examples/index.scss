@@ -437,6 +437,30 @@ body.dark-mode #undo {
   }
 }
 
+#polyt-hue::-webkit-slider-runnable-track,
+#nuclei-hue::-webkit-slider-runnable-track {
+  // prettier-ignore
+  background: -webkit-linear-gradient(
+    right, red, orange, yellow, green, cyan, blue, violet, red
+  );
+  // prettier-ignore
+  background: linear-gradient(
+    to right, red, orange, yellow, green, cyan, blue, violet, red
+  );
+}
+
+#polyt-hue::-moz-range-track,
+#nuclei-hue::-moz-range-track {
+  // prettier-ignore
+  background: -moz-linear-gradient(
+    right, red, orange, yellow, green, cyan, blue, violet, red
+  );
+  // prettier-ignore
+  background: linear-gradient(
+    to right, red, orange, yellow, green, cyan, blue, violet, red
+  );
+}
+
 /*
  * -----------------------------------------------------------------------------
  * Media Queries
