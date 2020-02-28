@@ -396,6 +396,12 @@ const createGrid = (
     get cellPadding() {
       return cellPadding;
     },
+    get width() {
+      return width;
+    },
+    get height() {
+      return height;
+    },
     // Methods
     align,
     ijToXy,

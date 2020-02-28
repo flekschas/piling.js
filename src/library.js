@@ -620,37 +620,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updateGrid = () => {
     const oldLayout = layout;
 
-    const {
-      cellAspectRatio,
-      cellPadding,
-      columns,
-      itemSize,
-      orderer,
-      pileCellAlignment,
-      rowHeight,
-      showGrid
-    } = store.state;
-
     const { width, height } = canvas.getBoundingClientRect();
 
-    layout = createGrid(
-      { width, height },
-      {
-        itemSize,
-        columns,
-        rowHeight,
-        cellAspectRatio,
-        orderer,
-        pileCellAlignment,
-        cellPadding
-      }
-    );
+    layout = createGrid({ width, height }, store.state);
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
     updateScrollHeight();
 
-    if (showGrid) {
+    if (store.state.showGrid) {
       drawGrid();
     }
   };
@@ -659,9 +637,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe(
       'animationEnd',
       () => {
-        // Set layout to the old layout given the old element width and height
-        layout = createGrid({ width, height }, store.state);
-        updateGrid();
+        if (layout.width !== width || layout.height !== height) {
+          // Set layout to the old layout given the old element width and height
+          layout = createGrid({ width, height }, store.state);
+          updateGrid();
+        }
       },
       1
     );
@@ -836,14 +816,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const oldRowNum = Math.floor(pile.bBox.cY / oldLayout.rowHeight);
         const oldColumnNum = Math.floor(pile.bBox.cX / oldLayout.columnWidth);
 
-        const cellIndex = Math.round(
+        pile.updateOffset();
+        updatePileBounds(pile.id);
+
+        const oldCellIndex = Math.round(
           oldRowNum * oldLayout.numColumns + oldColumnNum
         );
 
         const [x, y] = layout.idxToXy(
-          cellIndex,
-          pile.width,
-          pile.height,
+          oldCellIndex,
+          pile.anchorBox.width,
+          pile.anchorBox.height,
           pile.offset
         );
 
