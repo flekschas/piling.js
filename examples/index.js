@@ -235,7 +235,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 16,
           max: 320,
-          steps: 16,
+          numSteps: 16,
           nullifiable: true
         },
         {
@@ -243,7 +243,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 0,
           max: 64,
-          steps: 8
+          numSteps: 8
         },
         {
           name: 'columns',
@@ -257,7 +257,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 16,
           max: 320,
-          steps: 16,
+          numSteps: 16,
           nullifiable: true
         },
         {
@@ -426,6 +426,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     }
 
     const input = document.createElement('input');
+    if (field.id) input.id = field.id;
     input.setAttribute('type', dtypeToInputType[field.dtype]);
 
     if (!Number.isNaN(+field.min)) {
@@ -440,9 +441,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       input.className = 'range-slider';
     }
 
-    if (!Number.isNaN(+field.step)) {
+    if (!Number.isNaN(+field.numSteps)) {
+      const step = (+field.max - +field.min) / +field.numSteps;
       input.setAttribute('type', 'range');
-      input.setAttribute('step', +field.step);
+      input.setAttribute('step', step);
       input.className = 'range-slider';
     }
 
@@ -529,7 +531,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         inputs.appendChild(isSet);
       }
 
-      input.addEventListener('change', event => {
+      const eventType = field.onInput ? 'input' : 'change';
+
+      input.addEventListener(eventType, event => {
         let value = event.target.value;
 
         if (field.values && field.multiple) {
