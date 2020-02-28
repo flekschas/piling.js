@@ -68,6 +68,9 @@ const createPile = (
   let isScaling = false;
   let isMoving = false;
 
+  let offsetRelatedScaleFactor = -1;
+  let offset = [0, 0];
+
   let mode = MODE_NORMAL;
 
   let baseScale = 1;
@@ -194,7 +197,7 @@ const createPile = (
 
     const x = contentBounds.x - borderBounds.x;
     const y = contentBounds.y - borderBounds.y;
-    const offset = Math.ceil(size / 2);
+    const borderOffset = Math.ceil(size / 2);
 
     // draw black background
     borderGraphics.beginFill(
@@ -202,10 +205,10 @@ const createPile = (
       state.pileBackgroundOpacity
     );
     borderGraphics.drawRect(
-      x - offset,
-      y - offset,
-      contentBounds.width + 2 * offset,
-      contentBounds.height + 2 * offset
+      x - borderOffset,
+      y - borderOffset,
+      contentBounds.width + 2 * borderOffset,
+      contentBounds.height + 2 * borderOffset
     );
     borderGraphics.endFill();
 
@@ -216,10 +219,10 @@ const createPile = (
       state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
     );
     borderGraphics.drawRect(
-      x - offset,
-      y - offset,
-      contentBounds.width + 2 * offset,
-      contentBounds.height + 2 * offset
+      x - borderOffset,
+      y - borderOffset,
+      contentBounds.width + 2 * borderOffset,
+      contentBounds.height + 2 * borderOffset
     );
 
     render();
@@ -558,19 +561,19 @@ const createPile = (
         const itemState = store.state.items[item.id];
         const itemIndex = pileState.items.indexOf(item.id);
 
-        const offset = isFunction(pileItemOffset)
+        const itemOffset = isFunction(pileItemOffset)
           ? pileItemOffset(itemState, itemIndex, pileState)
           : pileItemOffset.map(_offset => _offset * itemIndex);
 
-        const angle = isFunction(pileItemRotation)
+        const itemRotation = isFunction(pileItemRotation)
           ? pileItemRotation(itemState, itemIndex, pileState)
           : pileItemRotation;
 
         animatePositionItems(
           displayObject,
-          offset[0],
-          offset[1],
-          angle,
+          itemOffset[0],
+          itemOffset[1],
+          itemRotation,
           animator,
           count === newItems.size
         );
@@ -718,6 +721,14 @@ const createPile = (
     return moveToTweener;
   };
 
+  const updateOffset = () => {
+    const firstImage = allItems[0].item.image;
+    if (firstImage.scaleFactor !== offsetRelatedScaleFactor) {
+      offsetRelatedScaleFactor = firstImage.scaleFactor;
+      offset = firstImage.offset;
+    }
+  };
+
   const moveTo = (x, y) => {
     rootGraphics.x = x;
     rootGraphics.y = y;
@@ -828,6 +839,8 @@ const createPile = (
     } else {
       addNormalItem(item);
     }
+
+    if (allItems.length === 1) updateOffset();
   };
 
   const removeItem = item => {
@@ -991,6 +1004,9 @@ const createPile = (
     get contentGraphics() {
       return contentGraphics;
     },
+    get height() {
+      return rootGraphics.height;
+    },
     get isFocus() {
       return isFocus;
     },
@@ -1009,6 +1025,9 @@ const createPile = (
     get normalItemContainer() {
       return normalItemContainer;
     },
+    get offset() {
+      return [...offset];
+    },
     get previewItemContainer() {
       return previewItemContainer;
     },
@@ -1023,6 +1042,9 @@ const createPile = (
     },
     get tempDepileContainer() {
       return tempDepileContainer;
+    },
+    get width() {
+      return rootGraphics.width;
     },
     get x() {
       return rootGraphics.x;
@@ -1060,6 +1082,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
+    updateOffset,
     replaceItemsImage,
     unmagnify
   };
