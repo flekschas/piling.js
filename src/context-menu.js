@@ -71,6 +71,9 @@ const TEMPLATE = `<ul id="piling-js-context-menu-list">
     <button id="temp-depile-button">Temp. Depile</button>
   </li>
   <li>
+    <button id="browse-separately">Browse Separately</button>
+  </li>
+  <li>
     <button id="grid-button">Show Grid</button>
   </li>
   <li>

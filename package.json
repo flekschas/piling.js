@@ -45,7 +45,8 @@
     "pretest": "npm run lint",
     "start": "webpack-dev-server --config ./webpack.config.js --mode development --open",
     "test": "rollup -c; webpack --config ./webpack.config.js",
-    "watch": "rollup -cw"
+    "watch": "rollup -cw",
+    "wbuild": "webpack --config ./webpack.config.js --mode development"
   },
   "lint-staged": {
     "*.js": [
@@ -63,7 +64,7 @@
     "singleQuote": true
   },
   "dependencies": {
-    "@flekschas/utils": "~0.6.0",
+    "@flekschas/utils": "~0.16.0",
     "camera-2d-simple": "~2.0.1",
     "deep-equal": "~1.1.0",
     "dom-2d-camera": "~1.0.0-rc.6",
@@ -71,6 +72,7 @@
     "liang-barsky": "~1.0.4",
     "ndarray": "~1.0.18",
     "ndarray-convolve": "~2.0.0",
+    "ndjson-to-json-text": "^1.0.2",
     "normalize-wheel": "~1.0.1",
     "pixi.js": "~5.1.6",
     "pub-sub-es": "~1.2.1",
@@ -80,12 +82,14 @@
     "redux-freeze": "~0.1.7",
     "regl": "~1.3.13",
     "style-object-to-css-string": "~1.0.1",
+    "umap-js": "~1.3.2",
     "with-raf": "~1.1.1"
   },
   "peerDependencies": {
     "pub-sub-es": "~1.2.1",
     "pixi.js": "~5.1.6",
-    "regl": "~1.3.13"
+    "regl": "~1.3.13",
+    "umap-js": "~1.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.7.7",
@@ -103,6 +107,7 @@
     "browser-env": "^3.2.5",
     "d3": "^5.15.0",
     "d3-scale-chromatic": "^1.5.0",
+    "d3-shape": "^1.3.7",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.9.0",
@@ -118,6 +123,7 @@
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
+    "raw-loader": "^4.0.0",
     "rollup": "^1.29.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-filesize": "^6.2.1",

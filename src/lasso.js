@@ -41,11 +41,13 @@ const removeRule = index => {
   lassoStylesheets.deleteRule(index);
 };
 
-const scaleInFadeOut = `
+const inAnimation = `${LASSO_SHOW_START_INDICATOR_TIME}ms ease scaleInFadeOut 0s 1 normal backwards`;
+
+const createInAnimationRule = (currentOpacity, currentScale) => `
 @keyframes scaleInFadeOut {
   0% {
-    opacity: 0;
-    transform: translate(-50%,-50%) scale(0);
+    opacity: ${currentOpacity};
+    transform: translate(-50%,-50%) scale(${currentScale});
   }
   10% {
     opacity: 1;
@@ -53,14 +55,13 @@ const scaleInFadeOut = `
   }
   100% {
     opacity: 0;
-    transform: translate(-50%,-50%) scale(1);
+    transform: translate(-50%,-50%) scale(0.9);
   }
 }
 `;
+let inAnimationRuleIndex = null;
 
-addRule(scaleInFadeOut);
-
-const inAnimation = `${LASSO_SHOW_START_INDICATOR_TIME}ms ease scaleInFadeOut 0s 1 normal backwards`;
+const outAnimation = `${LASSO_HIDE_START_INDICATOR_TIME}ms ease fadeScaleOut 0s 1 normal backwards`;
 
 const createOutAnimationRule = (currentOpacity, currentScale) => `
 @keyframes fadeScaleOut {
@@ -74,8 +75,6 @@ const createOutAnimationRule = (currentOpacity, currentScale) => `
   }
 }
 `;
-
-const outAnimation = `${LASSO_HIDE_START_INDICATOR_TIME}ms ease fadeScaleOut 0s 1 normal backwards`;
 let outAnimationRuleIndex = null;
 
 const createLasso = ({
@@ -135,6 +134,16 @@ const createLasso = ({
     isMouseDown = false;
   };
 
+  const indicatorClickHandler = event => {
+    const parent = event.target.parentElement;
+
+    if (!parent) return;
+
+    const rect = parent.getBoundingClientRect();
+
+    showStartIndicator([event.clientX - rect.left, event.clientY - rect.top]);
+  };
+
   const indicatorMouseDownHandler = () => {
     isMouseDown = true;
     isLasso = true;
@@ -148,10 +157,37 @@ const createLasso = ({
 
   window.addEventListener('mouseup', mouseUpHandler);
 
+  const resetStartIndicatorStyle = () => {
+    startIndicator.style.opacity = 0.5;
+    startIndicator.style.transform = 'translate(-50%,-50%) scale(0)';
+  };
+
+  const getCurrentStartIndicatorAnimationStyle = () => {
+    const computedStyle = getComputedStyle(startIndicator);
+    const opacity = +computedStyle.opacity;
+    // The css rule `transform: translate(-1, -1) scale(0.5);` is represented as
+    // `matrix(0.5, 0, 0, 0.5, -1, -1)`
+    const m = computedStyle.transform.match(/([0-9.-]+)+/g);
+    const scale = m ? +m[0] : 1;
+
+    return { opacity, scale };
+  };
+
   const showStartIndicator = async ([x, y]) => {
     await wait(0);
 
-    if (!isShowStartIndicator || isMouseDown) return;
+    if (isMouseDown) return;
+
+    let opacity = 0.5;
+    let scale = 0;
+
+    if (isShowStartIndicator) {
+      const style = getCurrentStartIndicatorAnimationStyle();
+      opacity = style.opacity;
+      scale = style.scale;
+      startIndicator.style.opacity = opacity;
+      startIndicator.style.transform = `translate(-50%,-50%) scale(${scale})`;
+    }
 
     startIndicator.style.animation = 'none';
 
@@ -161,20 +197,23 @@ const createLasso = ({
 
     startIndicator.style.top = `${y}px`;
     startIndicator.style.left = `${x}px`;
+
+    if (inAnimationRuleIndex !== null) removeRule(inAnimationRuleIndex);
+
+    inAnimationRuleIndex = addRule(createInAnimationRule(opacity, scale));
+
     startIndicator.style.animation = inAnimation;
+
+    await nextAnimationFrame();
+    resetStartIndicatorStyle();
   };
 
   const hideStartIndicator = async () => {
-    const computedStyle = getComputedStyle(startIndicator);
-    const opacity = +computedStyle.opacity;
-    // The css rule `transform: translate(-1, -1) scale(0.5);` is represented as
-    // `matrix(0.5, 0, 0, 0.5, -1, -1)`
-    const m = computedStyle.transform.match(/([0-9.-]+)+/g);
-    const scale = m ? +m[0] : 1;
-
-    startIndicator.style.animation = 'none';
+    const { opacity, scale } = getCurrentStartIndicatorAnimationStyle();
     startIndicator.style.opacity = opacity;
     startIndicator.style.transform = `translate(-50%,-50%) scale(${scale})`;
+
+    startIndicator.style.animation = 'none';
 
     await nextAnimationFrame(2);
 
@@ -185,10 +224,7 @@ const createLasso = ({
     startIndicator.style.animation = outAnimation;
 
     await nextAnimationFrame();
-
-    // Reset to default CSS
-    startIndicator.style.opacity = 0.5;
-    startIndicator.style.transform = 'translate(-50%,-50%) scale(0)';
+    resetStartIndicatorStyle();
   };
 
   const draw = () => {
@@ -250,13 +286,13 @@ const createLasso = ({
 
   const end = () => {
     isLasso = false;
-    const lassoPolygon = [...lassoPosFlat];
+    const lassoPoints = [...lassoPos];
 
     extendDb.cancel();
 
     clear();
 
-    return lassoPolygon;
+    return lassoPoints;
   };
 
   const ifNotNull = (v, alternative) => (v === null ? alternative : v);
@@ -293,6 +329,7 @@ const createLasso = ({
     startIndicator.style.background = getBackgroundColor();
 
     if (isShowStartIndicator) {
+      startIndicator.addEventListener('click', indicatorClickHandler);
       startIndicator.addEventListener('mousedown', indicatorMouseDownHandler);
       startIndicator.addEventListener('mouseleave', indicatorMouseLeaveHandler);
     } else {
@@ -309,6 +346,7 @@ const createLasso = ({
 
   const destroy = () => {
     window.removeEventListener('mouseup', mouseUpHandler);
+    startIndicator.removeEventListener('click', indicatorClickHandler);
     startIndicator.removeEventListener('mousedown', indicatorMouseDownHandler);
     startIndicator.removeEventListener(
       'mouseleave',

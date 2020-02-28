@@ -3,16 +3,40 @@ import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createSplomPiles from './sploms';
 import createSploms from './splom-d3';
+import createDrawingPiles from './drawings';
+import createJoyPlotPiles from './joy-plot';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const splomEl = document.getElementById('splom');
 const splomD3El = document.getElementById('splom-d3');
+const drawingsEl = document.getElementById('drawings');
+const joyplotEl = document.getElementById('joyplot');
+
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const splomCreditEl = document.getElementById('splom-credit');
+const drawingsCreditEl = document.getElementById('drawings-credit');
+const joyplotCreditEl = document.getElementById('joyplot-credit');
+
+const conditionalElements = [
+  photosEl,
+  matricesEl,
+  svgEl,
+  splomEl,
+  splomD3El,
+  splomCreditEl,
+  drawingsEl,
+  joyplotEl,
+  photosCreditEl,
+  matricesCreditEl,
+  svgCreditEl,
+  drawingsCreditEl,
+  joyplotCreditEl
+];
+
 const optionsEl = document.getElementById('options');
 const optionsTogglerEl = document.getElementById('options-toggler');
 const undoButton = document.getElementById('undo');
@@ -53,55 +77,65 @@ const updateHandler = ({ action }) => {
   if (history.length > 5) history.shift();
 };
 
+const hideEl = el => {
+  el.style.display = 'none';
+};
+
 const createPiles = async example => {
+  let additionalOptions;
+
   switch (example) {
     case 'photos':
       if (piling) piling.destroy();
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      splomEl.style.display = 'none';
-      splomCreditEl.style.display = 'none';
-      splomD3El.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createPhotoPiles(photosEl);
+      [piling, additionalOptions] = await createPhotoPiles(photosEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
 
     case 'matrices':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      splomEl.style.display = 'none';
-      splomCreditEl.style.display = 'none';
-      splomD3El.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createMatrixPiles(matricesEl);
+      [piling, additionalOptions] = await createMatrixPiles(matricesEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
 
     case 'lines':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      splomEl.style.display = 'none';
-      splomCreditEl.style.display = 'none';
-      splomD3El.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createSvgLinesPiles(svgEl);
+      [piling, additionalOptions] = await createSvgLinesPiles(svgEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
+    case 'drawings':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      drawingsEl.style.display = 'block';
+      drawingsCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createDrawingPiles(drawingsEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
+    case 'joyplot':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      joyplotEl.style.display = 'block';
+      joyplotCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      piling = await createJoyPlotPiles(joyplotEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -143,7 +177,7 @@ const createPiles = async example => {
       break;
   }
 
-  return piling;
+  return [piling, additionalOptions];
 };
 
 const exampleEl = document.getElementById('example');
@@ -181,11 +215,20 @@ switch (example) {
     exampleEl.selectedIndex = 4;
     break;
 
+  case 'drawings':
+    exampleEl.selectedIndex = 5;
+    break;
+
+  case 'joyplot':
+    exampleEl.selectedIndex = 6;
+    break;
+
   default:
   // Nothing
 }
 
 let isOptionsOpen = false;
+const bodyClasses = document.body.className;
 
 const handleOptionsTogglerClick = event => {
   event.preventDefault();
@@ -194,16 +237,16 @@ const handleOptionsTogglerClick = event => {
 
   if (isOptionsOpen) {
     optionsEl.setAttribute('class', 'open');
-    document.body.setAttribute('class', `${window.example} options-open`);
+    document.body.setAttribute('class', `${bodyClasses} options-open`);
   } else {
     optionsEl.removeAttribute('class');
-    document.body.setAttribute('class', window.example);
+    document.body.setAttribute('class', bodyClasses);
   }
 };
 
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
-createPiles(exampleEl.value).then(pilingLib => {
+createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   const firstItem = pilingLib.get('items')[0];
   const numericalProps = Object.keys(firstItem).filter(
     prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
@@ -277,7 +320,8 @@ createPiles(exampleEl.value).then(pilingLib => {
           values: ['auto', 'panZoom', 'scroll']
         }
       ]
-    }
+    },
+    ...additionalOptions
   ];
 
   const dtypeToInputType = {
@@ -295,7 +339,9 @@ createPiles(exampleEl.value).then(pilingLib => {
   };
 
   const createInput = field => {
-    const currentValue = pilingLib.get(field.name);
+    const currentValue = field.defaultValue
+      ? field.defaultValue
+      : pilingLib.get(field.name);
 
     if (field.values) {
       if (field.multiple) {

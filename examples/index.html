@@ -90,7 +90,7 @@
         background: black;
       }
 
-      body.lines {
+      body.white-mode {
         color: black;
         background: white;
       }
@@ -100,8 +100,8 @@
         color: white;
       }
 
-      body.lines a,
-      body.lines a:visited {
+      body.white-mode a,
+      body.white-mode a:visited {
         color: black;
       }
 
@@ -110,8 +110,8 @@
         color: #ff7ff6;
       }
 
-      body.lines a:hover,
-      body.lines .credits a:hover {
+      body.white-mode a:hover,
+      body.white-mode .credits a:hover {
         color: #d900ca;
       }
 
@@ -134,7 +134,7 @@
         border-radius: 0.25rem;
       }
 
-      body.lines h1 {
+      body.white-mode h1 {
         color: white;
         background: black;
       }
@@ -226,7 +226,7 @@
         transform: translate(0, 0);
       }
 
-      body.lines #options .toggler {
+      body.white-mode #options .toggler {
         border-color: black;
       }
 
@@ -273,7 +273,7 @@
         background: black;
       }
 
-      body.lines #options.open .toggler {
+      body.white-mode #options.open .toggler {
         background: black;
       }
 
@@ -340,7 +340,19 @@
 
   <body>
     <script>
-      document.body.setAttribute('class', window.example);
+      let mode = 'dark-mode';
+      switch (window.example) {
+        case 'lines':
+        case 'drawings':
+        case 'joyplot':
+          mode = 'white-mode';
+          break;
+
+        default:
+          mode = 'dark-mode';
+          break;
+      }
+      document.body.setAttribute('class', [window.example, mode].join(' '));
     </script>
 
     <header>
@@ -363,6 +375,8 @@
               <option value="lines">Lines (SVG)</option>
               <option value="splom">SPLOM (SVG)</option>
               <option value="splom-d3">SPLOM-D3 (SVG)</option>
+              <option value="drawings">Drawings</option>
+              <option value="joyplot">Joy Plot</option>
             </select>
             <div class="credits">
               <em id="photos-credit">
@@ -388,6 +402,22 @@
                   >Smith et al., 1988</a
                 >)
               </em>
+              <em id="drawings-credit">
+                (From
+                <a
+                  href="https://github.com/googlecreativelab/quickdraw-dataset"
+                  target="_blank"
+                  >Google Quickdraw Dataset</a
+                >)
+              </em>
+              <em id="joyplot-credit">
+                (From
+                <a
+                  href="https://www.dwd.de/EN/climate_environment/cdc/cdc_node.html"
+                  target="_blank"
+                  >Deutscher Wetterdienst</a
+                >)
+              </em>
             </div>
           </div>
         </div>
@@ -399,6 +429,8 @@
     <div id="svg" class="container"></div>
     <div id="splom" class="container"></div>
     <div id="splom-d3" class="container"></div>
+    <div id="drawings" class="container"></div>
+    <div id="joyplot" class="container"></div>
 
     <aside id="options">
       <button id="options-toggler" class="toggler">

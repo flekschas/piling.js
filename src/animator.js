@@ -3,38 +3,60 @@ import withRaf from 'with-raf';
 /**
  * Factory function to create an animator
  * @param {function} render - Render funtion
+ * @param {function} pubSub - PubSub messenger
  */
-const createAnimator = render => {
-  const tweeners = new Set();
+const createAnimator = (render, pubSub) => {
+  const currentTweeners = new Set();
+  let isAnimating = false;
 
   const onCall = () => {
-    if (tweeners.size) {
+    if (currentTweeners.size) {
       // eslint-disable-next-line no-use-before-define
       animateRaf();
+    } else {
+      if (isAnimating) pubSub.publish('animationEnd');
+      isAnimating = false;
     }
   };
 
   const animate = () => {
-    tweeners.forEach((tweener, index) => {
-      if (tweener.update(index)) tweeners.delete(tweener);
+    isAnimating = true;
+    const done = [];
+    currentTweeners.forEach(tweener => {
+      if (tweener.update()) done.push(tweener);
     });
     render();
+
+    // Remove tweeners that are done updating
+    done.forEach(tweener => {
+      tweener.onDone();
+      currentTweeners.delete(tweener);
+    });
   };
 
   const animateRaf = withRaf(animate, onCall);
 
   const add = tweener => {
-    tweeners.add(tweener);
+    currentTweeners.add(tweener);
     tweener.register();
     animateRaf();
   };
 
+  const addBatch = tweeners => {
+    tweeners.forEach(tweener => {
+      currentTweeners.add(tweener);
+      tweener.register();
+    });
+    animateRaf();
+  };
+
   const cancel = tweener => {
-    tweeners.delete(tweener);
+    currentTweeners.delete(tweener);
   };
 
   return {
     add,
+    addBatch,
     cancel
   };
 };

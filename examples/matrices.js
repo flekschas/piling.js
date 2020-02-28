@@ -1,5 +1,9 @@
 /* eslint-disable import/no-duplicates */
-import { interpolateOrRd, interpolateRdPu } from 'd3-scale-chromatic';
+import {
+  interpolateOrRd,
+  interpolateRdPu,
+  interpolateRainbow
+} from 'd3-scale-chromatic';
 
 import createPilingJs from '../src/library';
 import { createMatrixRenderer } from '../src/renderer';
@@ -7,6 +11,7 @@ import {
   createMatrixCoverAggregator,
   createMatrixPreviewAggregator
 } from '../src/aggregator';
+import { createUmap } from '../src/dimensionality-reducer';
 
 const rgbStr2rgba = (rgbStr, alpha = 1) => {
   return [
@@ -18,34 +23,81 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
   ];
 };
 
+const createColorMap = (interpolator, numColors = 256) => {
+  let interpolatorFn;
+
+  switch (interpolator) {
+    case 'red':
+      interpolatorFn = interpolateOrRd;
+      break;
+
+    case 'rainbow':
+      interpolatorFn = interpolateRainbow;
+      break;
+
+    case 'purple':
+    default:
+      interpolatorFn = interpolateRdPu;
+      break;
+  }
+
+  const colorMap = new Array(numColors)
+    .fill(0)
+    .map((x, i) => rgbStr2rgba(interpolatorFn((numColors - i) / numColors)));
+
+  colorMap[0] = [0, 0, 0, 0]; // Transparent
+
+  return colorMap;
+};
+
 const createMatrixPiles = async element => {
   const response = await fetch('data/rao-2014-gm12878-chr-22-peaks.json');
   const data = await response.json();
 
-  const numColors = 256;
-  const colorMap = new Array(numColors)
-    .fill(0)
-    .map((x, i) => rgbStr2rgba(interpolateRdPu((numColors - i) / numColors)));
-  colorMap[0] = [0, 0, 0, 0];
-
-  const coverColorMap = new Array(numColors)
-    .fill(0)
-    .map((x, i) => rgbStr2rgba(interpolateOrRd((numColors - i) / numColors)));
-  const matrixRenderer = createMatrixRenderer({ colorMap, shape: [16, 16] });
   const coverRenderer = createMatrixRenderer({
-    colorMap: coverColorMap,
+    colorMap: createColorMap('red'),
     shape: [16, 16]
   });
 
-  const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
   const matrixPreviewAggregator = createMatrixPreviewAggregator('mean');
-  const pilingJs = createPilingJs(element);
 
-  pilingJs.set({
+  // Build-in dimensionality reducer is using UMAP
+  const umap = createUmap();
+
+  const piling = createPilingJs(element);
+
+  const createMatrixAndPreviewRenderer = interpolator => {
+    const colorMap = createColorMap(interpolator);
+
+    return {
+      renderer: createMatrixRenderer({ colorMap, shape: [16, 16] }),
+      previewRenderer: createMatrixRenderer({ colorMap, shape: [16, 1] })
+    };
+  };
+
+  const additionalSidebarOptions = [
+    {
+      id: 'rendering',
+      title: 'Rendering',
+      fields: [
+        {
+          name: 'colorMap',
+          dtype: 'string',
+          defaultValue: 'purple',
+          values: ['purple', 'rainbow'],
+          setter: values => {
+            piling.set(createMatrixAndPreviewRenderer(values));
+          }
+        }
+      ]
+    }
+  ];
+
+  piling.set({
+    ...createMatrixAndPreviewRenderer('purple'),
     darkMode: true,
-    renderer: matrixRenderer,
-    previewRenderer,
+    dimensionalityReducer: umap,
     aggregateRenderer: coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
@@ -55,7 +107,19 @@ const createMatrixPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
-  return pilingJs;
+  // Uncomment the following code to apply UMAP on the raw data
+  // piling.arrangeBy(
+  //   'data',
+  //   {
+  //     property: item => item.src.data,
+  //     propertyIsVector: true
+  //   },
+  //   {
+  //     forceDimReduction: true
+  //   }
+  // );
+
+  return [piling, additionalSidebarOptions];
 };
 
 export default createMatrixPiles;

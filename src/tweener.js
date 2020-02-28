@@ -1,4 +1,4 @@
-import { cubicInOut } from '@flekschas/utils';
+import { cubicInOut, toVoid } from '@flekschas/utils';
 
 const DEFAULT_DELAY = 0;
 const DEFAULT_DURATION = 250;
@@ -22,7 +22,7 @@ const createTweener = ({
   endValue: initialEndValue,
   getter,
   setter,
-  onDone = null
+  onDone = toVoid
 } = {}) => {
   let startValue;
   let startTime;
@@ -55,7 +55,6 @@ const createTweener = ({
     if (dt >= duration) {
       // Ensure that the endValue is set
       setter(endValue);
-      if (onDone !== null) onDone(getter());
       return true;
     }
 
@@ -80,6 +79,7 @@ const createTweener = ({
     get duration() {
       return duration;
     },
+    onDone,
     register,
     update,
     updateEndValue,

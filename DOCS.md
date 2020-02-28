@@ -22,6 +22,11 @@
     - [Matrix preview aggregator](#matrix-preview-aggregator)
   - [Define your own aggregator](#define-your-own-aggregator)
   - [Add aggregators to piling.js library](#add-aggregators-to-pilingjs-library)
+- [Dimensionality Reducers](#dimensionality-reducers)
+  - [Predefined dimensionality reducers](#predefined-dimensionality-reducers)
+    - [UMAP dimensionality reducer](#umap-dimensionality-reducer)
+  - [Define your own dimensionality reducer](#define-your-own-dimensionality-reducer)
+  - [Add dimensionality reducers to piling.js library](#add-dimensionality-reducers-to-pilingjs-library)
 - [Interactions](#interactions)
 
 # Get started
@@ -153,69 +158,68 @@ The list of all understood properties is given below.
 
 **Properties:**
 
-| Name                       | Type                    | Default               | Constraints                                                                   | Unsettable |
-| -------------------------- | ----------------------- | --------------------- | ----------------------------------------------------------------------------- | ---------- |
-| darkMode                   | boolean                 | `false`               |                                                                               | `false`    |
-| aggregateRenderer          | function                |                       | see [`renderers`](#renderers)                                                 | `true`     |
-| backgroundColor            | string or int           | `0x000000`            |                                                                               | `false`    |
-| focusedPiles               | array                   | `[]`                  | the id of current focused pile                                                | `true`     |
-| coverAggregator            | function                |                       | see [`aggregators`](#aggregators)                                             | `true`     |
-| depiledPile                | array                   | `[]`                  | the id of the pile to be depiled                                              | `true`     |
-| depileMethod               | string                  | `originalPos`         | `originalPos` or `closestPos`                                                 | `true`     |
-| easing                     | function                | cubicInOut            | see [`notes`](#notes)                                                         | `true`     |
-| gridColor                  | string or int           | `0x787878`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| gridOpacity                | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| items                      | array                   | `[]`                  | see [`data`](#data)                                                           | `false`    |
-| itemSize                   | int                     |                       | number of pixels                                                              | `true`     |
-| itemSizeRange              | array                   | `[0.7, 0.9]`          | array of two numbers between (0, 1)                                           | `true`     |
-| columns                    | int                     | `10`                  | ignored when `itemSize` is defined                                            | `false`    |
-| rowHeight                  | int                     |                       |                                                                               | `true`     |
-| cellAspectRatio            | float                   |                       | ignored when `rowHeight` is defined                                           | `false`    |
-| cellPadding                | int                     |                       |                                                                               | `true`     |
-| lassoFillColor             | string or int           | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| lassoFillOpacity           | float                   | `0.15`                | must be in [`0`,`1`]                                                          | `false`    |
-| lassoShowStartIndicator    | boolean                 | `true`                |                                                                               | `false`    |
-| lassoStartIndicatorOpacity | float                   | `0.1`                 | must be in [`0`,`1`]                                                          | `false`    |
-| lassoStrokeColor           | string or int           | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| lassoStrokeOpacity         | float                   | `0.8`                 | must be in [`0`,`1`]                                                          | `false`    |
-| lassoStrokeSize            | int                     | `1`                   | must be greater or equal than `1`                                             | `false`    |
-| orderer                    | function                | row-major             | see [`notes`](#notes)                                                         | `true`     |
-| magnifiedPiles             | array                   | `[]`                  | the id of current magnified pile                                              | `true`     |
-| navigationMode             | string                  | auto                  | Can be one of auto, panZoom, or scroll                                        | `false`    |
-| pileBackgroundColor        | string or int           | `0x000000`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBackgroundOpacity      | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColor            | string or int           | `0x808080`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBorderOpacity          | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorHover       | string or int           | `0x808080`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBorderOpacityHover     | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorFocus       | string or int           | `0xeee462`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBorderOpacityFocus     | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderColorActive      | string or int           | `0xffa5da`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| pileBorderOpacityActive    | float                   | `1.0`                 | must be in [`0`,`1`]                                                          | `false`    |
-| pileBorderSize             | float or function       | 0                     | see [`notes`](#notes)                                                         | `true`     |
-| pileCellAlignment          | string                  | `topLeft`             | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                | `true`     |
-| pileContextMenuItems       | array                   | `[]`                  | see _examples_ below                                                          | `true`     |
-| pileItemAlignment          | array or boolean        | `['bottom', 'right']` | array of strings, including `top`, `left`, `bottom`, `right`, or just `false` | `true`     |
-| pileItemBrightness         | string, int or function | `0`                   | must be in [-1,1] where `-1` refers to black and `1` refers to white          | `false`    |
-| pileItemOpacity            | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
-| pileItemRotation           | boolean                 | `false`               | `true` or `false`                                                             | `true`     |
-| pileItemTint               | string, int or function | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `true`     |
-| pileOpacity                | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
-| pileScale                  | float or function       | 1.0                   | see [`notes`](#notes)                                                         | `true`     |
-| previewAggregator          | function                |                       | see [`aggregators`](#aggregators)                                             | `true`     |
-| previewBackgroundColor     | string, int             | `'inherit'`           | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| previewBackgroundOpacity   | float                   | `'inherit'`           | must be in [`0`,`1`]                                                          | `false`    |
-| previewBorderColor         | string or int           | `0xffffff`            | can be HEX, RGB, or RGBA string or hexadecimal value                          | `false`    |
-| previewBorderOpacity       | float                   | `0.85`                | must be in [`0`,`1`]                                                          | `false`    |
-| previewRenderer            | function                |                       | see [`renderers`](#renderers)                                                 | `true`     |
-| previewSpacing             | number                  | `2`                   | the spacing between 1D previews                                               | `true`     |
-| randomOffsetRange          | array                   | `[-30, 30]`           | array of two numbers                                                          | `true`     |
-| randomRotationRange        | array                   | `[-10, 10]`           | array of two numbers                                                          | `true`     |
-| renderer                   | function                |                       | see [`renderers`](#renderers)                                                 | `false`    |
-| showGrid                   | boolean                 | `false`               |                                                                               | `false`    |
-| tempDepileDirection        | string                  | `horizontal`          | `horizontal` or `vertical`                                                    | `true`     |
-| tempDepileOneDNum          | number                  | `6`                   | the maximum number of items to be temporarily depiled in 1D layout            | `true`     |
-| temporaryDepiledPile       | array                   | `[]`                  | the id of the pile to be temporarily depiled                                  | `true`     |
+| Name                       | Type                    | Default      | Constraints                                                          | Unsettable |
+| -------------------------- | ----------------------- | ------------ | -------------------------------------------------------------------- | ---------- |
+| darkMode                   | boolean                 | `false`      |                                                                      | `false`    |
+| aggregateRenderer          | function                |              | see [`renderers`](#renderers)                                        | `true`     |
+| backgroundColor            | string or int           | `0x000000`   |                                                                      | `false`    |
+| focusedPiles               | array                   | `[]`         | the id of current focused pile                                       | `true`     |
+| coverAggregator            | function                |              | see [`aggregators`](#aggregators)                                    | `true`     |
+| depiledPile                | array                   | `[]`         | the id of the pile to be depiled                                     | `true`     |
+| depileMethod               | string                  | originalPos  | `originalPos` or `closestPos`                                        | `true`     |
+| easing                     | function                | cubicInOut   | see [`notes`](#notes)                                                | `true`     |
+| gridColor                  | string or int           | `0x787878`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| gridOpacity                | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| items                      | array                   | `[]`         | see [`data`](#data)                                                  | `false`    |
+| itemSize                   | int                     |              | number of pixels                                                     | `true`     |
+| itemSizeRange              | array                   | `[0.7, 0.9]` | array of two numbers between (0, 1)                                  | `true`     |
+| columns                    | int                     | `10`         | ignored when `itemSize` is defined                                   | `false`    |
+| rowHeight                  | int                     |              |                                                                      | `true`     |
+| cellAspectRatio            | float                   |              | ignored when `rowHeight` is defined                                  | `false`    |
+| cellPadding                | int                     |              |                                                                      | `true`     |
+| lassoFillColor             | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| lassoFillOpacity           | float                   | `0.15`       | must be in [`0`,`1`]                                                 | `false`    |
+| lassoShowStartIndicator    | boolean                 | `true`       |                                                                      | `false`    |
+| lassoStartIndicatorOpacity | float                   | `0.1`        | must be in [`0`,`1`]                                                 | `false`    |
+| lassoStrokeColor           | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| lassoStrokeOpacity         | float                   | `0.8`        | must be in [`0`,`1`]                                                 | `false`    |
+| lassoStrokeSize            | int                     | `1`          | must be greater or equal than `1`                                    | `false`    |
+| orderer                    | function                | row-major    | see [`notes`](#notes)                                                | `true`     |
+| magnifiedPiles             | array                   | `[]`         | the id of current magnified pile                                     | `true`     |
+| navigationMode             | string                  | auto         | Can be one of auto, panZoom, or scroll                               | `false`    |
+| pileBackgroundColor        | string or int           | `0x000000`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| pileBackgroundOpacity      | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| pileBorderColor            | string or int           | `0x808080`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| pileBorderOpacity          | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| pileBorderColorHover       | string or int           | `0x808080`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| pileBorderOpacityHover     | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| pileBorderColorFocus       | string or int           | `0xeee462`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| pileBorderOpacityFocus     | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| pileBorderColorActive      | string or int           | `0xffa5da`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| pileBorderOpacityActive    | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| pileBorderSize             | float or function       | `0`          | see [`notes`](#notes)                                                | `true`     |
+| pileCellAlignment          | string                  | topLeft      | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`       | `true`     |
+| pileContextMenuItems       | array                   | `[]`         | see _examples_ below                                                 | `true`     |
+| pileItemBrightness         | string, int or function | `0`          | must be in [-1,1] where `-1` refers to black and `1` refers to white | `false`    |
+| pileItemOffset             | array or function       | `[5, 5]`     | see [`notes`](#notes)                                                | `true`     |
+| pileItemOpacity            | float or function       | `1.0`        | see [`notes`](#notes)                                                | `true`     |
+| pileItemRotation           | float or function       | `0`          | see [`notes`](#notes)                                                | `true`     |
+| pileItemTint               | string, int or function | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `true`     |
+| pileOpacity                | float or function       | `1.0`        | see [`notes`](#notes)                                                | `true`     |
+| pileScale                  | float or function       | `1.0`        | see [`notes`](#notes)                                                | `true`     |
+| popupBackgroundOpacity     | float                   | `0.85`       | must be in [`0`,`1`]                                                 | `false`    |
+| previewAggregator          | function                |              | see [`aggregators`](#aggregators)                                    | `true`     |
+| previewBackgroundColor     | string, int             | `'inherit'`  | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| previewBackgroundOpacity   | float                   | `'inherit'`  | must be in [`0`,`1`]                                                 | `false`    |
+| previewBorderColor         | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
+| previewBorderOpacity       | float                   | `0.85`       | must be in [`0`,`1`]                                                 | `false`    |
+| previewRenderer            | function                |              | see [`renderers`](#renderers)                                        | `true`     |
+| previewSpacing             | number                  | `2`          | the spacing between 1D previews                                      | `true`     |
+| renderer                   | function                |              | see [`renderers`](#renderers)                                        | `false`    |
+| showGrid                   | boolean                 | `false`      |                                                                      | `false`    |
+| tempDepileDirection        | string                  | horizontal   | horizontal or vertical                                               | `true`     |
+| tempDepileOneDNum          | number                  | `6`          | the maximum number of items to be temporarily depiled in 1D layout   | `true`     |
+| temporaryDepiledPile       | array                   | `[]`         | the id of the pile to be temporarily depiled                         | `true`     |
 
 **Examples and Notes:**
 
@@ -322,7 +326,16 @@ The list of all understood properties is given below.
   }
   ```
 
-- `pileItemBrightness`, `pileItemOpacity`, and `pileItemTint` can either be set to a static value or a callback function to dynamically style items. E.g.,
+- `pileItemOffset` can be set to an array or a callback function. The array should be a tuple specifying the x and y offset in pixel. E.g.,
+
+  ```javascript
+  // Align items in y-axis
+  piling.set('pileItemOffset', [0, 5]);
+  ```
+
+  See the next note for the signature of the callback function ⬇️
+
+- `pileItemBrightness`, `pileItemOpacity`, `pileItemRotation` and `pileItemTint` can either be set to a static value or a callback function to dynamically style items. E.g.,
 
   ```javascript
   // Set to a static number
@@ -348,20 +361,20 @@ The list of all understood properties is given below.
 
 - The default value of `previewBackgroundColor` and `previewBackgroundOpacity` is `'inherit'`, which means that their value inherits from `pileBackgroundColor` and `pileBackgroundOpacity`. If you want preview's background color to be different from pile's, you can set a specific color.
 
-#### `piling.arrangeBy(type, objective)`
+#### `piling.arrangeBy(type, objective, options)`
 
 Position piles with user-specified arrangement method.
 
-`type` and the corresponding `objective` can be one of the following:
+`type`, `objective`, and `options` can be one of the following combinations:
 
-| Type      | Objective                                                                             |
-| --------- | ------------------------------------------------------------------------------------- |
-| `null`    | `undefined` _(manual positioning)_                                                    |
-| `'index'` | `function` that returns the linear index                                              |
-| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |
-| `'xy'`    | `function` that returns the final xy position                                         |
-| `'uv'`    | `function` that returns the final uv position of the canvas                           |
-| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      |
+| Type      | Objective                                                                             | Options  |
+| --------- | ------------------------------------------------------------------------------------- | -------- |
+| `null`    | `undefined` _(manual positioning)_                                                    |          |
+| `'index'` | `function` that returns the linear index                                              |          |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |          |
+| `'xy'`    | `function` that returns the final xy position                                         |          |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           |          |
+| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      | `object` |
 
 **Notes and examples:**
 
@@ -374,7 +387,7 @@ Position piles with user-specified arrangement method.
   }
   ```
 
-- With `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
+- When `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
 
   - The `objective` object can contain the following properties:
 
@@ -396,13 +409,15 @@ Position piles with user-specified arrangement method.
       piling.arrangeBy('data', itemState => itemState.a);
       ```
 
-    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the numerical values of the pile's items into a single numerical value.
+    - `propertyIsVector` [type: `boolean` default: `false`]: If `true` we assume that `property()` is returning a numerical vector instead of a scalar.
+
+    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the property values of the piles' items.
 
       For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
 
     - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
 
-    - `inverse` [type `boolean` default: `false`]: If `true` the scale will be inverted
+    - `inverse` [type `boolean` default: `false`]: If `true`, the scale will be inverted
 
   - For convenience the following examples are all equivalent:
 
@@ -428,6 +443,31 @@ Position piles with user-specified arrangement method.
       piling.arrangeBy('data', ['a', 'b', 'c', ...]);
     ```
 
+- When `type === 'data'`, it is possible to further customize the behavior with the following `options`:
+
+  - `forceDimReduction` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is always applied.
+
+    ```javascript
+    // This can be useful when the property itself is multidimensional. E.g.:
+    const items = [
+      {
+        src: [0, 1, 1, 13.37, 9, ...]
+      },
+      ...
+    ]
+    piling.set('items', items);
+    piling.arrangeBy('data', 'src', { forceDimReduction: true });
+    ```
+
+  - `runDimReductionOnPiles` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is run on the current grouping status and updated everytime a pile changes.
+
+    By default this is deactivated because dimensionality reduction transformations are often not deterministic and feeding even the same data to the algorithm can lead to vastly different layout. Therefore, by default we run the dimensionality reduction on the individual items and given that learned model position the piles. This allows us to keep the layout stable even as the piles change. If you want more fine-grain control over transformation updates we suggest running a [`dimensionalityReducer`]() separately and using it's transform function in combination with `piling.arrangeBy('uv')` and [`piling.halt()`]()/[`piling.resume()`]().
+
+    ```javascript
+    // Turning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
+    piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
+    ```
+
 #### `piling.arrangeByOnce(type, objective)`
 
 Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the automatic pile arrangement only once and then switches back to manual pile arrangement.
@@ -436,9 +476,17 @@ Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the autom
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
 
+#### `piling.halt({ text, spinner = true })`
+
+This will display a popup across the entire piling.js element to temporarily block all interactions. This is useful if you are doing some asynchronous job outside piling and want to prevent user interactions.
+
 #### `piling.render()`
 
 Render the root PIXI container.
+
+#### `piling.resume()`
+
+This will the halting popup.
 
 #### `piling.subscribe(eventName, eventHandler)`
 
@@ -744,6 +792,64 @@ Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 ```javascript
 piling.set('coverAggregator', coverAggregator);
 piling.set('previewAggregator', previewAggregator);
+```
+
+# Dimensionality Reducers
+
+A dimensionality reducer is a transformation function that that reduced multi-dimensional input data down to two normalized dimension.
+
+A dimensionality reducer should be a function that takes as input a 2D nested numerical array, and output promises which resolve to an array of aggregated source value that can be passed to the [renderers](#renderers).
+
+## Predefined dimensionality reducers
+
+We currently provide predefined dimensionality reducers for [UMAP](https://github.com/PAIR-code/umap-js).
+
+### UMAP dimensionality reducer
+
+The 1D preview aggregator for each matrix on a pile, it will be shown on top of the pile cover.
+
+**Constructor:**
+
+```javascript
+import { createUmap } from 'piling.js';
+const umap = createUmap(config, options);
+```
+
+- **`config`** is an `object` that lets you [customize UMAP's parameters](https://github.com/PAIR-code/umap-js#parameters).
+- **`options`** is an `object` for customizing the output transformation with the follwing properties:
+
+| Name    | Type  | Default | Constraints               |
+| ------- | ----- | ------- | ------------------------- |
+| padding | float | `0.1`   | Must be greater than zero |
+
+## Define your own dimensionality reducer
+
+If you want to define your own dimensionality reducer, you can do something as follows:
+
+```javascript
+// Factory function
+const createCustomAggregator = () => {
+  // Your code here
+
+  return {
+    fit(data) {
+      // The following function must be asynchronous and return a promise that
+      // resolves once the fitting is done.
+      return asyncFitFunction(data);
+    },
+    transform(data) {
+      return getTransformedData(data);
+    }
+  };
+};
+```
+
+## Add dimensionality reducers to piling.js library
+
+Call [set](#pilingsetproperty-value) method to add aggregators to the library.
+
+```javascript
+piling.set('dimensionalityReducer', umap);
 ```
 
 # Interactions

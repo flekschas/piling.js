@@ -7,6 +7,8 @@ import {
 import * as PIXI from 'pixi.js';
 
 import withColorFilters from './with-color-filters';
+import withDestroy from './with-destroy';
+import withScale from './with-scale';
 import withSize from './with-size';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
@@ -62,9 +64,6 @@ const createImageWithBackground = (
   sprite.anchor.set(...anchor);
 
   const init = self => {
-    // self.sprite.y = self.padding / 2;
-    // self.sprite.x = self.padding / 2;
-
     backgroundGraphics.addChild(sprite);
 
     return self;
@@ -75,6 +74,7 @@ const createImageWithBackground = (
       withStaticProperty('displayObject', backgroundGraphics),
       withStaticProperty('sprite', sprite),
       withColorFilters(sprite),
+      withScale(sprite),
       withSize(sprite),
       withPadding(padding),
       withBackground({
@@ -82,6 +82,7 @@ const createImageWithBackground = (
         backgroundGraphics,
         backgroundOpacity
       }),
+      withDestroy(backgroundGraphics),
       withConstructor(createImageWithBackground)
     )({})
   );
