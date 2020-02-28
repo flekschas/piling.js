@@ -1040,8 +1040,8 @@ const createPile = (
     },
     get offset() {
       return [
-        baseOffset[0] - anchorBox.localXOffset,
-        baseOffset[1] - anchorBox.localYOffset
+        (baseOffset[0] - anchorBox.localXOffset) * baseScale,
+        (baseOffset[1] - anchorBox.localYOffset) * baseScale
       ];
     },
     get previewItemContainer() {
