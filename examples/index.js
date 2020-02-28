@@ -3,17 +3,20 @@ import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createDrawingPiles from './drawings';
 import createJoyPlotPiles from './joy-plot';
+import createTimeCurvePiles from './time-curve';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const drawingsEl = document.getElementById('drawings');
 const joyplotEl = document.getElementById('joyplot');
+const timecurveEl = document.getElementById('timecurve');
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
+const timecurveCreditEl = document.getElementById('timecurve-credit');
 
 const conditionalElements = [
   photosEl,
@@ -21,11 +24,13 @@ const conditionalElements = [
   svgEl,
   drawingsEl,
   joyplotEl,
+  timecurveEl,
   photosCreditEl,
   matricesCreditEl,
   svgCreditEl,
   drawingsCreditEl,
-  joyplotCreditEl
+  joyplotCreditEl,
+  timecurveCreditEl
 ];
 
 const optionsEl = document.getElementById('options');
@@ -131,6 +136,17 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
+    case 'timecurve':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      timecurveEl.style.display = 'block';
+      timecurveCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createTimeCurvePiles(timecurveEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -172,6 +188,10 @@ switch (example) {
 
   case 'joyplot':
     exampleEl.selectedIndex = 4;
+    break;
+
+  case 'timecurve':
+    exampleEl.selectedIndex = 5;
     break;
 
   default:
