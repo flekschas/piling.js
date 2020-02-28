@@ -68,8 +68,8 @@ const createPile = (
   let isScaling = false;
   let isMoving = false;
 
-  let offsetRelatedScaleFactor = -1;
-  let offset = [0, 0];
+  let baseOffsetRelatedScaleFactor = -1;
+  let baseOffset = [0, 0];
 
   let mode = MODE_NORMAL;
 
@@ -374,11 +374,24 @@ const createPile = (
    * @return  {object}  Anchor bounding box
    */
   const calcAnchorBox = (xOffset = 0, yOffset = 0) => {
-    const bounds = coverItemContainer.children.length
-      ? coverItemContainer.getBounds()
-      : normalItemContainer.getBounds();
+    let bounds;
+    let localXOffset = 0;
+    let localYOffset = 0;
+
+    if (coverItemContainer.children.length) {
+      bounds = coverItemContainer.getBounds();
+    } else {
+      bounds = normalItemContainer.getBounds();
+      if (allItems.length > 1) {
+        const firstItemBounds = allItems[0].displayObject.getBounds();
+        localXOffset = bounds.x - firstItemBounds.x;
+        localYOffset = bounds.y - firstItemBounds.y;
+      }
+    }
 
     return createPileBBox({
+      localXOffset,
+      localYOffset,
       minX: bounds.x - xOffset,
       minY: bounds.y - yOffset,
       maxX: bounds.x + bounds.width - xOffset,
@@ -721,11 +734,11 @@ const createPile = (
     return moveToTweener;
   };
 
-  const updateOffset = () => {
+  const updateBaseOffset = () => {
     const firstImage = allItems[0].item.image;
-    if (firstImage.scaleFactor !== offsetRelatedScaleFactor) {
-      offsetRelatedScaleFactor = firstImage.scaleFactor;
-      offset = firstImage.offset;
+    if (firstImage.scaleFactor !== baseOffsetRelatedScaleFactor) {
+      baseOffsetRelatedScaleFactor = firstImage.scaleFactor;
+      baseOffset = firstImage.center;
     }
   };
 
@@ -840,7 +853,7 @@ const createPile = (
       addNormalItem(item);
     }
 
-    if (allItems.length === 1) updateOffset();
+    if (allItems.length === 1) updateBaseOffset();
   };
 
   const removeItem = item => {
@@ -1026,7 +1039,10 @@ const createPile = (
       return normalItemContainer;
     },
     get offset() {
-      return [...offset];
+      return [
+        baseOffset[0] - anchorBox.localXOffset,
+        baseOffset[1] - anchorBox.localYOffset
+      ];
     },
     get previewItemContainer() {
       return previewItemContainer;
@@ -1082,7 +1098,7 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
-    updateOffset,
+    updateOffset: updateBaseOffset,
     replaceItemsImage,
     unmagnify
   };
