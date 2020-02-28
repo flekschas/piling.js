@@ -3147,31 +3147,50 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const alignByGrid = () => {
     const pileMovements = layout.align(pileInstances);
 
-    pileMovements.forEach(({ id, x, y }, index) => {
-      const pile = pileInstances.get(id);
-      const tweener = createTweener({
-        duration: 250,
-        delay: 0,
-        interpolator: interpolateVector,
-        endValue: [x, y],
-        getter: () => {
-          return [pile.x, pile.y];
-        },
-        setter: xy => {
-          movePileTo(pile, xy[0], xy[1]);
-        },
-        onDone: () => {
+    const tweeners = [];
+
+    pileMovements
+      .filter(({ id, x, y }) => {
+        const pile = pileInstances.get(id);
+        const d = l2PointDist(x, y, pile.x, pile.y);
+
+        if (d < 3) {
+          movePileTo(pile, x, y);
           updatePileBounds(pile.id);
-          if (index === pileMovements.length - 1) {
-            store.dispatch(createAction.movePiles(pileMovements));
-            createRBush();
-            updateScrollHeight();
-            renderRaf();
-          }
+          return false;
         }
+
+        return true;
+      })
+      .forEach(({ id, x, y }, index, array) => {
+        const pile = pileInstances.get(id);
+        const d = l2PointDist(x, y, pile.x, pile.y);
+
+        tweeners.push(
+          createTweener({
+            duration: cubicOut(Math.min(d, 250) / 250) * 250,
+            interpolator: interpolateVector,
+            endValue: [x, y],
+            getter: () => {
+              return [pile.x, pile.y];
+            },
+            setter: xy => {
+              movePileTo(pile, xy[0], xy[1]);
+            },
+            onDone: () => {
+              updatePileBounds(pile.id);
+              if (index === array.length - 1) {
+                store.dispatch(createAction.movePiles(pileMovements));
+                createRBush();
+                updateScrollHeight();
+                renderRaf();
+              }
+            }
+          })
+        );
       });
-      animator.add(tweener);
-    });
+
+    animator.addBatch(tweeners);
   };
 
   const closeContextMenu = () => {
