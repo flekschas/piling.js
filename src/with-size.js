@@ -8,6 +8,9 @@ const withSize = sprite => self =>
     get height() {
       return sprite.height;
     },
+    get offset() {
+      return [sprite.width / 2, sprite.height / 2];
+    },
     get originalHeight() {
       return sprite.texture.height;
     },
