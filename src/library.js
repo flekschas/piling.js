@@ -2033,11 +2033,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const deleteItemHandler = itemId => {
+  const deleteItemAndPileHandler = itemId => {
     if (renderedItems.has(itemId)) {
       renderedItems.get(itemId).destroy();
     }
     renderedItems.delete(itemId);
+    deletePileHandler(itemId);
   };
 
   const createPileHandler = (pileId, pileState) => {
@@ -2413,7 +2414,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           updatedItems.push(updateItemTexture(updatedSrcItems));
         }
 
-        deletedItems.forEach(deleteItemHandler);
+        deletedItems.forEach(deleteItemAndPileHandler);
       } else {
         updatedItems.push(createItems());
       }
@@ -2438,13 +2439,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.piles !== newState.piles) {
-      const prevPileIdIndex = new Set(Object.keys(state.piles));
-      if (prevPileIdIndex.size !== 0) {
-        const deletedPiles = new Set(prevPileIdIndex);
-
+      if (Object.keys(state.piles).length) {
         // Piles are bound to items such there must be a 1-to-1 relationship.
-        // Hence, piles are created together with items. Note that this does
-        // not mean that all items always have to be visible. The visibility
+        // Hence, piles are created and deleted together with items. Note that this
+        // does not mean that all items always have to be visible. The visibility
         // depends on the membership of items in some pile.
         const updatedPiles = {};
 
@@ -2454,7 +2452,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
               updatedPiles[id] = pile;
             }
           }
-          deletedPiles.delete(id);
         });
 
         // Update piles
@@ -2473,8 +2470,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
           updatePileStyle(pile, id);
         });
-
-        deletedPiles.forEach(deletePileHandler);
       }
     }
 
