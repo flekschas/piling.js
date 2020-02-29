@@ -23,7 +23,6 @@ import {
   min,
   minVector,
   nextAnimationFrame,
-  range,
   sortPos,
   sum,
   sumVector
@@ -1021,6 +1020,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const isPileUnpositioned = pile => pile.x === null || pile.y === null;
+
   const getPilePositionBy1dOrdering = (pileId, pileWidth, pileHeight) =>
     Promise.resolve(
       layout.idxToXy(pileSortPosByAggregate[0][pileId], pileWidth, pileHeight)
@@ -1095,25 +1096,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const getPilePosition = async (pileId, init) => {
     const { arrangementType, arrangementObjective, piles } = store.state;
 
-    let type = init
-      ? arrangementType || INITIAL_ARRANGEMENT_TYPE
-      : arrangementType;
+    const isUnpositioned = isPileUnpositioned(pileState);
 
-    let objective = init
-      ? arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE
-      : arrangementObjective;
+    const type =
+      init || isUnpositioned
+        ? arrangementType || INITIAL_ARRANGEMENT_TYPE
+        : arrangementType;
+
+    const objective =
+      init || isUnpositioned
+        ? arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE
+        : arrangementObjective;
 
     const pileInstance = pileInstances.get(pileId);
     const pileState = piles[pileId];
     const pileWidth = pileInstance.graphics.width;
     const pileHeight = pileInstance.graphics.height;
-
-    // if we create new piles after init, `init` will be fause,
-    // but the pileState.x .y are null
-    if (pileState.x === null || pileState.y === null) {
-      type = arrangementType || INITIAL_ARRANGEMENT_TYPE;
-      objective = arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE;
-    }
 
     const ijToXy = (i, j) => layout.ijToXy(i, j, pileWidth, pileHeight);
 
@@ -1222,7 +1220,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         Math.ceil(y / layout.rowHeight)
       );
 
-      if (isInitialPositioning || pile.x === null) {
+      if (isInitialPositioning || isPileUnpositioned(pile)) {
         renderedItems.get(pile.id).setOriginalPosition([x, y]);
       }
     }
@@ -2365,11 +2363,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updateArrangement = async (updatedPileIds, newObjectives) => {
-    const { arrangementType, items } = store.state;
+    const { arrangementType, piles } = store.state;
 
-    const pileIds = updatedPileIds.length
-      ? updatedPileIds
-      : range(0, Object.keys(items).length);
+    const pileIds = updatedPileIds.length ? updatedPileIds : Object.keys(piles);
 
     if (arrangementType === 'data') {
       arranging = updateArragnementByData(pileIds, newObjectives);
@@ -2454,7 +2450,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (prevPileIdIndex.size !== 0) {
         const deletedPiles = new Set(prevPileIdIndex);
 
-        // const newPiles = {};
+        // Piles are bound to items such there must be a 1-to-1 relationship.
+        // Hence, piles are created together with items. Note that this does
+        // not mean that all items always have to be visible. The visibility
+        // depends on the membership of items in some pile.
         const updatedPiles = {};
 
         Object.entries(newState.piles).forEach(([id, pile]) => {
@@ -2462,13 +2461,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             if (pile !== state.piles[id]) {
               updatedPiles[id] = pile;
             }
-            // } else {
-            //   newPiles[id] = pile;
           }
           deletedPiles.delete(id);
         });
-
-        // Object.entries(newPiles).forEach(createPileHandler);
 
         // Update piles
         Object.entries(updatedPiles).forEach(([id, pile]) => {
