@@ -8,6 +8,8 @@ import {
 
 import createSpinner from './spinner';
 
+import { ifNotNull } from './utils';
+
 import {
   CSS_EASING_CUBIC_IN_OUT,
   DEFAULT_DARK_MODE,
@@ -77,7 +79,8 @@ const createPopup = ({
   const icon = document.createElement('div');
   popupContent.appendChild(icon);
 
-  icon.appendChild(createSpinner());
+  const spinner = createSpinner(!isDarkMode);
+  icon.appendChild(spinner.element);
 
   const paragraph = document.createElement('p');
   paragraph.style.margin = '0';
@@ -85,7 +88,7 @@ const createPopup = ({
 
   let isOpen = false;
 
-  const open = ({ text = null, spinner = true } = {}) => {
+  const open = ({ text = null, showSpinner = true } = {}) => {
     isOpen = true;
     rootElement.style.zIndex = 99;
     rootElement.style.height = '100%';
@@ -93,7 +96,7 @@ const createPopup = ({
 
     popup.style.transform = 'scale(1)';
 
-    icon.style.display = spinner ? 'block' : 'none';
+    icon.style.display = showSpinner ? 'block' : 'none';
     icon.style.margin = text ? '0 0 0.5rem 0' : '0';
 
     paragraph.textContent = text;
@@ -114,8 +117,6 @@ const createPopup = ({
     popup.style.transform = 'scale(0)';
   };
 
-  const ifNotNull = (v, alternative) => (v === null ? alternative : v);
-
   const set = ({
     backgroundOpacity: newBackgroundOpacity = null,
     darkMode: newIsDarkMode = null
@@ -126,6 +127,7 @@ const createPopup = ({
     popup.style.color = getTextColor();
     popup.style.background = getForegroundColor();
     rootElement.style.background = getBackgroundColor();
+    spinner.set({ darkMode: !isDarkMode });
   };
 
   const withPublicMethods = () => self =>
