@@ -43,7 +43,7 @@ const createVitessceRenderer = (
       )
     : null;
 
-  const allUniforms = [];
+  let allUniforms = [];
 
   const renderer = async sources =>
     Promise.all(
@@ -101,9 +101,21 @@ const createVitessceRenderer = (
       })
     );
 
+  const setColor = (i, hue) => {
+    colors[i * 3] = hue;
+    allUniforms.forEach(({ uniforms }) => {
+      uniforms.uColors[i * 3] = hue;
+    });
+  };
+
+  const clear = () => {
+    allUniforms = [];
+  };
+
   return {
-    uniforms: allUniforms,
-    renderer
+    clear,
+    renderer,
+    setColor
   };
 };
 

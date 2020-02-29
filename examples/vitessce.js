@@ -172,6 +172,7 @@ const createVitessce = async element => {
             )
           ],
           setter: factor => {
+            vitessceRenderer.clear();
             piling.set('items', createItems(factor));
           }
         }
@@ -191,9 +192,7 @@ const createVitessce = async element => {
           defaultValue: rgb2hsv(colors.polyT)[0],
           onInput: true,
           setter: hue => {
-            vitessceRenderer.uniforms.forEach(({ uniforms }) => {
-              uniforms.uColors[0] = hue;
-            });
+            vitessceRenderer.setColor(0, hue);
             piling.render();
           }
         },
@@ -207,9 +206,7 @@ const createVitessce = async element => {
           defaultValue: rgb2hsv(colors.nuclei)[0],
           onInput: true,
           setter: hue => {
-            vitessceRenderer.uniforms.forEach(({ uniforms }) => {
-              uniforms.uColors[3] = hue;
-            });
+            vitessceRenderer.setColor(1, hue);
             piling.render();
           }
         }
