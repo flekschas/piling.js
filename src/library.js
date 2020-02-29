@@ -7,6 +7,7 @@ import * as RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
 import {
+  addClass,
   capitalize,
   cubicOut,
   debounce,
@@ -23,6 +24,7 @@ import {
   min,
   minVector,
   nextAnimationFrame,
+  removeClass,
   sortPos,
   sum,
   sumVector
@@ -2615,6 +2617,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.darkMode !== newState.darkMode) {
       updateLevels();
+      if (newState.darkMode) addClass(rootElement, 'pilingjs-darkmode');
+      else removeClass(rootElement, 'pilingjs-darkmode');
     }
 
     if (
@@ -3416,6 +3420,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rootElement.appendChild(levels.nav);
     rootElement.appendChild(popup.element);
 
+    addClass(rootElement, 'pilingjs');
+    if (store.state.darkMode) addClass(rootElement, 'pilingjs-darkmode');
     rootElement.style.overflow = 'hidden';
 
     scrollContainer.appendChild(canvas);
