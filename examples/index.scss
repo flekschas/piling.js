@@ -103,6 +103,8 @@ button:active {
 }
 
 button {
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: inherit;
   background: $gray-light;
   border: 0;
   border-radius: 0.25rem;
@@ -355,10 +357,7 @@ header #description {
 
   .content h4 {
     margin: 1rem 0 0.5rem 0;
-  }
-
-  .content h4:after {
-    content: ':';
+    box-shadow: 0 1px 0 0 $gray-lighter;
   }
 
   label {
@@ -386,6 +385,10 @@ body.dark-mode #options {
   color: $white;
   border-left-color: $gray-darker;
   background: $black;
+
+  .content h4 {
+    box-shadow: 0 1px 0 0 $gray-darker;
+  }
 
   .toggler {
     color: $white;
