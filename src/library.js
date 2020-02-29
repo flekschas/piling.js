@@ -2071,6 +2071,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
     pileInstances.delete(pileId);
     lastPilePosition.delete(pileId);
+    delete aggregatedPileValues[pileId];
     // We *do not* delete the cached multi-dimensional position as that
     // position can come in handy when we depile the pile again
   };
@@ -2129,7 +2130,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const aggregatedPileValues = [];
+  const aggregatedPileValues = {};
   const pileSortPosByAggregate = [];
   const aggregatedPileMinValues = [];
   const aggregatedPileMaxValues = [];
@@ -2233,9 +2234,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         aggregatedPileValues[pileId].splice(arrangementObjective.length);
       });
 
-      // Remove outdated values
-      aggregatedPileValues.splice(Object.keys(items).length);
-
       pileSortPosByAggregate[i] = sortPos(aggregatedPileValues, {
         getter: v => v[i],
         ignoreNull: true
@@ -2318,7 +2316,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     await nextAnimationFrame();
     const data =
       arrangementOptions.runDimReductionOnPiles === true
-        ? aggregatedPileValues.filter(x => x[0] !== null)
+        ? Object.values(aggregatedPileValues).filter(x => x[0] !== null)
         : Object.entries(items).map(([itemId, item]) =>
             arrangementObjective.flatMap(objective =>
               objective.property(item, itemId, 0, renderedItems.get(itemId))
