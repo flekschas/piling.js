@@ -1,5 +1,7 @@
 ### Next
 
+_[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
+
 ## v0.6.0
 
 - Remove `randomOffsetRange` and `randomRotationRange`
@@ -25,6 +27,8 @@
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
 - Disentangle the pile base scale and magnification
+
+_[Changes since v0.5.0](https://github.com/flekschas/piling.js/compare/v0.5.0...v0.6.0)_
 
 ## v0.5.0
 
