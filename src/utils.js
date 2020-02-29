@@ -62,6 +62,9 @@ export const getBBox = positions2d => {
   };
 };
 
+export const ifNotNull = (v, alternative = null) =>
+  v === null ? alternative : v;
+
 /**
  * Convert a 2D vector to it's homoegeneous 3D counterpart
  * @param   {number}  x  X coordinate

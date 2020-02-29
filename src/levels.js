@@ -11,6 +11,8 @@ import {
   withStaticProperty
 } from '@flekschas/utils';
 
+import { ifNotNull } from './utils';
+
 import createStylesheet from './stylesheet';
 
 const CSS_HASH = randomString(5);
@@ -238,8 +240,6 @@ const createLevels = (
     prevStates = [];
     prevSizes = [];
   };
-
-  const ifNotNull = (v, alternative) => (v === null ? alternative : v);
 
   const set = ({
     darkMode: newDarkMode = null,
