@@ -949,11 +949,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const createItemsAndPiles = async newItems => {
-    await halt();
-
-    await nextAnimationFrame(2);
-
     const newItemIds = Object.keys(newItems);
+
+    if (!newItemIds.length) return Promise.resolve();
+
+    await halt();
 
     return Promise.all(createImagesAndPreviews(newItems)).then(
       ([renderedImages, renderedPreviews]) => {
