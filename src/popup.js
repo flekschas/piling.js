@@ -1,5 +1,6 @@
 import {
   assign,
+  nextAnimationFrame,
   pipe,
   withConstructor,
   withReadOnlyProperty,
@@ -10,11 +11,13 @@ import createSpinner from './spinner';
 
 import { ifNotNull } from './utils';
 
-import {
+import { TRANSITION_EVENT ,
   CSS_EASING_CUBIC_IN_OUT,
   DEFAULT_DARK_MODE,
   DEFAULT_POPUP_BACKGROUND_OPACITY
 } from './defaults';
+
+
 
 const createPopup = ({
   backgroundOpacity: initialBackgroundOpacity = DEFAULT_POPUP_BACKGROUND_OPACITY,
@@ -33,6 +36,7 @@ const createPopup = ({
       : `rgba(255, 255, 255, ${backgroundOpacity})`;
 
   const rootElement = document.createElement('div');
+  rootElement.className = 'pilingjs-popup-background';
   rootElement.style.position = 'absolute';
   rootElement.style.top = 0;
   rootElement.style.left = 0;
@@ -47,6 +51,7 @@ const createPopup = ({
   rootElement.style.transition = `opacity 250ms ${CSS_EASING_CUBIC_IN_OUT}`;
 
   const wrapper = document.createElement('div');
+  rootElement.className = 'pilingjs-popup-wrapper';
   wrapper.style.position = 'relative';
   wrapper.style.display = 'flex';
   wrapper.style.margin = '2rem';
@@ -54,6 +59,7 @@ const createPopup = ({
   rootElement.appendChild(wrapper);
 
   const popup = document.createElement('div');
+  rootElement.className = 'pilingjs-popup-window';
   popup.style.position = 'relative';
   popup.style.minwidth = '4rem';
   popup.style.maxWidth = '100%';
@@ -67,6 +73,7 @@ const createPopup = ({
   wrapper.appendChild(popup);
 
   const popupContent = document.createElement('div');
+  rootElement.className = 'pilingjs-popup-content';
   popupContent.style.position = 'relative';
   popupContent.style.display = 'flex';
   popupContent.style.flexDirection = 'column';
@@ -77,6 +84,7 @@ const createPopup = ({
   popup.appendChild(popupContent);
 
   const icon = document.createElement('div');
+  rootElement.className = 'pilingjs-popup-icon';
   popupContent.appendChild(icon);
 
   const spinner = createSpinner(!isDarkMode);
@@ -88,34 +96,47 @@ const createPopup = ({
 
   let isOpen = false;
 
-  const open = ({ text = null, showSpinner = true } = {}) => {
-    isOpen = true;
-    rootElement.style.zIndex = 99;
-    rootElement.style.height = '100%';
-    rootElement.style.opacity = 1;
+  const open = ({ text = null, showSpinner = true } = {}) =>
+    new Promise(resolve => {
+      rootElement.addEventListener(TRANSITION_EVENT, resolve, {
+        once: true
+      });
 
-    popup.style.transform = 'scale(1)';
+      isOpen = true;
+      rootElement.style.zIndex = 99;
+      rootElement.style.height = '100%';
+      rootElement.style.opacity = 1;
 
-    icon.style.display = showSpinner ? 'block' : 'none';
-    icon.style.margin = text ? '0 0 0.5rem 0' : '0';
+      popup.style.transform = 'scale(1)';
 
-    paragraph.textContent = text;
-  };
+      icon.style.display = showSpinner ? 'block' : 'none';
+      icon.style.margin = text ? '0 0 0.5rem 0' : '0';
 
-  const animationEndHandler = () => {
-    rootElement.style.zIndex = -1;
-    rootElement.style.height = '0px';
-    paragraph.textContent = null;
-  };
-
-  const close = () => {
-    isOpen = false;
-    rootElement.addEventListener('transitionend', animationEndHandler, {
-      once: true
+      paragraph.textContent = text;
     });
-    rootElement.style.opacity = 0;
-    popup.style.transform = 'scale(0)';
-  };
+
+  const close = () =>
+    new Promise(resolve => {
+      isOpen = false;
+      rootElement.addEventListener(
+        TRANSITION_EVENT,
+        async () => {
+          rootElement.style.zIndex = -1;
+          rootElement.style.height = '0px';
+          paragraph.textContent = null;
+
+          await nextAnimationFrame();
+
+          resolve();
+        },
+        {
+          once: true
+        }
+      );
+
+      rootElement.style.opacity = 0;
+      popup.style.transform = 'scale(0)';
+    });
 
   const set = ({
     backgroundOpacity: newBackgroundOpacity = null,
