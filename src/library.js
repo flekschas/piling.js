@@ -481,6 +481,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const finalHeight =
       Math.round(layout.rowHeight) * (layout.numRows + EXTRA_ROWS);
     scrollEl.style.height = `${Math.max(0, finalHeight - canvasHeight)}px`;
+
+    if (store.state.showGrid) {
+      drawGrid();
+    }
   };
 
   const enableScrolling = () => {

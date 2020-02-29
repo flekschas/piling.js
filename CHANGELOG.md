@@ -1,6 +1,11 @@
 ### Next
 
-- Add microscopy imaging example
+- Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
+
+_[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
+
+## v0.6.0
+
 - Remove `randomOffsetRange` and `randomRotationRange`
 - Replace `pileItemAlignment` with `pileItemOffset`. Allow `pileItemOffset` and `pileItemRotation` to either be a static value or a callback function
 - Add support for browsing in isolation
@@ -24,7 +29,8 @@
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
 - Disentangle the pile base scale and magnification
-- Simplify the SVG renderer
+
+_[Changes since v0.5.0](https://github.com/flekschas/piling.js/compare/v0.5.0...v0.6.0)_
 
 ## v0.5.0
 
