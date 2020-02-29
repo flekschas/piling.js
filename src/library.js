@@ -946,20 +946,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const clear = () => {
-    renderedItems.forEach(item => {
-      item.destroy();
-    });
-    pileInstances.forEach(pile => {
-      pile.destroy();
-    });
-    renderedItems.clear();
-    pileInstances.clear();
-
-    normalPiles.removeChildren();
-    activePile.removeChildren();
-  };
-
   const createItemsAndPiles = async newItems => {
     await halt();
 
@@ -1165,7 +1151,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileIds.splice(0, 0, ...Object.keys(store.state.piles));
     }
 
-    if (Object.keys(items).length === 0) return;
+    if (Object.keys(items).length === 0) {
+      createRBush();
+      updateScrollHeight();
+      renderRaf();
+      return;
+    }
 
     const movingPiles = [];
 
@@ -1991,12 +1982,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const deleteItemAndPileHandler = itemId => {
+  const deleteItemAndPile = itemId => {
     if (renderedItems.has(itemId)) {
       renderedItems.get(itemId).destroy();
     }
     renderedItems.delete(itemId);
     deletePileHandler(itemId);
+  };
+
+  const deleteItemsAndPiles = items => {
+    Object.keys(items).forEach(deleteItemAndPile);
+    return Promise.resolve();
   };
 
   const createPileHandler = (pileId, pileState) => {
@@ -2343,34 +2339,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const stateUpdates = new Set();
 
-    const updatedItems = [];
+    const itemUpdates = [];
     const updatedPileItems = [];
 
     if (state.items !== newState.items && state.itemRenderer) {
-      const prevItemIdIndex = new Set(Object.keys(state.items));
-      const deletedItems = new Set(prevItemIdIndex);
+      const deletedItems = { ...state.items };
       const newItems = {};
-      const updatedSrcItems = {};
+      const updatedItems = {};
 
       Object.entries(newState.items).forEach(([id, item]) => {
         if (state.items[id]) {
           if (item.src !== state.items[id].src) {
-            updatedSrcItems[id] = item;
+            updatedItems[id] = item;
           }
         } else {
           newItems[id] = item;
         }
-        deletedItems.delete(id);
+        delete deletedItems[id];
       });
 
-      if (Object.keys(newItems).length) {
-        updatedItems.push(createItemsAndPiles(newItems));
-      }
-      if (Object.keys(updatedSrcItems).length) {
-        updatedItems.push(updateItemTexture(updatedSrcItems));
+      const numNewItems = Object.keys(newItems).length;
+      const numUpdatedItems = Object.keys(updatedItems).length;
+      const numDeletedItems = Object.keys(deletedItems).length;
+
+      if (numNewItems) {
+        itemUpdates.push(createItemsAndPiles(newItems));
       }
 
-      deletedItems.forEach(deleteItemAndPileHandler);
+      if (numUpdatedItems) {
+        itemUpdates.push(updateItemTexture(updatedItems));
+      }
+
+      if (numDeletedItems) {
+        itemUpdates.push(deleteItemsAndPiles(deletedItems));
+      }
+
+      if (numNewItems || numDeletedItems) {
+        stateUpdates.add('grid');
+        stateUpdates.add('layout');
+      }
     }
 
     if (
@@ -2381,10 +2388,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.coverAggregator !== newState.coverAggregator
     ) {
       if (renderedItems.size) {
-        updatedItems.push(updateItemTexture());
+        itemUpdates.push(updateItemTexture());
       } else {
         // In case the user first setup the items and then defined the renderer
-        updatedItems.push(createItemsAndPiles(newState.items));
+        itemUpdates.push(createItemsAndPiles(newState.items));
       }
     }
 
@@ -2579,7 +2586,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         (
           newState.arrangementType &&
           (
-            (updatedItems.length || updatedPileItems.length) ||
+            (itemUpdates.length || updatedPileItems.length) ||
             (
               newState.arrangementObjective.length > 2 &&
               state.dimensionalityReducer !== newState.dimensionalityReducer
@@ -2590,7 +2597,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     ) {
       stateUpdates.add('layout');
       const newObjective = state.arrangementObjective !== newState.arrangementObjective;
-      Promise.all(updatedItems).then(() => {
+      Promise.all(itemUpdates).then(() => {
         updateArrangement(updatedPileItems, newObjective);
       });
     }
@@ -2635,11 +2642,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       stateUpdates.has('layout') ||
-      updatedItems.length > 0 ||
+      itemUpdates.length > 0 ||
       updatedPileItems.length > 0
     ) {
       const currUpdatedPileItems = [...updatedPileItems];
-      Promise.all(updatedItems).then(() => {
+      Promise.all(itemUpdates).then(() => {
         // Reposition of all piles
         positionPiles(currUpdatedPileItems);
       });
@@ -3449,7 +3456,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.removeEventListener('dblclick', mouseDblClickHandler);
     canvas.removeEventListener('wheel', wheelHandler);
 
-    clear();
     renderer.destroy(true);
     lasso.destroy();
 
@@ -3473,7 +3479,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Methods
     arrangeBy,
     arrangeByOnce,
-    clear,
     destroy,
     exportState,
     get,
