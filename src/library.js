@@ -655,8 +655,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     { onLeave: levelLeaveHandler }
   );
 
-  const halt = options => {
-    popup.open(options);
+  const halt = async options => {
+    await popup.open(options);
 
     if (isPanZoom) camera.config({ isFixed: true });
     else scrollContainer.style.overflowY = 'hidden';
@@ -946,19 +946,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const createItems = () => {
-    const {
-      items,
-      itemRenderer,
-      pileItemOffset,
-      pileItemRotation,
-      previewSpacing
-    } = store.state;
-
-    const itemIds = Object.keys(items);
-
-    if (!itemIds.length || !itemRenderer) return null;
-
+  const clear = () => {
     renderedItems.forEach(item => {
       item.destroy();
     });
@@ -970,44 +958,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     normalPiles.removeChildren();
     activePile.removeChildren();
+  };
 
-    return Promise.all(createImagesAndPreviews(items)).then(
+  const createItemsAndPiles = async newItems => {
+    await halt();
+
+    await nextAnimationFrame(2);
+
+    const newItemIds = Object.keys(newItems);
+
+    return Promise.all(createImagesAndPreviews(newItems)).then(
       ([renderedImages, renderedPreviews]) => {
         const { piles } = store.state;
-
         renderedImages.forEach((image, index) => {
-          const itemId = itemIds[index];
-          const pileId = itemId;
-          const pileState = piles[pileId];
           const preview = renderedPreviews[index];
+          const id = newItemIds[index];
 
-          const newItem = createItem(
-            { id: itemId, image, pubSub },
-            { preview }
-          );
+          const newItem = createItem({ id, image, pubSub }, { preview });
 
-          renderedItems.set(itemId, newItem);
+          renderedItems.set(id, newItem);
 
-          const pile = createPile({
-            items: [newItem],
-            render: renderRaf,
-            id: pileId,
-            pubSub,
-            store
-          });
-          pile.positionItems(
-            pileItemOffset,
-            pileItemRotation,
-            animator,
-            previewSpacing
-          );
-          pileInstances.set(pileId, pile);
-          updatePileStyle(pileState, pileId);
-          updatePileItemStyle(pileState, pileId);
-          normalPiles.addChild(pile.graphics);
+          const pileState = piles[id];
+          createPileHandler(id, pileState);
         });
         scaleItems();
         renderRaf();
+        resume();
       }
     );
   };
@@ -2015,28 +1991,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const createItemAndPileHandler = newItems => {
-    const newItemIds = Object.keys(newItems);
-
-    return Promise.all(createImagesAndPreviews(newItems)).then(
-      ([renderedImages, renderedPreviews]) => {
-        const { piles } = store.state;
-        renderedImages.forEach((image, index) => {
-          const preview = renderedPreviews[index];
-          const id = newItemIds[index];
-
-          const newItem = createItem({ id, image, pubSub }, { preview });
-
-          renderedItems.set(id, newItem);
-
-          const pileState = piles[id];
-          createPileHandler(id, pileState);
-        });
-        scaleItems();
-      }
-    );
-  };
-
   const deleteItemAndPileHandler = itemId => {
     if (renderedItems.has(itemId)) {
       renderedItems.get(itemId).destroy();
@@ -2394,34 +2348,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.items !== newState.items && state.itemRenderer) {
       const prevItemIdIndex = new Set(Object.keys(state.items));
-      if (prevItemIdIndex.size !== 0) {
-        const deletedItems = new Set(prevItemIdIndex);
-        const newItems = {};
-        const updatedSrcItems = {};
+      const deletedItems = new Set(prevItemIdIndex);
+      const newItems = {};
+      const updatedSrcItems = {};
 
-        Object.entries(newState.items).forEach(([id, item]) => {
-          if (state.items[id]) {
-            if (item.src !== state.items[id].src) {
-              updatedSrcItems[id] = item;
-            }
-          } else {
-            newItems[id] = item;
+      Object.entries(newState.items).forEach(([id, item]) => {
+        if (state.items[id]) {
+          if (item.src !== state.items[id].src) {
+            updatedSrcItems[id] = item;
           }
-          deletedItems.delete(id);
-        });
-
-        if (Object.keys(newItems).length) {
-          // create new item and pile together
-          updatedItems.push(createItemAndPileHandler(newItems));
+        } else {
+          newItems[id] = item;
         }
-        if (Object.keys(updatedSrcItems).length) {
-          updatedItems.push(updateItemTexture(updatedSrcItems));
-        }
+        deletedItems.delete(id);
+      });
 
-        deletedItems.forEach(deleteItemAndPileHandler);
-      } else {
-        updatedItems.push(createItems());
+      if (Object.keys(newItems).length) {
+        updatedItems.push(createItemsAndPiles(newItems));
       }
+      if (Object.keys(updatedSrcItems).length) {
+        updatedItems.push(updateItemTexture(updatedSrcItems));
+      }
+
+      deletedItems.forEach(deleteItemAndPileHandler);
     }
 
     if (
@@ -2434,7 +2383,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (renderedItems.size) {
         updatedItems.push(updateItemTexture());
       } else {
-        updatedItems.push(createItems());
+        // In case the user first setup the items and then defined the renderer
+        updatedItems.push(createItemsAndPiles(newState.items));
       }
     }
 
@@ -3499,6 +3449,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.removeEventListener('dblclick', mouseDblClickHandler);
     canvas.removeEventListener('wheel', wheelHandler);
 
+    clear();
     renderer.destroy(true);
     lasso.destroy();
 
@@ -3522,6 +3473,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Methods
     arrangeBy,
     arrangeByOnce,
+    clear,
     destroy,
     exportState,
     get,
