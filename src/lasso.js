@@ -11,6 +11,8 @@ import {
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
+import { ifNotNull } from './utils';
+
 import {
   DEFAULT_DARK_MODE,
   DEFAULT_LASSO_FILL_COLOR,
@@ -294,8 +296,6 @@ const createLasso = ({
 
     return lassoPoints;
   };
-
-  const ifNotNull = (v, alternative) => (v === null ? alternative : v);
 
   const set = ({
     fillColor: newFillColor = null,

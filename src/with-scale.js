@@ -1,11 +1,11 @@
 import { assign } from '@flekschas/utils';
 
-const withScale = sprite => self =>
+const withScale = (sprite, width, height) => self =>
   assign(self, {
     scale(scaleFactor) {
       self.scaleFactor = scaleFactor;
-      sprite.width = sprite.texture.width * scaleFactor;
-      sprite.height = sprite.texture.height * scaleFactor;
+      sprite.width = width * scaleFactor;
+      sprite.height = height * scaleFactor;
     }
   });
 
