@@ -1,5 +1,7 @@
 ### Next
 
+## v0.6.0
+
 - Remove `randomOffsetRange` and `randomRotationRange`
 - Replace `pileItemAlignment` with `pileItemOffset`. Allow `pileItemOffset` and `pileItemRotation` to either be a static value or a callback function
 - Add support for browsing in isolation
