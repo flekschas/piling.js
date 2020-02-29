@@ -82,46 +82,42 @@ const createGrid = (
    * @param   {number}  height  Height of the pile to be positioned
    * @return  {array}  Tuple representing the x,y position
    */
-  const ijToXy = (i, j, pileWidth, pileHeight) => {
+  const ijToXy = (i, j, pileWidth, pileHeight, pileOffset) => {
+    let top = j * rowHeight + cellPadding;
+    let left = i * columnWidth + cellPadding;
+
     if (!pileWidth || !pileHeight) {
-      return [i * cellWidth, j * cellHeight];
+      return [left, top];
     }
 
-    const halfWidth = pileWidth / 2;
-    const halfHeight = pileHeight / 2;
-
-    const topLeft = [
-      i * columnWidth + cellPadding + halfWidth,
-      j * rowHeight + cellPadding + halfHeight
-    ];
+    // Elements are positioned
+    left += pileOffset[0];
+    top += pileOffset[1];
 
     switch (pileCellAlignment) {
       case 'topRight':
-        return [topLeft[0] + cellWidth - pileWidth, topLeft[1]];
+        return [left + cellWidth - pileWidth, top];
 
       case 'bottomLeft':
-        return [topLeft[0], topLeft[1] + cellHeight - pileHeight];
+        return [left, top + cellHeight - pileHeight];
 
       case 'bottomRight':
-        return [
-          topLeft[0] + cellWidth - pileWidth,
-          topLeft[1] + cellHeight - pileHeight
-        ];
+        return [left + cellWidth - pileWidth, top + cellHeight - pileHeight];
 
       case 'center':
         return [
-          topLeft[0] + (cellWidth - pileWidth) / 2,
-          topLeft[1] + (cellHeight - pileHeight) / 2
+          left + (cellWidth - pileWidth) / 2,
+          top + (cellHeight - pileHeight) / 2
         ];
 
       case 'topLeft':
       default:
-        return topLeft;
+        return [left, top];
     }
   };
 
-  const idxToXy = (index, pileWidth, pileHeight) =>
-    ijToXy(...idxToIj(index), pileWidth, pileHeight);
+  const idxToXy = (index, pileWidth, pileHeight, pileOffset) =>
+    ijToXy(...idxToIj(index), pileWidth, pileHeight, pileOffset);
 
   /**
    * Convert the u,v position to an x,y pixel position
@@ -135,19 +131,80 @@ const createGrid = (
     const cells = [];
     const conflicts = [];
     const pilePositions = new Map();
+
+    let refX = 'minX';
+    let refY = 'minY';
+
+    switch (pileCellAlignment) {
+      case 'topRight':
+        refX = 'maxX';
+        break;
+
+      case 'bottomLeft':
+        refY = 'maxY';
+        break;
+
+      case 'bottomRight':
+        refX = 'maxX';
+        refY = 'maxY';
+        break;
+
+      case 'center':
+        refX = 'cX';
+        refY = 'cY';
+        break;
+
+      default:
+        // Already set
+        break;
+    }
+
     piles.forEach(pile => {
       pilePositions.set(pile.id, {
         id: pile.id,
-        cX: pile.anchorBox.cX,
-        cY: pile.anchorBox.cY,
-        width: pile.anchorBox.width,
-        height: pile.anchorBox.height
+        ...pile.anchorBox,
+        x: pile.anchorBox[refX],
+        y: pile.anchorBox[refY],
+        offset: pile.offset
       });
     });
 
     const assignPileToCell = pile => {
-      const i = Math.floor(pile.cX / columnWidth);
-      const j = Math.floor(pile.cY / rowHeight);
+      // The +1 and -1 are to avoid floating point precision-related glitches
+      const i1 = (pile.minX + 1) / columnWidth;
+      const j1 = (pile.minY + 1) / rowHeight;
+      const i2 = (pile.maxX - 1) / columnWidth;
+      const j2 = (pile.maxY - 1) / rowHeight;
+
+      let i;
+      let j;
+
+      switch (pileCellAlignment) {
+        case 'topRight':
+          i = Math.floor(i2);
+          break;
+
+        case 'bottomLeft':
+          j = Math.floor(j2);
+          break;
+
+        case 'bottomRight':
+          i = Math.floor(i2);
+          j = Math.floor(j2);
+          break;
+
+        case 'center':
+          i = Math.floor(i1 + (i2 - i1) / 2);
+          j = Math.floor(j1 + (j2 - j1) / 2);
+          break;
+
+        case 'topLeft':
+        default:
+          i = Math.floor(i1);
+          j = Math.floor(j1);
+          break;
+      }
+
       const idx = ijToIdx(i, j);
 
       if (!cells[idx]) cells[idx] = new Set();
@@ -171,16 +228,20 @@ const createGrid = (
     while (conflicts.length) {
       const idx = conflicts.shift();
       const anchor = ijToXy(...idxToIj(idx));
-      anchor[0] += columnWidthHalf;
-      anchor[1] += rowHeightHalf;
+
       const cellRect = [
-        anchor[0] - columnWidthHalf,
-        anchor[1] - rowHeightHalf,
-        anchor[0] + columnWidthHalf,
-        anchor[1] + rowHeightHalf
+        anchor[0],
+        anchor[1],
+        anchor[0] + columnWidth,
+        anchor[1] + rowHeight
       ];
 
+      anchor[0] += columnWidthHalf;
+      anchor[1] += rowHeightHalf;
+
       const conflictingPiles = new Set(cells[idx]);
+
+      let dist = l1Dist;
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
@@ -210,7 +271,14 @@ const createGrid = (
         x = isLeftBlocked ? () => 0 : a => Math.min(0, a);
       }
       if (isLeftBlocked && isRightBlocked) {
-        // To avoid no movement at all we enforce a downward direction
+        // To avoid no movement at all we enforce a up- or downward direction
+        y = () => (isTopBlocked ? 1 : -1);
+
+        // Only the vertical distance should count now
+        if (isTopBlocked) dist = (x1, y1, x2, y2) => Math.abs(y1 - y2);
+      }
+      if (isTopBlocked && isLeftBlocked && isRightBlocked) {
+        // To avoid no movement at all we enforce a up- or downward direction
         y = () => (isTopBlocked ? 1 : -1);
       }
 
@@ -219,7 +287,7 @@ const createGrid = (
       let closestPile;
       conflictingPiles.forEach(pileId => {
         const pile = pilePositions.get(pileId);
-        const newD = l1Dist(pile.cX, pile.cY, ...anchor);
+        const newD = dist(pile.x, pile.y, anchor[0], anchor[1]);
         if (newD < d) {
           closestPile = pileId;
           d = newD;
@@ -242,8 +310,8 @@ const createGrid = (
 
         // Move piles in direction from the closest via themselves
         let direction = [
-          pile.cX - pilePositions.get(closestPile).cX,
-          pile.cY - pilePositions.get(closestPile).cY
+          pile.x - pilePositions.get(closestPile).x,
+          pile.y - pilePositions.get(closestPile).y
         ];
         direction[0] += (Math.sign(direction[0]) || 1) * Math.random();
         direction[1] += (Math.sign(direction[1]) || 1) * Math.random();
@@ -253,12 +321,12 @@ const createGrid = (
         // We accomplish this by clipping a line starting at the pile
         // position that goes outside the cell.
         const outerPoint = [
-          pile.cX + cellDiameterWithPadding * direction[0],
-          pile.cY + cellDiameterWithPadding * direction[1]
+          pile.x + cellDiameterWithPadding * direction[0],
+          pile.y + cellDiameterWithPadding * direction[1]
         ];
         const borderPoint = [...outerPoint];
 
-        clip([pile.cX, pile.cY], borderPoint, cellRect);
+        clip([pile.x, pile.y], borderPoint, cellRect);
 
         // To avoid that the pile is moved back to the same pile we move it a
         // little bit further
@@ -266,11 +334,20 @@ const createGrid = (
         borderPoint[1] += Math.sign(direction[1]) * 0.1;
 
         // "Move" pile to the outerPoint, which is now the borderPoint
-        pile.cX = borderPoint[0];
-        pile.cY = borderPoint[1];
+        const dX = borderPoint[0] - pile.x;
+        const dY = borderPoint[1] - pile.y;
+        pile.minX += dX;
+        pile.minY += dY;
+        pile.maxX += dX;
+        pile.maxY += dY;
+        pile.cX += dX;
+        pile.cY += dY;
+        pile.x += dX;
+        pile.y += dY;
 
         // Assign the pile to a new cell
         const [i, j] = assignPileToCell(pile);
+
         pilePositions.set(pileId, { ...pile, i, j });
       });
     }
@@ -280,7 +357,8 @@ const createGrid = (
         i,
         j,
         pilePositions.get(id).width,
-        pilePositions.get(id).height
+        pilePositions.get(id).height,
+        pilePositions.get(id).offset
       );
       return { id, x, y };
     });
@@ -317,6 +395,12 @@ const createGrid = (
     },
     get cellPadding() {
       return cellPadding;
+    },
+    get width() {
+      return width;
+    },
+    get height() {
+      return height;
     },
     // Methods
     align,
