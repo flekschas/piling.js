@@ -1091,6 +1091,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const getPilePosition = async (pileId, init) => {
     const { arrangementType, arrangementObjective, piles } = store.state;
 
+    const pile = pileInstances.get(pileId);
+    const pileState = piles[pileId];
+
     const isUnpositioned = isPileUnpositioned(pileState);
 
     const type =
@@ -1102,9 +1105,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       init || isUnpositioned
         ? arrangementObjective || INITIAL_ARRANGEMENT_OBJECTIVE
         : arrangementObjective;
-
-    const pile = pileInstances.get(pileId);
-    const pileState = piles[pileId];
 
     const ijToXy = (i, j) =>
       layout.ijToXy(i, j, pile.width, pile.height, pile.offset);
