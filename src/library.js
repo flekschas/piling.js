@@ -3456,6 +3456,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     canvas.removeEventListener('dblclick', mouseDblClickHandler);
     canvas.removeEventListener('wheel', wheelHandler);
 
+    store.reset();
     renderer.destroy(true);
     lasso.destroy();
 

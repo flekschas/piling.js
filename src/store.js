@@ -627,6 +627,10 @@ const createStore = () => {
     else reduxStore.dispatch(softOverwrite(newState));
   };
 
+  const resetState = () => {
+    reduxStore.dispatch(reset());
+  };
+
   return pipe(
     withStaticProperty('reduxStore', reduxStore),
     withReadOnlyProperty('lastAction', () => lastAction),
@@ -635,7 +639,8 @@ const createStore = () => {
     withForwardedMethod('subscribe', reduxStore.subscribe)
   )({
     export: exportState,
-    import: importState
+    import: importState,
+    reset: resetState
   });
 };
 
