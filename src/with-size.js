@@ -9,7 +9,7 @@ const withSize = (sprite, width, height) => self =>
       return sprite.height;
     },
     get originalHeight() {
-      return width;
+      return height;
     },
     get size() {
       return Math.max(sprite.width, sprite.height);
@@ -18,7 +18,7 @@ const withSize = (sprite, width, height) => self =>
       return sprite.width;
     },
     get originalWidth() {
-      return height;
+      return width;
     }
   });
 
