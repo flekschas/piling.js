@@ -39,7 +39,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = (
-  { items: initialItems, render, id, pubSub, store },
+  { render, id, pubSub, store },
   { x: initialX = 0, y: initialY = 0 } = {}
 ) => {
   const allItems = [];
@@ -994,8 +994,6 @@ const createPile = (
       .on('pointerup', onDragEnd)
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
-
-    setItems(initialItems);
   };
 
   init();

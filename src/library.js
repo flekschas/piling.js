@@ -2006,7 +2006,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const newPile = createPile(
       {
-        items,
         render: renderRaf,
         id: pileId,
         pubSub,
@@ -2014,9 +2013,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       },
       { x, y }
     );
+
     pileInstances.set(pileId, newPile);
+
+    if (store.state.coverAggregator) {
+      updatePreviewAndCover(pileState, newPile);
+    } else {
+      newPile.setItems(items);
+      positionItems(pileId);
+    }
+
     normalPiles.addChild(newPile.graphics);
-    positionItems(pileId);
     updatePileBounds(pileId);
     updatePileItemStyle(pileState, pileId);
     lastPilePosition.set(pileId, [pileState.x, pileState.y]);
