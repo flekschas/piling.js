@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-const createSploms = async element => {
+const createScatterplots = async element => {
   const fetchCsv = async fileName =>
     d3.csvParse(await fetch(fileName).then(body => body.text()), d3.autoType);
 
@@ -57,7 +57,7 @@ const createSploms = async element => {
 
   const createScatterplot = (year, xData, yData, continent) => {
     const svg = d3
-      .select('#splom-d3')
+      .select('#scatterplots-d3')
       .append('svg')
       .attr('viewBox', `0 0 ${size} ${size}`)
       .attr('width', size)
@@ -165,4 +165,4 @@ const createSploms = async element => {
   });
 };
 
-export default createSploms;
+export default createScatterplots;

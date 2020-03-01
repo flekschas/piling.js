@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
 
-const createSplomPiles = async element => {
+const createScatterplotPiles = async element => {
   const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
   const fetchCsv = async fileName =>
@@ -156,4 +156,4 @@ const createSplomPiles = async element => {
   return piling;
 };
 
-export default createSplomPiles;
+export default createScatterplotPiles;

@@ -1,23 +1,23 @@
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
-import createSplomPiles from './sploms';
-import createSploms from './splom-d3';
+import createScatterplotPiles from './scatterplots';
+import createScatterplots from './scatterplots-d3';
 import createDrawingPiles from './drawings';
 import createJoyPlotPiles from './joy-plot';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
-const splomEl = document.getElementById('splom');
-const splomD3El = document.getElementById('splom-d3');
+const scatterplotsEl = document.getElementById('scatterplots');
+const scatterplotsD3El = document.getElementById('scatterplots-d3');
 const drawingsEl = document.getElementById('drawings');
 const joyplotEl = document.getElementById('joyplot');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
-const splomCreditEl = document.getElementById('splom-credit');
+const scatterplotsCreditEl = document.getElementById('scatterplots-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
 
@@ -25,9 +25,9 @@ const conditionalElements = [
   photosEl,
   matricesEl,
   svgEl,
-  splomEl,
-  splomD3El,
-  splomCreditEl,
+  scatterplotsEl,
+  scatterplotsD3El,
+  scatterplotsCreditEl,
   drawingsEl,
   joyplotEl,
   photosCreditEl,
@@ -140,23 +140,23 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
-    case 'splom':
+    case 'scatterplots':
       if (piling) piling.destroy();
       conditionalElements.forEach(hideEl);
-      splomEl.style.display = 'block';
-      splomCreditEl.style.display = 'block';
+      scatterplotsEl.style.display = 'block';
+      scatterplotsCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createSplomPiles(splomEl);
+      piling = await createScatterplotPiles(scatterplotsEl);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
 
-    case 'splom-d3':
+    case 'scatterplots-d3':
       if (piling) piling.destroy();
       conditionalElements.forEach(hideEl);
-      splomD3El.style.display = 'block';
+      scatterplotsD3El.style.display = 'block';
       undoButton.disabled = true;
-      createSploms(splomD3El);
+      createScatterplots(scatterplotsD3El);
       break;
 
     default:
@@ -194,11 +194,11 @@ switch (example) {
     exampleEl.selectedIndex = 2;
     break;
 
-  case 'splom':
+  case 'scatterplots':
     exampleEl.selectedIndex = 3;
     break;
 
-  case 'splom-d3':
+  case 'scatterplots-d3':
     exampleEl.selectedIndex = 4;
     break;
 
