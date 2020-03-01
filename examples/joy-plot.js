@@ -64,7 +64,8 @@ const createSvgLinesPiles = async element => {
 
   const piling = createPilingJs(element, {
     cellAspectRatio: aspectRatio,
-    cellPadding: 5,
+    pileCellAlignment: 'center',
+    cellPadding: 4,
     renderer: svgRenderer,
     items,
     columns: 12,
@@ -72,7 +73,7 @@ const createSvgLinesPiles = async element => {
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
-    pileScale: pile => 1 + Math.min(1.0, (pile.items.length - 1) * 0.1),
+    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
     lassoStrokeColor: '#000000'

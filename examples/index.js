@@ -4,7 +4,10 @@ import createSvgLinesPiles from './lines';
 import createSplomPiles from './sploms';
 import createSploms from './splom-d3';
 import createDrawingPiles from './drawings';
+import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
+
+import './index.scss';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
@@ -12,6 +15,7 @@ const svgEl = document.getElementById('svg');
 const splomEl = document.getElementById('splom');
 const splomD3El = document.getElementById('splom-d3');
 const drawingsEl = document.getElementById('drawings');
+const vitessceEl = document.getElementById('vitessce');
 const joyplotEl = document.getElementById('joyplot');
 
 const photosCreditEl = document.getElementById('photos-credit');
@@ -19,6 +23,7 @@ const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const splomCreditEl = document.getElementById('splom-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
+const vitessceCreditEl = document.getElementById('vitessce-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
 
 const conditionalElements = [
@@ -29,11 +34,13 @@ const conditionalElements = [
   splomD3El,
   splomCreditEl,
   drawingsEl,
+  vitessceEl,
   joyplotEl,
   photosCreditEl,
   matricesCreditEl,
   svgCreditEl,
   drawingsCreditEl,
+  vitessceCreditEl,
   joyplotCreditEl
 ];
 
@@ -159,6 +166,17 @@ const createPiles = async example => {
       createSploms(splomD3El);
       break;
 
+    case 'vitessce':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      vitessceEl.style.display = 'block';
+      vitessceCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createVitessce(vitessceEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -210,6 +228,10 @@ switch (example) {
     exampleEl.selectedIndex = 6;
     break;
 
+  case 'vitessce':
+    exampleEl.selectedIndex = 7;
+    break;
+
   default:
   // Nothing
 }
@@ -249,7 +271,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 16,
           max: 320,
-          steps: 16,
+          numSteps: 16,
           nullifiable: true
         },
         {
@@ -257,7 +279,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 0,
           max: 64,
-          steps: 8
+          numSteps: 8
         },
         {
           name: 'columns',
@@ -271,7 +293,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 16,
           max: 320,
-          steps: 16,
+          numSteps: 16,
           nullifiable: true
         },
         {
@@ -333,9 +355,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     if (field.values) {
       if (field.multiple) {
         const checkboxes = document.createElement('div');
+        checkboxes.className =
+          field.values.length > 5 ? 'checkboxes scrollbar' : 'checkboxes';
 
         field.values.forEach(value => {
           const checkboxLabel = document.createElement('label');
+          checkboxLabel.className = 'checkbox';
           checkboxes.appendChild(checkboxLabel);
 
           const checkbox = document.createElement('input');
@@ -372,10 +397,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       if (field.values.length > 3) {
         const select = document.createElement('select');
 
-        field.values.forEach(value => {
+        field.values.forEach((value, i) => {
           const option = document.createElement('option');
           option.setAttribute('value', value);
-          option.textContent = value;
+          option.textContent = (field.labels && field.labels[i]) || value;
           if (currentValue === value) option.selected = true;
           select.appendChild(option);
         });
@@ -404,6 +429,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
       field.values.forEach(value => {
         const radioLabel = document.createElement('label');
+        radioLabel.className = 'radio';
         radios.appendChild(radioLabel);
 
         const radio = document.createElement('input');
@@ -436,21 +462,26 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     }
 
     const input = document.createElement('input');
+    if (field.id) input.id = field.id;
     input.setAttribute('type', dtypeToInputType[field.dtype]);
 
     if (!Number.isNaN(+field.min)) {
       input.setAttribute('type', 'range');
       input.setAttribute('min', +field.min);
+      input.className = 'range-slider';
     }
 
     if (!Number.isNaN(+field.max)) {
       input.setAttribute('type', 'range');
       input.setAttribute('max', +field.max);
+      input.className = 'range-slider';
     }
 
-    if (!Number.isNaN(+field.step)) {
+    if (!Number.isNaN(+field.numSteps)) {
+      const step = (+field.max - +field.min) / +field.numSteps;
       input.setAttribute('type', 'range');
-      input.setAttribute('step', +field.step);
+      input.setAttribute('step', step);
+      input.className = 'range-slider';
     }
 
     input.setAttribute('value', currentValue);
@@ -495,7 +526,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       }
       labelTitle.appendChild(valueEl);
 
-      const inputs = document.createElement('inputs');
+      const inputs = document.createElement('div');
       inputs.setAttribute('class', 'inputs');
       const input = createInput(field);
 
@@ -536,7 +567,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         inputs.appendChild(isSet);
       }
 
-      input.addEventListener('change', event => {
+      const eventType = field.onInput ? 'input' : 'change';
+
+      input.addEventListener(eventType, event => {
         let value = event.target.value;
 
         if (field.values && field.multiple) {
