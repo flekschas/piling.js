@@ -520,6 +520,8 @@ const createPile = (
     animator,
     previewSpacing
   ) => {
+    if (allItems.length < 2) return;
+
     isPositioning = true;
 
     if (getCover()) {
@@ -541,10 +543,7 @@ const createPile = (
         });
       });
     } else {
-      let count = 0;
-      newItems.forEach(pileItem => {
-        count++;
-
+      newItems.forEach((pileItem, i) => {
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
 
@@ -588,7 +587,7 @@ const createPile = (
           itemOffset[1],
           itemRotation,
           animator,
-          count === newItems.size
+          i === newItems.size
         );
       });
     }
@@ -821,8 +820,8 @@ const createPile = (
       item,
       pubSub
     });
-    allItems.push(normalItem);
-    newItems.add(normalItem);
+    const numItems = allItems.push(normalItem);
+    if (numItems > 1) newItems.add(normalItem);
     normalItemIndex.set(normalItem.id, normalItem);
     normalItemContainer.addChild(normalItem.displayObject);
   };
