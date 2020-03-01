@@ -2016,6 +2016,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
     pileInstances.set(pileId, newPile);
     normalPiles.addChild(newPile.graphics);
+    positionItems(pileId);
     updatePileBounds(pileId);
     updatePileItemStyle(pileState, pileId);
     lastPilePosition.set(pileId, [pileState.x, pileState.y]);
