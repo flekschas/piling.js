@@ -6,51 +6,60 @@ import { createSvgRenderer } from '../src/renderer';
 const createSplomPiles = async element => {
   const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
-  const fertilityRateData = d3.csvParse(
-    await fetch('data/fertility-rate.csv').then(body => body.text()),
-    d3.autoType
-  );
+  const fetchCsv = async fileName =>
+    d3.csvParse(await fetch(fileName).then(body => body.text()), d3.autoType);
 
-  const fertilityRateColumns = fertilityRateData.columns.filter(
-    column => column !== 'Country Name' && column !== 'Country Code'
-  );
+  const fRData = await fetchCsv('data/fertility-rate.csv');
+  const lEData = await fetchCsv('data/life-expectancy.csv');
+  const country2continentData = await fetchCsv('data/data.csv');
 
-  const lifeExpectancyData = d3.csvParse(
-    await fetch('data/life-expectancy.csv').then(body => body.text()),
-    d3.autoType
-  );
+  const categorizeByContinent = data => {
+    const continentData = {
+      AS: [],
+      AF: [],
+      OC: [],
+      NA: [],
+      SA: [],
+      EU: []
+    };
 
-  const lifeExpectancyColumns = lifeExpectancyData.columns.filter(
-    column => column !== 'Country Name' && column !== 'Country Code'
-  );
+    data.forEach(d => {
+      const continent = country2continentData[0][d['Country Code']];
+      if (continentData[continent]) {
+        continentData[continent].push(d);
+      }
+    });
 
-  const columns = fertilityRateColumns.length;
+    return continentData;
+  };
+
+  const fertilityRateData = categorizeByContinent(fRData);
+  const lifeExpectancyData = categorizeByContinent(lEData);
 
   const padding = 20;
-
   const size = 100;
 
-  const xPos = fertilityRateColumns.map(column =>
+  const createXPos = (xData, column) =>
     d3
       .scaleLinear()
-      .domain(d3.extent(fertilityRateData, d => d[column]))
-      .rangeRound([padding / 2, size - padding / 2])
-  );
+      .domain(d3.extent(xData, d => d[column]))
+      .rangeRound([padding / 2, size - padding / 2]);
 
-  const yPos = lifeExpectancyColumns.map(column =>
+  const createYPos = (yData, column) =>
     d3
       .scaleLinear()
-      .domain(d3.extent(lifeExpectancyData, d => d[column]))
-      .rangeRound([size - padding / 2, padding / 2])
-  );
+      .domain(d3.extent(yData, d => d[column]))
+      .rangeRound([size - padding / 2, padding / 2]);
 
   const zPos = d3
     .scaleOrdinal()
-    .domain(fertilityRateData.map(d => d['Country Name']))
+    .domain(Object.keys(fertilityRateData))
     .range(d3.schemeDark2);
 
-  const createSplom = i => {
+  const createScatterplot = (year, xData, yData, continent) => {
     const svg = d3.create('svg').attr('viewBox', `0 0 ${size} ${size}`);
+
+    const xPos = createXPos(xData, year);
 
     const xAxis = svg
       .append('g')
@@ -59,13 +68,15 @@ const createSplomPiles = async element => {
     xAxis
       .call(
         d3
-          .axisBottom(xPos[i])
+          .axisBottom(xPos)
           .ticks(3)
           .tickSize(size - padding)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', '#666'))
-      .call(g => g.selectAll('.tick text').attr('fill', '#ccc'));
+      .call(g => g.selectAll('.tick line').attr('stroke', '#444'))
+      .call(g => g.selectAll('.tick text').attr('fill', '#aaa'));
+
+    const yPos = createYPos(yData, year);
 
     const yAxis = svg
       .append('g')
@@ -74,16 +85,16 @@ const createSplomPiles = async element => {
     yAxis
       .call(
         d3
-          .axisLeft(yPos[i])
+          .axisLeft(yPos)
           .ticks(4)
           .tickSize(padding - size)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', '#666'))
+      .call(g => g.selectAll('.tick line').attr('stroke', '#444'))
       .call(g =>
         g
           .selectAll('.tick text')
-          .attr('fill', '#ccc')
+          .attr('fill', '#aaa')
           .attr('font-size', 'smaller')
           .attr('writing-mode', 'vertical-lr')
           .attr('x', -6)
@@ -95,7 +106,7 @@ const createSplomPiles = async element => {
     cell
       .append('rect')
       .attr('fill', 'none')
-      .attr('stroke', '#ccc')
+      .attr('stroke', '#aaa')
       .attr('x', padding / 2 + 0.5)
       .attr('y', padding / 2 + 0.5)
       .attr('width', size - padding)
@@ -103,29 +114,42 @@ const createSplomPiles = async element => {
 
     const circle = cell
       .selectAll('circle')
-      .data(fertilityRateData)
+      .data(xData)
       .join('circle')
-      .attr('cx', d => xPos[i](d[fertilityRateColumns[i]]))
-      .data(lifeExpectancyData)
+      .attr('cx', d => xPos(d[year]))
+      .data(yData)
       .join('circle')
-      .attr('cy', d => yPos[i](d[lifeExpectancyColumns[i]]));
+      .attr('cy', d => yPos(d[year]));
 
     circle
       .attr('r', 1.5)
       .attr('fill-opacity', 0.7)
-      .attr('fill', d => zPos(d['Country Name']));
+      .attr('fill', () => zPos(continent));
 
     return svg.node();
   };
 
-  const data = new Array(columns)
-    .fill(0)
-    .map((d, i) => ({ src: createSplom(i) }));
+  const items = [];
+
+  const columnsOfYears = fRData.columns.filter(
+    column => column !== 'Country Name' && column !== 'Country Code'
+  );
+
+  columnsOfYears.forEach(year => {
+    Object.entries(fertilityRateData).forEach(([continent, xData]) => {
+      const yData = lifeExpectancyData[continent];
+      const scatterplot = {};
+      scatterplot.src = createScatterplot(year, xData, yData, continent);
+      items.push(scatterplot);
+    });
+  });
+
+  const columns = Object.keys(fertilityRateData).length;
 
   const piling = createPilingJs(element, {
     renderer: svgRenderer,
-    items: data,
-    columns: 6,
+    items,
+    columns,
     pileItemAlignment: 'overlap'
   });
 
