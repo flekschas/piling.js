@@ -39,7 +39,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = (
-  { render, id, pubSub, store },
+  { items: initialItems, render, id, pubSub, store },
   { x: initialX = 0, y: initialY = 0 } = {}
 ) => {
   const allItems = [];
@@ -67,9 +67,6 @@ const createPile = (
   let isPositioning = false;
   let isScaling = false;
   let isMoving = false;
-
-  let baseOffsetRelatedScaleFactor = -1;
-  let baseOffset = [0, 0];
 
   let mode = MODE_NORMAL;
 
@@ -197,7 +194,7 @@ const createPile = (
 
     const x = contentBounds.x - borderBounds.x;
     const y = contentBounds.y - borderBounds.y;
-    const borderOffset = Math.ceil(size / 2);
+    const offset = Math.ceil(size / 2);
 
     // draw black background
     borderGraphics.beginFill(
@@ -205,10 +202,10 @@ const createPile = (
       state.pileBackgroundOpacity
     );
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      x - offset,
+      y - offset,
+      contentBounds.width + 2 * offset,
+      contentBounds.height + 2 * offset
     );
     borderGraphics.endFill();
 
@@ -219,10 +216,10 @@ const createPile = (
       state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
     );
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      x - offset,
+      y - offset,
+      contentBounds.width + 2 * offset,
+      contentBounds.height + 2 * offset
     );
 
     render();
@@ -374,24 +371,11 @@ const createPile = (
    * @return  {object}  Anchor bounding box
    */
   const calcAnchorBox = (xOffset = 0, yOffset = 0) => {
-    let bounds;
-    let localXOffset = 0;
-    let localYOffset = 0;
-
-    if (coverItemContainer.children.length) {
-      bounds = coverItemContainer.getBounds();
-    } else {
-      bounds = normalItemContainer.getBounds();
-      if (allItems.length > 1) {
-        const firstItemBounds = allItems[0].displayObject.getBounds();
-        localXOffset = bounds.x - firstItemBounds.x;
-        localYOffset = bounds.y - firstItemBounds.y;
-      }
-    }
+    const bounds = coverItemContainer.children.length
+      ? coverItemContainer.getBounds()
+      : normalItemContainer.getBounds();
 
     return createPileBBox({
-      localXOffset,
-      localYOffset,
       minX: bounds.x - xOffset,
       minY: bounds.y - yOffset,
       maxX: bounds.x + bounds.width - xOffset,
@@ -574,19 +558,19 @@ const createPile = (
         const itemState = store.state.items[item.id];
         const itemIndex = pileState.items.indexOf(item.id);
 
-        const itemOffset = isFunction(pileItemOffset)
+        const offset = isFunction(pileItemOffset)
           ? pileItemOffset(itemState, itemIndex, pileState)
           : pileItemOffset.map(_offset => _offset * itemIndex);
 
-        const itemRotation = isFunction(pileItemRotation)
+        const angle = isFunction(pileItemRotation)
           ? pileItemRotation(itemState, itemIndex, pileState)
           : pileItemRotation;
 
         animatePositionItems(
           displayObject,
-          itemOffset[0],
-          itemOffset[1],
-          itemRotation,
+          offset[0],
+          offset[1],
+          angle,
           animator,
           count === newItems.size
         );
@@ -734,14 +718,6 @@ const createPile = (
     return moveToTweener;
   };
 
-  const updateBaseOffset = () => {
-    const firstImage = allItems[0].item.image;
-    if (firstImage.scaleFactor !== baseOffsetRelatedScaleFactor) {
-      baseOffsetRelatedScaleFactor = firstImage.scaleFactor;
-      baseOffset = firstImage.center;
-    }
-  };
-
   const moveTo = (x, y) => {
     rootGraphics.x = x;
     rootGraphics.y = y;
@@ -852,8 +828,6 @@ const createPile = (
     } else {
       addNormalItem(item);
     }
-
-    if (allItems.length === 1) updateBaseOffset();
   };
 
   const removeItem = item => {
@@ -994,6 +968,8 @@ const createPile = (
       .on('pointerup', onDragEnd)
       .on('pointerupoutside', onDragEnd)
       .on('pointermove', onDragMove);
+
+    setItems(initialItems);
   };
 
   init();
@@ -1015,9 +991,6 @@ const createPile = (
     get contentGraphics() {
       return contentGraphics;
     },
-    get height() {
-      return rootGraphics.height;
-    },
     get isFocus() {
       return isFocus;
     },
@@ -1036,12 +1009,6 @@ const createPile = (
     get normalItemContainer() {
       return normalItemContainer;
     },
-    get offset() {
-      return [
-        (baseOffset[0] - anchorBox.localXOffset) * baseScale,
-        (baseOffset[1] - anchorBox.localYOffset) * baseScale
-      ];
-    },
     get previewItemContainer() {
       return previewItemContainer;
     },
@@ -1056,9 +1023,6 @@ const createPile = (
     },
     get tempDepileContainer() {
       return tempDepileContainer;
-    },
-    get width() {
-      return rootGraphics.width;
     },
     get x() {
       return rootGraphics.x;
@@ -1096,7 +1060,6 @@ const createPile = (
     setVisibilityItems,
     updateBounds,
     updateCover,
-    updateOffset: updateBaseOffset,
     replaceItemsImage,
     unmagnify
   };

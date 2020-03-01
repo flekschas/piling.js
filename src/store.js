@@ -351,12 +351,7 @@ const items = (previousState = {}, action) => {
         : false;
 
       return action.payload.items.reduce((newState, item, index) => {
-        const id = useCustomId ? item.id : index;
-        newState[id] = {
-          id,
-          index,
-          ...item
-        };
+        newState[useCustomId ? item.id : index] = item;
         return newState;
       }, {});
     }
@@ -380,13 +375,11 @@ const piles = (previousState = {}, action) => {
 
       return action.payload.newItems.reduce((newState, item, index) => {
         const itemId = useCustomItemId ? item.id : index.toString();
-        newState[itemId] = {
-          id: itemId,
-          index,
+        newState[index] = {
           items: [itemId],
           x: null,
           y: null,
-          ...previousState[itemId]
+          ...previousState[index]
         };
         return newState;
       }, {});
@@ -627,10 +620,6 @@ const createStore = () => {
     else reduxStore.dispatch(softOverwrite(newState));
   };
 
-  const resetState = () => {
-    reduxStore.dispatch(reset());
-  };
-
   return pipe(
     withStaticProperty('reduxStore', reduxStore),
     withReadOnlyProperty('lastAction', () => lastAction),
@@ -639,8 +628,7 @@ const createStore = () => {
     withForwardedMethod('subscribe', reduxStore.subscribe)
   )({
     export: exportState,
-    import: importState,
-    reset: resetState
+    import: importState
   });
 };
 

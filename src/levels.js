@@ -2,6 +2,7 @@ import {
   createHtmlByTemplate,
   forEach,
   pipe,
+  randomString,
   removeAllChildren,
   removeLastChild,
   toVoid,
@@ -10,14 +11,14 @@ import {
   withStaticProperty
 } from '@flekschas/utils';
 
-import { ifNotNull } from './utils';
-
 import createStylesheet from './stylesheet';
 
-const CSS_PREFIX = `pilingjs-breadcrumbs-button`;
+const CSS_HASH = randomString(5);
+
+const CSS_PREFIX = `pilingjs-${CSS_HASH}`;
 
 const CSS_BTN_RIGHT_ARROW = [
-  `.${CSS_PREFIX} {
+  `.${CSS_PREFIX}-btn {
   position: relative;
   display: flex;
   align-items: center;
@@ -26,40 +27,20 @@ const CSS_BTN_RIGHT_ARROW = [
   margin-right: -0.25em;
   padding: 0 0.5em 0 1em;
   border-radius: 0 0.25em 0.25em 0;
-  text-color: black;
-  box-shadow: inset 0 0 0 1px #ccc;
-  background: white;
 }`,
-  `.pilingjs-darkmode .${CSS_PREFIX} {
-  text-color: white;
-  box-shadow: inset 0 0 0 1px #333;
-  background: black;
-}`,
-  `li:first-child .${CSS_PREFIX} {
+  `li:first-child .${CSS_PREFIX}-btn {
   padding: 0.5em;
   border-radius: 0.25em;
 }`,
-  `.${CSS_PREFIX}:focus {
+  `.${CSS_PREFIX}-btn:focus {
   outline: none;
 }`,
-  `.${CSS_PREFIX}.${CSS_PREFIX}-right-arrow {
+  `.${CSS_PREFIX}-btn-right-arrow {
   position: relative;
   display: block;
   border-radius: 0;
-  border-left-color: #ccc;
-  background: #ccc;
 }`,
-  `.pilingjs-darkmode .${CSS_PREFIX}.${CSS_PREFIX}-right-arrow {
-  border-left-color: #333;
-  background: #333;
-}`,
-  `.${CSS_PREFIX}.${CSS_PREFIX}-right-arrow:hover, .pilingjs-darkmode .${CSS_PREFIX}.${CSS_PREFIX}-right-arrow:hover {
-  color: black;
-  border-left-color: #ff7ff6;
-  box-shadow: inset 0 0 0 1px #ff7ff6;
-  background: #ff7ff6;
-}`,
-  `.${CSS_PREFIX}.${CSS_PREFIX}-right-arrow:after {
+  `.${CSS_PREFIX}-btn-right-arrow:after {
   left: 100%;
   top: 50%;
   border: solid transparent;
@@ -88,12 +69,10 @@ const createLevels = (
   let maxDepth = initialMaxDepth;
 
   const breadcrumbsEl = document.createElement('nav');
-  breadcrumbsEl.className = 'pilingjs-breadcrumbs';
   breadcrumbsEl.style.position = 'absolute';
   breadcrumbsEl.style.top = 0;
   breadcrumbsEl.style.left = 0;
   const breadcrumbsListEl = document.createElement('ol');
-  breadcrumbsListEl.className = 'pilingjs-breadcrumbs-list';
   breadcrumbsListEl.style.display = 'flex';
   breadcrumbsListEl.style.margin = 0;
   breadcrumbsListEl.style.padding = 0;
@@ -108,14 +87,23 @@ const createLevels = (
   let currStateIds = [];
 
   const styleNavButtons = () => {
+    const textColor = darkMode ? 'white' : 'black';
+    const borderColor = darkMode ? '#333' : '#ccc';
+    const backgroundColor = darkMode ? 'black' : 'white';
+
     forEach((button, index, array) => {
       if (index + 1 === array.length) {
+        button.style.background = backgroundColor;
+        button.style.boxShadow = `inset 0 0 0 1px ${borderColor}`;
         button.style.zIndex = 1;
-        button.className = `${CSS_PREFIX}`;
+        button.className = `${CSS_PREFIX}-btn`;
       } else {
+        button.style.borderLeftColor = borderColor;
+        button.style.background = borderColor;
         button.style.zIndex = array.length - index;
-        button.className = `${CSS_PREFIX} ${CSS_PREFIX}-right-arrow`;
+        button.className = `${CSS_PREFIX}-btn ${CSS_PREFIX}-btn-right-arrow`;
       }
+      button.style.color = textColor;
     })(breadcrumbsListEl.querySelectorAll('button'));
   };
 
@@ -250,6 +238,8 @@ const createLevels = (
     prevStates = [];
     prevSizes = [];
   };
+
+  const ifNotNull = (v, alternative) => (v === null ? alternative : v);
 
   const set = ({
     darkMode: newDarkMode = null,
