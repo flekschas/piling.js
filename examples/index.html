@@ -4,19 +4,19 @@
   <head>
     <meta charset="utf-8" />
 
-    <title>Piling.js Demo</title>
+    <title>Piling.js Demos</title>
     <meta
       name="description"
-      content="Scalable WebGL-based Visual Piling Library"
+      content="A WebGL-based Library for Visual Piling"
     />
-    <meta name="author" content="Xinyi Zhou, Fritz Lekschas" />
+    <meta name="author" content="Fritz Lekschas and Xinyi Zhou" />
     <meta
       name="keywords"
-      content="Piling, Stacking, Piling.js, Visualization, Framework, Library, WebGL, PIXI.js, JavaScript, ES6"
+      content="Visual Piling, Visual Stacking, Piling.js, Visualization, Framework, Library, WebGL, PIXI.js, JavaScript, ES6"
     />
 
     <!-- Schema.org markup for Google+ -->
-    <meta itemprop="name" content="Piling.js Demo" />
+    <meta itemprop="name" content="Piling.js Demos" />
     <meta
       itemprop="description"
       content="Scalable WebGL-based Visual Piling Library"
@@ -29,10 +29,10 @@
     <!-- Twitter Card data -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@flekschas" />
-    <meta name="twitter:title" content="Piling.js Demo" />
+    <meta name="twitter:title" content="Piling.js Demos" />
     <meta
       name="twitter:description"
-      content="Scalable WebGL-based Visual Piling Library"
+      content="A WebGL-based Library for Visual Piling"
     />
     <meta name="twitter:creator" content="@flekschas" />
     <meta
@@ -41,10 +41,10 @@
     />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Piling.js Demo" />
+    <meta property="og:title" content="Piling.js Demos" />
     <meta
       property="og:description"
-      content="Scalable WebGL-based Visual Piling Library"
+      content="A WebGL-based Library for Visual Piling"
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://flekschas.github.io/piling.js/" />
@@ -66,276 +66,6 @@
         ? window.example.split(' ')[0].toLowerCase()
         : null;
     </script>
-
-    <style type="text/css">
-      * {
-        box-sizing: border-box;
-      }
-
-      ::selection {
-        background-color: rgba(255, 127, 246, 0.9);
-        color: #020202;
-      }
-
-      html,
-      body {
-        padding: 0;
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        font-family: 'Roboto Condensed', sans-serif;
-        text-rendering: optimizeLegibility;
-        color: white;
-        background: black;
-      }
-
-      body.white-mode {
-        color: black;
-        background: white;
-      }
-
-      a,
-      a:visited {
-        color: white;
-      }
-
-      body.white-mode a,
-      body.white-mode a:visited {
-        color: black;
-      }
-
-      a:hover,
-      .credits a:hover {
-        color: #ff7ff6;
-      }
-
-      body.white-mode a:hover,
-      body.white-mode .credits a:hover {
-        color: #d900ca;
-      }
-
-      header {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        left: 1rem;
-        height: 3rem;
-        display: flex;
-      }
-
-      h1 {
-        margin: 0 1rem 0 0;
-        padding: 0 0.5rem;
-        font-size: 2rem;
-        line-height: 3rem;
-        color: black;
-        background: white;
-        border-radius: 0.25rem;
-      }
-
-      body.white-mode h1 {
-        color: white;
-        background: black;
-      }
-
-      button {
-        background: #bbb;
-        border: 0;
-        border-radius: 0.25rem;
-      }
-
-      .container {
-        position: absolute;
-        top: 5rem;
-        right: 1rem;
-        bottom: 1rem;
-        left: 1rem;
-        transition: right 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-      }
-
-      body.options-open .container {
-        right: 16rem;
-      }
-
-      .credits {
-        margin-left: 0.5rem;
-      }
-
-      .credits,
-      .credits a {
-        color: #808080;
-      }
-
-      header #description {
-        position: relative;
-        display: flex;
-        flex-grow: 1;
-        flex-direction: column;
-      }
-
-      #description .wrapper {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-      }
-
-      #description .wrapper > * {
-        position: relative;
-        display: block;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        margin: 0;
-        height: 1.5rem;
-        line-height: 1.5rem;
-      }
-
-      #selection {
-        display: flex !important;
-        align-items: center;
-      }
-
-      #selection label {
-        margin-right: 0.5rem;
-      }
-
-      #matrices,
-      #matrices-credit,
-      #svg,
-      #svg-credit {
-        display: none;
-      }
-
-      #options {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 15rem;
-        background: black;
-        border-left: 1px solid #333;
-        color: white;
-        transform: translate(15rem, 0);
-        transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-      }
-
-      #options.open {
-        transform: translate(0, 0);
-      }
-
-      body.white-mode #options .toggler {
-        border-color: black;
-      }
-
-      #options .toggler {
-        position: absolute;
-        display: block;
-        top: 1rem;
-        left: 0;
-        height: 3rem;
-        width: 3rem;
-        padding: 0.5rem;
-        background: black;
-        color: white;
-        border: 1px solid #333;
-        border-radius: 0.25rem;
-        opacity: 0.2;
-        transform: translate(-4rem, 0);
-        transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          border-radius 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-      }
-
-      #options .toggler:hover {
-        opacity: 0.4;
-      }
-
-      #options .toggler:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 127, 246, 0.9);
-      }
-
-      #options .toggler svg {
-        width: 100%;
-        height: 100%;
-      }
-
-      #options.open .toggler {
-        opacity: 1;
-        transform: translate(-3rem, 0);
-        border-right: 0;
-        border-radius: 0.25rem 0 0 0.25rem;
-        background: black;
-      }
-
-      body.white-mode #options.open .toggler {
-        background: black;
-      }
-
-      #options .content {
-        margin: 0.5rem;
-      }
-
-      #options .content h4 {
-        margin: 1rem 0 0.5rem 0;
-      }
-
-      #options .content h4:after {
-        content: ':';
-      }
-
-      #options label {
-        display: block;
-        margin: 0.25rem 0;
-      }
-
-      #options label div {
-        display: block;
-        font-size: 0.8rem;
-      }
-
-      #options .title:after {
-        content: ':';
-        margin-right: 0.25rem;
-      }
-
-      #options .inputs {
-        display: flex;
-        align-items: center;
-      }
-
-      #undo {
-        position: relative;
-        display: block;
-        width: 100%;
-        line-height: 1.5rem;
-        border-radius: 0.25rem;
-        color: black;
-        border: 1px solid white;
-        background: white;
-        transition: color 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          border 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          background 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
-          box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-      }
-
-      #undo:focus {
-        outline: none;
-        box-shadow: 0 0 0 1px black, 0 0 0 3px rgba(255, 127, 246, 0.9);
-      }
-
-      #undo:disabled {
-        color: white;
-        background: black;
-        opacity: 0.33;
-      }
-    </style>
   </head>
 
   <body>
@@ -363,23 +93,23 @@
             <a href="https://github.com/flekschas/piling.js" target="_blank">
               Piling.js
             </a>
-            is a library for piling visualizations like images, matrices,
-            scatterplots, etc. Piling.js is data-agnostic and highly
-            customizable.
+            is a library for visual piling of images, matrices, scatterplots, or
+            other kinds of data visualizations.
           </div>
           <div id="selection">
             <label for="example">Examples:</label>
             <select id="example">
-              <option value="photos">Photos (Image)</option>
-              <option value="matrices">Matrices (Array)</option>
+              <option value="photos">Photos (HTML Image)</option>
+              <option value="matrices">Matrices (Numerical Array)</option>
               <option value="lines">Lines (SVG)</option>
-              <option value="scatterplots">Scatterplots (SVG)</option>
+              <option value="drawings">Drawings (Canvas)</option>
+              <option value="joyplot">Joy Plot (SVG)</option>
+              <option value="vitessce">Microscopy (WebGL)</option>
+              <option value="scatterplots">Scatterplots (D3)</option>
               <option value="scatterplots-d3">Scatterplots-D3 (SVG)</option>
-              <option value="drawings">Drawings</option>
-              <option value="joyplot">Joy Plot</option>
             </select>
             <div class="credits">
-              <em id="photos-credit">
+              <em id="photos-credit" style="display: none">
                 (From
                 <a
                   href="https://www.kaggle.com/prasunroy/natural-images"
@@ -387,22 +117,14 @@
                   >Roy et al., 2018</a
                 >)
               </em>
-              <em id="matrices-credit">
+              <em id="matrices-credit" style="display: none">
                 (From
                 <a href="http://hipiler.higlass.io" target="_blank"
                   >Lekschas et al., 2018</a
                 >)
               </em>
               <em id="svg-credit">(Randomly generated)</em>
-              <em id="scatterplots-credit">
-                (From
-                <a
-                  href="https://www.kaggle.com/uciml/pima-indians-diabetes-database"
-                  target="_blank"
-                  >Smith et al., 1988</a
-                >)
-              </em>
-              <em id="drawings-credit">
+              <em id="drawings-credit" style="display: none">
                 (From
                 <a
                   href="https://github.com/googlecreativelab/quickdraw-dataset"
@@ -410,12 +132,33 @@
                   >Google Quickdraw Dataset</a
                 >)
               </em>
-              <em id="joyplot-credit">
+              <em id="joyplot-credit" style="display: none">
                 (From
                 <a
                   href="https://www.dwd.de/EN/climate_environment/cdc/cdc_node.html"
                   target="_blank"
                   >Deutscher Wetterdienst</a
+                >)
+              </em>
+              <em id="vitessce-credit" style="display: none">
+                (From
+                <a href="http://linnarssonlab.org/osmFISH/" target="_blank"
+                  >Codeluppi et al., 2018</a
+                >
+                based on
+                <a
+                  href="https://github.com/hubmapconsortium/vitessce-image-viewer"
+                  target="_blank"
+                  >Vitessce Image Viewer</a
+                >
+                )
+              </em>
+              <em id="scatterplots-credit" style="display: none">
+                (From
+                <a
+                  href="https://www.kaggle.com/uciml/pima-indians-diabetes-database"
+                  target="_blank"
+                  >Smith et al., 1988</a
                 >)
               </em>
             </div>
@@ -431,6 +174,7 @@
     <div id="scatterplots-d3" class="container"></div>
     <div id="drawings" class="container"></div>
     <div id="joyplot" class="container"></div>
+    <div id="vitessce" class="container"></div>
 
     <aside id="options">
       <button id="options-toggler" class="toggler">
