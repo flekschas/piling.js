@@ -142,13 +142,7 @@ const createPiles = async example => {
 
     case 'splom':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      splomD3El.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       splomEl.style.display = 'block';
       splomCreditEl.style.display = 'block';
       undoButton.disabled = true;
@@ -159,14 +153,7 @@ const createPiles = async example => {
 
     case 'splom-d3':
       if (piling) piling.destroy();
-      photosEl.style.display = 'none';
-      photosCreditEl.style.display = 'none';
-      matricesEl.style.display = 'none';
-      matricesCreditEl.style.display = 'none';
-      svgEl.style.display = 'none';
-      svgCreditEl.style.display = 'none';
-      splomEl.style.display = 'none';
-      splomCreditEl.style.display = 'none';
+      conditionalElements.forEach(hideEl);
       splomD3El.style.display = 'block';
       undoButton.disabled = true;
       createSploms(splomD3El);
