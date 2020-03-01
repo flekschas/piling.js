@@ -520,10 +520,6 @@ const createPile = (
     animator,
     previewSpacing
   ) => {
-    if (allItems.length < 2) return;
-
-    isPositioning = true;
-
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
@@ -542,7 +538,9 @@ const createPile = (
           );
         });
       });
-    } else {
+    } else if (normalItemContainer.children.length > 1) {
+      isPositioning = true;
+
       newItems.forEach((pileItem, i) => {
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;

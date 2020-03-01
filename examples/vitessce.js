@@ -143,8 +143,8 @@ const createVitessce = async element => {
     items,
     itemSize,
     cellPadding: 8,
-    pileItemAlignment: false,
-    pileItemRotation: true,
+    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
+    pileItemRotation: () => Math.random() * 20 - 10,
     pileContextMenuItems: [
       {
         id: 'umapify',
