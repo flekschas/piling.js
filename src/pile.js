@@ -540,7 +540,7 @@ const createPile = (
           );
         });
       });
-    } else {
+    } else if (normalItemContainer.children.length > 1) {
       let count = 0;
       newItems.forEach(pileItem => {
         count++;
