@@ -931,15 +931,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
         });
 
-        updatedItemIds.forEach(id => {
-          if (pileInstances.has(id)) {
-            const pile = pileInstances.get(id);
-            const pileState = piles[id];
+        updatedItemIds.forEach(itemId => {
+          if (pileInstances.has(itemId)) {
+            const pile = pileInstances.get(itemId);
+            const pileState = piles[itemId];
             pile.replaceItemsImage();
             pile.blur();
-            updatePileStyle(pileState, id);
-            updatePileItemStyle(pileState, id);
+            updatePileStyle(pileState, itemId);
+            updatePileItemStyle(pileState, itemId);
             clearActivePileLayer();
+          } else {
+            // Just update part of items on a pile
+            Object.values(piles).forEach(pileState => {
+              if (pileState.items.includes(itemId)) {
+                const pile = pileInstances.get(pileState.id);
+                pile.replaceItemsImage(itemId);
+                pile.blur();
+              }
+            });
           }
         });
         scaleItems();
