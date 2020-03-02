@@ -378,15 +378,36 @@ const piles = (previousState = {}, action) => {
         ? typeof action.payload.newItems[0].id !== 'undefined'
         : false;
 
+      const newItemIds = action.payload.newItems.map((item, index) =>
+        typeof item.id === 'undefined' ? index.toString() : item.id
+      );
+
       return action.payload.newItems.reduce((newState, item, index) => {
         const itemId = useCustomItemId ? item.id : index.toString();
+
+        // Update previous pile state's items correctly
+        const previous = { ...previousState[itemId] };
+        if (previousState[itemId]) {
+          if (previousState[itemId].items.length) {
+            previous.items = previousState[itemId].items.filter(id =>
+              newItemIds.includes(id)
+            );
+          } else if (newItemIds.includes(itemId)) {
+            const isItemOnPile = Object.values(previousState).filter(
+              pile =>
+                pile.items.includes(itemId) && newItemIds.includes(pile.id)
+            ).length;
+            if (!isItemOnPile) previous.items = [itemId];
+          }
+        }
+
         newState[itemId] = {
           id: itemId,
           index,
           items: [itemId],
           x: null,
           y: null,
-          ...previousState[itemId]
+          ...previous
         };
         return newState;
       }, {});
