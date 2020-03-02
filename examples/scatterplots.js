@@ -8,44 +8,30 @@ const createScatterplotPiles = async element => {
 
   const items = [];
 
-  const regions = Object.keys(data);
-  const regionsData = Object.values(data);
-  const years = Object.keys(regionsData[0]);
-
-  years.forEach((year, yearIndex) => {
-    regions.forEach((region, regionIndex) => {
-      const item = {};
-      item.src = [];
-
-      const regionData = Object.values(regionsData[regionIndex]);
-      const countriesData = Object.values(regionData[yearIndex]);
-      const countriesCode = Object.keys(regionData[yearIndex]);
-
-      countriesCode.forEach((countryCode, index) => {
-        const countryData = countriesData[index];
-        if (countryData.fertilityRate && countryData.lifeExpectancy) {
-          item.src.push({
-            year,
-            region,
-            countryCode,
-            ...countryData
-          });
-        }
+  Object.entries(data).forEach(([region, years]) => {
+    Object.entries(years).forEach(([year, countries]) => {
+      items.push({
+        region,
+        year: +year,
+        src: Object.entries(countries).map(([countryCode, country]) => ({
+          region,
+          year,
+          countryCode,
+          ...country
+        }))
       });
-      items.push(item);
     });
   });
-
-  const columns = regions.length;
 
   // const coverAggregator = createScatterplotCoverAggregator();
   const scatterplotRenderer = createScatterplotRenderer();
 
   const piling = createPilingJs(element, {
+    darkMode: true,
     renderer: scatterplotRenderer.renderer,
     // coverAggregator,
     items,
-    columns,
+    columns: Object.keys(data).length,
     pileItemOffset: [0, 0]
   });
 
