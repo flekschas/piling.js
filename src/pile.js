@@ -749,15 +749,27 @@ const createPile = (
     rootGraphics.y = y;
   };
 
-  const replaceItemsImage = () => {
-    normalItemIndex.forEach(pileItem => {
-      const newImage = pileItem.item.image;
-      pileItem.replaceImage(newImage);
-    });
-    previewItemIndex.forEach(pileItem => {
-      const newImage = pileItem.item.preview;
-      pileItem.replaceImage(newImage);
-    });
+  const replaceItemsImage = (itemId = null) => {
+    if (itemId !== null) {
+      // Just replace one item's image
+      const pileItem = getItemById(itemId);
+      if (hasNormalItem(pileItem)) {
+        const newImage = pileItem.item.image;
+        pileItem.replaceImage(newImage);
+      } else if (hasPreviewItem(pileItem)) {
+        const newImage = pileItem.item.preview;
+        pileItem.replaceImage(newImage);
+      }
+    } else {
+      normalItemIndex.forEach(pileItem => {
+        const newImage = pileItem.item.image;
+        pileItem.replaceImage(newImage);
+      });
+      previewItemIndex.forEach(pileItem => {
+        const newImage = pileItem.item.preview;
+        pileItem.replaceImage(newImage);
+      });
+    }
   };
 
   const getItemById = itemId =>
