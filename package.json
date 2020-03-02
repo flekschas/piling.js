@@ -36,7 +36,9 @@
     "dist/piling-aggregator.esm.js"
   ],
   "scripts": {
-    "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
+    "build": "npm run build-library; npm run build-examples;",
+    "build-library": "rm -rf dist/*; rollup -c;",
+    "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
     "deploy": "npm run build; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
@@ -118,9 +120,11 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "esm": "^3.2.25",
     "gh-pages": "^2.2.0",
+    "html-inline-css-webpack-plugin": "^1.8.0",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^4.0.6",
     "lint-staged": "^9.5.0",
+    "mini-css-extract-plugin": "^0.9.0",
     "ndjson-to-json-text": "^1.0.2",
     "node-sass": "^4.13.1",
     "prettier": "^1.19.1",
