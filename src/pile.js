@@ -538,10 +538,15 @@ const createPile = (
           );
         });
       });
-    } else if (normalItemContainer.children.length > 1) {
+    } else if (normalItemContainer.children.length > 1 && newItems.size) {
       isPositioning = true;
 
-      newItems.forEach((pileItem, i) => {
+      // newItems is a set, there is no index, so we're using a counter
+      let count = 0;
+
+      newItems.forEach(pileItem => {
+        count++;
+
         const item = pileItem.item;
         const displayObject = pileItem.displayObject;
 
@@ -585,7 +590,7 @@ const createPile = (
           itemOffset[1],
           itemRotation,
           animator,
-          i === newItems.size
+          count === newItems.size
         );
       });
     }
