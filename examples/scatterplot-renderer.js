@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { createSvgRenderer } from './renderer';
+import { createSvgRenderer } from '../src/renderer';
 
 const DEFAULT_PADDING = 20;
 const DEFAULT_SIZE = 100;

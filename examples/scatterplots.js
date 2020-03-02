@@ -1,5 +1,5 @@
 import createPilingJs from '../src/library';
-import createScatterplotRenderer from '../src/scatterplot-renderer';
+import createScatterplotRenderer from './scatterplot-renderer';
 // import { createScatterplotCoverAggregator } from '../src/aggregator';
 
 const createScatterplotPiles = async element => {
