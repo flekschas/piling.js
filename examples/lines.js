@@ -20,17 +20,17 @@ const createRandomLinePlot = () => {
 const createSvgLinesPiles = element => {
   const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
-  const createRandomLine = () => ({ src: createRandomLinePlot() });
-
-  let data = new Array(100).fill().map(createRandomLine);
-
-  // Uncomment to use the custom id
-  // const createRandomLine = id => ({ id: id.toString(), src: createRandomLinePlot() });
-  // let data = new Array(100).fill().map((_, id) => createRandomLine(id));
+  let data = new Array(5).fill().map((_, i) => ({
+    id: i.toString(),
+    src: createRandomLinePlot()
+  }));
 
   const redrawHandler = pile => {
     pile.items.forEach(itemId => {
-      data[itemId] = createRandomLine(itemId);
+      data[itemId] = {
+        ...data[itemId],
+        src: createRandomLinePlot()
+      };
     });
     data = [...data];
     piling.set('items', data);
@@ -54,23 +54,17 @@ const createSvgLinesPiles = element => {
     ]
   });
 
-  // Uncomment to remove some items
-  // setTimeout(() => {
-  //   data.splice(10, 10);
-  //   piling.set('items', data);
-  // }, 8000);
-
   // eslint-disable-next-line no-console
-  // const log = message => () => console.log(message);
+  const log = message => () => console.log(message);
 
-  // piling.subscribe('pileFocus', log('pileFocus'));
-  // piling.subscribe('pileBlur', log('pileBlur'));
-  // piling.subscribe('pileActive', log('pileActive'));
-  // piling.subscribe('pileInactive', log('pileInactive'));
-  // piling.subscribe('pileEnter', log('pileEnter'));
-  // piling.subscribe('pileLeave', log('pileLeave'));
-  // piling.subscribe('pileDrag', log('pileDrag'));
-  // piling.subscribe('pileDrop', log('pileDrop'));
+  piling.subscribe('pileFocus', log('pileFocus'));
+  piling.subscribe('pileBlur', log('pileBlur'));
+  piling.subscribe('pileActive', log('pileActive'));
+  piling.subscribe('pileInactive', log('pileInactive'));
+  piling.subscribe('pileEnter', log('pileEnter'));
+  piling.subscribe('pileLeave', log('pileLeave'));
+  piling.subscribe('pileDrag', log('pileDrag'));
+  piling.subscribe('pileDrop', log('pileDrop'));
 
   return [piling];
 };
