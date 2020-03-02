@@ -257,8 +257,11 @@ optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
 createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   const firstItem = pilingLib.get('items')[0];
+
+  const excludedProps = ['src', 'id'];
   const numericalProps = Object.keys(firstItem).filter(
-    prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
+    prop =>
+      excludedProps.indexOf(prop) === -1 && !Number.isNaN(+firstItem[prop])
   );
 
   const options = [
