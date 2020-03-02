@@ -538,7 +538,7 @@ const createPile = (
           );
         });
       });
-    } else if (normalItemContainer.children.length > 1) {
+    } else if (normalItemContainer.children.length > 1 && newItems.size) {
       isPositioning = true;
 
       // newItems is a set, there is no index, so we're using a counter
