@@ -24,9 +24,13 @@ const createSvgLinesPiles = element => {
 
   let data = new Array(100).fill().map(createRandomLine);
 
+  // Uncomment to use the custom id
+  // const createRandomLine = id => ({ id: id.toString(), src: createRandomLinePlot() });
+  // let data = new Array(100).fill().map((_, id) => createRandomLine(id));
+
   const redrawHandler = pile => {
     pile.items.forEach(itemId => {
-      data[itemId] = createRandomLine();
+      data[itemId] = createRandomLine(itemId);
     });
     data = [...data];
     piling.set('items', data);
@@ -49,6 +53,12 @@ const createSvgLinesPiles = element => {
       }
     ]
   });
+
+  // Uncomment to remove some items
+  // setTimeout(() => {
+  //   data.splice(10, 10);
+  //   piling.set('items', data);
+  // }, 8000);
 
   // eslint-disable-next-line no-console
   // const log = message => () => console.log(message);
