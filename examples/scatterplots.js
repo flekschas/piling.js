@@ -1,6 +1,6 @@
 import createPilingJs from '../src/library';
 import createScatterplotRenderer from './scatterplot-renderer';
-// import { createScatterplotCoverAggregator } from '../src/aggregator';
+import createScatterplotCoverAggregator from './scatterplot-cover-aggregator';
 
 const createScatterplotPiles = async element => {
   const response = await fetch('data/worldbank-objects.json');
@@ -23,16 +23,18 @@ const createScatterplotPiles = async element => {
     });
   });
 
-  // const coverAggregator = createScatterplotCoverAggregator();
   const scatterplotRenderer = createScatterplotRenderer();
+  const coverAggregator = createScatterplotCoverAggregator();
 
   const piling = createPilingJs(element, {
     darkMode: true,
     renderer: scatterplotRenderer.renderer,
-    // coverAggregator,
+    coverAggregator,
+    aggregateRenderer: scatterplotRenderer.renderer,
     items,
     columns: Object.keys(data).length,
-    pileItemOffset: [0, 0]
+    pileItemOffset: [0, 0],
+    pileVisibilityItems: pile => pile.items.length === 1
   });
 
   return piling;
