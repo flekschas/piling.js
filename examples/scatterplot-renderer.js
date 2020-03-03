@@ -244,7 +244,7 @@ const createScatterplotRenderer = ({
         new Set()
       );
 
-      let multiYearsCountries;
+      let multiYearsCountries = [];
 
       if (isAggregated) {
         multiYearsCountries = getAggregatedData(source);
