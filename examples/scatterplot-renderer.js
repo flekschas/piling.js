@@ -18,6 +18,7 @@ const DEFAULT_LINE_COLOR = '#333';
 const DEFAULT_TICK_LABEL_COLOR = '#666';
 const DEFAULT_TEXT_COLOR = '#fff';
 const DEFAULT_OPACITY = 0.7;
+const DEFAULT_TITLE_HEIGHT = 8;
 
 const createScatterplotRenderer = ({
   width = 600,
@@ -35,11 +36,8 @@ const createScatterplotRenderer = ({
       .domain(domain)
       .rangeRound([DEFAULT_PADDING / 2, DEFAULT_SIZE - DEFAULT_PADDING / 2]);
 
-  const createYScale = domain =>
-    d3
-      .scaleLinear()
-      .domain(domain)
-      .rangeRound([DEFAULT_SIZE - DEFAULT_PADDING / 2, DEFAULT_PADDING / 2]);
+  const createYScale = domain => d3.scaleLinear().domain(domain);
+  // .rangeRound([DEFAULT_SIZE - DEFAULT_PADDING / 2, DEFAULT_PADDING / 2]);
 
   const createSizeScale = domain =>
     d3
@@ -57,7 +55,7 @@ const createScatterplotRenderer = ({
 
   const createXAxis = xScale => axis =>
     axis
-      .attr('transform', `translate(0, ${DEFAULT_PADDING / 2})`)
+      // .attr('transform', `translate(0, ${DEFAULT_PADDING / 2})`)
       .call(
         d3
           .axisBottom(xScale)
@@ -119,22 +117,25 @@ const createScatterplotRenderer = ({
     xScale,
     yAxis,
     yScale,
-    sizeScale
+    sizeScale,
+    regions
   }) => {
+    const extraHeight = (regions.length - 1) * DEFAULT_TITLE_HEIGHT;
+    const svgHeight = DEFAULT_SIZE + extraHeight;
+
     const svg = d3
       .create('svg')
-      .attr('viewBox', `0 0 ${DEFAULT_SIZE} ${DEFAULT_SIZE}`);
+      .attr('viewBox', `0 0 ${DEFAULT_SIZE} ${svgHeight}`);
 
-    const regions = unique(data, d => d.region);
-
+    const regionFontSize = 8 - Math.min(regions.length * 0.5, 2);
     svg
       .selectAll('#region-text')
       .data(regions)
       .join('text')
       .attr('x', DEFAULT_SIZE / 2)
-      .attr('y', 7)
+      .attr('y', (d, i) => 7 + i * DEFAULT_TITLE_HEIGHT)
       .attr('fill', d => colorMap(d))
-      .attr('font-size', '8px')
+      .attr('font-size', `${regionFontSize}px`)
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
       .text(d => d);
@@ -150,7 +151,7 @@ const createScatterplotRenderer = ({
       .data(years.length > 1 ? [years.join(' - ')] : years)
       .join('text')
       .attr('x', DEFAULT_SIZE - 4)
-      .attr('y', DEFAULT_SIZE / 2)
+      .attr('y', svgHeight - DEFAULT_SIZE / 2)
       .attr('fill', DEFAULT_TEXT_COLOR)
       .attr('font-size', '8px')
       .attr('font-family', 'sans-serif')
@@ -158,7 +159,10 @@ const createScatterplotRenderer = ({
       .attr('text-anchor', 'middle')
       .text(d => d);
 
-    svg.append('g').call(xAxis);
+    svg
+      .append('g')
+      .attr('transform', `translate(0, ${DEFAULT_PADDING / 2 + extraHeight})`)
+      .call(xAxis);
 
     svg.append('g').call(yAxis);
 
@@ -169,8 +173,8 @@ const createScatterplotRenderer = ({
       .attr('fill', 'none')
       .attr('stroke', DEFAULT_LINE_COLOR)
       .attr('stroke-width', 0.5)
-      .attr('x', DEFAULT_PADDING / 2 + 0.5)
-      .attr('y', DEFAULT_PADDING / 2 + 0.5)
+      .attr('x', DEFAULT_PADDING / 2)
+      .attr('y', DEFAULT_PADDING / 2 + extraHeight)
       .attr('width', DEFAULT_SIZE - DEFAULT_PADDING)
       .attr('height', DEFAULT_SIZE - DEFAULT_PADDING);
 
@@ -256,7 +260,6 @@ const createScatterplotRenderer = ({
     yScale = createYScale(yDomain);
     sizeScale = createSizeScale(sizeDomain);
     xAxis = createXAxis(xScale);
-    yAxis = createYAxis(yScale);
 
     isInit = true;
   };
@@ -269,13 +272,23 @@ const createScatterplotRenderer = ({
         country => country[xProp] !== null && country[yProp] !== null
       );
 
+      const regions = unique(data, d => d.region);
+      const extraHeight = (regions.length - 1) * DEFAULT_TITLE_HEIGHT;
+
+      yScale.rangeRound([
+        DEFAULT_SIZE - DEFAULT_PADDING / 2 + extraHeight,
+        DEFAULT_PADDING / 2 + extraHeight
+      ]);
+      yAxis = createYAxis(yScale, extraHeight);
+
       return renderScatterplot({
         data,
         xAxis,
         xScale,
         yAxis,
         yScale,
-        sizeScale
+        sizeScale,
+        regions
       });
     });
 
