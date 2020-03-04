@@ -174,44 +174,51 @@ const createScatterplotRenderer = ({
       .attr('width', DEFAULT_SIZE - DEFAULT_PADDING)
       .attr('height', DEFAULT_SIZE - DEFAULT_PADDING);
 
-    cell
-      .selectAll('circle')
-      .data(data)
-      .join('circle')
-      .attr('cx', d => xScale(d[xProp]))
-      .attr('cy', d => yScale(d[yProp]))
-      .attr('r', d => sizeScale(d[rProp]))
-      .attr('fill', d => colorMap(d[colorProp]))
-      .attr('fill-opacity', DEFAULT_OPACITY);
+    const getColorGradient = color => {
+      const gradient = d3.interpolate('black', color);
+      const beginColor = gradient(0.3);
+      return d3.interpolate(beginColor, color);
+    };
 
-    Object.values(stratifyByCountry(data))
-      // We only draw lines between multiple years
-      .filter(_years => _years.length > 1)
-      .forEach(country => {
-        const linesBetweenYears = country.map((countryData, index) =>
-          index === country.length - 1
-            ? [countryData]
-            : [countryData, country[index + 1]]
-        );
+    Object.values(stratifyByCountry(data)).forEach(country => {
+      const linesBetweenYears = country.map((countryData, index) =>
+        index === country.length - 1
+          ? [countryData]
+          : [countryData, country[index + 1]]
+      );
 
-        const line = d3
-          .line()
-          .curve(d3.curveCatmullRom)
-          .x(d => xScale(d[xProp]))
-          .y(d => yScale(d[yProp]));
+      const line = d3
+        .line()
+        .curve(d3.curveCatmullRom)
+        .x(d => xScale(d[xProp]))
+        .y(d => yScale(d[yProp]));
 
-        const gradient = (index, length) => d3.interpolateRdPu(index / length);
+      const colorGradient = getColorGradient(colorMap(country[0][colorProp]));
 
-        const numOfLines = linesBetweenYears.length;
+      const getColor = (index, length) => colorGradient(index / length);
 
-        linesBetweenYears.forEach((lineData, index) => {
-          cell
-            .append('path')
-            .attr('d', line(lineData))
-            .attr('stroke', gradient(index, numOfLines))
-            .attr('stroke-width', 0.5);
-        });
+      const numOfYears = country.length;
+
+      linesBetweenYears.forEach((lineData, index) => {
+        cell
+          .append('path')
+          .attr('d', line(lineData))
+          .attr('stroke', getColor(index + 1, numOfYears))
+          .attr('stroke-width', 1);
       });
+
+      country.forEach((countryOfYear, index) => {
+        cell
+          .append('circle')
+          .attr('cx', xScale(countryOfYear[xProp]))
+          .attr('cy', yScale(countryOfYear[yProp]))
+          .attr('r', sizeScale(countryOfYear[rProp]))
+          .attr('stroke', 'black')
+          .attr('stroke-width', 0.5)
+          .attr('fill', getColor(index + 1, numOfYears))
+          .attr('fill-opacity', DEFAULT_OPACITY);
+      });
+    });
 
     return svg.node();
   };
@@ -257,18 +264,20 @@ const createScatterplotRenderer = ({
   const renderer = async sources => {
     if (!isInit) init(sources);
 
-    sources.filter(source => source[xProp] === null || source[yProp] === null);
+    const svgSources = sources.map(source => {
+      const data = source.filter(
+        country => country[xProp] !== null && country[yProp] !== null
+      );
 
-    const svgSources = sources.map(source =>
-      renderScatterplot({
-        data: source,
+      return renderScatterplot({
+        data,
         xAxis,
         xScale,
         yAxis,
         yScale,
         sizeScale
-      })
-    );
+      });
+    });
 
     return svgRenderer(svgSources);
   };
