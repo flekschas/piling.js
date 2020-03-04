@@ -1,12 +1,22 @@
+import { aggregate, unique } from '@flekschas/utils';
 import * as d3 from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
 const DEFAULT_PADDING = 20;
 const DEFAULT_SIZE = 100;
 const DEFAULT_DOTSIZE_RANGE = [1, 3];
-const DEFAULT_COLOR_RANGE = d3.schemeDark2;
+const DEFAULT_COLOR_RANGE = [
+  '#e05aa9',
+  '#e0722b',
+  '#e0a638',
+  '#e0d42c',
+  '#62d9a5',
+  '#48a5ff',
+  '#ae77f5'
+];
 const DEFAULT_LINE_COLOR = '#333';
-const DEFAULT_TEXT_COLOR = '#aaa';
+const DEFAULT_TICK_LABEL_COLOR = '#666';
+const DEFAULT_TEXT_COLOR = '#fff';
 const DEFAULT_OPACITY = 0.7;
 
 const createScatterplotRenderer = ({
@@ -19,13 +29,13 @@ const createScatterplotRenderer = ({
 } = {}) => {
   const svgRenderer = createSvgRenderer({ width, height });
 
-  const createXPos = domain =>
+  const createXScale = domain =>
     d3
       .scaleLinear()
       .domain(domain)
       .rangeRound([DEFAULT_PADDING / 2, DEFAULT_SIZE - DEFAULT_PADDING / 2]);
 
-  const createYPos = domain =>
+  const createYScale = domain =>
     d3
       .scaleLinear()
       .domain(domain)
@@ -45,95 +55,120 @@ const createScatterplotRenderer = ({
       .domain(domain)
       .range(DEFAULT_COLOR_RANGE);
 
-  const xAxis = xPos => axis =>
+  const createXAxis = xScale => axis =>
     axis
       .attr('transform', `translate(0, ${DEFAULT_PADDING / 2})`)
       .call(
         d3
-          .axisBottom(xPos)
+          .axisBottom(xScale)
           .ticks(4)
           .tickSize(DEFAULT_SIZE - DEFAULT_PADDING)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', DEFAULT_LINE_COLOR))
+      .call(g =>
+        g
+          .selectAll('.tick line')
+          .attr('stroke', DEFAULT_LINE_COLOR)
+          .attr('stroke-dasharray', '1 2')
+          .attr('stroke-width', 0.5)
+      )
       .call(g =>
         g
           .selectAll('.tick text')
-          .attr('fill', DEFAULT_TEXT_COLOR)
-          .attr('font-size', 'smaller')
+          .attr('fill', DEFAULT_TICK_LABEL_COLOR)
+          .attr('font-size', '7px')
       );
 
-  const yAxis = yPos => axis =>
+  const createYAxis = yScale => axis =>
     axis
       .attr('transform', `translate(${DEFAULT_PADDING / 2}, 0)`)
       .call(
         d3
-          .axisLeft(yPos)
+          .axisLeft(yScale)
           .ticks(3)
           .tickSize(DEFAULT_PADDING - DEFAULT_SIZE)
       )
       .call(g => g.select('.domain').remove())
-      .call(g => g.selectAll('.tick line').attr('stroke', DEFAULT_LINE_COLOR))
+      .call(g =>
+        g
+          .selectAll('.tick line')
+          .attr('stroke', DEFAULT_LINE_COLOR)
+          .attr('stroke-dasharray', '1 2')
+          .attr('stroke-width', 0.5)
+      )
       .call(g =>
         g
           .selectAll('.tick text')
-          .attr('fill', DEFAULT_TEXT_COLOR)
-          .attr('font-size', 'smaller')
-          .attr('writing-mode', 'vertical-lr')
-          .attr('x', -6)
-          .attr('dy', 12)
+          .attr('fill', DEFAULT_TICK_LABEL_COLOR)
+          .attr('font-size', '7px')
+          .attr('x', -1)
       );
 
-  const createScatterplot = ({
+  const stratifyByCountry = countries =>
+    countries.reduce((_countries, country) => {
+      if (!_countries[country.countryCode])
+        _countries[country.countryCode] = [country];
+      else _countries[country.countryCode].push(country);
+
+      return _countries;
+    }, {});
+
+  const renderScatterplot = ({
     data,
-    xPos,
-    yPos,
-    sizeScale,
-    region,
-    year,
-    multiYearsCountries
+    xAxis,
+    xScale,
+    yAxis,
+    yScale,
+    sizeScale
   }) => {
     const svg = d3
       .create('svg')
       .attr('viewBox', `0 0 ${DEFAULT_SIZE} ${DEFAULT_SIZE}`);
 
-    if (region.size === 1) {
-      svg
-        .selectAll('#region-text')
-        .data([...region])
-        .join('text')
-        .attr('x', DEFAULT_SIZE / 2)
-        .attr('y', 7)
-        .attr('fill', d => colorMap(d))
-        .attr('font-size', '7px')
-        .attr('text-anchor', 'middle')
-        .text(d => d);
-    }
+    const regions = unique(data, d => d.region);
 
-    if (year.size === 1) {
-      svg
-        .selectAll('#year-text')
-        .data([...year])
-        .join('text')
-        .attr('x', DEFAULT_SIZE - 5)
-        .attr('y', DEFAULT_SIZE / 2)
-        .attr('fill', DEFAULT_TEXT_COLOR)
-        .attr('font-size', '7px')
-        .attr('writing-mode', 'vertical-lr')
-        .attr('text-anchor', 'middle')
-        .text(d => `Year: ${d}`);
-    }
+    svg
+      .selectAll('#region-text')
+      .data(regions)
+      .join('text')
+      .attr('x', DEFAULT_SIZE / 2)
+      .attr('y', 7)
+      .attr('fill', d => colorMap(d))
+      .attr('font-size', '8px')
+      .attr('font-family', 'sans-serif')
+      .attr('text-anchor', 'middle')
+      .text(d => d);
 
-    svg.append('g').call(xAxis(xPos));
+    const years = unique(
+      aggregate(data, [Math.min, Math.max], [Infinity, -Infinity], {
+        getter: d => d.year
+      })
+    );
 
-    svg.append('g').call(yAxis(yPos));
+    svg
+      .selectAll('#year-text')
+      .data(years.length > 1 ? [years.join(' - ')] : years)
+      .join('text')
+      .attr('x', DEFAULT_SIZE - 4)
+      .attr('y', DEFAULT_SIZE / 2)
+      .attr('fill', DEFAULT_TEXT_COLOR)
+      .attr('font-size', '8px')
+      .attr('font-family', 'sans-serif')
+      .attr('writing-mode', 'vertical-lr')
+      .attr('text-anchor', 'middle')
+      .text(d => d);
+
+    svg.append('g').call(xAxis);
+
+    svg.append('g').call(yAxis);
 
     const cell = svg.append('g');
 
     cell
       .append('rect')
       .attr('fill', 'none')
-      .attr('stroke', DEFAULT_TEXT_COLOR)
+      .attr('stroke', DEFAULT_LINE_COLOR)
+      .attr('stroke-width', 0.5)
       .attr('x', DEFAULT_PADDING / 2 + 0.5)
       .attr('y', DEFAULT_PADDING / 2 + 0.5)
       .attr('width', DEFAULT_SIZE - DEFAULT_PADDING)
@@ -143,44 +178,53 @@ const createScatterplotRenderer = ({
       .selectAll('circle')
       .data(data)
       .join('circle')
-      .attr('cx', d => xPos(d[xProp]))
-      .attr('cy', d => yPos(d[yProp]))
+      .attr('cx', d => xScale(d[xProp]))
+      .attr('cy', d => yScale(d[yProp]))
       .attr('r', d => sizeScale(d[rProp]))
       .attr('fill', d => colorMap(d[colorProp]))
       .attr('fill-opacity', DEFAULT_OPACITY);
 
-    multiYearsCountries.forEach(country => {
-      const linesBetweenYears = country.map((countryData, index) =>
-        index === country.length - 1
-          ? [countryData]
-          : [countryData, country[index + 1]]
-      );
+    Object.values(stratifyByCountry(data))
+      // We only draw lines between multiple years
+      .filter(_years => _years.length > 1)
+      .forEach(country => {
+        const linesBetweenYears = country.map((countryData, index) =>
+          index === country.length - 1
+            ? [countryData]
+            : [countryData, country[index + 1]]
+        );
 
-      const line = d3
-        .line()
-        .curve(d3.curveCatmullRom)
-        .x(d => xPos(d[xProp]))
-        .y(d => yPos(d[yProp]));
+        const line = d3
+          .line()
+          .curve(d3.curveCatmullRom)
+          .x(d => xScale(d[xProp]))
+          .y(d => yScale(d[yProp]));
 
-      const gradient = (index, length) => d3.interpolateRdPu(index / length);
+        const gradient = (index, length) => d3.interpolateRdPu(index / length);
 
-      const numOfLines = linesBetweenYears.length;
+        const numOfLines = linesBetweenYears.length;
 
-      linesBetweenYears.forEach((lineData, index) => {
-        cell
-          .append('path')
-          .attr('d', line(lineData))
-          .attr('stroke', gradient(index, numOfLines))
-          .attr('stroke-width', 0.5);
+        linesBetweenYears.forEach((lineData, index) => {
+          cell
+            .append('path')
+            .attr('d', line(lineData))
+            .attr('stroke', gradient(index, numOfLines))
+            .attr('stroke-width', 0.5);
+        });
       });
-    });
 
     return svg.node();
   };
 
-  const renderer = async sources => {
-    const isAggregated = sources.length === 1;
+  let isInit = false;
 
+  let xScale;
+  let yScale;
+  let sizeScale;
+  let xAxis;
+  let yAxis;
+
+  const init = sources => {
     const getDomain = prop => {
       const domain = sources
         .reduce((newDomain, source) => {
@@ -195,71 +239,36 @@ const createScatterplotRenderer = ({
       return [min - (max - min) * 0.1, max + (max - min) * 0.1];
     };
 
-    if (!isAggregated) {
-      const colorDomain = sources.map(source => source[0][colorProp]);
-      colorMap = createColorMap(colorDomain);
-    }
+    const colorDomain = sources.map(source => source[0][colorProp]);
+    colorMap = createColorMap(colorDomain);
 
     const xDomain = getDomain(xProp);
     const yDomain = getDomain(yProp);
     const sizeDomain = getDomain(rProp);
+    xScale = createXScale(xDomain);
+    yScale = createYScale(yDomain);
+    sizeScale = createSizeScale(sizeDomain);
+    xAxis = createXAxis(xScale);
+    yAxis = createYAxis(yScale);
 
-    const xPos = createXPos(xDomain);
-    const yPos = createYPos(yDomain);
-    const sizeScale = createSizeScale(sizeDomain);
+    isInit = true;
+  };
 
-    const getAggregatedData = source => {
-      const aggregatedData = [];
-      const countryList = source.map(countryData => countryData.countryCode);
-      const hasChecked = new Array(countryList.length).fill(0);
-
-      for (let i = 0; i < countryList.length; i++) {
-        if (!hasChecked[i]) {
-          const countryCode = countryList[i];
-          const multiYearsCountry = [source[i]];
-          for (let j = i + 1; j < countryList.length; j++) {
-            if (countryList[j] === countryCode) {
-              multiYearsCountry.push(source[j]);
-              hasChecked[j] = 1;
-            }
-          }
-          if (multiYearsCountry.length > 1) {
-            aggregatedData.push(multiYearsCountry);
-          }
-        }
-      }
-      return aggregatedData;
-    };
+  const renderer = async sources => {
+    if (!isInit) init(sources);
 
     sources.filter(source => source[xProp] === null || source[yProp] === null);
 
-    const svgSources = sources.map(source => {
-      const region = source.reduce(
-        (newRegion, countryData) => newRegion.add(countryData.region),
-        new Set()
-      );
-
-      const year = source.reduce(
-        (newRegion, countryData) => newRegion.add(countryData.year),
-        new Set()
-      );
-
-      let multiYearsCountries = [];
-
-      if (isAggregated) {
-        multiYearsCountries = getAggregatedData(source);
-      }
-
-      return createScatterplot({
+    const svgSources = sources.map(source =>
+      renderScatterplot({
         data: source,
-        xPos,
-        yPos,
-        sizeScale,
-        region,
-        year,
-        multiYearsCountries
-      });
-    });
+        xAxis,
+        xScale,
+        yAxis,
+        yScale,
+        sizeScale
+      })
+    );
 
     return svgRenderer(svgSources);
   };
