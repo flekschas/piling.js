@@ -763,26 +763,16 @@ const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
 If you want to define your own aggregator, you can do something as follows:
 
 ```javascript
-// The actual aggregator
-const customAggregateSource = (src, aggregator) => {
-  // A function that calculate the aggregation of src
-  return aggregatedSrc;
-};
+const customAggregator = items =>
+  new Promise((resolve, reject) => {
+    // Aggregate items somehow
+    const aggregatedSrc = myMagicAggregation(items);
 
-// Factory function
-const createCustomAggregator = aggregagtor => sources => {
-  Promise.all(
-    sources.map(src => {
-      return new Promise((resolve, reject) => {
-        const aggregatedSrc = customAggregateSource(src, aggregator);
+    if (!aggregatedSrc) reject(new Error('Aggregation failed'));
 
-        if (!aggregatedSrc) reject(new Error('Aggregation failed'));
-
-        resolve(aggregatedSrc);
-      });
-    })
-  );
-};
+    // The resolve source must be understood by the aggregate renderer!
+    resolve(aggregatedSrc);
+  });
 ```
 
 ## Add aggregators to piling.js library
