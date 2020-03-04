@@ -8,8 +8,18 @@ const createScatterplotPiles = async element => {
 
   const items = [];
 
-  Object.entries(data).forEach(([region, years]) => {
-    Object.entries(years).forEach(([year, countries]) => {
+  const regionOrder = [
+    'North America',
+    'Latin America & Caribbean',
+    'Europe & Central Asia',
+    'Middle East & North Africa',
+    'Sub-Saharan Africa',
+    'South Asia',
+    'East Asia & Pacific'
+  ];
+
+  regionOrder.forEach(region => {
+    Object.entries(data[region]).forEach(([year, countries]) => {
       items.push({
         region,
         year: +year,
@@ -36,6 +46,8 @@ const createScatterplotPiles = async element => {
     pileItemOffset: [0, 0],
     pileVisibilityItems: pile => pile.items.length === 1
   });
+
+  piling.arrangeByOnce('data', 'year');
 
   return piling;
 };
