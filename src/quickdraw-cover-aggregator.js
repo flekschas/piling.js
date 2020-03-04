@@ -4,7 +4,7 @@ import workerFn from './quickdraw-cover-aggregator-worker';
 const createQuickDrawCoverAggregator = ({
   size = 64,
   lineWidth = 2
-} = {}) => sources =>
+} = {}) => items =>
   new Promise((resolve, reject) => {
     const worker = createWorker(workerFn);
 
@@ -16,7 +16,7 @@ const createQuickDrawCoverAggregator = ({
 
     worker.postMessage({
       lineWidth,
-      sources,
+      items,
       size
     });
   });

@@ -903,7 +903,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       createImageWithBackground(texture, previewOptions);
 
     const renderPreviews = previewAggregator
-      ? previewAggregator(itemList.map(({ src }) => src))
+      ? previewAggregator(itemList)
           .then(previewRenderer)
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
@@ -1318,27 +1318,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
-      const itemSrcs = [];
+      const itemsOnPile = [];
       const itemInstances = [];
-      // let width = -Infinity;
 
       pileState.items.forEach(itemId => {
-        const itemInstance = renderedItems.get(itemId);
-
-        itemSrcs.push(items[itemId].src);
-
-        // width = Math.max(width, itemInstance.image.width);
-
-        itemInstances.push(itemInstance);
+        itemsOnPile.push(items[itemId]);
+        itemInstances.push(renderedItems.get(itemId));
       });
 
-      if (previewAggregator) {
-        pileInstance.setItems(itemInstances, { asPreview: true });
-      } else {
-        pileInstance.setItems(itemInstances);
-      }
+      pileInstance.setItems(itemInstances, { asPreview: !!previewAggregator });
 
-      const coverImage = coverAggregator(itemSrcs)
+      const coverImage = coverAggregator(itemsOnPile)
         .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => createScaledImage(coverTexture));
 
@@ -1349,21 +1339,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         positionItems(pileInstance.id);
         updatePileBounds(pileInstance.id);
       });
-
-      //   coverAggregator(itemSrcs)
-      //     .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
-      //     .then(([coverTexture]) => {
-      //       const cover = new PIXI.Sprite(coverTexture);
-      //       cover.anchor.set(0.5);
-      //       const aspectRatio = cover.width / cover.height;
-      //       cover.width = width;
-      //       cover.height = cover.width / aspectRatio;
-
-      //       positionItems(pileInstance.id);
-
-      //       return cover;
-      //     })
-      // );
     }
   };
 
