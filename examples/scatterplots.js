@@ -43,8 +43,10 @@ const createScatterplotPiles = async element => {
     aggregateRenderer: scatterplotRenderer.renderer,
     items,
     columns: Object.keys(data).length,
+    cellPadding: 25,
     pileItemOffset: [0, 0],
-    pileVisibilityItems: pile => pile.items.length === 1
+    pileVisibilityItems: pile => pile.items.length === 1,
+    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
   });
 
   piling.arrangeByOnce('data', 'year');
