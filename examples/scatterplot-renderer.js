@@ -184,32 +184,50 @@ const createScatterplotRenderer = ({
       return d3.interpolate(beginColor, color);
     };
 
-    Object.values(stratifyByCountry(data)).forEach(country => {
-      const linesBetweenYears = country.map((countryData, index) =>
-        index === country.length - 1
-          ? [countryData]
-          : [countryData, country[index + 1]]
-      );
+    const stratifiedCountries = stratifyByCountry(data);
 
-      const line = d3
-        .line()
-        .curve(d3.curveCatmullRom)
-        .x(d => xScale(d[xProp]))
-        .y(d => yScale(d[yProp]));
+    Object.values(stratifiedCountries).forEach(country =>
+      country.sort((a, b) => a.year - b.year)
+    );
 
+    Object.values(stratifiedCountries)
+      // We only draw lines between multiple years
+      .filter(_years => _years.length > 1)
+      .forEach(country => {
+        const linesBetweenYears = country.map((countryData, index) =>
+          index === country.length - 1
+            ? [countryData]
+            : [countryData, country[index + 1]]
+        );
+
+        const line = d3
+          .line()
+          .curve(d3.curveCatmullRom)
+          .x(d => xScale(d[xProp]))
+          .y(d => yScale(d[yProp]));
+
+        const colorGradient = getColorGradient(colorMap(country[0][colorProp]));
+
+        const getColor = (index, length) => colorGradient(index / length);
+
+        const numOfYears = country.length;
+
+        linesBetweenYears.forEach((lineData, index) => {
+          cell
+            .append('path')
+            .attr('d', line(lineData))
+            .attr('stroke', getColor(index + 1, numOfYears))
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', DEFAULT_OPACITY);
+        });
+      });
+
+    Object.values(stratifiedCountries).forEach(country => {
       const colorGradient = getColorGradient(colorMap(country[0][colorProp]));
 
       const getColor = (index, length) => colorGradient(index / length);
 
       const numOfYears = country.length;
-
-      linesBetweenYears.forEach((lineData, index) => {
-        cell
-          .append('path')
-          .attr('d', line(lineData))
-          .attr('stroke', getColor(index + 1, numOfYears))
-          .attr('stroke-width', 1);
-      });
 
       country.forEach((countryOfYear, index) => {
         cell
