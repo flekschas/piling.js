@@ -129,7 +129,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.mask = mask;
 
   const properties = {
-    aggregateRenderer: true,
+    coverRenderer: true,
     arrangementObjective: true,
     arrangementOnce: true,
     arrangementOptions: true,
@@ -1308,7 +1308,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePreviewAndCover = (pileState, pileInstance) => {
     const {
       items,
-      aggregateRenderer,
+      coverRenderer,
       coverAggregator,
       previewAggregator
     } = store.state;
@@ -1329,7 +1329,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstance.setItems(itemInstances, { asPreview: !!previewAggregator });
 
       const coverImage = coverAggregator(itemsOnPile)
-        .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
+        .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => createScaledImage(coverTexture));
 
       pileInstance.cover(coverImage);
@@ -2377,7 +2377,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       state.itemRenderer !== newState.itemRenderer ||
       state.previewRenderer !== newState.previewRenderer ||
-      state.aggregateRenderer !== newState.aggregateRenderer ||
+      state.coverRenderer !== newState.coverRenderer ||
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {

@@ -53,13 +53,13 @@ piling.set('items', [{ src: 'http://example.com/my-fancy-photo.png' }, ...]);
 
 ### Matrix
 
-First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you can also instantiate an aggregate renderer and a preview renderer here. (See [matrix renderer](#matrix-renderer) for more information.)
+First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you can also instantiate an cover renderer and a preview renderer here. (See [matrix renderer](#matrix-renderer) for more information.)
 
 ```javascript
 import { createMatrixRenderer } from 'piling.js';
 
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
-const aggregateRenderer = createMatrixRenderer({
+const coverRenderer = createMatrixRenderer({
   colorMap: aggregateColorMap,
   shape: [3, 3]
 });
@@ -82,7 +82,7 @@ Then add the renderers and aggregators to our piling.js library. Finally add the
 
 ```javascript
 piling.set('renderer', matrixRenderer);
-piling.set('aggregateRenderer', aggregateRenderer);
+piling.set('coverRenderer', coverRenderer);
 piling.set('previewRenderer', previewRenderer);
 
 piling.set('coverAggregator', matrixCoverAggregator);
@@ -161,7 +161,7 @@ The list of all understood properties is given below.
 | Name                       | Type                    | Default      | Constraints                                                          | Unsettable |
 | -------------------------- | ----------------------- | ------------ | -------------------------------------------------------------------- | ---------- |
 | darkMode                   | boolean                 | `false`      |                                                                      | `false`    |
-| aggregateRenderer          | function                |              | see [`renderers`](#renderers)                                        | `true`     |
+| coverRenderer              | function                |              | see [`renderers`](#renderers)                                        | `true`     |
 | backgroundColor            | string or int           | `0x000000`   |                                                                      | `false`    |
 | focusedPiles               | array                   | `[]`         | the id of current focused pile                                       | `true`     |
 | coverAggregator            | function                |              | see [`aggregators`](#aggregators)                                    | `true`     |
@@ -571,7 +571,7 @@ A renderer should be a function that takes as input an array of the value of `sr
 We provide 3 types of predefined renderers:
 
 - `renderer`: render all the items.
-- `aggregateRenderer`: render the aggregation of a pile.
+- `coverRenderer`: render the aggregation of a pile.
 - `previewRenderer`: render the preview of an item.
 
 Currently we support rendering for [images](#image-renderer) and [matrices](#matrix-renderer). You can just import the factory function from our library.
@@ -670,7 +670,7 @@ const aggregateColorMap = new Array(numColors)
   .fill(0)
   .map((x, i) => rgbStr2rgba(interpolateOrRd((numColors - i) / numColors)));
 
-const aggregateRenderer = createMatrixRenderer({
+const coverRenderer = createMatrixRenderer({
   colorMap: aggregateColorMap,
   shape: [16, 16]
 });
@@ -716,7 +716,7 @@ Call [set](#pilingsetproperty-value) method to add renderers to the library.
 piling.set('renderer', matrixRenderer); // the same for imageRenderer
 
 // for the aggregation of a pile
-piling.set('aggregateRenderer', aggregateRenderer);
+piling.set('coverRenderer', coverRenderer);
 
 // for the item preview
 piling.set('previewRenderer', previewRenderer);

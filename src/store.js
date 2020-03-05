@@ -186,7 +186,7 @@ const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
-const [aggregateRenderer, setAggregateRenderer] = setter('aggregateRenderer');
+const [coverRenderer, setCoverRenderer] = setter('coverRenderer');
 
 const [previewAggregator, setPreviewAggregator] = setter('previewAggregator');
 
@@ -542,7 +542,7 @@ const createStore = () => {
   let lastAction = null;
 
   const appReducer = combineReducers({
-    aggregateRenderer,
+    coverRenderer,
     arrangementObjective,
     arrangementOnce,
     arrangementOptions,
@@ -678,7 +678,7 @@ export const createAction = {
   initPiles,
   mergePiles,
   movePiles,
-  setAggregateRenderer,
+  setCoverRenderer,
   setArrangementObjective,
   setArrangementOnce,
   setArrangementOptions,
