@@ -1,7 +1,7 @@
 import { createWorker } from '@flekschas/utils';
-import workerFn from './quickdraw-cover-aggregator-worker';
+import workerFn from './google-quickdraw-cover-aggregator-worker';
 
-const createQuickDrawCoverAggregator = ({
+const createGoogleQuickDrawCoverAggregator = ({
   size = 64,
   lineWidth = 2
 } = {}) => items =>
@@ -21,4 +21,4 @@ const createQuickDrawCoverAggregator = ({
     });
   });
 
-export default createQuickDrawCoverAggregator;
+export default createGoogleQuickDrawCoverAggregator;
