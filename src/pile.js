@@ -556,7 +556,9 @@ const createPile = (
           const itemState = store.state.items[itemId];
 
           const itemOffset = isFunction(previewItemOffset)
-            ? previewItemOffset(itemState, index, pileState)
+            ? previewItemOffset(itemState, index, pileState).map(
+                _offset => _offset * coverImage.scaleFactor
+              )
             : [0, -halfHeight - item.height * (index + 0.5) - halfSpacing];
 
           animatePositionItems(
