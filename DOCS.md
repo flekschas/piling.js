@@ -566,15 +566,22 @@ A list of objects with the following properties:
 
 A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source, and outputs promises which resolve to [Pixi Texture objects](http://pixijs.download/release/docs/PIXI.Texture.html).
 
+## Renderer types
+
+Piling.js support three types of renderer:
+
+- `itemRenderer`: responsible for rendering items.
+- `coverRenderer`: responsible for rendering the cover of a pile.
+- `previewRenderer`: responsible for rendering item previews.
+
 ## Predefined renderers
 
-We provide 3 types of predefined renderers:
+Piling.js ships with the following set of renderers, which can be imported from `piling.js`.
 
-- `renderer`: render all the items.
-- `coverRenderer`: render the aggregation of a pile.
-- `previewRenderer`: render the preview of an item.
-
-Currently we support rendering for [images](#image-renderer) and [matrices](#matrix-renderer). You can just import the factory function from our library.
+- [`createImageRenderer`](#image-renderer): renders image data.
+- [`createMatrixRenderer`](#matrix-renderer): renders a numerical matrix as a heatmap.
+- [`createSvgRenderer`](svg-renderer): renders an SVG element. Useful when you're working with [D3](https://github.com/d3/d3).
+- [`createRepresentativeRenderer`](#representative-renderer): renders multiple items into one gallery of representatives.
 
 ### Image renderer
 
@@ -585,7 +592,7 @@ import { createImageRenderer } from 'piling.js';
 const imageRenderer = createImageRenderer();
 ```
 
-**Src/Data:** currently our image renderer can render images from an URL or base64 encoding. I.e., the `src` property in your [data](#data) needs be URL pointing to an image or the base64 encoding of an image.
+**Src/Data:** image renderer can currently render images from an URL or base64 encoding. I.e., the `src` property in your [data](#data) needs be URL pointing to an image or the base64 encoding of an image.
 
 ### SVG renderer
 
@@ -604,6 +611,7 @@ const svgRenderer = createSvgRenderer(options);
 | ---------- | ------ | ------- | --------------------------------------- |
 | width      | int    |         | Width of the rendered texture in pixel  |
 | height     | int    |         | Height of the rendered texture in pixel |
+| color      | string |         | A valid CSS color property              |
 | background | string |         | A valid CSS background property         |
 
 ### Matrix renderer
@@ -678,7 +686,38 @@ const coverRenderer = createMatrixRenderer({
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
 ```
 
-But to have aggregations and previews, you also need to have [aggregators](#aggregators) for them.
+Note, you also need to define the appropriate cover and preview [aggregators](#aggregators) for this to work.
+
+### Representative renderer
+
+**Constructor:**
+
+```javascript
+import { createRepresentativeRenderer } from 'piling.js';
+const representativeRenderer = createRepresentativeRenderer(
+  itemRenderer,
+  options
+);
+```
+
+**Src/Data:** Since the item-based rendering is done by `itemRenderer`, the data needs to be in a format understood by `itemRenderer`.
+
+**itemRenderer:** The basic item renderer.
+
+**Options** is an object of key-value pairs with support for the following properties:
+
+| Name                       | Type | Default    | Constraints                                                                                                                                      |
+| -------------------------- | ---- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| size                       | int  | `96`       | Size of the longer side, which is determined by the number of representatives                                                                    |
+| innerPadding               | int  | `2`        | Padding in pixels between representative images                                                                                                  |
+| outerPadding               | int  | `0`        | Padding in pixels the the outer border                                                                                                           |
+| maxNumberOfRepresentatives | int  | `9`        | Maximum number of representatives to be shown. You can typically ignore this setting as this number is derived by the representative aggregator. |
+| backgroundColor            | int  | `0x000000` | A background color for the gallery in form of a hexa-decimal number                                                                              |
+
+_Note:_
+
+- The representative renderer really only makes sense as the [`coverRenderer`](#renderer-types)
+- The representative renderer only works if you also specify [`representativeAggregator`](#representative-aggregator)
 
 ## Define your own renderer
 
@@ -686,17 +725,17 @@ If you want to define your own renderer to render your own data, you can do some
 
 ```javascript
 // The actual renderer
-const renderCustomTexture = (src, properties) => {
+const renderCustomTexture = (src, options) => {
   // A complicated function that turns the src into a PIXI texture object
   return PIXI.Texture.from(...);
 }
 
 // Factory function
-const createCustomRenderer = properties => sources => {
+const createCustomRenderer = options => sources => {
   Promise.all(
     sources.map(src => {
       return new Promise((resolve, reject) => {
-        const texture = renderCustomTexture(src, properties);
+        const texture = renderCustomTexture(src, options);
 
         if (!texture) reject(new Error('Could not render texture'));
 
@@ -724,13 +763,24 @@ piling.set('previewRenderer', previewRenderer);
 
 # Aggregators
 
-Aggregators are used for aggregation of piles and items.
+Aggregators are used to aggregate items.
 
-An aggregator should be a function that takes as input an array of the value of `src` property in your data that determining the source, and output promises which resolve to an array of aggregated source value that can be passed to the [renderers](#renderers).
+An aggregator is a function that takes as input an array of items and outputs a promise which resolve to an array of aggregated **source values** that can be passed to the [renderers](#renderers).
+
+## Aggregator types
+
+Piling.js support three types of renderer:
+
+- `coverAggregagtor`: responsible for aggregagting items for the cover.
+- `previewAggregagtor`: responsible for aggregagting full items to previews items.
 
 ## Predefined aggregators
 
-We currently provide predefined aggregators for [matrices](#matrix-cover-aggregator) and [matrix previews](#matrix-preview-aggregator). You can just import the factory function from our library.
+Piling.js ships with the following set of aggregators, which can be imported from `piling.js`.
+
+- [`createMatrixCoverAggregator`](#matrix-cover-aggregator): aggregates numerical matrixs.
+- [`createMatrixPreviewAggregator`](#matrix-preview-aggregator): aggregates a numerical matrix to a numerical vector.
+- [`createRepresentativeAggregator`](#representative-aggregator): aggregates multiple items to a set of representatives items.
 
 ### Matrix cover aggregator
 
@@ -757,6 +807,30 @@ const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
 ```
 
 - **`Aggregator`** is the method of aggregation, could be `'mean'`, `'variance'`, `'std'`. The default value is `'mean'`.
+
+### Representative aggregator
+
+The representative aggregator selects `k` number of representative items from all the items on a pile.
+
+**Constructor:**
+
+```javascript
+import { createRepresentativeAggregator } from 'piling.js';
+const representativeAggregator = createRepresentativeAggregator(k, options);
+```
+
+The representative aggregator uses kmeans++ to determine `k` clusters in the data and then selects the items closest to the cluster centroids. See [piling.js.org/?example=vitessce](https://piling.js.org/?example=vitessce) for an example.
+
+- **`k`:** the number of representatives to select.
+
+- **`options`:** is an object of key-value pairs with support for the following properties:
+
+  | Name             | Type               | Default           | Constraints                                                                                                                                  |
+  | ---------------- | ------------------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+  | distanceFunction | function or string | `l2`              | The string can be one of `l1`, `mahattan`, `l2`, `euclidean` and falls back to `l2`                                                          |
+  | initialization   | array or string    | `kmpp`            | A list of initial centroids or `kmeans++` initialization                                                                                     |
+  | maxIterations    | int                | `1000 * log10(n)` | A valid CSS color property                                                                                                                   |
+  | valueGetter      | function           | `x => x`          | A function defining how to access the data representation to be used for clustering. The accessed value must either be a number or an array. |
 
 ## Define your own aggregator
 
