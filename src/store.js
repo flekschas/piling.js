@@ -247,6 +247,8 @@ const [navigationMode, setNavigationMode] = setterOptions(
   NAVIGATION_MODE_AUTO
 );
 
+const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
+
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
@@ -601,6 +603,7 @@ const createStore = () => {
     previewBackgroundOpacity,
     previewBorderColor,
     previewBorderOpacity,
+    previewItemOffset,
     previewRenderer,
     previewSpacing,
     rowHeight,
@@ -737,6 +740,7 @@ export const createAction = {
   setPreviewBackgroundOpacity,
   setPreviewBorderColor,
   setPreviewBorderOpacity,
+  setPreviewItemOffset,
   setPreviewRenderer,
   setPreviewSpacing,
   setRowHeight,

@@ -534,8 +534,11 @@ const createPile = (
     pileItemOffset,
     pileItemRotation,
     animator,
+    previewItemOffset,
     previewSpacing
   ) => {
+    const pileState = store.state.piles[id];
+
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
@@ -544,10 +547,22 @@ const createPile = (
         isPositioning = previewItemContainer.children > 0;
 
         previewItemContainer.children.forEach((item, index) => {
+          let itemId;
+
+          previewItemIndex.forEach((_item, _itemId) => {
+            if (_item.displayObject === item) itemId = _itemId;
+          });
+
+          const itemState = store.state.items[itemId];
+
+          const itemOffset = isFunction(previewItemOffset)
+            ? previewItemOffset(itemState, index, pileState)
+            : [0, -halfHeight - item.height * (index + 0.5) - halfSpacing];
+
           animatePositionItems(
             item,
-            0,
-            -halfHeight - item.height * (index + 0.5) - halfSpacing,
+            itemOffset[0],
+            itemOffset[1],
             0,
             animator,
             index === previewItemContainer.children.length - 1
@@ -588,7 +603,6 @@ const createPile = (
           delete item.tmpAbsY;
         }
 
-        const pileState = store.state.piles[id];
         const itemState = store.state.items[item.id];
         const itemIndex = allItems.indexOf(pileItem);
 

@@ -277,6 +277,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBorderOpacity: true,
+    previewItemOffset: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
@@ -1225,6 +1226,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileItemOffset,
       pileItemRotation,
       pileItemOrder,
+      previewItemOffset,
       previewSpacing
     } = store.state;
 
@@ -1239,6 +1241,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileItemOffset,
       pileItemRotation,
       animator,
+      previewItemOffset,
       previewSpacing
     );
   };
@@ -2505,6 +2508,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.pileItemOffset !== newState.pileItemOffset) {
+      stateUpdates.add('layout');
+    }
+
+    if (state.previewItemOffset !== newState.previewItemOffset) {
       stateUpdates.add('layout');
     }
 
