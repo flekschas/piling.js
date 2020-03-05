@@ -17,7 +17,7 @@ module.exports = (env, argv) => ({
   module: {
     rules: [
       {
-        test: /umap-js/,
+        test: /(umap-js|skmeans)/,
         use: ['raw-loader']
       },
       {
