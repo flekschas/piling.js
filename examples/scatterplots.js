@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 import createPilingJs from '../src/library';
 import createScatterplotRenderer from './scatterplot-renderer';
 import createScatterplotCoverAggregator from './scatterplot-cover-aggregator';
@@ -35,18 +36,24 @@ const createScatterplotPiles = async element => {
     });
   });
 
+  const width = 600;
+  const height = 600;
+  const padding = 20; // In percent
+  const previewSize = 20;
+
   const scatterplotRenderer = createScatterplotRenderer({
-    width: 600,
-    height: 600
+    width,
+    height,
+    padding
   });
   const coverAggregator = createScatterplotCoverAggregator();
   const previewAggregator = createScatterplotPreviewAggregator();
   const previewRenderer = createScatterplotPreviewRenderer({
-    width: 20,
-    height: 60
+    width: previewSize,
+    height: previewSize
   });
 
-  const pileItemOrderFunc = itemStates => {
+  const pileItemOrder = itemStates => {
     itemStates.sort((a, b) => {
       if (a.region === b.region) {
         return a.year - b.year;
@@ -58,14 +65,25 @@ const createScatterplotPiles = async element => {
   };
 
   const regionPreviewOffset = new Array(7).fill(0);
+  const previewItemYOffset = d3
+    .scaleLinear()
+    .domain([1960, 2017])
+    .range([
+      (padding / 2 / 100) * height + previewSize / 2,
+      height - (padding / 2 / 100) * height - previewSize / 2
+    ]);
 
-  const previewItemOffsetFunc = (itemState, itemIndex) => {
+  const previewItemOffset = (itemState, itemIndex) => {
     if (itemIndex === 0) regionPreviewOffset.fill(0);
 
     const regionIndex = regionOrder.indexOf(itemState.region);
 
-    const x = regionPreviewOffset[regionIndex] * 30 + 330;
-    const y = 70 * regionIndex - 210;
+    const x =
+      regionPreviewOffset[regionIndex] * 30 +
+      (width - (padding / 2 / 100) * width) +
+      previewSize / 2 +
+      4;
+    const y = previewItemYOffset(itemState.year);
 
     regionPreviewOffset[regionIndex] += 1;
 
@@ -83,8 +101,8 @@ const createScatterplotPiles = async element => {
     columns: Object.keys(data).length,
     cellPadding: 25,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
-    pileItemOrder: pileItemOrderFunc,
-    previewItemOffset: previewItemOffsetFunc,
+    pileItemOrder,
+    previewItemOffset,
     previewSpacing: 6
   });
 
