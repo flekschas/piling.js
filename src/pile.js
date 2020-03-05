@@ -544,6 +544,7 @@ const createPile = (
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
+        const halfWidth = coverImage.width / 2;
         const halfHeight = coverImage.height / 2;
 
         isPositioning = previewItemContainer.children > 0;
@@ -557,11 +558,18 @@ const createPile = (
 
           const itemState = store.state.items[itemId];
 
-          const itemOffset = isFunction(previewItemOffset)
-            ? previewItemOffset(itemState, index, pileState).map(
-                _offset => _offset * coverImage.scaleFactor
-              )
-            : [0, -halfHeight - item.height * (index + 0.5) - halfSpacing];
+          let itemOffset;
+
+          if (isFunction(previewItemOffset)) {
+            itemOffset = previewItemOffset(itemState, index, pileState);
+            itemOffset[0] = itemOffset[0] * coverImage.scaleFactor - halfWidth;
+            itemOffset[1] = itemOffset[1] * coverImage.scaleFactor - halfHeight;
+          } else {
+            itemOffset = [
+              0,
+              -halfHeight - item.height * (index + 0.5) - halfSpacing
+            ];
+          }
 
           animatePositionItems(
             item,
