@@ -514,6 +514,22 @@ const createPile = (
     animator.add(tweener);
   };
 
+  const setItemOrder = itemIds => {
+    const sortFunc = index => (a, b) => {
+      let id1;
+      let id2;
+      index.forEach((item, itemId) => {
+        if (item.displayObject === a) id1 = itemId;
+        if (item.displayObject === b) id2 = itemId;
+      });
+      return itemIds.indexOf(id1) - itemIds.indexOf(id2);
+    };
+
+    normalItemContainer.children.sort(sortFunc(normalItemIndex));
+    previewItemContainer.children.sort(sortFunc(previewItemIndex));
+    allItems.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
+  };
+
   const positionItems = (
     pileItemOffset,
     pileItemRotation,
@@ -574,7 +590,7 @@ const createPile = (
 
         const pileState = store.state.piles[id];
         const itemState = store.state.items[item.id];
-        const itemIndex = pileState.items.indexOf(item.id);
+        const itemIndex = allItems.indexOf(pileItem);
 
         const itemOffset = isFunction(pileItemOffset)
           ? pileItemOffset(itemState, itemIndex, pileState)
@@ -1108,6 +1124,7 @@ const createPile = (
     setScale,
     setOpacity,
     setVisibilityItems,
+    setItemOrder,
     updateBounds,
     updateCover,
     updateOffset: updateBaseOffset,

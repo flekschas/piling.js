@@ -158,6 +158,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOffset: true,
     pileItemBrightness: true,
     pileItemOpacity: true,
+    pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
     gridColor: {
@@ -1219,16 +1220,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = pileId => {
-    const { pileItemOffset, pileItemRotation, previewSpacing } = store.state;
+    const {
+      items,
+      pileItemOffset,
+      pileItemRotation,
+      pileItemOrder,
+      previewSpacing
+    } = store.state;
 
-    pileInstances
-      .get(pileId)
-      .positionItems(
-        pileItemOffset,
-        pileItemRotation,
-        animator,
-        previewSpacing
-      );
+    const pileInstance = pileInstances.get(pileId);
+
+    if (isFunction(pileItemOrder)) {
+      const itemStates = pileInstance.items.map(item => items[item.id]);
+      pileInstance.setItemOrder(pileItemOrder(itemStates));
+    }
+
+    pileInstance.positionItems(
+      pileItemOffset,
+      pileItemRotation,
+      animator,
+      previewSpacing
+    );
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
