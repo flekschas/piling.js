@@ -1,13 +1,13 @@
 import { createWorker } from '@flekschas/utils';
 import skmeans from '../node_modules/skmeans/dist/browser/skmeans.min';
 
-import workerFn from './representative-cover-aggregator-worker';
+import workerFn from './representative-aggregator-worker';
 
-const createRepresentativeCoverAggregator = (
+const createRepresentativeAggregator = (
   k,
   {
     distanceFunction = null,
-    initialCentroids = 'kmpp',
+    initialization = 'kmpp',
     maxIterations = null,
     valueGetter = null
   } = {}
@@ -40,7 +40,7 @@ const createRepresentativeCoverAggregator = (
 
       worker.postMessage({
         distanceFunction,
-        initialCentroids,
+        initialization,
         k,
         maxIterations,
         items,
@@ -49,4 +49,4 @@ const createRepresentativeCoverAggregator = (
     });
 };
 
-export default createRepresentativeCoverAggregator;
+export default createRepresentativeAggregator;

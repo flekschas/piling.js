@@ -18,7 +18,7 @@ const worker = function worker() {
   self.onmessage = function onmessage(event) {
     const {
       distanceFunction,
-      initialCentroids,
+      initialization,
       k,
       maxIterations,
       items,
@@ -50,8 +50,8 @@ const worker = function worker() {
         const results = self.skmeans(
           data,
           k,
-          initialCentroids,
-          maxIterations || data.length * Math.log10(data.length),
+          initialization || 'kmpp',
+          maxIterations || 1000 * Math.log10(data.length),
           distanceFunction
         );
 
