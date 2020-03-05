@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import createPilingJs from '../src/library';
-import { createRepresentativeCoverAggregator } from '../src/aggregator';
+import { createRepresentativeAggregator } from '../src/aggregator';
 import { createRepresentativeRenderer } from '../src/renderer';
 import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
@@ -139,12 +139,11 @@ const createVitessce = async element => {
     );
   };
 
-  const representativeCoverRenderer = createRepresentativeRenderer(
-    4,
+  const representativeRenderer = createRepresentativeRenderer(
     vitessceRenderer.renderer
   );
 
-  const representativeCoverAggregator = createRepresentativeCoverAggregator(4, {
+  const representativeAggregator = createRepresentativeAggregator(4, {
     valueGetter: item => Object.values(item.genes)
   });
 
@@ -153,8 +152,8 @@ const createVitessce = async element => {
     dimensionalityReducer: umap,
     renderer: vitessceRenderer.renderer,
     aggregateRenderer: vitessceRenderer.renderer,
-    coverAggregator: representativeCoverAggregator,
-    coverRenderer: representativeCoverRenderer,
+    coverAggregator: representativeAggregator,
+    coverRenderer: representativeRenderer,
     items: items.slice(0, 10),
     itemSize,
     cellPadding: 8,
