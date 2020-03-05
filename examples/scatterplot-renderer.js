@@ -2,6 +2,8 @@ import { aggregate, unique } from '@flekschas/utils';
 import * as d3 from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
+const DEFAULT_WIDTH = 600;
+const DEFAULT_HEIGHT = 600;
 const DEFAULT_PADDING = 20;
 const DEFAULT_SIZE = 100;
 const DEFAULT_DOTSIZE_RANGE = [1, 3];
@@ -21,8 +23,9 @@ const DEFAULT_OPACITY = 0.7;
 const DEFAULT_TITLE_HEIGHT = 8;
 
 const createScatterplotRenderer = ({
-  width = 600,
-  height = 600,
+  width = DEFAULT_WIDTH,
+  height = DEFAULT_HEIGHT,
+  padding = DEFAULT_PADDING,
   x: xProp = 'fertilityRate',
   y: yProp = 'lifeExpectancy',
   size: rProp = 'population',
@@ -34,10 +37,13 @@ const createScatterplotRenderer = ({
     d3
       .scaleLinear()
       .domain(domain)
-      .rangeRound([DEFAULT_PADDING / 2, DEFAULT_SIZE - DEFAULT_PADDING / 2]);
+      .rangeRound([padding / 2, DEFAULT_SIZE - padding / 2]);
 
-  const createYScale = domain => d3.scaleLinear().domain(domain);
-  // .rangeRound([DEFAULT_SIZE - DEFAULT_PADDING / 2, DEFAULT_PADDING / 2]);
+  const createYScale = domain =>
+    d3
+      .scaleLinear()
+      .domain(domain)
+      .rangeRound([DEFAULT_SIZE - padding / 2, padding / 2]);
 
   const createSizeScale = domain =>
     d3
@@ -55,12 +61,12 @@ const createScatterplotRenderer = ({
 
   const createXAxis = xScale => axis =>
     axis
-      // .attr('transform', `translate(0, ${DEFAULT_PADDING / 2})`)
+      // .attr('transform', `translate(0, ${padding / 2})`)
       .call(
         d3
           .axisBottom(xScale)
           .ticks(4)
-          .tickSize(DEFAULT_SIZE - DEFAULT_PADDING)
+          .tickSize(DEFAULT_SIZE - padding)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -79,12 +85,12 @@ const createScatterplotRenderer = ({
 
   const createYAxis = yScale => axis =>
     axis
-      .attr('transform', `translate(${DEFAULT_PADDING / 2}, 0)`)
+      .attr('transform', `translate(${padding / 2}, 0)`)
       .call(
         d3
           .axisLeft(yScale)
           .ticks(3)
-          .tickSize(DEFAULT_PADDING - DEFAULT_SIZE)
+          .tickSize(padding - DEFAULT_SIZE)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -161,7 +167,7 @@ const createScatterplotRenderer = ({
 
     svg
       .append('g')
-      .attr('transform', `translate(0, ${DEFAULT_PADDING / 2 + extraHeight})`)
+      .attr('transform', `translate(0, ${padding / 2 + extraHeight})`)
       .call(xAxis);
 
     svg.append('g').call(yAxis);
@@ -173,10 +179,10 @@ const createScatterplotRenderer = ({
       .attr('fill', 'none')
       .attr('stroke', DEFAULT_LINE_COLOR)
       .attr('stroke-width', 0.5)
-      .attr('x', DEFAULT_PADDING / 2)
-      .attr('y', DEFAULT_PADDING / 2 + extraHeight)
-      .attr('width', DEFAULT_SIZE - DEFAULT_PADDING)
-      .attr('height', DEFAULT_SIZE - DEFAULT_PADDING);
+      .attr('x', padding / 2)
+      .attr('y', padding / 2 + extraHeight)
+      .attr('width', DEFAULT_SIZE - padding)
+      .attr('height', DEFAULT_SIZE - padding);
 
     const getColorGradient = color => {
       const gradient = d3.interpolate('black', color);
@@ -294,8 +300,8 @@ const createScatterplotRenderer = ({
       const extraHeight = (regions.length - 1) * DEFAULT_TITLE_HEIGHT;
 
       yScale.rangeRound([
-        DEFAULT_SIZE - DEFAULT_PADDING / 2 + extraHeight,
-        DEFAULT_PADDING / 2 + extraHeight
+        DEFAULT_SIZE - padding / 2 + extraHeight,
+        padding / 2 + extraHeight
       ]);
       yAxis = createYAxis(yScale, extraHeight);
 
