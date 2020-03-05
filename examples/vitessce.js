@@ -154,7 +154,7 @@ const createVitessce = async element => {
     aggregateRenderer: vitessceRenderer.renderer,
     coverAggregator: representativeAggregator,
     coverRenderer: representativeRenderer,
-    items: items.slice(0, 10),
+    items,
     itemSize,
     cellPadding: 8,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
