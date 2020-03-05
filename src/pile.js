@@ -967,7 +967,14 @@ const createPile = (
 
   const setCover = newCover => {
     coverItem = newCover;
-    updateCover();
+    coverItem.then(coverImage => {
+      coverItemContainer.addChild(coverImage.displayObject);
+      while (coverItemContainer.children.length > 1) {
+        coverItemContainer.removeChildAt(0);
+      }
+      pubSub.publish('updatePileBounds', id);
+      drawBorder();
+    });
   };
 
   const removeCover = () => {
@@ -981,25 +988,6 @@ const createPile = (
     });
 
     coverItem = undefined;
-  };
-
-  const updateCover = () => {
-    if (!coverItem) return;
-    coverItem.then(coverImage => {
-      coverItemContainer.addChild(coverImage.displayObject);
-      while (coverItemContainer.children.length > 1) {
-        coverItemContainer.removeChildAt(0);
-      }
-      const cover = coverImage.displayObject;
-      const coverRatio = cover.height / cover.width;
-      const width = previewItemContainer.children.length
-        ? previewItemContainer.width
-        : normalItemContainer.width;
-      cover.width = width - store.state.previewSpacing;
-      cover.height = coverRatio * cover.width;
-      pubSub.publish('updatePileBounds', id);
-      drawBorder();
-    });
   };
 
   // eslint-disable-next-line consistent-return
@@ -1140,7 +1128,6 @@ const createPile = (
     setVisibilityItems,
     setItemOrder,
     updateBounds,
-    updateCover,
     updateOffset: updateBaseOffset,
     replaceItemsImage,
     unmagnify
