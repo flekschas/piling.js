@@ -35,12 +35,17 @@ const getRegularGrid = n => {
 
 const renderRepresentative = async (
   srcs,
-  maxImages,
-  baseRenderer,
-  { size = 96, margin = 0, padding = 2, backgroundColor = 0x000000 } = {}
+  itemRenderer,
+  {
+    size = 96,
+    innerPadding = 2,
+    outerPadding = 0,
+    backgroundColor = 0x000000,
+    maxNumberOfRepresentatives = 9
+  } = {}
 ) => {
-  const n = Math.min(maxImages, srcs.length);
-  const displayObjects = await baseRenderer(srcs.slice(0, n));
+  const n = Math.min(maxNumberOfRepresentatives, srcs.length);
+  const displayObjects = await itemRenderer(srcs.slice(0, n));
 
   const [rows, cols, aspectRatio] = getRegularGrid(n);
 
@@ -56,8 +61,8 @@ const renderRepresentative = async (
     .drawRect(
       0,
       0,
-      width + 2 * margin + (cols - 1) * padding,
-      height + 2 * margin + (rows - 1) * padding
+      width + 2 * outerPadding + (cols - 1) * innerPadding,
+      height + 2 * outerPadding + (rows - 1) * innerPadding
     )
     .endFill();
 
@@ -75,8 +80,10 @@ const renderRepresentative = async (
     displayObject.width *= scaleFactor;
     displayObject.height *= scaleFactor;
 
-    displayObject.x = (col + 0.5) * cellWidth + col * padding + margin;
-    displayObject.y = (row + 0.5) * cellHeight + row * padding + margin;
+    displayObject.x =
+      (col + 0.5) * cellWidth + col * innerPadding + outerPadding;
+    displayObject.y =
+      (row + 0.5) * cellHeight + row * innerPadding + outerPadding;
 
     gfx.addChild(displayObject);
 
@@ -84,8 +91,8 @@ const renderRepresentative = async (
     mask
       .beginFill(0xff0000, 0.5)
       .drawRect(
-        col * cellWidth + col * padding + margin,
-        row * cellHeight + row * padding + margin,
+        col * cellWidth + col * innerPadding + outerPadding,
+        row * cellHeight + row * innerPadding + outerPadding,
         cellWidth,
         cellHeight
       )
@@ -98,9 +105,9 @@ const renderRepresentative = async (
   return gfx;
 };
 
-const createRepresentativeRenderer = (n, baseRenderer, options) => sources =>
+const createRepresentativeRenderer = (itemRenderer, options) => sources =>
   Promise.all(
-    sources.map(srcs => renderRepresentative(srcs, n, baseRenderer, options))
+    sources.map(srcs => renderRepresentative(srcs, itemRenderer, options))
   );
 
 export default createRepresentativeRenderer;
