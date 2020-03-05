@@ -9,11 +9,11 @@ import withSize from './with-size';
 const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
   let sprite;
 
-  if (texture instanceof PIXI.Mesh) {
-    sprite = texture;
-  } else {
+  if (texture instanceof PIXI.Texture) {
     sprite = new PIXI.Sprite(texture);
     sprite.anchor.set(...anchor);
+  } else {
+    sprite = texture;
   }
 
   return pipe(
