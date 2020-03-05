@@ -107,6 +107,7 @@ const createPile = (
       if (!rootGraphics.isDragging) {
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
+        coverItemContainer.visible = false;
         if (hasPreviewItem(item)) {
           const { previewBorderColor, previewBorderOpacity } = store.state;
           item.image.drawBackground(previewBorderColor, previewBorderOpacity);
@@ -118,7 +119,8 @@ const createPile = (
 
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
-      if (hoverItemContainer.children.length === 2) {
+      coverItemContainer.visible = true;
+      if (hoverItemContainer.children.length === 1) {
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
