@@ -4,9 +4,8 @@ import { createSvgRenderer } from '../src/renderer';
 
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 600;
-const DEFAULT_PADDING = 20;
-const DEFAULT_SIZE = 100;
-const DEFAULT_DOTSIZE_RANGE = [1, 3];
+const DEFAULT_PADDING = 120;
+const DEFAULT_DOTSIZE_RANGE = [6, 18];
 const DEFAULT_COLOR_RANGE = [
   '#e05aa9',
   '#e0722b',
@@ -20,7 +19,16 @@ const DEFAULT_LINE_COLOR = '#333';
 const DEFAULT_TICK_LABEL_COLOR = '#666';
 const DEFAULT_TEXT_COLOR = '#fff';
 const DEFAULT_OPACITY = 0.7;
-const DEFAULT_TITLE_HEIGHT = 8;
+
+const regionProperties = {
+  'North America': { abbr: 'NA', index: 0 },
+  'Latin America & Caribbean': { abbr: 'LA&C', index: 1 },
+  'Europe & Central Asia': { abbr: 'E&CA', index: 2 },
+  'Middle East & North Africa': { abbr: 'ME&NA', index: 3 },
+  'Sub-Saharan Africa': { abbr: 'SSA', index: 4 },
+  'South Asia': { abbr: 'SA', index: 5 },
+  'East Asia & Pacific': { abbr: 'EA&P', index: 6 }
+};
 
 const createScatterplotRenderer = ({
   width = DEFAULT_WIDTH,
@@ -37,13 +45,13 @@ const createScatterplotRenderer = ({
     d3
       .scaleLinear()
       .domain(domain)
-      .rangeRound([padding / 2, DEFAULT_SIZE - padding / 2]);
+      .rangeRound([padding / 2, width - padding / 2]);
 
   const createYScale = domain =>
     d3
       .scaleLinear()
       .domain(domain)
-      .rangeRound([DEFAULT_SIZE - padding / 2, padding / 2]);
+      .rangeRound([height - padding / 2, padding / 2]);
 
   const createSizeScale = domain =>
     d3
@@ -61,12 +69,12 @@ const createScatterplotRenderer = ({
 
   const createXAxis = xScale => axis =>
     axis
-      // .attr('transform', `translate(0, ${padding / 2})`)
+      .attr('transform', `translate(0, ${padding / 2})`)
       .call(
         d3
           .axisBottom(xScale)
           .ticks(4)
-          .tickSize(DEFAULT_SIZE - padding)
+          .tickSize(width - padding)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -74,13 +82,13 @@ const createScatterplotRenderer = ({
           .selectAll('.tick line')
           .attr('stroke', DEFAULT_LINE_COLOR)
           .attr('stroke-dasharray', '1 2')
-          .attr('stroke-width', 0.5)
+          .attr('stroke-width', 3)
       )
       .call(g =>
         g
           .selectAll('.tick text')
           .attr('fill', DEFAULT_TICK_LABEL_COLOR)
-          .attr('font-size', '7px')
+          .attr('font-size', '42px')
       );
 
   const createYAxis = yScale => axis =>
@@ -90,7 +98,7 @@ const createScatterplotRenderer = ({
         d3
           .axisLeft(yScale)
           .ticks(3)
-          .tickSize(padding - DEFAULT_SIZE)
+          .tickSize(padding - height)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -98,14 +106,14 @@ const createScatterplotRenderer = ({
           .selectAll('.tick line')
           .attr('stroke', DEFAULT_LINE_COLOR)
           .attr('stroke-dasharray', '1 2')
-          .attr('stroke-width', 0.5)
+          .attr('stroke-width', 3)
       )
       .call(g =>
         g
           .selectAll('.tick text')
           .attr('fill', DEFAULT_TICK_LABEL_COLOR)
-          .attr('font-size', '7px')
-          .attr('x', -1)
+          .attr('font-size', '42px')
+          .attr('x', -6)
       );
 
   const stratifyByCountry = countries =>
@@ -123,52 +131,49 @@ const createScatterplotRenderer = ({
     xScale,
     yAxis,
     yScale,
-    sizeScale,
-    regions
+    sizeScale
   }) => {
-    const extraHeight = (regions.length - 1) * DEFAULT_TITLE_HEIGHT;
-    const svgHeight = DEFAULT_SIZE + extraHeight;
+    const svg = d3.create('svg').attr('viewBox', `0 0 ${width} ${height}`);
 
-    const svg = d3
-      .create('svg')
-      .attr('viewBox', `0 0 ${DEFAULT_SIZE} ${svgHeight}`);
+    const regions = unique(data, d => d.region);
 
-    const regionFontSize = 8 - Math.min(regions.length * 0.5, 2);
+    regions.sort(
+      (a, b) => regionProperties[a].index - regionProperties[b].index
+    );
+
+    const regionFontSize = 48 - regions.length * 3.5;
+
     svg
       .selectAll('#region-text')
       .data(regions)
       .join('text')
-      .attr('x', DEFAULT_SIZE / 2)
-      .attr('y', (d, i) => 7 + i * DEFAULT_TITLE_HEIGHT)
+      .attr('x', (d, i) => (width / (regions.length * 2)) * (i * 2 + 1))
+      .attr('y', 42)
       .attr('fill', d => colorMap(d))
       .attr('font-size', `${regionFontSize}px`)
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
-      .text(d => d);
-
-    const years = unique(
-      aggregate(data, [Math.min, Math.max], [Infinity, -Infinity], {
-        getter: d => d.year
-      })
-    );
+      .text(d => {
+        if (regions.length > 1) {
+          return regionProperties[d].abbr;
+        }
+        return d;
+      });
 
     svg
       .selectAll('#year-text')
       .data(years.length > 1 ? [years.join(' - ')] : years)
       .join('text')
-      .attr('x', DEFAULT_SIZE - 4)
-      .attr('y', svgHeight - DEFAULT_SIZE / 2)
+      .attr('x', width - 24)
+      .attr('y', height / 2 + 20)
       .attr('fill', DEFAULT_TEXT_COLOR)
-      .attr('font-size', '8px')
+      .attr('font-size', '48px')
       .attr('font-family', 'sans-serif')
       .attr('writing-mode', 'vertical-lr')
       .attr('text-anchor', 'middle')
       .text(d => d);
 
-    svg
-      .append('g')
-      .attr('transform', `translate(0, ${padding / 2 + extraHeight})`)
-      .call(xAxis);
+    svg.append('g').call(xAxis);
 
     svg.append('g').call(yAxis);
 
@@ -178,11 +183,11 @@ const createScatterplotRenderer = ({
       .append('rect')
       .attr('fill', 'none')
       .attr('stroke', DEFAULT_LINE_COLOR)
-      .attr('stroke-width', 0.5)
+      .attr('stroke-width', 3)
       .attr('x', padding / 2)
-      .attr('y', padding / 2 + extraHeight)
-      .attr('width', DEFAULT_SIZE - padding)
-      .attr('height', DEFAULT_SIZE - padding);
+      .attr('y', padding / 2)
+      .attr('width', width - padding)
+      .attr('height', height - padding);
 
     const getColorGradient = color => {
       const gradient = d3.interpolate('black', color);
@@ -223,7 +228,7 @@ const createScatterplotRenderer = ({
             .append('path')
             .attr('d', line(lineData))
             .attr('stroke', getColor(index + 1, numOfYears))
-            .attr('stroke-width', 1)
+            .attr('stroke-width', 6)
             .attr('stroke-opacity', DEFAULT_OPACITY);
         });
       });
@@ -242,7 +247,7 @@ const createScatterplotRenderer = ({
           .attr('cy', yScale(countryOfYear[yProp]))
           .attr('r', sizeScale(countryOfYear[rProp]))
           .attr('stroke', 'black')
-          .attr('stroke-width', 0.5)
+          .attr('stroke-width', 3)
           .attr('fill', getColor(index + 1, numOfYears))
           .attr('fill-opacity', DEFAULT_OPACITY);
       });
@@ -258,6 +263,8 @@ const createScatterplotRenderer = ({
   let sizeScale;
   let xAxis;
   let yAxis;
+
+  let years;
 
   const init = sources => {
     const getDomain = prop => {
@@ -284,6 +291,7 @@ const createScatterplotRenderer = ({
     yScale = createYScale(yDomain);
     sizeScale = createSizeScale(sizeDomain);
     xAxis = createXAxis(xScale);
+    yAxis = createYAxis(yScale);
 
     isInit = true;
   };
@@ -296,14 +304,11 @@ const createScatterplotRenderer = ({
         country => country[xProp] !== null && country[yProp] !== null
       );
 
-      const regions = unique(data, d => d.region);
-      const extraHeight = (regions.length - 1) * DEFAULT_TITLE_HEIGHT;
-
-      yScale.rangeRound([
-        DEFAULT_SIZE - padding / 2 + extraHeight,
-        padding / 2 + extraHeight
-      ]);
-      yAxis = createYAxis(yScale, extraHeight);
+      years = unique(
+        aggregate(data, [Math.min, Math.max], [Infinity, -Infinity], {
+          getter: d => d.year
+        })
+      );
 
       return renderScatterplot({
         data,
@@ -311,8 +316,7 @@ const createScatterplotRenderer = ({
         xScale,
         yAxis,
         yScale,
-        sizeScale,
-        regions
+        sizeScale
       });
     });
 
@@ -320,7 +324,13 @@ const createScatterplotRenderer = ({
   };
 
   return {
-    renderer
+    renderer,
+    get yearDomain() {
+      if (years.length === 1) {
+        return [...years, ...years];
+      }
+      return years;
+    }
   };
 };
 
