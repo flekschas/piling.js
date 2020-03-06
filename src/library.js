@@ -2771,25 +2771,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
-    store.dispatch(
-      batchActions([
-        ...set('arrangementType', type, true),
-        ...set('arrangementObjective', expandedObjective, true),
-        ...set('arrangementOptions', options, true)
-      ])
-    );
-  };
-
-  const arrangeByOnce = (type = null, objective = null, options = {}) => {
-    const expandedObjective =
-      type === 'data' ? expandArrangementObjective(objective) : objective;
+    const once = !!options.once;
+    delete options.once;
 
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true),
         ...set('arrangementOptions', options, true),
-        ...set('arrangementOnce', true, true)
+        ...set('arrangementOnce', once, true)
       ])
     );
   };
@@ -3502,7 +3492,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     // Methods
     arrangeBy,
-    arrangeByOnce,
     destroy,
     exportState,
     get,

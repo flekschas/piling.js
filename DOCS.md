@@ -369,12 +369,16 @@ Position piles with user-specified arrangement method.
 
 | Type      | Objective                                                                             | Options  |
 | --------- | ------------------------------------------------------------------------------------- | -------- |
-| `null`    | `undefined` _(manual positioning)_                                                    |          |
-| `'index'` | `function` that returns the linear index                                              |          |
-| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |          |
-| `'xy'`    | `function` that returns the final xy position                                         |          |
-| `'uv'`    | `function` that returns the final uv position of the canvas                           |          |
+| `null`    | `undefined` _(manual positioning)_                                                    | `object` |
+| `'index'` | `function` that returns the linear index                                              | `object` |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in | `object` |
+| `'xy'`    | `function` that returns the final xy position                                         | `object` |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           | `object` |
 | `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      | `object` |
+
+The following options are available for all types:
+
+- `options.once` [type: `boolean` default: `false`]: If `true` applies the arrangement once and switches to manual arrangement afterward.
 
 **Notes and examples:**
 
@@ -467,10 +471,6 @@ Position piles with user-specified arrangement method.
     // Turning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
     piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
     ```
-
-#### `piling.arrangeByOnce(type, objective)`
-
-Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the automatic pile arrangement only once and then switches back to manual pile arrangement.
 
 #### `piling.destroy()`
 
