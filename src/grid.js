@@ -377,42 +377,22 @@ const createGrid = (
 
   return {
     // Properties
-    get itemSize() {
-      return itemSize;
-    },
-    get numColumns() {
-      return numColumns;
-    },
     get numRows() {
       return numRows;
     },
     set numRows(newNumRows) {
       if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
-    get columnWidth() {
-      return columnWidth;
-    },
-    get rowHeight() {
-      return rowHeight;
-    },
-    get cellWidth() {
-      return cellWidth;
-    },
-    get cellHeight() {
-      return cellHeight;
-    },
-    get cellAspectRatio() {
-      return cellAspectRatio;
-    },
-    get cellPadding() {
-      return cellPadding;
-    },
-    get width() {
-      return width;
-    },
-    get height() {
-      return height;
-    },
+    itemSize,
+    numColumns,
+    columnWidth,
+    rowHeight,
+    cellWidth,
+    cellHeight,
+    cellAspectRatio,
+    cellPadding,
+    width,
+    height,
     // Methods
     align,
     ijToXy,
