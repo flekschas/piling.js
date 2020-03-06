@@ -28,7 +28,7 @@ const createScatterplotPiles = async element => {
         year: +year,
         src: Object.entries(countries).map(([countryCode, country]) => ({
           region,
-          year,
+          year: +year,
           countryCode,
           ...country
         }))
@@ -38,7 +38,7 @@ const createScatterplotPiles = async element => {
 
   const width = 600;
   const height = 600;
-  const padding = 20; // In percent
+  const padding = 120;
   const previewSize = 20;
 
   const scatterplotRenderer = createScatterplotRenderer({
@@ -67,28 +67,21 @@ const createScatterplotPiles = async element => {
     return itemIdsMap;
   };
 
-  const regionPreviewOffset = new Array(7).fill(0);
-  const previewItemYOffset = d3
-    .scaleLinear()
-    .domain([1960, 2017])
-    .range([
-      (padding / 2 / 100) * height + previewSize / 2,
-      height - (padding / 2 / 100) * height - previewSize / 2
-    ]);
+  const previewItemYOffset = d3.scaleLinear();
+
+  let beginYear;
 
   const previewItemOffset = (itemState, itemIndex) => {
-    if (itemIndex === 0) regionPreviewOffset.fill(0);
+    if (itemIndex === 0) {
+      beginYear = scatterplotRenderer.yearDomain[0];
+      const years = scatterplotRenderer.yearDomain[1] - beginYear + 1;
+      previewItemYOffset
+        .domain(scatterplotRenderer.yearDomain)
+        .rangeRound([height / 2 - years * 12.5, height / 2 + years * 12.5]);
+    }
+    const x = regionOrderIndex[itemState.region] * 25 + width + previewSize;
 
-    const regionIndex = regionOrderIndex[itemState.region];
-
-    const x =
-      regionPreviewOffset[regionIndex] * 30 +
-      (width - (padding / 2 / 100) * width) +
-      previewSize / 2 +
-      4;
     const y = previewItemYOffset(itemState.year);
-
-    regionPreviewOffset[regionIndex] += 1;
 
     return [x, y];
   };
@@ -106,7 +99,7 @@ const createScatterplotPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
-    previewSpacing: 6
+    previewSpacing: 4
   });
 
   piling.arrangeByOnce('data', 'year');
