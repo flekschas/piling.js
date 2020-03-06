@@ -45,6 +45,8 @@ const createPile = (
   const allItems = [];
   const normalItemIndex = new Map();
   const previewItemIndex = new Map();
+  const normalItemIdIndex = new Map();
+  const previewItemIdIndex = new Map();
   const newItems = new Set();
   const rootGraphics = new PIXI.Graphics();
   const borderGraphics = new PIXI.Graphics();
@@ -516,20 +518,16 @@ const createPile = (
     animator.add(tweener);
   };
 
-  const setItemOrder = itemIds => {
+  const setItemOrder = itemIdsMap => {
     const sortFunc = index => (a, b) => {
-      let id1;
-      let id2;
-      index.forEach((item, itemId) => {
-        if (item.displayObject === a) id1 = itemId;
-        if (item.displayObject === b) id2 = itemId;
-      });
-      return itemIds.indexOf(id1) - itemIds.indexOf(id2);
+      const id1 = index.get(a);
+      const id2 = index.get(b);
+      return itemIdsMap.get(id1) - itemIdsMap.get(id2);
     };
 
-    normalItemContainer.children.sort(sortFunc(normalItemIndex));
-    previewItemContainer.children.sort(sortFunc(previewItemIndex));
-    allItems.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
+    normalItemContainer.children.sort(sortFunc(normalItemIdIndex));
+    previewItemContainer.children.sort(sortFunc(previewItemIdIndex));
+    allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
   };
 
   const positionItems = (
@@ -836,6 +834,9 @@ const createPile = (
     allItems.splice(index, 1, normalItem);
 
     // Update the indices
+    previewItemIdIndex.delete(previewItemIndex.get(item.id).displayObject);
+    normalItemIdIndex.set(normalItem.displayObject, item.id);
+
     previewItemIndex.delete(item.id);
     normalItemIndex.set(item.id, normalItem);
 
@@ -856,6 +857,9 @@ const createPile = (
     allItems.splice(index, 1, previewItem);
 
     // Update the indices
+    normalItemIdIndex.delete(normalItemIndex.get(item.id).displayObject);
+    previewItemIdIndex.set(previewItem.displayObject, item.id);
+
     normalItemIndex.delete(item.id);
     previewItemIndex.set(item.id, previewItem);
 
@@ -880,6 +884,7 @@ const createPile = (
     const numItems = allItems.push(normalItem);
     if (numItems > 1) newItems.add(normalItem);
     normalItemIndex.set(normalItem.id, normalItem);
+    normalItemIdIndex.set(normalItem.displayObject, normalItem.id);
     normalItemContainer.addChild(normalItem.displayObject);
   };
 
@@ -892,6 +897,7 @@ const createPile = (
     allItems.push(previewItem);
     newItems.add(previewItem);
     previewItemIndex.set(previewItem.id, previewItem);
+    previewItemIdIndex.set(previewItem.displayObject, previewItem.id);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 
@@ -924,11 +930,13 @@ const createPile = (
       normalItemContainer.removeChildAt(
         normalItemContainer.getChildIndex(pileItem.displayObject)
       );
+      normalItemIdIndex.delete(pileItem.displayObject);
     }
     if (hasItem(item, { asPreview: true })) {
       previewItemContainer.removeChildAt(
         previewItemContainer.getChildIndex(pileItem.displayObject)
       );
+      previewItemIdIndex.delete(pileItem.displayObject);
     }
 
     // Delete the index
@@ -942,6 +950,8 @@ const createPile = (
     allItems.splice(0, allItems.length);
     normalItemIndex.clear();
     previewItemIndex.clear();
+    normalItemIdIndex.clear();
+    previewItemIdIndex.clear();
   };
 
   /**

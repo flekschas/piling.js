@@ -107,7 +107,11 @@ const createMatrixPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
     pileItemOrder: itemStates => {
       itemStates.sort((a, b) => a.id - b.id);
-      return itemStates.map(item => item.id.toString());
+      const itemIdsMap = new Map();
+      itemStates.forEach((item, index) => {
+        itemIdsMap.set(item.id.toString(), index);
+      });
+      return itemIdsMap;
     }
   });
 

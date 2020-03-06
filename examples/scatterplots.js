@@ -11,17 +11,17 @@ const createScatterplotPiles = async element => {
 
   const items = [];
 
-  const regionOrder = [
-    'North America',
-    'Latin America & Caribbean',
-    'Europe & Central Asia',
-    'Middle East & North Africa',
-    'Sub-Saharan Africa',
-    'South Asia',
-    'East Asia & Pacific'
-  ];
+  const regionOrderIndex = {
+    'North America': 0,
+    'Latin America & Caribbean': 1,
+    'Europe & Central Asia': 2,
+    'Middle East & North Africa': 3,
+    'Sub-Saharan Africa': 4,
+    'South Asia': 5,
+    'East Asia & Pacific': 6
+  };
 
-  regionOrder.forEach(region => {
+  Object.keys(regionOrderIndex).forEach(region => {
     Object.entries(data[region]).forEach(([year, countries]) => {
       items.push({
         region,
@@ -58,10 +58,13 @@ const createScatterplotPiles = async element => {
       if (a.region === b.region) {
         return a.year - b.year;
       }
-      return regionOrder.indexOf(a.region) - regionOrder.indexOf(b.region);
+      return regionOrderIndex[a.region] - regionOrderIndex[b.region];
     });
-
-    return itemStates.map(item => item.id.toString());
+    const itemIdsMap = new Map();
+    itemStates.forEach((item, index) => {
+      itemIdsMap.set(item.id.toString(), index);
+    });
+    return itemIdsMap;
   };
 
   const regionPreviewOffset = new Array(7).fill(0);
@@ -76,7 +79,7 @@ const createScatterplotPiles = async element => {
   const previewItemOffset = (itemState, itemIndex) => {
     if (itemIndex === 0) regionPreviewOffset.fill(0);
 
-    const regionIndex = regionOrder.indexOf(itemState.region);
+    const regionIndex = regionOrderIndex[itemState.region];
 
     const x =
       regionPreviewOffset[regionIndex] * 30 +
