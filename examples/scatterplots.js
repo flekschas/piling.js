@@ -75,9 +75,11 @@ const createScatterplotPiles = async element => {
     if (itemIndex === 0) {
       beginYear = scatterplotRenderer.yearDomain[0];
       const years = scatterplotRenderer.yearDomain[1] - beginYear + 1;
+      const rangeMin = Math.max(0, height / 2 - years * 12.5);
+      const rangeMax = Math.min(height, height / 2 + years * 12.5);
       previewItemYOffset
         .domain(scatterplotRenderer.yearDomain)
-        .rangeRound([height / 2 - years * 12.5, height / 2 + years * 12.5]);
+        .rangeRound([rangeMin, rangeMax]);
     }
     const x = regionOrderIndex[itemState.region] * 25 + width + previewSize;
 
