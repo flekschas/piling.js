@@ -75,6 +75,17 @@ const createGrid = (
   const idxToIj = orderer(numColumns);
 
   /**
+   * Convert XY to IJ position
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @return {array} Tuple with rowNumber and column number, i.e., [i,j]
+   */
+  const xyToIj = (x, y) => [
+    Math.floor(y / rowHeight),
+    Math.floor(x / columnWidth)
+  ];
+
+  /**
    * Convert the i,j cell position to an x,y pixel position
    * @param   {number}  i  Position of the cell on the x-axis
    * @param   {number}  j  Position of the cell on the y-axis
@@ -407,7 +418,8 @@ const createGrid = (
     ijToXy,
     idxToIj,
     idxToXy,
-    uvToXy
+    uvToXy,
+    xyToIj
   };
 };
 
