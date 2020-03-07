@@ -14,10 +14,14 @@ const createTimeCurvePiles = async element => {
     darkMode: true
   });
 
-  piling.arrangeBy('data', {
-    property: item => item.mds,
-    propertyIsVector: true
-  });
+  piling.arrangeBy('data', [
+    {
+      property: item => item.umap[0]
+    },
+    {
+      property: item => item.umap[1]
+    }
+  ]);
 
   return [piling];
 };
