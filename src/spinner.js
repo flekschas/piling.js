@@ -1,24 +1,16 @@
-import {
-  createHtmlByTemplate,
-  pipe,
-  withConstructor,
-  withStaticProperty
-} from '@flekschas/utils';
+import { createHtmlByTemplate } from '@flekschas/utils';
 
-import { ifNotNull } from './utils';
-
-const createSpinnerElement = () =>
-  createHtmlByTemplate(`<svg class="pilingjs-spinner" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+const createSpinner = () =>
+  createHtmlByTemplate(`<svg class="spinner" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
   <circle
-    class="pilingjs-spinner-circle"
     cx="20"
     cy="20"
     r="18"
     stroke-width="4"
     fill="none"
-    stroke="black" />
-  <g class="pilingjs-spinner-block-offset" transform="translate(20, 20)">
-    <g class="pilingjs-spinner-blocks">
+    stroke="#000" />
+  <g class="correct" transform="translate(20, 20)">
+    <g class="blocks">
       <animateTransform
         attributeName="transform"
         attributeType="XML"
@@ -28,9 +20,9 @@ const createSpinnerElement = () =>
         to="360"z
         type="rotate" />
       <path
-        class="pilingjs-spinner-block-one"
+        class="one"
         d="M0-20c1.104,0,2,0.896,2,2s-0.896,2-2,2V0l-4,21h25v-42H0V-20z"
-        fill="white">
+        fill="#fff">
         <animateTransform
           attributeName="transform"
           attributeType="XML"
@@ -45,9 +37,9 @@ const createSpinnerElement = () =>
           type="rotate" />
       </path>
       <path
-        class="pilingjs-spinner-block-two"
+        class="two"
         d="M0-20c-1.104,0-2,0.896-2,2s0.896,2,2,2V0l4,21h-25v-42H0V-20z"
-        fill="white">
+        fill="#fff">
         <animateTransform
           attributeName="transform"
           attributeType="XML"
@@ -65,39 +57,5 @@ const createSpinnerElement = () =>
   </g>
 </svg>
 `);
-
-const createSpinner = (darkMode = false) => {
-  const element = createSpinnerElement();
-
-  const updateColors = () => {
-    const fg = darkMode ? 'white' : 'black';
-    const bg = darkMode ? 'black' : 'white';
-    element
-      .querySelector('.pilingjs-spinner-circle')
-      .setAttribute('stroke', fg);
-    element
-      .querySelector('.pilingjs-spinner-block-one')
-      .setAttribute('fill', bg);
-    element
-      .querySelector('.pilingjs-spinner-block-two')
-      .setAttribute('fill', bg);
-  };
-
-  const set = ({ darkMode: newDarkMode = null }) => {
-    // eslint-disable-next-line no-param-reassign
-    darkMode = ifNotNull(newDarkMode, darkMode);
-
-    updateColors();
-  };
-
-  updateColors();
-
-  return pipe(
-    withStaticProperty('element', element),
-    withConstructor(createSpinner)
-  )({
-    set
-  });
-};
 
 export default createSpinner;

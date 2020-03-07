@@ -1,5 +1,3 @@
-import { whichTransitionEvent } from './utils';
-
 // prettier-ignore
 export const CAMERA_VIEW = new Float32Array([
   1, 0, 0, 0,
@@ -50,5 +48,3 @@ export const DEFAULT_PREVIEW_BACKGROUND_COLOR = INHERIT;
 export const DEFAULT_PREVIEW_BACKGROUND_OPACITY = INHERIT;
 
 export const POSITION_PILES_DEBOUNCE_TIME = 100;
-
-export const TRANSITION_EVENT = whichTransitionEvent();

@@ -62,9 +62,6 @@ export const getBBox = positions2d => {
   };
 };
 
-export const ifNotNull = (v, alternative = null) =>
-  v === null ? alternative : v;
-
 /**
  * Convert a 2D vector to it's homoegeneous 3D counterpart
  * @param   {number}  x  X coordinate
@@ -151,24 +148,4 @@ export const colorToDecAlpha = (color, defaultAlpha = 1) => {
   }
 
   return [parseInt(color, 10), defaultAlpha];
-};
-
-export const whichTransitionEvent = () => {
-  const el = document.createElement('fake-element');
-  const transitions = {
-    WebkitTransition: 'webkitTransitionEnd',
-    MozTransition: 'transitionend',
-    MSTransition: 'msTransitionEnd',
-    OTransition: 'oTransitionEnd',
-    transition: 'transitionEnd'
-  };
-
-  // eslint-disable-next-line
-  for (const t in transitions) {
-    if (el.style[t] !== undefined) {
-      return transitions[t];
-    }
-  }
-
-  return 'transitionEnd';
 };

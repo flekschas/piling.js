@@ -60,14 +60,8 @@ const createImageWithBackground = (
   } = {}
 ) => {
   const backgroundGraphics = new PIXI.Graphics();
-
-  let sprite;
-  if (texture instanceof PIXI.Mesh) {
-    sprite = texture;
-  } else {
-    sprite = new PIXI.Sprite(texture);
-    sprite.anchor.set(...anchor);
-  }
+  const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(...anchor);
 
   const init = self => {
     backgroundGraphics.addChild(sprite);
@@ -80,8 +74,8 @@ const createImageWithBackground = (
       withStaticProperty('displayObject', backgroundGraphics),
       withStaticProperty('sprite', sprite),
       withColorFilters(sprite),
-      withScale(sprite, texture.width, texture.height),
-      withSize(sprite, texture.width, texture.height),
+      withScale(sprite),
+      withSize(sprite),
       withPadding(padding),
       withBackground({
         backgroundColor,

@@ -7,21 +7,15 @@ import withScale from './with-scale';
 import withSize from './with-size';
 
 const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
-  let sprite;
-
-  if (texture instanceof PIXI.Mesh) {
-    sprite = texture;
-  } else {
-    sprite = new PIXI.Sprite(texture);
-    sprite.anchor.set(...anchor);
-  }
+  const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(...anchor);
 
   return pipe(
     withStaticProperty('displayObject', sprite),
     withStaticProperty('sprite', sprite),
     withColorFilters(sprite),
-    withScale(sprite, texture.width, texture.height),
-    withSize(sprite, texture.width, texture.height),
+    withScale(sprite),
+    withSize(sprite),
     withDestroy(sprite),
     withConstructor(createImage)
   )({});

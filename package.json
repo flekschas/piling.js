@@ -1,6 +1,6 @@
 {
   "name": "piling.js",
-  "version": "0.6.0",
+  "version": "0.5.0",
   "description": "A WebGL-based Library for Visual Piling/Stacking",
   "author": [
     {
@@ -36,9 +36,7 @@
     "dist/piling-aggregator.esm.js"
   ],
   "scripts": {
-    "build": "npm run build-library; npm run build-examples;",
-    "build-library": "rm -rf dist/*; rollup -c;",
-    "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
+    "build": "rm -rf dist/*; rm -rf examples-build/*; rollup -c; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
     "deploy": "npm run build; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
@@ -66,7 +64,7 @@
     "singleQuote": true
   },
   "dependencies": {
-    "@flekschas/utils": "~0.16.1",
+    "@flekschas/utils": "~0.16.0",
     "camera-2d-simple": "~2.0.1",
     "d3": "^5.15.0",
     "deep-equal": "~1.1.0",
@@ -75,6 +73,7 @@
     "liang-barsky": "~1.0.4",
     "ndarray": "~1.0.18",
     "ndarray-convolve": "~2.0.0",
+    "ndjson-to-json-text": "^1.0.2",
     "normalize-wheel": "~1.0.1",
     "pixi.js": "~5.1.6",
     "pub-sub-es": "~1.2.1",
@@ -103,12 +102,10 @@
     "@rollup/plugin-commonjs": "^11.0.1",
     "@rollup/plugin-json": "^4.0.1",
     "@rollup/plugin-node-resolve": "^7.1.1",
-    "@tensorflow/tfjs-core": "^1.5.2",
     "acorn": "^7.1.0",
     "babel-loader": "^8.0.4",
     "babel-plugin-lodash": "^3.3.4",
     "browser-env": "^3.2.5",
-    "css-loader": "^3.4.2",
     "d3-scale-chromatic": "^1.5.0",
     "d3-shape": "^1.3.7",
     "eslint": "^6.8.0",
@@ -121,29 +118,20 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "esm": "^3.2.25",
     "gh-pages": "^2.2.0",
-    "html-inline-css-webpack-plugin": "^1.8.0",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^4.0.6",
     "lint-staged": "^9.5.0",
-    "mini-css-extract-plugin": "^0.9.0",
-    "ndjson-to-json-text": "^1.0.2",
-    "node-sass": "^4.13.1",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
     "raw-loader": "^4.0.0",
-    "react": "16.12.0",
-    "react-dom": "16.12.0",
     "rollup": "^1.29.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-filesize": "^6.2.1",
     "rollup-plugin-terser": "^5.2.0",
     "rollup-plugin-visualizer": "^3.3.1",
-    "sass-loader": "^8.0.2",
-    "style-loader": "^1.1.3",
-    "webpack": "^4.41.6",
+    "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.10.1",
-    "zarr": "^0.2.2"
+    "webpack-dev-server": "^3.10.1"
   },
   "homepage": "https://github.com/flekschas/piling.js",
   "repository": {
