@@ -1,4 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlInlineCssWebpackPlugin = require('html-inline-css-webpack-plugin')
+  .default;
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = (env, argv) => ({
   entry: {
@@ -21,6 +24,10 @@ module.exports = (env, argv) => ({
         test: /\.(js|fs|vs)$/,
         exclude: /node_modules/,
         use: ['babel-loader']
+      },
+      {
+        test: /\.s[ac]ss$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
       }
     ]
   },
@@ -28,10 +35,13 @@ module.exports = (env, argv) => ({
     extensions: ['*', '.js']
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: 'examples/index.html',
       filename: 'index.html',
-      chunks: ['index']
-    })
+      chunks: ['index'],
+      inlineSource: /\.css$/i
+    }),
+    new HtmlInlineCssWebpackPlugin()
   ]
 });

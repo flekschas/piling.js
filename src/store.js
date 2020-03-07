@@ -351,7 +351,12 @@ const items = (previousState = {}, action) => {
         : false;
 
       return action.payload.items.reduce((newState, item, index) => {
-        newState[useCustomId ? item.id : index] = item;
+        const id = useCustomId ? item.id : index;
+        newState[id] = {
+          id,
+          index,
+          ...item
+        };
         return newState;
       }, {});
     }
@@ -373,14 +378,43 @@ const piles = (previousState = {}, action) => {
         ? typeof action.payload.newItems[0].id !== 'undefined'
         : false;
 
+      const newItemIds = action.payload.newItems.reduce(
+        (itemIds, item, index) => {
+          const id = item.id === undefined ? index.toString() : item.id;
+          itemIds.add(id);
+          return itemIds;
+        },
+        new Set()
+      );
+
       return action.payload.newItems.reduce((newState, item, index) => {
         const itemId = useCustomItemId ? item.id : index.toString();
-        newState[index] = {
+
+        const previousPileState = previousState[itemId];
+        const newPileState = {
+          id: itemId,
+          index,
           items: [itemId],
           x: null,
           y: null,
-          ...previousState[index]
+          ...previousPileState
         };
+
+        if (previousPileState) {
+          if (previousPileState.items.length) {
+            newPileState.items = previousPileState.items.filter(id =>
+              newItemIds.has(id)
+            );
+          } else if (newItemIds.has(itemId)) {
+            const isItemOnPile = Object.values(previousState).filter(
+              pile => pile.items.includes(itemId) && newItemIds.has(pile.id)
+            ).length;
+            if (!isItemOnPile) newPileState.items = [itemId];
+          }
+        }
+
+        newState[itemId] = newPileState;
+
         return newState;
       }, {});
     }
@@ -620,6 +654,10 @@ const createStore = () => {
     else reduxStore.dispatch(softOverwrite(newState));
   };
 
+  const resetState = () => {
+    reduxStore.dispatch(reset());
+  };
+
   return pipe(
     withStaticProperty('reduxStore', reduxStore),
     withReadOnlyProperty('lastAction', () => lastAction),
@@ -628,7 +666,8 @@ const createStore = () => {
     withForwardedMethod('subscribe', reduxStore.subscribe)
   )({
     export: exportState,
-    import: importState
+    import: importState,
+    reset: resetState
   });
 };
 
