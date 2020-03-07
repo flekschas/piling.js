@@ -59,11 +59,10 @@
     />
 
     <script>
-      window.example = new URLSearchParams(window.location.search).get(
-        'example'
-      );
-      window.example = window.example
-        ? window.example.split(' ')[0].toLowerCase()
+      let urlParams = new URLSearchParams(window.location.search);
+      window.permanentOptions = urlParams.has('options') ? 'permanent-options' : '';
+      window.example = urlParams.has('example')
+        ? urlParams.get('example').split(' ')[0].toLowerCase()
         : null;
     </script>
   </head>
@@ -82,7 +81,7 @@
           mode = 'dark-mode';
           break;
       }
-      document.body.setAttribute('class', [window.example, mode].join(' '));
+      document.body.setAttribute('class', [window.example, window.permanentOptions, mode].join(' '));
     </script>
 
     <header>

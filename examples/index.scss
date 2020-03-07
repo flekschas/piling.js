@@ -185,7 +185,7 @@ body.dark-mode {
   transition: right $normal $ease;
 }
 
-body.options-open .container {
+body.permanent-options .container {
   right: 16rem;
 }
 
@@ -378,6 +378,14 @@ header #description {
   .inputs {
     display: flex;
     align-items: center;
+  }
+}
+
+body.permanent-options #options {
+  transform: translate(0, 0);
+
+  .toggler {
+    display: none;
   }
 }
 
