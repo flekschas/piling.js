@@ -203,6 +203,7 @@ The list of all understood properties is given below.
 | pileItemBrightness         | string, int or function | `0`          | must be in [-1,1] where `-1` refers to black and `1` refers to white | `false`    |
 | pileItemOffset             | array or function       | `[5, 5]`     | see [`notes`](#notes)                                                | `true`     |
 | pileItemOpacity            | float or function       | `1.0`        | see [`notes`](#notes)                                                | `true`     |
+| pileItemOrder              | function                |              | see [`notes`](#notes)                                                | `true`     |
 | pileItemRotation           | float or function       | `0`          | see [`notes`](#notes)                                                | `true`     |
 | pileItemTint               | string, int or function | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `true`     |
 | pileOpacity                | float or function       | `1.0`        | see [`notes`](#notes)                                                | `true`     |
@@ -213,6 +214,7 @@ The list of all understood properties is given below.
 | previewBackgroundOpacity   | float                   | `'inherit'`  | must be in [`0`,`1`]                                                 | `false`    |
 | previewBorderColor         | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | previewBorderOpacity       | float                   | `0.85`       | must be in [`0`,`1`]                                                 | `false`    |
+| previewItemOffset          | function                |              | see [`notes`](#notes)                                                | `true`     |
 | previewRenderer            | function                |              | see [`renderers`](#renderers)                                        | `true`     |
 | previewSpacing             | number                  | `2`          | the spacing between 1D previews                                      | `true`     |
 | renderer                   | function                |              | see [`renderers`](#renderers)                                        | `false`    |
@@ -360,6 +362,41 @@ The list of all understood properties is given below.
   The function should return a value within `[0, 1]`.
 
 - The default value of `previewBackgroundColor` and `previewBackgroundOpacity` is `'inherit'`, which means that their value inherits from `pileBackgroundColor` and `pileBackgroundOpacity`. If you want preview's background color to be different from pile's, you can set a specific color.
+
+- `pileItemOrder` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive an array of all the [items](#stateitems) on the pile, and should return a `Map` that maps the item's id to its expected index after sorting. E.g.,
+
+  ```javascript
+    const pileItemOrder = itemStates => {
+      itemStates.sort((a, b) => a.id - b.id);
+
+      const itemIdToIndexMap = new Map();
+      itemStates.forEach((item, index) => {
+        itemIdToIndexMap.set(item.id.toString(), index);
+      });
+
+      return itemIdToIndexMap;
+    };
+
+    piling.set('pileItemOrder', pileItemOrder);
+  ```
+  
+  The signature of the callback function is as follows:
+
+  ```javascript
+    function (itemStates) {
+      // Sort item states and create a map
+      return itemIdToIndexMap;
+    }
+  ```
+
+- `previewItemOffset` is used to position the previews on a pile as user specified. If it's not set, the preview will be positioned to the top of the cover by default. It should be set to a callback function which receives the current [preview item](#stateitems), the item's current index, and the [pile](#statepiles) that the item belongs to, and it should return a tuple of xy position of the preview. I.e., the function signature is as follows:
+
+  ```javascript
+    piling.set('previewItemOffset', (itemState, itemIndex, pileState) => {
+      // Calculate the position
+      return [x, y];
+    });
+  ```
 
 #### `piling.arrangeBy(type, objective, options)`
 
