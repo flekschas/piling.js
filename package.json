@@ -39,7 +39,7 @@
     "build": "npm run build-library; npm run build-examples;",
     "build-library": "rm -rf dist/*; rollup -c;",
     "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
-    "deploy": "npm run build; gh-pages -d examples-build -t --git git",
+    "deploy": "npm run build-examples; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
     "prepublishOnly": "npm run test",
