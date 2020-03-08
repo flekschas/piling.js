@@ -199,16 +199,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     orderer: true,
     pileBorderColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColor(color)];
         if (opacity !== null)
           actions.push(createAction.setPileBorderOpacity(opacity));
+
         return actions;
       }
     },
     pileBorderOpacity: true,
     pileBorderColorHover: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorHover(color)];
         if (opacity !== null)
@@ -219,6 +224,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorFocus(color)];
         if (opacity !== null)
@@ -229,6 +236,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorActive(color)];
         if (opacity !== null)
@@ -240,6 +249,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderSize: true,
     pileBackgroundColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBackgroundColor(color)];
         if (opacity !== null)
