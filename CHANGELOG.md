@@ -1,5 +1,6 @@
 ### Next
 
+- Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
 - Show spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)

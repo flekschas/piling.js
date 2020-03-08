@@ -2,15 +2,15 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  const getPixelHistFromDrawings = ({ hist, size, drawings, lineWidth }) => {
-    drawings.forEach(strokes => {
+  const getPixelHistFromDrawings = ({ hist, size, items, lineWidth }) => {
+    items.forEach(({ src }) => {
       const canvas = new OffscreenCanvas(size, size);
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, size, size);
 
-      for (let s = 0; s < strokes.length; s++) {
-        const xPos = strokes[s][0];
-        const yPos = strokes[s][1];
+      for (let s = 0; s < src.length; s++) {
+        const xPos = src[s][0];
+        const yPos = src[s][1];
         ctx.moveTo((xPos[0] / 256) * size, (yPos[0] / 256) * size);
         for (let i = 0; i < xPos.length; i++) {
           ctx.lineTo((xPos[i] / 256) * size, (yPos[i] / 256) * size);
@@ -23,7 +23,7 @@ const worker = function worker() {
 
       let j = 0;
       for (let i = 3; i < pixelValues.length; i += 4) {
-        hist[j] += pixelValues[i] / 255 / drawings.length;
+        hist[j] += pixelValues[i] / 255 / items.length;
         j++;
       }
     });
@@ -53,10 +53,8 @@ const worker = function worker() {
   };
 
   self.onmessage = function onmessage(event) {
-    const numSources = event.data.sources.length;
-
-    if (!numSources) {
-      self.postMessage({ error: new Error('No sources provided') });
+    if (!event.data.items.length) {
+      self.postMessage({ error: new Error('No items provided') });
     }
 
     const hist = new Float32Array(event.data.size ** 2);
@@ -65,7 +63,7 @@ const worker = function worker() {
       getPixelHistFromDrawings({
         hist,
         size: event.data.size,
-        drawings: event.data.sources,
+        items: event.data.items,
         lineWidth: event.data.lineWidth
       });
     } catch (error) {

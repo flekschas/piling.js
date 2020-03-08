@@ -62,11 +62,11 @@ const createImageWithBackground = (
   const backgroundGraphics = new PIXI.Graphics();
 
   let sprite;
-  if (texture instanceof PIXI.Mesh) {
-    sprite = texture;
-  } else {
+  if (texture instanceof PIXI.Texture) {
     sprite = new PIXI.Sprite(texture);
     sprite.anchor.set(...anchor);
+  } else {
+    sprite = texture;
   }
 
   const init = self => {

@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 import createPilingJs from '../src/library';
+import { createRepresentativeAggregator } from '../src/aggregator';
+import { createRepresentativeRenderer } from '../src/renderer';
 import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
@@ -70,11 +72,12 @@ const createVitessce = async element => {
       const item = {
         id,
         embeddingTsne: cell.mappings['t-SNE'],
-        embeddingPca: cell.mappings.PCA
+        embeddingPca: cell.mappings.PCA,
+        genes: {}
       };
 
       Object.entries(cell.genes).forEach(([geneName, value]) => {
-        item[`gene${geneName}`] = value;
+        item.genes[geneName] = value;
       });
 
       const bBox = polyToBbox(cell.poly);
@@ -136,15 +139,27 @@ const createVitessce = async element => {
     );
   };
 
+  const representativeRenderer = createRepresentativeRenderer(
+    vitessceRenderer.renderer
+  );
+
+  const representativeAggregator = createRepresentativeAggregator(4, {
+    valueGetter: item => Object.values(item.genes)
+  });
+
   const piling = createPilingJs(element, {
     darkMode: true,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer.renderer,
+    aggregateRenderer: vitessceRenderer.renderer,
+    coverAggregator: representativeAggregator,
+    coverRenderer: representativeRenderer,
     items,
     itemSize,
     cellPadding: 8,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
+    pileVisibilityItems: pile => pile.items.length === 1,
     pileContextMenuItems: [
       {
         id: 'umapify',

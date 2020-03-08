@@ -20,7 +20,7 @@ const renderStroke = (strokes, size = 64) => {
   return PIXI.Texture.from(canvas);
 };
 
-const createQuickDrawRenderer = size => sources =>
+const createGoogleQuickDrawRenderer = size => sources =>
   Promise.all(sources.map(src => renderStroke(src, size)));
 
-export default createQuickDrawRenderer;
+export default createGoogleQuickDrawRenderer;
