@@ -397,8 +397,25 @@ body.permanent-options #group-by-grid {
   }
 
   .button {
-    color: white;
+    color: $white;
     background: black;
+    line-height: 1.5em;
+    border-radius: 0.25rem;
+    border: 0;
+    background: $black;
+    transition: color $normal $ease, background $normal $ease,
+      opacity $normal $ease, box-shadow $normal $ease;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
+    }
+
+    :disabled {
+      color: $black;
+      background: $white;
+      opacity: 0.33;
+    }
   }
 
   .title:after {
@@ -440,8 +457,13 @@ body.dark-mode #options {
   }
 
   .button {
-    color: black;
-    background: white;
+    color: $black;
+    background: $white;
+
+    :disabled {
+      color: $white;
+      background: $black;
+    }
   }
 }
 
@@ -452,7 +474,7 @@ body.dark-mode #options {
   line-height: 1.5rem;
   border-radius: 0.25rem;
   color: $white;
-  border: 1px solid white;
+  border: 0;
   background: $black;
   transition: color $normal $ease, border $normal $ease,
     background $normal $ease, opacity $normal $ease, box-shadow $normal $ease;
@@ -472,11 +494,6 @@ body.dark-mode #options {
 body.dark-mode #undo {
   color: $black;
   background: $white;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
-  }
 
   :disabled {
     color: $white;
