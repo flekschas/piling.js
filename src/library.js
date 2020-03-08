@@ -129,7 +129,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.mask = mask;
 
   const properties = {
-    aggregateRenderer: true,
+    coverRenderer: true,
     arrangementObjective: true,
     arrangementOnce: true,
     arrangementOptions: true,
@@ -916,7 +916,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       createImageWithBackground(texture, previewOptions);
 
     const renderPreviews = previewAggregator
-      ? previewAggregator(itemList.map(({ src }) => src))
+      ? previewAggregator(itemList)
           .then(previewRenderer)
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
@@ -1321,7 +1321,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePreviewAndCover = (pileState, pileInstance) => {
     const {
       items,
-      aggregateRenderer,
+      coverRenderer,
       coverAggregator,
       previewAggregator
     } = store.state;
@@ -1331,28 +1331,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
-      const itemSrcs = [];
+      const itemsOnPile = [];
       const itemInstances = [];
-      // let width = -Infinity;
 
       pileState.items.forEach(itemId => {
-        const itemInstance = renderedItems.get(itemId);
-
-        itemSrcs.push(items[itemId].src);
-
-        // width = Math.max(width, itemInstance.image.width);
-
-        itemInstances.push(itemInstance);
+        itemsOnPile.push(items[itemId]);
+        itemInstances.push(renderedItems.get(itemId));
       });
 
-      if (previewAggregator) {
-        pileInstance.setItems(itemInstances, { asPreview: true });
-      } else {
-        pileInstance.setItems(itemInstances);
-      }
+      pileInstance.setItems(itemInstances, { asPreview: !!previewAggregator });
 
-      const coverImage = coverAggregator(itemSrcs)
-        .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
+      const coverImage = coverAggregator(itemsOnPile)
+        .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => createScaledImage(coverTexture));
 
       pileInstance.cover(coverImage);
@@ -1362,21 +1352,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         positionItems(pileInstance.id);
         updatePileBounds(pileInstance.id);
       });
-
-      //   coverAggregator(itemSrcs)
-      //     .then(aggregatedSrcs => aggregateRenderer([aggregatedSrcs]))
-      //     .then(([coverTexture]) => {
-      //       const cover = new PIXI.Sprite(coverTexture);
-      //       cover.anchor.set(0.5);
-      //       const aspectRatio = cover.width / cover.height;
-      //       cover.width = width;
-      //       cover.height = cover.width / aspectRatio;
-
-      //       positionItems(pileInstance.id);
-
-      //       return cover;
-      //     })
-      // );
     }
   };
 
@@ -2415,7 +2390,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       state.itemRenderer !== newState.itemRenderer ||
       state.previewRenderer !== newState.previewRenderer ||
-      state.aggregateRenderer !== newState.aggregateRenderer ||
+      state.coverRenderer !== newState.coverRenderer ||
       state.previewAggregator !== newState.previewAggregator ||
       state.coverAggregator !== newState.coverAggregator
     ) {
