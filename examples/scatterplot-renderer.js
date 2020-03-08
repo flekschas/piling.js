@@ -182,6 +182,14 @@ const createScatterplotRenderer = ({
       .attr('text-anchor', 'middle')
       .text(d => d);
 
+    svg
+      .append('rect')
+      .attr('fill', '#000000')
+      .attr('x', paddingH)
+      .attr('y', paddingV)
+      .attr('width', width)
+      .attr('height', height);
+
     svg.append('g').call(xAxis);
 
     svg.append('g').call(yAxis);
