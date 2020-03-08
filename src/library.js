@@ -1937,44 +1937,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pilesInLasso = findPilesInLasso(lassoPolygon);
     if (pilesInLasso.length > 1) {
       store.dispatch(createAction.setFocusedPiles([]));
-      animateMerge(pilesInLasso);
+      animateMerge([pilesInLasso]);
     }
   };
 
-  const animateMerge = pileIds => {
-    const { easing, piles } = store.state;
-    let centerX = 0;
-    let centerY = 0;
-    pileIds.forEach(id => {
-      centerX += piles[id].x;
-      centerY += piles[id].y;
-    });
-    centerX /= pileIds.length;
-    centerY /= pileIds.length;
+  const animateMerge = groupsOfPileIds =>
+    Promise.all(
+      groupsOfPileIds.map(
+        pileIds =>
+          new Promise(resolve => {
+            const { easing, piles } = store.state;
+            let centerX = 0;
+            let centerY = 0;
+            pileIds.forEach(id => {
+              centerX += piles[id].x;
+              centerY += piles[id].y;
+            });
+            centerX /= pileIds.length;
+            centerY /= pileIds.length;
 
-    const onAllDone = () => {
-      updatePileBounds(pileIds[0]);
-      store.dispatch(createAction.mergePiles(pileIds, false));
-    };
+            const onAllDone = () => {
+              updatePileBounds(pileIds[0]);
+              resolve(createAction.mergePiles(pileIds, false));
+            };
 
-    const onDone = () => {
-      done++;
-      if (done === pileIds.length) onAllDone();
-    };
+            const onDone = () => {
+              done++;
+              if (done === pileIds.length) onAllDone();
+            };
 
-    let done = 0;
-    animator.addBatch(
-      pileIds
-        .map(id =>
-          animateMovePileTo(pileInstances.get(id), centerX, centerY, {
-            easing,
-            isBatch: true,
-            onDone
+            let done = 0;
+            animator.addBatch(
+              pileIds
+                .map(id =>
+                  animateMovePileTo(pileInstances.get(id), centerX, centerY, {
+                    easing,
+                    isBatch: true,
+                    onDone
+                  })
+                )
+                .filter(identity)
+            );
           })
-        )
-        .filter(identity)
-    );
-  };
+      )
+    ).then(mergeActions => {
+      store.dispatch(batchActions(mergeActions));
+    });
 
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
@@ -2242,15 +2250,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // no default
     }
 
-    store.dispatch(
-      batchActions([
-        createAction.setFocusedPiles([], true),
-        ...piledPiles
-          // If there's only one pile on a pile we can ignore it
-          .filter(pileIds => pileIds.length > 1)
-          .map(pileIds => createAction.mergePiles(pileIds, false))
-      ])
-    );
+    store.dispatch(createAction.setFocusedPiles([]));
+
+    // If there's only one pile on a pile we can ignore it
+    animateMerge(piledPiles.filter(pileIds => pileIds.length > 1));
   };
 
   const updateNavigationMode = () => {
