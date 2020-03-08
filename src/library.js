@@ -477,6 +477,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     translatePiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
+    pubSub.publish('zoom', camera);
   };
 
   const panZoomEndHandler = () => {
@@ -485,6 +486,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePiles();
+    pubSub.publish('zoom', camera);
   };
 
   let layout;
