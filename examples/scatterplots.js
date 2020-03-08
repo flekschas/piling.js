@@ -114,7 +114,7 @@ const createScatterplotPiles = async element => {
     previewRenderer: previewRenderer.renderer,
     items,
     columns: Object.keys(data).length,
-    cellPadding: 25,
+    cellPadding: 6,
     cellAspectRatio,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
