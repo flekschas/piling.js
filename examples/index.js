@@ -2,7 +2,6 @@ import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
 import createScatterplotPiles from './scatterplots';
-import createScatterplots from './scatterplots-d3';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
@@ -13,7 +12,6 @@ const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
 const scatterplotsEl = document.getElementById('scatterplots');
-const scatterplotsD3El = document.getElementById('scatterplots-d3');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
 const joyplotEl = document.getElementById('joyplot');
@@ -31,7 +29,6 @@ const conditionalElements = [
   matricesEl,
   svgEl,
   scatterplotsEl,
-  scatterplotsD3El,
   scatterplotsCreditEl,
   drawingsEl,
   vitessceEl,
@@ -169,14 +166,6 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
-    case 'scatterplots-d3':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
-      scatterplotsD3El.style.display = 'block';
-      undoButton.disabled = true;
-      createScatterplots(scatterplotsD3El);
-      break;
-
     default:
       console.warn('Unknown example:', example);
       break;
@@ -226,10 +215,6 @@ switch (example) {
 
   case 'scatterplots':
     exampleEl.selectedIndex = 6;
-    break;
-
-  case 'scatterplots-d3':
-    exampleEl.selectedIndex = 7;
     break;
 
   default:
