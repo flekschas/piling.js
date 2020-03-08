@@ -18,6 +18,7 @@ import {
   isObject,
   isPointInPolygon,
   l2PointDist,
+  lRectDist,
   max,
   maxVector,
   mean,
@@ -75,6 +76,8 @@ const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
 const EXTRA_ROWS = 3;
+
+const l2RectDist = lRectDist(2);
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
@@ -2038,28 +2041,121 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const pileByOverlap = objective => {
-    const collidingPiles = {};
+  const pileByOverlap = sqrtPixels => {
+    const alreadyPiledPiles = new Map();
+    const newPiles = {};
+
+    const addPile = (target, hit, overlap) => {
+      if (!newPiles[target.id]) {
+        newPiles[target.id] = [target.id];
+        alreadyPiledPiles.set(target.id, [target.id, 1]);
+      }
+      newPiles[target.id].push(hit.id);
+      const relOverlap =
+        overlap / ((target.maxX - target.minX) * (target.maxY - target.minY));
+      alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
+    };
 
     spatialIndex.all().forEach(pileBBox => {
+      if (alreadyPiledPiles.has(pileBBox.id)) return;
+
       const hits = spatialIndex.search(pileBBox);
 
-      hits.slice(1).forEach(hit => {
-        const minX = pileBBox.minX > hit.minX ? pileBBox.minX : hit.minX;
-        const minY = pileBBox.minY > hit.minY ? pileBBox.minY : hit.minY;
-        const maxX = pileBBox.maxX < hit.maxX ? pileBBox.maxX : hit.maxX;
-        const maxY = pileBBox.maxY < hit.maxY ? pileBBox.maxY : hit.maxY;
+      if (hits.length === 1) return;
+
+      hits.forEach(hit => {
+        if (hit.id === pileBBox.id) return;
+
+        const minX = Math.max(pileBBox.minX, hit.minX);
+        const minY = Math.max(pileBBox.minY, hit.minY);
+        const maxX = Math.min(pileBBox.maxX, hit.maxX);
+        const maxY = Math.min(pileBBox.maxY, hit.maxY);
         const overlap = (maxX - minX) * (maxY - minY);
 
-        if (overlap >= objective) {
-          if (!collidingPiles[pileBBox.id]) collidingPiles[pileBBox.id] = [];
-          collidingPiles[pileBBox.id].push(hit.id);
+        if (overlap >= sqrtPixels) {
+          if (alreadyPiledPiles.has(hit.id)) {
+            const [targetId, relTargetOverlap] = alreadyPiledPiles.get(hit.id);
+
+            const relOverlap =
+              overlap /
+              ((pileBBox.maxX - pileBBox.minX) *
+                (pileBBox.maxY - pileBBox.minY));
+
+            if (relTargetOverlap > relOverlap) {
+              // Hit overlaps more with the previous target so we do nothing
+              return;
+            }
+
+            // Hit overlaps more with the new target so we move the hit
+            newPiles[targetId].splice(
+              newPiles[targetId].indexOf(pileBBox.id),
+              1
+            );
+          }
+
+          addPile(pileBBox, hit, overlap);
         }
       });
     });
+
+    return Object.values(newPiles);
   };
 
-  const pileByDistance = () => {};
+  const pileByDistance = pixels => {
+    const alreadyPiledPiles = new Map();
+    const newPiles = {};
+
+    const addPile = (target, hit, distance) => {
+      if (!newPiles[target.id]) {
+        newPiles[target.id] = [target.id];
+        alreadyPiledPiles.set(target.id, [target.id, 1]);
+      }
+      newPiles[target.id].push(hit.id);
+      alreadyPiledPiles.set(hit.id, [target.id, distance]);
+    };
+
+    spatialIndex.all().forEach(pileBBox => {
+      if (alreadyPiledPiles.has(pileBBox.id)) return;
+
+      const searchBBox = {
+        minX: pileBBox.minX - pixels,
+        minY: pileBBox.minY - pixels,
+        maxX: pileBBox.maxX + pixels,
+        maxY: pileBBox.maxY + pixels
+      };
+
+      const hits = spatialIndex.search(searchBBox);
+
+      if (hits.length === 1) return;
+
+      hits.forEach(hit => {
+        if (hit.id === pileBBox.id) return;
+
+        const distance = l2RectDist(pileBBox, hit);
+
+        if (distance <= pixels) {
+          if (alreadyPiledPiles.has(hit.id)) {
+            const [targetId, targetDistance] = alreadyPiledPiles.get(hit.id);
+
+            if (targetDistance < distance) {
+              // Hit is closer to the previous target so we do nothing
+              return;
+            }
+
+            // Hit is closer to the new target so we move the hit
+            newPiles[targetId].splice(
+              newPiles[targetId].indexOf(pileBBox.id),
+              1
+            );
+          }
+
+          addPile(pileBBox, hit, distance);
+        }
+      });
+    });
+
+    return Object.values(newPiles);
+  };
 
   const pileByGrid = objective => {
     const { orderer, piles } = store.state;
