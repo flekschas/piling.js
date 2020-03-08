@@ -31,13 +31,16 @@ const createTimeSeriesPiles = async element => {
       .x(d => d[prop][0] * width)
       .y(d => d[prop][1] * height);
 
+    const g = svg.append('g');
+
     linesBetweenFrames.forEach((lineData, index) => {
-      svg
-        .append('path')
+      g.append('path')
         .attr('d', line(lineData))
         .attr('stroke', colorMap(index / n))
         .attr('stroke-width', 3);
     });
+
+    return g;
   };
 
   const additionalSidebarOptions = [
@@ -77,7 +80,14 @@ const createTimeSeriesPiles = async element => {
 
   piling.arrangeBy('uv', pile => data[pile.items[0]].umap_gray);
 
-  drawPileConnections('umap_gray');
+  const lineGroup = drawPileConnections('umap_gray');
+
+  piling.subscribe('zoom', camera => {
+    lineGroup.attr(
+      'transform',
+      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${camera.scaling})`
+    );
+  });
 
   return [piling, additionalSidebarOptions];
 };
