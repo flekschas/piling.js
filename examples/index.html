@@ -60,9 +60,14 @@
 
     <script>
       let urlParams = new URLSearchParams(window.location.search);
-      window.permanentOptions = urlParams.has('options') ? 'permanent-options' : '';
+      window.permanentOptions = urlParams.has('options')
+        ? 'permanent-options'
+        : '';
       window.example = urlParams.has('example')
-        ? urlParams.get('example').split(' ')[0].toLowerCase()
+        ? urlParams
+            .get('example')
+            .split(' ')[0]
+            .toLowerCase()
         : null;
     </script>
   </head>
@@ -81,7 +86,10 @@
           mode = 'dark-mode';
           break;
       }
-      document.body.setAttribute('class', [window.example, window.permanentOptions, mode].join(' '));
+      document.body.setAttribute(
+        'class',
+        [window.example, window.permanentOptions, mode].join(' ')
+      );
     </script>
 
     <header>
@@ -164,6 +172,8 @@
     <div id="drawings" class="container"></div>
     <div id="joyplot" class="container"></div>
     <div id="vitessce" class="container"></div>
+
+    <div id="group-by-grid"><canvas></canvas></div>
 
     <aside id="options">
       <button id="options-toggler" class="toggler">

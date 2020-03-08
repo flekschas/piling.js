@@ -79,6 +79,14 @@ const hideEl = el => {
   el.style.display = 'none';
 };
 
+const pilingEls = {
+  photos: photosEl,
+  matrices: matricesEl,
+  lines: svgEl,
+  drawings: drawingsEl,
+  joyplot: joyplotEl,
+  vitessce: vitessceEl
+};
 const createPiles = async example => {
   let additionalOptions;
 
@@ -225,6 +233,48 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
   );
 
+  const pileByGrid = document.body.querySelector('#group-by-grid');
+  const pileByGridCanvas = pileByGrid.querySelector('canvas');
+  const pileByGridCtx = pileByGridCanvas.getContext('2d');
+  let pileByGridColumns = null;
+  let pileByGridActive = false;
+
+  const pilingScrollEl = pilingEls[exampleEl.value].querySelector('div');
+
+  const clearPileByGrid = () => {
+    pileByGridCtx.clearRect(0, 0, pileByGridCtx.width, pileByGridCtx.height);
+  };
+
+  const drawPileByGrid = columns => {
+    pileByGrid.style.zIndex = 1;
+    const { width, height } = pileByGridCanvas.getBoundingClientRect();
+    const res = window.devicePixelRatio;
+    pileByGridCanvas.width = width * res;
+    pileByGridCanvas.height = height * res;
+
+    const columnWidth = width / columns;
+    const cellAspectRatio = pilingLib.get('cellAspectRatio');
+    const rowHeight = columnWidth / cellAspectRatio;
+    const offsetY = pilingScrollEl.scrollTop % rowHeight;
+
+    clearPileByGrid();
+
+    pileByGridCtx.strokeStyle = '#ff7ff6';
+    pileByGridCtx.beginPath();
+
+    for (let i = 1; i < columns; i++) {
+      pileByGridCtx.moveTo(0, i * rowHeight * res - offsetY * res);
+      pileByGridCtx.lineTo(width * res, i * rowHeight * res - offsetY * res);
+    }
+
+    for (let j = 1; j < columns; j++) {
+      pileByGridCtx.moveTo(j * columnWidth * res, 0);
+      pileByGridCtx.lineTo(j * columnWidth * res, height * res);
+    }
+
+    pileByGridCtx.stroke();
+  };
+
   const options = [
     {
       id: 'grid',
@@ -274,7 +324,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     },
     {
       id: 'arrangement',
-      title: 'Arrangement & Navigation',
+      title: 'Arrangement',
       fields: [
         {
           name: 'arrangementObjective',
@@ -291,6 +341,90 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'navigationMode',
           dtype: 'string',
           values: ['auto', 'panZoom', 'scroll']
+        }
+      ]
+    },
+    {
+      id: 'piling',
+      title: 'Piling',
+      fields: [
+        {
+          name: 'Pile By Row',
+          onClick: true,
+          action: () => {
+            pilingLib.pileBy('row');
+          }
+        },
+        {
+          name: 'Pile By Column',
+          onClick: true,
+          action: () => {
+            pilingLib.pileBy('column');
+          }
+        },
+        {
+          name: 'Pile By Grid',
+          onClick: true,
+          action: () => {
+            const objective =
+              pileByGridColumns !== null
+                ? { columns: pileByGridColumns }
+                : undefined;
+            pilingLib.pileBy('grid', objective);
+          },
+          onMouseenter: () => {
+            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+          },
+          onMousedown: () => {
+            pileByGridActive = true;
+            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+          },
+          onMouseleave: function onMouseup() {
+            if (!pileByGridActive) {
+              clearPileByGrid();
+              pileByGrid.style.zIndex = -1;
+            }
+          },
+          onMouseup: function onMouseup() {
+            pileByGridActive = false;
+            clearPileByGrid();
+            pileByGrid.style.zIndex = -1;
+          }
+        },
+        {
+          name: 'Pile by grid: # columns',
+          dtype: 'int',
+          min: 1,
+          max: 20,
+          onInput: true,
+          setter: columns => {
+            pileByGridColumns = columns;
+            if (pileByGridActive && columns !== null) {
+              drawPileByGrid(columns);
+            } else {
+              clearPileByGrid();
+              pileByGrid.style.zIndex = -1;
+            }
+          },
+          nullifiable: true,
+          onMouseenter: () => {
+            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+          },
+          onMousedown: () => {
+            pileByGridActive = true;
+            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+          },
+          onMouseleave: function onMouseup() {
+            if (!pileByGridActive) {
+              clearPileByGrid();
+              pileByGrid.style.zIndex = -1;
+            }
+          },
+          onMouseup: function onMouseup() {
+            pileByGridActive = false;
+            clearPileByGrid();
+            pileByGrid.style.zIndex = -1;
+          }
         }
       ]
     },
@@ -315,6 +449,13 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     const currentValue = field.defaultValue
       ? field.defaultValue
       : pilingLib.get(field.name);
+
+    if (field.action) {
+      const button = document.createElement('button');
+      button.className = 'button';
+      button.textContent = field.name;
+      return button;
+    }
 
     if (field.values) {
       if (field.multiple) {
@@ -474,8 +615,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     sectionEl.appendChild(fields);
 
     validFields.forEach(field => {
-      const label = document.createElement('label');
+      const label = document.createElement('div');
+      label.className = 'label-wrapper';
       const labelTitle = document.createElement('div');
+      labelTitle.className = 'label-title';
 
       const title = document.createElement('span');
       title.setAttribute('class', 'title');
@@ -497,15 +640,20 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       const isSet = document.createElement('input');
       isSet.setAttribute('type', 'checkbox');
       if (field.nullifiable) {
-        if (pilingLib.get(field.name) !== null) {
+        if (
+          pilingLib.get(field.name) !== undefined &&
+          pilingLib.get(field.name) !== null
+        ) {
           isSet.checked = true;
         }
         isSet.addEventListener('change', event => {
           if (event.target.checked) {
-            const value = parseDtype[field.dtype](input.value);
+            const value = field.dtype && parseDtype[field.dtype](input.value);
 
             if (field.setter) {
               field.setter(value);
+            } else if (field.action) {
+              field.action(value);
             } else {
               pilingLib.set(field.name, value);
             }
@@ -525,13 +673,20 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       } else {
         isSet.checked = true;
         isSet.disabled = true;
+
+        if (field.action) {
+          isSet.style.display = 'none';
+          labelTitle.style.display = 'none';
+        }
       }
 
       if (!(field.values && (field.multiple || !field.nullifiable))) {
         inputs.appendChild(isSet);
       }
 
-      const eventType = field.onInput ? 'input' : 'change';
+      let eventType = 'change';
+      if (field.onInput) eventType = 'input';
+      if (field.onClick) eventType = 'click';
 
       input.addEventListener(eventType, event => {
         let value = event.target.value;
@@ -542,10 +697,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         }
 
         if (isSet && isSet.checked) {
-          value = parseDtype[field.dtype](value);
+          value = field.dtype && parseDtype[field.dtype](value);
 
           if (field.setter) {
             field.setter(value);
+          } else if (field.action) {
+            field.action(value);
           } else {
             pilingLib.set(field.name, value);
           }
@@ -555,6 +712,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           }
         }
       });
+
+      if (field.onMouseenter)
+        input.addEventListener('mouseenter', field.onMouseenter);
+      if (field.onMouseleave)
+        input.addEventListener('mouseleave', field.onMouseleave);
+      if (field.onMousedown)
+        input.addEventListener('mousedown', field.onMousedown);
+      if (field.onMouseup) input.addEventListener('mouseup', field.onMouseup);
 
       inputs.appendChild(input);
       label.appendChild(inputs);
