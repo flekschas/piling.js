@@ -4,6 +4,7 @@ import createSvgLinesPiles from './lines';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
+import createTimeSeriesPiles from './time-series';
 
 import './index.scss';
 
@@ -13,12 +14,15 @@ const svgEl = document.getElementById('svg');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
 const joyplotEl = document.getElementById('joyplot');
+const timeseriesEl = document.getElementById('timeseries');
+
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
+const timeseriesCreditEl = document.getElementById('timeseries-credit');
 
 const conditionalElements = [
   photosEl,
@@ -27,12 +31,14 @@ const conditionalElements = [
   drawingsEl,
   vitessceEl,
   joyplotEl,
+  timeseriesEl,
   photosCreditEl,
   matricesCreditEl,
   svgCreditEl,
   drawingsCreditEl,
   vitessceCreditEl,
-  joyplotCreditEl
+  joyplotCreditEl,
+  timeseriesCreditEl
 ];
 
 const optionsEl = document.getElementById('options');
@@ -149,6 +155,17 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
+    case 'timeseries':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      timeseriesEl.style.display = 'block';
+      timeseriesCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createTimeSeriesPiles(timeseriesEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -194,6 +211,10 @@ switch (example) {
 
   case 'vitessce':
     exampleEl.selectedIndex = 5;
+    break;
+
+  case 'timeseries':
+    exampleEl.selectedIndex = 6;
     break;
 
   default:
