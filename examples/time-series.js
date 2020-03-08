@@ -10,6 +10,9 @@ const createTimeSeriesPiles = async element => {
 
   const { width, height } = element.getBoundingClientRect();
 
+  const n = data.length;
+  const colorMap = d3.interpolate('#eee462', '#3170ad');
+
   const drawPileConnections = prop => {
     d3.select('#connection').remove();
 
@@ -28,15 +31,11 @@ const createTimeSeriesPiles = async element => {
       .x(d => d[prop][0] * width)
       .y(d => d[prop][1] * height);
 
-    const gradient = d3.interpolate('white', 'red');
-
-    const numOfLines = linesBetweenFrames.length;
-
     linesBetweenFrames.forEach((lineData, index) => {
       svg
         .append('path')
         .attr('d', line(lineData))
-        .attr('stroke', gradient(index / numOfLines))
+        .attr('stroke', colorMap(index / n))
         .attr('stroke-width', 3);
     });
   };
@@ -71,6 +70,8 @@ const createTimeSeriesPiles = async element => {
     renderer: imageRenderer,
     items: data,
     itemSize: 32,
+    pileBorderColor: pile => colorMap(+pile.id / n),
+    pileBorderSize: 2,
     darkMode: true
   });
 
