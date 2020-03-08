@@ -36,21 +36,28 @@ const createScatterplotPiles = async element => {
     });
   });
 
-  const width = 600;
-  const height = 600;
-  const padding = 120;
-  const previewSize = 20;
+  // width and height are just for the scatterplot, not including the title
+  const width = 480;
+  const height = 480;
+  const paddingHorizontal = 140;
+  const paddingVertical = 60;
+  const previewWidth = 15;
+  const previewHeight = 10;
+
+  const cellAspectRatio =
+    (width + paddingHorizontal * 2) / (height + paddingVertical * 2);
 
   const scatterplotRenderer = createScatterplotRenderer({
     width,
     height,
-    padding
+    paddingV: paddingVertical,
+    paddingH: paddingHorizontal
   });
   const coverAggregator = createScatterplotCoverAggregator();
   const previewAggregator = createScatterplotPreviewAggregator();
   const previewRenderer = createScatterplotPreviewRenderer({
-    width: previewSize,
-    height: previewSize
+    width: previewWidth,
+    height: previewHeight
   });
 
   const pileItemOrder = itemStates => {
@@ -75,13 +82,23 @@ const createScatterplotPiles = async element => {
     if (itemIndex === 0) {
       beginYear = scatterplotRenderer.yearDomain[0];
       const years = scatterplotRenderer.yearDomain[1] - beginYear + 1;
-      const rangeMin = Math.max(0, height / 2 - years * 12.5);
-      const rangeMax = Math.min(height, height / 2 + years * 12.5);
+      const rangeMin = Math.max(
+        paddingVertical,
+        paddingVertical + height / 2 - years * 6.5
+      );
+      const rangeMax = Math.min(
+        paddingVertical + height,
+        paddingVertical + height / 2 + years * 6.5
+      );
       previewItemYOffset
         .domain(scatterplotRenderer.yearDomain)
         .rangeRound([rangeMin, rangeMax]);
     }
-    const x = regionOrderIndex[itemState.region] * 25 + width + previewSize;
+    const x =
+      regionOrderIndex[itemState.region] * 20 +
+      width +
+      paddingHorizontal +
+      previewWidth;
 
     const y = previewItemYOffset(itemState.year);
 
@@ -98,10 +115,11 @@ const createScatterplotPiles = async element => {
     items,
     columns: Object.keys(data).length,
     cellPadding: 25,
+    cellAspectRatio,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
-    previewSpacing: 4
+    previewSpacing: 3
   });
 
   piling.arrangeByOnce('data', 'year');

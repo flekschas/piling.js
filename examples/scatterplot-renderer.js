@@ -2,9 +2,10 @@ import { aggregate, unique } from '@flekschas/utils';
 import * as d3 from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
-const DEFAULT_WIDTH = 600;
-const DEFAULT_HEIGHT = 600;
-const DEFAULT_PADDING = 120;
+const DEFAULT_WIDTH = 480;
+const DEFAULT_HEIGHT = 480;
+const DEFAULT_PADDING_VERTICAL = 60;
+const DEFAULT_PADDING_HORIZONTAL = 140;
 const DEFAULT_DOTSIZE_RANGE = [6, 18];
 const DEFAULT_COLOR_RANGE = [
   '#e05aa9',
@@ -33,25 +34,29 @@ const regionProperties = {
 const createScatterplotRenderer = ({
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT,
-  padding = DEFAULT_PADDING,
+  paddingV = DEFAULT_PADDING_VERTICAL,
+  paddingH = DEFAULT_PADDING_HORIZONTAL,
   x: xProp = 'fertilityRate',
   y: yProp = 'lifeExpectancy',
   size: rProp = 'population',
   color: colorProp = 'region'
 } = {}) => {
-  const svgRenderer = createSvgRenderer({ width, height });
+  const svgRenderer = createSvgRenderer({
+    width: width + paddingH * 2,
+    height: height + paddingV * 2
+  });
 
   const createXScale = domain =>
     d3
       .scaleLinear()
       .domain(domain)
-      .rangeRound([padding / 2, width - padding / 2]);
+      .rangeRound([paddingH, width + paddingH]);
 
   const createYScale = domain =>
     d3
       .scaleLinear()
       .domain(domain)
-      .rangeRound([height - padding / 2, padding / 2]);
+      .rangeRound([height, paddingV]);
 
   const createSizeScale = domain =>
     d3
@@ -69,12 +74,12 @@ const createScatterplotRenderer = ({
 
   const createXAxis = xScale => axis =>
     axis
-      .attr('transform', `translate(0, ${padding / 2})`)
+      .attr('transform', `translate(0, ${paddingV})`)
       .call(
         d3
           .axisBottom(xScale)
           .ticks(4)
-          .tickSize(width - padding)
+          .tickSize(width)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -93,12 +98,12 @@ const createScatterplotRenderer = ({
 
   const createYAxis = yScale => axis =>
     axis
-      .attr('transform', `translate(${padding / 2}, 0)`)
+      .attr('transform', `translate(${paddingH}, 0)`)
       .call(
         d3
           .axisLeft(yScale)
           .ticks(3)
-          .tickSize(padding - height)
+          .tickSize(-height)
       )
       .call(g => g.select('.domain').remove())
       .call(g =>
@@ -133,7 +138,9 @@ const createScatterplotRenderer = ({
     yScale,
     sizeScale
   }) => {
-    const svg = d3.create('svg').attr('viewBox', `0 0 ${width} ${height}`);
+    const svg = d3
+      .create('svg')
+      .attr('viewBox', `0 0 ${width + paddingH * 2} ${height + paddingV * 2}`);
 
     const regions = unique(data, d => d.region);
 
@@ -141,16 +148,19 @@ const createScatterplotRenderer = ({
       (a, b) => regionProperties[a].index - regionProperties[b].index
     );
 
-    const regionFontSize = 48 - regions.length * 3.5;
+    const titleFontSize = 48 - (regions.length - 1) * 3.5;
 
     svg
       .selectAll('#region-text')
       .data(regions)
       .join('text')
-      .attr('x', (d, i) => (width / (regions.length * 2)) * (i * 2 + 1))
+      .attr(
+        'x',
+        (d, i) => ((width + paddingH) / (regions.length * 2)) * (i * 2 + 1)
+      )
       .attr('y', 42)
       .attr('fill', d => colorMap(d))
-      .attr('font-size', `${regionFontSize}px`)
+      .attr('font-size', `${titleFontSize}px`)
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
       .text(d => {
@@ -162,14 +172,13 @@ const createScatterplotRenderer = ({
 
     svg
       .selectAll('#year-text')
-      .data(years.length > 1 ? [years.join(' - ')] : years)
+      .data(years)
       .join('text')
-      .attr('x', width - 24)
-      .attr('y', height / 2 + 20)
+      .attr('x', width + (paddingH * 3) / 2)
+      .attr('y', (d, i) => (i === 0 ? 42 : height + paddingV + 40))
       .attr('fill', DEFAULT_TEXT_COLOR)
-      .attr('font-size', '48px')
+      .attr('font-size', `${titleFontSize}px`)
       .attr('font-family', 'sans-serif')
-      .attr('writing-mode', 'vertical-lr')
       .attr('text-anchor', 'middle')
       .text(d => d);
 
@@ -184,10 +193,10 @@ const createScatterplotRenderer = ({
       .attr('fill', 'none')
       .attr('stroke', DEFAULT_LINE_COLOR)
       .attr('stroke-width', 3)
-      .attr('x', padding / 2)
-      .attr('y', padding / 2)
-      .attr('width', width - padding)
-      .attr('height', height - padding);
+      .attr('x', paddingH)
+      .attr('y', paddingV)
+      .attr('width', width)
+      .attr('height', height);
 
     const getColorGradient = color => {
       const gradient = d3.interpolate('black', color);
