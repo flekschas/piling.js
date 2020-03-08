@@ -275,6 +275,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     pileByGridCtx.stroke();
   };
 
+  let pileByOverlapSqPx = 1;
+  let pileByDistancePx = 1;
+
   const options = [
     {
       id: 'grid',
@@ -424,6 +427,42 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             pileByGridActive = false;
             clearPileByGrid();
             pileByGrid.style.zIndex = -1;
+          }
+        },
+        {
+          name: 'Pile By Overlap',
+          onClick: true,
+          action: () => {
+            pilingLib.pileBy('overlap', pileByOverlapSqPx);
+          }
+        },
+        {
+          name: 'Min overlap in pixel^2',
+          dtype: 'int',
+          min: 1,
+          max: 256,
+          defaultValue: 1,
+          onInput: true,
+          setter: sqPx => {
+            pileByOverlapSqPx = sqPx;
+          }
+        },
+        {
+          name: 'Pile By Distance',
+          onClick: true,
+          action: () => {
+            pilingLib.pileBy('distance', pileByDistancePx);
+          }
+        },
+        {
+          name: 'Min distance in pixel',
+          dtype: 'int',
+          min: 1,
+          max: 256,
+          defaultValue: 1,
+          onInput: true,
+          setter: px => {
+            pileByDistancePx = px;
           }
         }
       ]
@@ -629,7 +668,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       const valueEl = document.createElement('span');
       valueEl.setAttribute('class', 'value');
       if (field.dtype === 'int' && (field.min || field.max)) {
-        valueEl.textContent = pilingLib.get(field.name);
+        valueEl.textContent = field.defaultValue || pilingLib.get(field.name);
       }
       labelTitle.appendChild(valueEl);
 
