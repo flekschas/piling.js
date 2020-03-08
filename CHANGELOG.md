@@ -1,9 +1,10 @@
 ### Next
 
+- Add `pileBy()` for layout-, location-, and data-driven piling
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
 - Show spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)
-- Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { once: true })`
+- Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`.
 
 _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
 
