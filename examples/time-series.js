@@ -11,7 +11,7 @@ const createTimeSeriesPiles = async element => {
   const { width, height } = element.getBoundingClientRect();
 
   const n = data.length;
-  const colorMap = d3.interpolate('#eee462', '#3170ad');
+  const colorMap = d3.interpolateYlOrBr;
 
   const drawPileConnections = prop => {
     d3.select('#connection').remove();
