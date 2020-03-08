@@ -1,9 +1,9 @@
 import { createWorker } from '@flekschas/utils';
 import workerFn from './matrix-preview-aggregator-worker';
 
-const createMatrixPreviewAggregator = (aggregagtor = 'mean') => sources => {
-  const aggregatedSources = sources.map(
-    src =>
+const createMatrixPreviewAggregator = (aggregagtor = 'mean') => items => {
+  const aggregatedSources = items.map(
+    item =>
       new Promise((resolve, reject) => {
         const worker = createWorker(workerFn);
 
@@ -12,7 +12,7 @@ const createMatrixPreviewAggregator = (aggregagtor = 'mean') => sources => {
           else resolve(e.data.newSrc);
           worker.terminate();
         };
-        worker.postMessage({ src, aggregagtor });
+        worker.postMessage({ src: item.src, aggregagtor });
       })
   );
 

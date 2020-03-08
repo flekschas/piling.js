@@ -2,30 +2,30 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  const mean = (data, sources, length) => {
-    const n = sources.length;
+  const mean = (data, items, length) => {
+    const n = items.length;
     for (let s = 0; s < n; s++) {
       for (let i = 0; i < length; i++) {
-        data[i] += sources[s].data[i] / n;
+        data[i] += items[s].src.data[i] / n;
       }
     }
   };
 
-  const variance = (data, sources, length) => {
+  const variance = (data, items, length) => {
     const u = new Float32Array(data.length);
-    mean(u, sources);
+    mean(u, items);
 
-    const n = sources.length;
+    const n = items.length;
 
     for (let s = 0; s < n; s++) {
       for (let i = 0; i < length; i++) {
-        data[i] += (sources[s].data[i] - u[i]) ** 2 / n;
+        data[i] += (items[s].src.data[i] - u[i]) ** 2 / n;
       }
     }
   };
 
-  const std = (data, sources, length) => {
-    variance(data, sources, length);
+  const std = (data, items, length) => {
+    variance(data, items, length);
     for (let i = 0; i < length; i++) {
       data[i] = Math.sqrt(data[i]);
     }
@@ -34,18 +34,16 @@ const worker = function worker() {
   self.onmessage = function onmessage(event) {
     const newSrc = {};
 
-    const numSources = event.data.sources.length;
-
-    if (!numSources) {
+    if (!event.data.items.length) {
       self.postMessage({ error: new Error('No sources provided') });
     }
 
     let newData;
     let length;
     try {
-      newSrc.shape = event.data.sources[0].shape;
-      newSrc.dtype = event.data.sources[0].dtype;
-      length = event.data.sources[0].data.length;
+      newSrc.shape = event.data.items[0].src.shape;
+      newSrc.dtype = event.data.items[0].src.dtype;
+      length = event.data.items[0].src.data.length;
       newData = new Float32Array(length);
     } catch (error) {
       self.postMessage({ error });
@@ -54,16 +52,16 @@ const worker = function worker() {
     try {
       switch (event.data.aggregator) {
         case 'variance':
-          variance(newData, event.data.sources, length);
+          variance(newData, event.data.items, length);
           break;
 
         case 'std':
-          std(newData, event.data.sources, length);
+          std(newData, event.data.items, length);
           break;
 
         case 'mean':
         default:
-          mean(newData, event.data.sources, length);
+          mean(newData, event.data.items, length);
           break;
       }
       newSrc.data = newData;
@@ -71,7 +69,7 @@ const worker = function worker() {
       self.postMessage({ error });
     }
 
-    self.postMessage({ newSrc });
+    self.postMessage({ newSrc }, [newSrc.data.buffer]);
   };
 };
 
