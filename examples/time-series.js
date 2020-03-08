@@ -69,23 +69,35 @@ const createTimeSeriesPiles = async element => {
     }
   ];
 
+  const getMedianItemId = items => {
+    const sortedItemIds = items.map(itemId => +itemId).sort();
+    return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
+  };
+
+  let cameraScale = 1;
+
   const piling = createPilingJs(element, {
     renderer: imageRenderer,
     items: data,
     itemSize: 32,
-    pileBorderColor: pile => colorMap(+pile.id / n),
-    pileBorderSize: 2,
+    pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
+    pileBorderSize: pile => 1 + Math.log(pile.items.length),
+    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
+    pileItemRotation: () => Math.random() * 20 - 10,
+    pileScale: () =>
+      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2,
     darkMode: true
   });
 
-  piling.arrangeBy('uv', pile => data[pile.items[0]].umap_gray);
+  piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray);
 
   const lineGroup = drawPileConnections('umap_gray');
 
   piling.subscribe('zoom', camera => {
+    cameraScale = camera.scaling;
     lineGroup.attr(
       'transform',
-      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${camera.scaling})`
+      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${cameraScale})`
     );
   });
 
