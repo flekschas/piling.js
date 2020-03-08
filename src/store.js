@@ -116,7 +116,10 @@ const [arrangementObjective, setArrangementObjective] = setter(
   'arrangementObjective'
 );
 
-const [arrangementOnce, setArrangementOnce] = setter('arrangementOnce', false);
+const [arrangementOnPile, setArrangementOnPile] = setter(
+  'arrangementOnPile',
+  false
+);
 
 const [arrangementOptions, setArrangementOptions] = setter(
   'arrangementOptions',
@@ -485,16 +488,16 @@ const piles = (previousState = {}, action) => {
       return newState;
     }
 
-    case 'DEPILE_PILES': {
-      const depilePiles = action.payload.piles.filter(
+    case 'SCATTER_PILES': {
+      const scatterPiles = action.payload.piles.filter(
         pile => pile.items.length > 1
       );
 
-      if (!depilePiles.length) return previousState;
+      if (!scatterPiles.length) return previousState;
 
       const newState = { ...previousState };
 
-      depilePiles.forEach(pile => {
+      scatterPiles.forEach(pile => {
         pile.items.forEach(itemId => {
           newState[itemId] = {
             ...newState[itemId],
@@ -528,9 +531,9 @@ const movePiles = movingPiles => ({
   payload: { movingPiles }
 });
 
-const depilePiles = depiledPiles => ({
-  type: 'DEPILE_PILES',
-  payload: { piles: depiledPiles }
+const scatterPiles = pilesToBeScattered => ({
+  type: 'SCATTER_PILES',
+  payload: { piles: pilesToBeScattered }
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -544,7 +547,7 @@ const createStore = () => {
   const appReducer = combineReducers({
     aggregateRenderer,
     arrangementObjective,
-    arrangementOnce,
+    arrangementOnPile,
     arrangementOptions,
     arrangementType,
     backgroundColor,
@@ -674,13 +677,13 @@ const createStore = () => {
 export default createStore;
 
 export const createAction = {
-  depilePiles,
+  scatterPiles,
   initPiles,
   mergePiles,
   movePiles,
   setAggregateRenderer,
   setArrangementObjective,
-  setArrangementOnce,
+  setArrangementOnPile,
   setArrangementOptions,
   setArrangementType,
   setBackgroundColor,

@@ -1,3 +1,4 @@
+import { unique } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 export const cloneSprite = sprite => {
@@ -172,3 +173,5 @@ export const whichTransitionEvent = () => {
 
   return 'transitionEnd';
 };
+
+export const uniqueStr = v => unique(v).join('-');
