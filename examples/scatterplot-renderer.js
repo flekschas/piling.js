@@ -22,13 +22,13 @@ const DEFAULT_TEXT_COLOR = '#fff';
 const DEFAULT_OPACITY = 0.7;
 
 const regionProperties = {
-  'North America': { abbr: 'NA', index: 0 },
-  'Latin America & Caribbean': { abbr: 'LA&C', index: 1 },
-  'Europe & Central Asia': { abbr: 'E&CA', index: 2 },
-  'Middle East & North Africa': { abbr: 'ME&NA', index: 3 },
-  'Sub-Saharan Africa': { abbr: 'SSA', index: 4 },
-  'South Asia': { abbr: 'SA', index: 5 },
-  'East Asia & Pacific': { abbr: 'EA&P', index: 6 }
+  'North America': { abbr: 'NA', abbr2: 'NA', index: 0 },
+  'Latin America & Caribbean': { abbr: 'LAC', abbr2: 'LA', index: 1 },
+  'Europe & Central Asia': { abbr: 'ECA', abbr2: 'EA', index: 2 },
+  'Middle East & North Africa': { abbr: 'MENA', abbr2: 'ME', index: 3 },
+  'Sub-Saharan Africa': { abbr: 'SSA', abbr2: 'A', index: 4 },
+  'South Asia': { abbr: 'SA', abbr2: 'SA', index: 5 },
+  'East Asia & Pacific': { abbr: 'EAP', abbr2: 'EA', index: 6 }
 };
 
 const createScatterplotRenderer = ({
@@ -148,25 +148,31 @@ const createScatterplotRenderer = ({
       (a, b) => regionProperties[a].index - regionProperties[b].index
     );
 
-    const titleFontSize = 48 - (regions.length - 1) * 3.5;
+    const regionLabel = svg
+      .append('foreignObject')
+      .attr('x', paddingH)
+      .attr('y', 0)
+      .attr('width', width)
+      .attr('height', 48)
+      .append('xhtml:div')
+      .join('foreignObject')
+      .style('width', '100%')
+      .style('height', '100%')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+      .style('white-space', 'nowrap')
+      .style('font-size', '48px')
+      .style('font-family', 'sans-serif');
 
-    svg
-      .selectAll('#region-text')
+    regionLabel
+      .selectAll('span')
       .data(regions)
-      .join('text')
-      .attr(
-        'x',
-        (d, i) => ((width + paddingH) / (regions.length * 2)) * (i * 2 + 1)
-      )
-      .attr('y', 42)
-      .attr('fill', d => colorMap(d))
-      .attr('font-size', `${titleFontSize}px`)
-      .attr('font-family', 'sans-serif')
-      .attr('text-anchor', 'middle')
-      .text(d => {
-        if (regions.length > 1) {
-          return regionProperties[d].abbr;
-        }
+      .join('xhtml:span')
+      .style('color', d => colorMap(d))
+      .style('padding-right', '12px')
+      .html(d => {
+        if (regions.length > 3) return regionProperties[d].abbr2;
+        if (regions.length > 1) return regionProperties[d].abbr;
         return d;
       });
 
@@ -177,7 +183,7 @@ const createScatterplotRenderer = ({
       .attr('x', width + (paddingH * 3) / 2)
       .attr('y', (d, i) => (i === 0 ? 42 : height + paddingV + 40))
       .attr('fill', DEFAULT_TEXT_COLOR)
-      .attr('font-size', `${titleFontSize}px`)
+      .attr('font-size', '48px')
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
       .text(d => d);
