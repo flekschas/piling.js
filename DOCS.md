@@ -184,6 +184,7 @@ The list of all understood properties is given below.
 | lassoStrokeColor           | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | lassoStrokeOpacity         | float                   | `0.8`        | must be in [`0`,`1`]                                                 | `false`    |
 | lassoStrokeSize            | int                     | `1`          | must be greater or equal than `1`                                    | `false`    |
+| layout                     | object                  |              | read-only                                                            | `false`    |
 | orderer                    | function                | row-major    | see [`notes`](#notes)                                                | `true`     |
 | magnifiedPiles             | array                   | `[]`         | the id of current magnified pile                                     | `true`     |
 | navigationMode             | string                  | auto         | Can be one of auto, panZoom, or scroll                               | `false`    |

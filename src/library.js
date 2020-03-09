@@ -192,6 +192,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     lassoStrokeOpacity: true,
     lassoStrokeSize: true,
+    layout: {
+      get: () => ({
+        cellAspectRatio: layout.cellAspectRatio,
+        cellHeight: layout.cellHeight,
+        cellPadding: layout.cellPadding,
+        cellWidth: layout.cellWidth,
+        columnWidth: layout.columnWidth,
+        height: layout.height,
+        itemSize: layout.itemSize,
+        numColumns: layout.numColumns,
+        numRows: layout.numRows,
+        rowHeight: layout.rowHeight,
+        width: layout.width
+      })
+    },
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
