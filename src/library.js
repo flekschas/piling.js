@@ -3350,8 +3350,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         if (!closedContextMenu) lasso.showStartIndicator(mouseDownPosition);
-        store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setMagnifiedPiles([]));
+        if (store.state.focusedPiles.length)
+          store.dispatch(createAction.setFocusedPiles([]));
+        if (store.state.magnifiedPiles.length)
+          store.dispatch(createAction.setMagnifiedPiles([]));
       }
     }
   };
