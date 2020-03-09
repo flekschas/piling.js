@@ -2544,6 +2544,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const cancelArrangement = () => {
+    if (store.state.arrangementType === null) return;
+
     store.dispatch(
       batchActions([
         ...set('arrangementType', null, true),
