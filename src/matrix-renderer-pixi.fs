@@ -13,6 +13,8 @@ in vec2 vTextureCoord;
 out vec4 outColor;
 
 vec4 toColor(float value) {
+  float halfTexel = 0.5 / uColorMapTexRes;
+
   // Normalize value
   float normValue = (value - uMinValue) / (uMaxValue - uMinValue);
 
@@ -24,8 +26,8 @@ vec4 toColor(float value) {
 
   // Texture index into the colormap texture
   vec2 colorTexIndex = vec2(
-    (mod(linIdx, uColorMapTexRes) / uColorMapTexRes),
-    (floor(linIdx / uColorMapTexRes) / uColorMapTexRes)
+    (mod(linIdx, uColorMapTexRes) / uColorMapTexRes) + halfTexel,
+    (floor(linIdx / uColorMapTexRes) / uColorMapTexRes) + halfTexel
   );
 
   return texture(uColorMapTex, colorTexIndex);
