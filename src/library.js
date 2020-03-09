@@ -2180,7 +2180,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const { width, height } = canvas.getBoundingClientRect();
 
-    const grid = createGrid({ width, height, orderer }, objective);
+    const grid = objective
+      ? createGrid({ width, height, orderer }, objective)
+      : layout;
 
     return Object.entries(piles).reduce((groups, [pileId, pileState]) => {
       const ij = grid.xyToIj(pileState.x, pileState.y);
@@ -3003,15 +3005,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     objectives.length === 1 ? [objectives[0], objectives[0]] : objectives;
 
   const expandPilingObjectiveGrid = objective => {
-    let expandedObjective = {
-      columns: layout.numColumns,
-      cellAspectRatio: layout.cellAspectRatio
-    };
+    let expandedObjective = null;
 
     if (isObject(objective)) {
       expandedObjective = { ...expandedObjective, ...objective };
-    } else {
-      expandedObjective.columns = objective || layout.numColumns;
+    } else if (+objective) {
+      expandedObjective.columns = {
+        columns: +objective,
+        cellAspectRatio: layout.cellAspectRatio
+      };
     }
 
     return expandedObjective;
