@@ -172,3 +172,6 @@ export const whichTransitionEvent = () => {
 
   return 'transitionEnd';
 };
+
+export const createUrlScript = fnStr =>
+  window.URL.createObjectURL(new Blob([fnStr], { type: 'text/javascript' }));
