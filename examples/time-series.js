@@ -20,7 +20,9 @@ const createTimeSeriesPiles = async element => {
       .select(element)
       .append('svg')
       .attr('id', 'connection')
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('width', width)
+      .attr('height', height);
 
     const linesBetweenFrames = data.map((frame, index) =>
       index === data.length - 1 ? [frame] : [frame, data[index + 1]]
@@ -39,6 +41,13 @@ const createTimeSeriesPiles = async element => {
         .attr('stroke', colorMap(index / n))
         .attr('stroke-width', 3);
     });
+
+    if (transformData.length) {
+      g.attr(
+        'transform',
+        `translate(${transformData[0]}, ${transformData[1]}) scale(${transformData[2]})`
+      );
+    }
 
     return g;
   };
@@ -62,7 +71,7 @@ const createTimeSeriesPiles = async element => {
           ],
           setter: values => {
             piling.arrangeBy('uv', pile => data[pile.items[0]][values]);
-            drawPileConnections(values);
+            lineGroup = drawPileConnections(values);
           }
         }
       ]
@@ -91,14 +100,18 @@ const createTimeSeriesPiles = async element => {
 
   piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray);
 
-  const lineGroup = drawPileConnections('umap_gray');
+  let transformData = [];
+
+  let lineGroup = drawPileConnections('umap_gray');
 
   piling.subscribe('zoom', camera => {
+    transformData = [];
     cameraScale = camera.scaling;
     lineGroup.attr(
       'transform',
       `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${cameraScale})`
     );
+    transformData.push(...camera.translation, cameraScale);
   });
 
   return [piling, additionalSidebarOptions];
