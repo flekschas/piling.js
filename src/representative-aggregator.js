@@ -1,7 +1,4 @@
-import { createWorker } from '@flekschas/utils';
-import skmeans from '../node_modules/skmeans/dist/browser/skmeans.min';
-
-import workerFn from './representative-aggregator-worker';
+import createKmeans from './kmeans';
 
 const createRepresentativeAggregator = (
   k,
@@ -12,41 +9,42 @@ const createRepresentativeAggregator = (
     valueGetter = null
   } = {}
 ) => {
-  const skmeansUrl = window.URL.createObjectURL(
-    new Blob([skmeans.replace(/window/g, 'self')], {
-      type: 'text/javascript'
-    })
-  );
-  const valueGetterUrl = window.URL.createObjectURL(
-    new Blob([`(() => { self.valueGetter = ${valueGetter.toString()}; })();`], {
-      type: 'text/javascript'
-    })
-  );
+  const postProcessing = (results, data) => {
+    const l2DistDim = dim => {
+      const body = Array(dim)
+        .fill()
+        .map((_, i) => `s += (v[${i}] - w[${i}]) ** 2;`)
+        .join(' ');
+      // eslint-disable-next-line no-new-func
+      return new Function('v', 'w', `let s = 0; ${body} return s;`);
+    };
 
-  return items =>
-    new Promise((resolve, reject) => {
-      const worker = createWorker(workerFn);
+    // Determine center
+    const dist = l2DistDim(data[0].length);
+    const selectedItemIdxs = Array(k).fill();
+    const minDist = Array(k).fill(Infinity);
 
-      worker.onmessage = e => {
-        const selectedItemsSrcs = e.data.selectedItemIdxs.map(
-          itemIndex => items[itemIndex].src
-        );
-
-        if (e.data.error) reject(e.data.error);
-        else resolve(selectedItemsSrcs);
-
-        worker.terminate();
-      };
-
-      worker.postMessage({
-        distanceFunction,
-        initialization,
-        k,
-        maxIterations,
-        items,
-        scripts: [skmeansUrl, valueGetterUrl]
-      });
+    data.forEach((datum, i) => {
+      const centroidIdx = results.idxs[i];
+      const d = dist(datum, results.centroids[centroidIdx]);
+      if (d < minDist[centroidIdx]) {
+        minDist[centroidIdx] = d;
+        selectedItemIdxs[centroidIdx] = i;
+      }
     });
+
+    return {
+      selectedItemIdxs
+    };
+  };
+
+  return createKmeans(k, {
+    distanceFunction,
+    initialization,
+    maxIterations,
+    valueGetter,
+    postProcessing
+  });
 };
 
 export default createRepresentativeAggregator;
