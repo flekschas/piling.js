@@ -151,7 +151,6 @@ const createVitessce = async element => {
     darkMode: true,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer.renderer,
-    aggregateRenderer: vitessceRenderer.renderer,
     coverAggregator: representativeAggregator,
     coverRenderer: representativeRenderer,
     items,

@@ -45,6 +45,8 @@ const createPile = (
   const allItems = [];
   const normalItemIndex = new Map();
   const previewItemIndex = new Map();
+  const normalItemIdIndex = new Map();
+  const previewItemIdIndex = new Map();
   const newItems = new Set();
   const rootGraphics = new PIXI.Graphics();
   const borderGraphics = new PIXI.Graphics();
@@ -107,6 +109,7 @@ const createPile = (
       if (!rootGraphics.isDragging) {
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
+        coverItemContainer.visible = false;
         if (hasPreviewItem(item)) {
           const { previewBorderColor, previewBorderOpacity } = store.state;
           item.image.drawBackground(previewBorderColor, previewBorderOpacity);
@@ -118,7 +121,8 @@ const createPile = (
 
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
-      if (hoverItemContainer.children.length === 2) {
+      coverItemContainer.visible = true;
+      if (hoverItemContainer.children.length === 1) {
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
@@ -519,24 +523,61 @@ const createPile = (
     animator.add(tweener);
   };
 
+  const setItemOrder = itemIdsMap => {
+    const sortFunc = index => (a, b) => {
+      const id1 = index.get(a);
+      const id2 = index.get(b);
+      return itemIdsMap.get(id1) - itemIdsMap.get(id2);
+    };
+
+    normalItemContainer.children.sort(sortFunc(normalItemIdIndex));
+    previewItemContainer.children.sort(sortFunc(previewItemIdIndex));
+    allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
+  };
+
   const positionItems = (
     pileItemOffset,
     pileItemRotation,
     animator,
+    previewItemOffset,
     previewSpacing
   ) => {
+    const pileState = store.state.piles[id];
+
     if (getCover()) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
+        const halfWidth = coverImage.width / 2;
         const halfHeight = coverImage.height / 2;
 
         isPositioning = previewItemContainer.children > 0;
 
         previewItemContainer.children.forEach((item, index) => {
+          let itemId;
+
+          previewItemIndex.forEach((_item, _itemId) => {
+            if (_item.displayObject === item) itemId = _itemId;
+          });
+
+          const itemState = store.state.items[itemId];
+
+          let itemOffset;
+
+          if (isFunction(previewItemOffset)) {
+            itemOffset = previewItemOffset(itemState, index, pileState);
+            itemOffset[0] = itemOffset[0] * coverImage.scaleFactor - halfWidth;
+            itemOffset[1] = itemOffset[1] * coverImage.scaleFactor - halfHeight;
+          } else {
+            itemOffset = [
+              0,
+              -halfHeight - item.height * (index + 0.5) - halfSpacing
+            ];
+          }
+
           animatePositionItems(
             item,
-            0,
-            -halfHeight - item.height * (index + 0.5) - halfSpacing,
+            itemOffset[0],
+            itemOffset[1],
             0,
             animator,
             index === previewItemContainer.children.length - 1
@@ -577,9 +618,8 @@ const createPile = (
           delete item.tmpAbsY;
         }
 
-        const pileState = store.state.piles[id];
         const itemState = store.state.items[item.id];
-        const itemIndex = pileState.items.indexOf(item.id);
+        const itemIndex = allItems.indexOf(pileItem);
 
         const itemOffset = isFunction(pileItemOffset)
           ? pileItemOffset(itemState, itemIndex, pileState)
@@ -799,6 +839,9 @@ const createPile = (
     allItems.splice(index, 1, normalItem);
 
     // Update the indices
+    previewItemIdIndex.delete(previewItemIndex.get(item.id).displayObject);
+    normalItemIdIndex.set(normalItem.displayObject, item.id);
+
     previewItemIndex.delete(item.id);
     normalItemIndex.set(item.id, normalItem);
 
@@ -819,6 +862,9 @@ const createPile = (
     allItems.splice(index, 1, previewItem);
 
     // Update the indices
+    normalItemIdIndex.delete(normalItemIndex.get(item.id).displayObject);
+    previewItemIdIndex.set(previewItem.displayObject, item.id);
+
     normalItemIndex.delete(item.id);
     previewItemIndex.set(item.id, previewItem);
 
@@ -843,6 +889,7 @@ const createPile = (
     const numItems = allItems.push(normalItem);
     if (numItems > 1) newItems.add(normalItem);
     normalItemIndex.set(normalItem.id, normalItem);
+    normalItemIdIndex.set(normalItem.displayObject, normalItem.id);
     normalItemContainer.addChild(normalItem.displayObject);
   };
 
@@ -855,6 +902,7 @@ const createPile = (
     allItems.push(previewItem);
     newItems.add(previewItem);
     previewItemIndex.set(previewItem.id, previewItem);
+    previewItemIdIndex.set(previewItem.displayObject, previewItem.id);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 
@@ -887,11 +935,13 @@ const createPile = (
       normalItemContainer.removeChildAt(
         normalItemContainer.getChildIndex(pileItem.displayObject)
       );
+      normalItemIdIndex.delete(pileItem.displayObject);
     }
     if (hasItem(item, { asPreview: true })) {
       previewItemContainer.removeChildAt(
         previewItemContainer.getChildIndex(pileItem.displayObject)
       );
+      previewItemIdIndex.delete(pileItem.displayObject);
     }
 
     // Delete the index
@@ -905,6 +955,8 @@ const createPile = (
     allItems.splice(0, allItems.length);
     normalItemIndex.clear();
     previewItemIndex.clear();
+    normalItemIdIndex.clear();
+    previewItemIdIndex.clear();
   };
 
   /**
@@ -942,7 +994,14 @@ const createPile = (
 
   const setCover = newCover => {
     coverItem = newCover;
-    updateCover();
+    coverItem.then(coverImage => {
+      coverItemContainer.addChild(coverImage.displayObject);
+      while (coverItemContainer.children.length > 1) {
+        coverItemContainer.removeChildAt(0);
+      }
+      pubSub.publish('updatePileBounds', id);
+      drawBorder();
+    });
   };
 
   const removeCover = () => {
@@ -956,25 +1015,6 @@ const createPile = (
     });
 
     coverItem = undefined;
-  };
-
-  const updateCover = () => {
-    if (!coverItem) return;
-    coverItem.then(coverImage => {
-      coverItemContainer.addChild(coverImage.displayObject);
-      while (coverItemContainer.children.length > 1) {
-        coverItemContainer.removeChildAt(0);
-      }
-      const cover = coverImage.displayObject;
-      const coverRatio = cover.height / cover.width;
-      const width = previewItemContainer.children.length
-        ? previewItemContainer.width
-        : normalItemContainer.width;
-      cover.width = width - store.state.previewSpacing;
-      cover.height = coverRatio * cover.width;
-      pubSub.publish('updatePileBounds', id);
-      drawBorder();
-    });
   };
 
   // eslint-disable-next-line consistent-return
@@ -1113,8 +1153,8 @@ const createPile = (
     setScale,
     setOpacity,
     setVisibilityItems,
+    setItemOrder,
     updateBounds,
-    updateCover,
     updateOffset: updateBaseOffset,
     replaceItemsImage,
     unmagnify

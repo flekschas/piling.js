@@ -182,8 +182,6 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter(
 
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
-const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
-
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
 
 const [coverRenderer, setCoverRenderer] = setter('coverRenderer');
@@ -202,15 +200,15 @@ const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
-const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
-
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
 
+const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
+const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
+const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
 const [pileItemRotation, setPileItemRotation] = setter('pileItemRotation', 0);
-
 const [pileItemTint, setPileItemTint] = setter(
   'pileItemTint',
   DEFAULT_PILE_ITEM_TINT
@@ -248,6 +246,8 @@ const [navigationMode, setNavigationMode] = setterOptions(
   NAVIGATION_MODES,
   NAVIGATION_MODE_AUTO
 );
+
+const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
@@ -591,6 +591,7 @@ const createStore = () => {
     pileItemOffset,
     pileItemBrightness,
     pileItemOpacity,
+    pileItemOrder,
     pileItemRotation,
     pileItemTint,
     pileVisibilityItems,
@@ -602,6 +603,7 @@ const createStore = () => {
     previewBackgroundOpacity,
     previewBorderColor,
     previewBorderOpacity,
+    previewItemOffset,
     previewRenderer,
     previewSpacing,
     rowHeight,
@@ -725,6 +727,7 @@ export const createAction = {
   setPileCellAlignment,
   setPileContextMenuItems,
   setPileItemOffset,
+  setPileItemOrder,
   setPileItemBrightness,
   setPileItemOpacity,
   setPileItemRotation,
@@ -737,6 +740,7 @@ export const createAction = {
   setPreviewBackgroundOpacity,
   setPreviewBorderColor,
   setPreviewBorderOpacity,
+  setPreviewItemOffset,
   setPreviewRenderer,
   setPreviewSpacing,
   setRowHeight,
