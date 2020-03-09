@@ -1,10 +1,10 @@
 import { createWorker } from '@flekschas/utils';
-import workerFn from './quickdraw-cover-aggregator-worker';
+import workerFn from './google-quickdraw-cover-aggregator-worker';
 
-const createQuickDrawCoverAggregator = ({
+const createGoogleQuickDrawCoverAggregator = ({
   size = 64,
   lineWidth = 2
-} = {}) => sources =>
+} = {}) => items =>
   new Promise((resolve, reject) => {
     const worker = createWorker(workerFn);
 
@@ -16,9 +16,9 @@ const createQuickDrawCoverAggregator = ({
 
     worker.postMessage({
       lineWidth,
-      sources,
+      items,
       size
     });
   });
 
-export default createQuickDrawCoverAggregator;
+export default createGoogleQuickDrawCoverAggregator;

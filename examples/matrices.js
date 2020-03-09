@@ -98,13 +98,21 @@ const createMatrixPiles = async element => {
     ...createMatrixAndPreviewRenderer('purple'),
     darkMode: true,
     dimensionalityReducer: umap,
-    aggregateRenderer: coverRenderer,
+    coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
     itemSize: 64,
     pileCellAlignment: 'center',
-    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5)
+    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
+    pileItemOrder: itemStates => {
+      itemStates.sort((a, b) => a.id - b.id);
+      const itemIdsMap = new Map();
+      itemStates.forEach((item, index) => {
+        itemIdsMap.set(item.id.toString(), index);
+      });
+      return itemIdsMap;
+    }
   });
 
   // Uncomment the following code to apply UMAP on the raw data
