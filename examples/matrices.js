@@ -23,7 +23,7 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
   ];
 };
 
-const createColorMap = (interpolator, numColors = 256) => {
+const createColorMap = (interpolator, numColors = 512) => {
   let interpolatorFn;
 
   switch (interpolator) {
@@ -54,9 +54,10 @@ const createMatrixPiles = async element => {
   const response = await fetch('data/rao-2014-gm12878-chr-22-peaks.json');
   const data = await response.json();
 
+  const domain = [0, 1];
+
   const coverRenderer = createMatrixRenderer({
-    colorMap: createColorMap('red'),
-    shape: [16, 16]
+    colorMap: createColorMap('red')
   });
 
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
@@ -67,14 +68,13 @@ const createMatrixPiles = async element => {
 
   const piling = createPilingJs(element);
 
-  const createMatrixAndPreviewRenderer = interpolator => {
-    const colorMap = createColorMap(interpolator);
+  let colorMap = createColorMap('purple');
 
-    return {
-      renderer: createMatrixRenderer({ colorMap, shape: [16, 16] }),
-      previewRenderer: createMatrixRenderer({ colorMap, shape: [16, 1] })
-    };
-  };
+  const matrixRenderer = createMatrixRenderer({ colorMap });
+  const matrix1DRenderer = createMatrixRenderer({
+    colorMap,
+    shape: [1, 16]
+  });
 
   const additionalSidebarOptions = [
     {
@@ -86,8 +86,41 @@ const createMatrixPiles = async element => {
           dtype: 'string',
           defaultValue: 'purple',
           values: ['purple', 'rainbow'],
-          setter: values => {
-            piling.set(createMatrixAndPreviewRenderer(values));
+          setter: newColorMap => {
+            colorMap = createColorMap(newColorMap);
+            matrixRenderer.setColorMap(colorMap);
+            matrix1DRenderer.setColorMap(colorMap);
+            piling.render();
+          }
+        },
+        {
+          name: 'minValue',
+          dtype: 'float',
+          min: 0,
+          max: 1,
+          numSteps: 360,
+          defaultValue: 0,
+          onInput: true,
+          setter: newMinValue => {
+            domain[0] = newMinValue;
+            matrixRenderer.setDomain(domain);
+            matrix1DRenderer.setDomain(domain);
+            piling.render();
+          }
+        },
+        {
+          name: 'maxValue',
+          dtype: 'float',
+          min: 0,
+          max: 1,
+          numSteps: 360,
+          defaultValue: 1,
+          onInput: true,
+          setter: newMaxValue => {
+            domain[1] = newMaxValue;
+            matrixRenderer.setDomain(domain);
+            matrix1DRenderer.setDomain(domain);
+            piling.render();
           }
         }
       ]
@@ -95,14 +128,15 @@ const createMatrixPiles = async element => {
   ];
 
   piling.set({
-    ...createMatrixAndPreviewRenderer('purple'),
+    renderer: matrixRenderer.renderer,
+    previewRenderer: matrix1DRenderer.renderer,
     darkMode: true,
     dimensionalityReducer: umap,
-    coverRenderer,
+    coverRenderer: coverRenderer.renderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
-    itemSize: 64,
+    itemSize: 256,
     pileCellAlignment: 'center',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
     pileItemOrder: itemStates => {
