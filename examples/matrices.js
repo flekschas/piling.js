@@ -136,7 +136,7 @@ const createMatrixPiles = async element => {
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
-    itemSize: 256,
+    itemSize: 64,
     pileCellAlignment: 'center',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
     pileItemOrder: itemStates => {
