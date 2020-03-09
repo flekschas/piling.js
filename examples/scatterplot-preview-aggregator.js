@@ -1,7 +1,7 @@
 const createScatterplotPreviewAggregator = () => sources => {
   const newSrc = sources.map(source => ({
-    region: source[0].region,
-    year: source[0].year
+    region: source.region,
+    year: source.year
   }));
 
   return Promise.resolve(newSrc);

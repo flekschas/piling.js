@@ -161,7 +161,7 @@ const createScatterplotRenderer = ({
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
       .style('white-space', 'nowrap')
-      .style('font-size', '48px')
+      .style('font-size', '42px')
       .style('font-family', 'sans-serif');
 
     regionLabel
@@ -183,7 +183,7 @@ const createScatterplotRenderer = ({
       .attr('x', width + (paddingH * 3) / 2)
       .attr('y', (d, i) => (i === 0 ? 42 : height + paddingV + 40))
       .attr('fill', DEFAULT_TEXT_COLOR)
-      .attr('font-size', '48px')
+      .attr('font-size', '42px')
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
       .text(d => d);
@@ -323,6 +323,11 @@ const createScatterplotRenderer = ({
     if (!isInit) init(sources);
 
     const svgSources = sources.map(source => {
+      if (source[0].src) {
+        // eslint-disable-next-line no-param-reassign
+        source = source.flatMap(itemState => itemState.src);
+      }
+
       const data = source.filter(
         country => country[xProp] !== null && country[yProp] !== null
       );
