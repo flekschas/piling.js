@@ -32,6 +32,8 @@ const createMatrixRenderer = ({
 
   const [uColorMapTex, uColorMapTexRes] = createColorTexture(colorMap);
 
+  const uColorMapSize = colorMap.length - 1;
+
   let allUniforms = [];
 
   const renderer = async sources =>
@@ -58,6 +60,7 @@ const createMatrixRenderer = ({
         const uniforms = new PIXI.UniformGroup({
           uColorMapTex,
           uColorMapTexRes,
+          uColorMapSize,
           uMinValue: domain[0],
           uMaxValue: domain[1],
           uDataTex: createDataTexture(source.data)

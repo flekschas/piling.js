@@ -5,6 +5,7 @@ precision mediump float;
 uniform sampler2D uDataTex;
 uniform sampler2D uColorMapTex;
 uniform float uColorMapTexRes;
+uniform float uColorMapSize;
 uniform float uMinValue;
 uniform float uMaxValue;
 
@@ -16,13 +17,14 @@ vec4 toColor(float value) {
   float halfTexel = 0.5 / uColorMapTexRes;
 
   // Normalize value
-  float normValue = (value - uMinValue) / (uMaxValue - uMinValue);
+  float normValue = clamp(
+    (value - uMinValue) / (uMaxValue - uMinValue),
+    0.0,
+    1.0
+  );
 
   // Linear index into the colormap, e.g., 5 means the 5th color
-  float linIdx = max(
-    normValue * uColorMapTexRes * uColorMapTexRes,
-    float(value > 0.0)
-  );
+  float linIdx = max(normValue * uColorMapSize, float(value > 0.0));
 
   // Texture index into the colormap texture
   vec2 colorTexIndex = vec2(
