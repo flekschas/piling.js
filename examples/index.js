@@ -1,6 +1,7 @@
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
+import createScatterplotPiles from './scatterplots';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
@@ -10,12 +11,15 @@ import './index.scss';
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
 const svgEl = document.getElementById('svg');
+const scatterplotsEl = document.getElementById('scatterplots');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
 const joyplotEl = document.getElementById('joyplot');
+
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
 const svgCreditEl = document.getElementById('svg-credit');
+const scatterplotsCreditEl = document.getElementById('scatterplots-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
@@ -24,6 +28,8 @@ const conditionalElements = [
   photosEl,
   matricesEl,
   svgEl,
+  scatterplotsEl,
+  scatterplotsCreditEl,
   drawingsEl,
   vitessceEl,
   joyplotEl,
@@ -149,6 +155,17 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
+    case 'scatterplots':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      scatterplotsEl.style.display = 'block';
+      scatterplotsCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      piling = await createScatterplotPiles(scatterplotsEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -196,6 +213,10 @@ switch (example) {
     exampleEl.selectedIndex = 5;
     break;
 
+  case 'scatterplots':
+    exampleEl.selectedIndex = 6;
+    break;
+
   default:
   // Nothing
 }
@@ -221,8 +242,11 @@ optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
 createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   const firstItem = pilingLib.get('items')[0];
+
+  const excludedProps = ['src', 'id'];
   const numericalProps = Object.keys(firstItem).filter(
-    prop => prop !== 'src' && !Number.isNaN(+firstItem[prop])
+    prop =>
+      excludedProps.indexOf(prop) === -1 && !Number.isNaN(+firstItem[prop])
   );
 
   const options = [

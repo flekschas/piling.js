@@ -158,6 +158,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOffset: true,
     pileItemBrightness: true,
     pileItemOpacity: true,
+    pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
     gridColor: {
@@ -276,6 +277,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     previewBorderOpacity: true,
+    previewItemOffset: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
@@ -789,7 +791,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     pileInstances.forEach(pile => {
-      pile.updateCover();
+      if (pile.cover()) {
+        pile.cover().then(coverImage => {
+          const scaleFactor = getImageScaleFactor(coverImage);
+          coverImage.scale(scaleFactor);
+        });
+      }
       pile.updateOffset();
     });
   };
@@ -1219,16 +1226,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = pileId => {
-    const { pileItemOffset, pileItemRotation, previewSpacing } = store.state;
+    const {
+      items,
+      pileItemOffset,
+      pileItemRotation,
+      pileItemOrder,
+      previewItemOffset,
+      previewSpacing
+    } = store.state;
 
-    pileInstances
-      .get(pileId)
-      .positionItems(
-        pileItemOffset,
-        pileItemRotation,
-        animator,
-        previewSpacing
-      );
+    const pileInstance = pileInstances.get(pileId);
+
+    if (isFunction(pileItemOrder)) {
+      const itemStates = pileInstance.items.map(item => items[item.id]);
+      pileInstance.setItemOrder(pileItemOrder(itemStates));
+    }
+
+    pileInstance.positionItems(
+      pileItemOffset,
+      pileItemRotation,
+      animator,
+      previewItemOffset,
+      previewSpacing
+    );
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
@@ -2468,6 +2488,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.pileItemOffset !== newState.pileItemOffset) {
+      stateUpdates.add('layout');
+    }
+
+    if (state.previewItemOffset !== newState.previewItemOffset) {
       stateUpdates.add('layout');
     }
 
