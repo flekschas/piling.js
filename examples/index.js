@@ -284,13 +284,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     const cellAspectRatio = pilingLib.get('cellAspectRatio');
     const rowHeight = columnWidth / cellAspectRatio;
     const offsetY = pilingScrollEl.scrollTop % rowHeight;
+    const rows = Math.ceil(height / rowHeight);
 
     clearPileByGrid();
 
     pileByGridCtx.strokeStyle = '#ff7ff6';
     pileByGridCtx.beginPath();
 
-    for (let i = 1; i < columns; i++) {
+    for (let i = 1; i < rows; i++) {
       pileByGridCtx.moveTo(0, i * rowHeight * res - offsetY * res);
       pileByGridCtx.lineTo(width * res, i * rowHeight * res - offsetY * res);
     }
