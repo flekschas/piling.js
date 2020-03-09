@@ -29,13 +29,13 @@ const conditionalElements = [
   matricesEl,
   svgEl,
   scatterplotsEl,
-  scatterplotsCreditEl,
   drawingsEl,
   vitessceEl,
   joyplotEl,
   photosCreditEl,
   matricesCreditEl,
   svgCreditEl,
+  scatterplotsCreditEl,
   drawingsCreditEl,
   vitessceCreditEl,
   joyplotCreditEl
@@ -91,7 +91,8 @@ const pilingEls = {
   lines: svgEl,
   drawings: drawingsEl,
   joyplot: joyplotEl,
-  vitessce: vitessceEl
+  vitessce: vitessceEl,
+  scatterplots: scatterplotsEl
 };
 const createPiles = async example => {
   let additionalOptions;
