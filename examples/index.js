@@ -526,9 +526,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   };
 
   const createInput = field => {
-    const currentValue = field.defaultValue
-      ? field.defaultValue
-      : pilingLib.get(field.name);
+    const currentValue =
+      !Number.isNaN(+field.defaultValue) || field.defaultValue
+        ? field.defaultValue
+        : pilingLib.get(field.name);
 
     if (field.action) {
       const button = document.createElement('button');
