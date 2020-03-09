@@ -21,8 +21,8 @@ const createRepresentativeAggregator = (
 
     // Determine center
     const dist = l2DistDim(data[0].length);
-    const selectedItemIdxs = Array(k).fill();
-    const minDist = Array(k).fill(Infinity);
+    const selectedItemIdxs = Array(results.centroids.length).fill();
+    const minDist = Array(results.centroids.length).fill(Infinity);
 
     data.forEach((datum, i) => {
       const centroidIdx = results.idxs[i];
@@ -38,13 +38,23 @@ const createRepresentativeAggregator = (
     };
   };
 
-  return createKmeans(k, {
+  const kmeans = createKmeans(k, {
     distanceFunction,
     initialization,
     maxIterations,
     valueGetter,
     postProcessing
   });
+
+  return items => {
+    if (items.length <= k) return Promise.resolve(items.map(i => i.src));
+
+    return kmeans(items).then(response => {
+      return response.postProcessing.selectedItemIdxs.map(
+        itemIndex => items[itemIndex].src
+      );
+    });
+  };
 };
 
 export default createRepresentativeAggregator;

@@ -27,7 +27,7 @@ const worker = function worker() {
     }
 
     if (data.length <= k) {
-      self.postMessage({ selectedItemIdxs: items.map((_, i) => i) });
+      self.postMessage(error(`Need at least ${k} items!`));
     } else {
       try {
         // Run k-means++

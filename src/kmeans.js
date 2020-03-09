@@ -44,12 +44,8 @@ const createRepresentativeAggregator = (
       const worker = createWorker(workerFn);
 
       worker.onmessage = e => {
-        const selectedItemsSrcs = e.data.selectedItemIdxs.map(
-          itemIndex => items[itemIndex].src
-        );
-
         if (e.data.error) reject(e.data.error);
-        else resolve(selectedItemsSrcs);
+        else resolve(e.data);
 
         worker.terminate();
       };
