@@ -3773,7 +3773,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   return {
     // Properties
     get version() {
-      return { version };
+      return version;
     },
     // Methods
     arrangeBy,
