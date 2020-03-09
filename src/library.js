@@ -2224,7 +2224,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const pileByCluster = () => {};
 
   const pileBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandGroupingObjective(type, objective);
+    const expandedObjective = expandPilingObjective(type, objective);
 
     let piledPiles = [];
 
@@ -2999,10 +2999,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const expandGroupingObjectiveOverlap = objectives =>
+  const expandPilingObjectiveOverlap = objectives =>
     objectives.length === 1 ? [objectives[0], objectives[0]] : objectives;
 
-  const expandGroupingObjectiveGrid = objective => {
+  const expandPilingObjectiveGrid = objective => {
     let expandedObjective = {
       columns: layout.numColumns,
       cellAspectRatio: layout.cellAspectRatio
@@ -3017,10 +3017,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return expandedObjective;
   };
 
-  const expandGroupingObjectiveDistance = objective =>
+  const expandPilingObjectiveDistance = objective =>
     objective.length === 1 ? [objective[0], objective[0]] : objective;
 
-  const expandGroupingObjectiveCategory = objective => {
+  const expandPilingObjectiveCategory = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
 
     return objectives.map(_objective => {
@@ -3040,7 +3040,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const expandGroupingObjectiveCluster = objective => {
+  const expandPilingObjectiveCluster = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
 
     return objectives.map(_objective => {
@@ -3060,22 +3060,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const expandGroupingObjective = (type, objective) => {
+  const expandPilingObjective = (type, objective) => {
     switch (type) {
       case 'overlap':
-        return expandGroupingObjectiveOverlap(objective);
+        return expandPilingObjectiveOverlap(objective);
 
       case 'grid':
-        return expandGroupingObjectiveGrid(objective);
+        return expandPilingObjectiveGrid(objective);
 
       case 'distance':
-        return expandGroupingObjectiveDistance(objective);
+        return expandPilingObjectiveDistance(objective);
 
       case 'category':
-        return expandGroupingObjectiveCategory(objective);
+        return expandPilingObjectiveCategory(objective);
 
       case 'cluster':
-        return expandGroupingObjectiveCluster(objective);
+        return expandPilingObjectiveCluster(objective);
 
       default:
         return objective;
