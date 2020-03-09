@@ -280,23 +280,35 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     pileByGridCanvas.width = width * res;
     pileByGridCanvas.height = height * res;
 
-    const columnWidth = width / columns;
-    const cellAspectRatio = pilingLib.get('cellAspectRatio');
-    const rowHeight = columnWidth / cellAspectRatio;
+    let {
+      cellAspectRatio,
+      columnWidth,
+      numColumns,
+      numRows,
+      rowHeight
+    } = pilingLib.get('layout');
+
+    if (columns) {
+      numColumns = columns;
+      columnWidth = width / numColumns;
+      cellAspectRatio = pilingLib.get('cellAspectRatio');
+      rowHeight = columnWidth / cellAspectRatio;
+      numRows = Math.ceil(height / rowHeight);
+    }
+
     const offsetY = pilingScrollEl.scrollTop % rowHeight;
-    const rows = Math.ceil(height / rowHeight);
 
     clearPileByGrid();
 
     pileByGridCtx.strokeStyle = '#ff7ff6';
     pileByGridCtx.beginPath();
 
-    for (let i = 1; i < rows; i++) {
+    for (let i = 1; i < numRows; i++) {
       pileByGridCtx.moveTo(0, i * rowHeight * res - offsetY * res);
       pileByGridCtx.lineTo(width * res, i * rowHeight * res - offsetY * res);
     }
 
-    for (let j = 1; j < columns; j++) {
+    for (let j = 1; j < numColumns; j++) {
       pileByGridCtx.moveTo(j * columnWidth * res, 0);
       pileByGridCtx.lineTo(j * columnWidth * res, height * res);
     }
@@ -405,7 +417,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             pilingLib.pileBy('grid', objective);
           },
           onMouseenter: () => {
-            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+            drawPileByGrid(pileByGridColumns);
           },
           onMousedown: () => {
             pileByGridActive = true;
