@@ -1,10 +1,9 @@
 import { ndjsonToJsonText } from 'ndjson-to-json-text';
 import createPilingJs from '../src/library';
-import {
-  createQuickDrawRenderer,
-  createQuickDrawCoverRenderer
-} from '../src/renderer';
-import { createQuickDrawCoverAggregator } from '../src/aggregator';
+
+import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
+import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
+import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
 const createDrawingPiles = async element => {
   const ndjsonText = await fetch('data/apple.ndjson').then(body =>
@@ -23,13 +22,17 @@ const createDrawingPiles = async element => {
 
   const coverOptions = { size: 128, lineWidth: 3 };
 
-  const quickDrawRenderer = createQuickDrawRenderer();
-  const quickDrawCoverAggregator = createQuickDrawCoverAggregator(coverOptions);
-  const quickDrawCoverRenderer = createQuickDrawCoverRenderer(coverOptions);
+  const quickDrawRenderer = createGoogleQuickDrawRenderer();
+  const quickDrawCoverAggregator = createGoogleQuickDrawCoverAggregator(
+    coverOptions
+  );
+  const quickDrawCoverRenderer = createGoogleQuickDrawCoverRenderer(
+    coverOptions
+  );
 
   const pilingJs = createPilingJs(element, {
     renderer: quickDrawRenderer,
-    aggregateRenderer: quickDrawCoverRenderer,
+    coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
     items: testData,
     itemSize: 32,

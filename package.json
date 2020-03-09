@@ -39,7 +39,7 @@
     "build": "npm run build-library; npm run build-examples;",
     "build-library": "rm -rf dist/*; rollup -c;",
     "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME",
-    "deploy": "npm run build; gh-pages -d examples-build -t --git git",
+    "deploy": "npm run build-examples; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
     "prepublishOnly": "npm run test",
@@ -82,6 +82,7 @@
     "redux-batched-actions": "~0.4.1",
     "redux-freeze": "~0.1.7",
     "regl": "~1.3.13",
+    "skmeans": "^0.11.3",
     "style-object-to-css-string": "~1.0.1",
     "umap-js": "~1.3.2",
     "with-raf": "~1.1.1"

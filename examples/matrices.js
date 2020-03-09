@@ -98,7 +98,7 @@ const createMatrixPiles = async element => {
     ...createMatrixAndPreviewRenderer('purple'),
     darkMode: true,
     dimensionalityReducer: umap,
-    aggregateRenderer: coverRenderer,
+    coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
