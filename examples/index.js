@@ -55,6 +55,7 @@ const undoHandler = () => {
   if (history.length === 0) return;
   // Remove the current history
   history.pop();
+  if (history.length === 0) return;
   piling.importState(history[history.length - 1]);
   if (history.length === 0) undoButton.disabled = true;
 };
@@ -64,7 +65,9 @@ undoButton.addEventListener('click', undoHandler);
 const ignoredActions = new Set([
   'OVERWRITE',
   'SOFT_OVERWRITE',
-  'SET_CLICKED_PILE'
+  'SET_CLICKED_PILE',
+  'SET_FOCUSED_PILES',
+  'SET_MAGNIFIED_PILES'
 ]);
 
 const updateHandler = ({ action }) => {
@@ -76,9 +79,9 @@ const updateHandler = ({ action }) => {
   history.push(state);
 
   // eslint-disable-next-line no-console
-  // console.log('Update', action.type, history.length);
+  console.log('Update', action.type, history.length);
 
-  if (history.length > 5) history.shift();
+  if (history.length > 10) history.shift();
 };
 
 const hideEl = el => {
