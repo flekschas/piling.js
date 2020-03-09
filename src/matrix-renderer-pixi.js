@@ -22,8 +22,7 @@ const createColorTexture = colors => {
 
 const createMatrixRenderer = ({
   colorMap = BLACK_WHITE_COLOR_MAP,
-  minValue = 0,
-  maxValue = 1,
+  domain = [0, 1],
   shape
 } = {}) => {
   const geometry = new PIXI.Geometry();
@@ -59,8 +58,8 @@ const createMatrixRenderer = ({
         const uniforms = new PIXI.UniformGroup({
           uColorMapTex,
           uColorMapTexRes,
-          uMinValue: minValue,
-          uMaxValue: maxValue,
+          uMinValue: domain[0],
+          uMaxValue: domain[1],
           uDataTex: createDataTexture(source.data)
         });
 
@@ -87,10 +86,10 @@ const createMatrixRenderer = ({
     });
   };
 
-  const setDomain = (newMinValue, newMaxValue) => {
+  const setDomain = newDomain => {
     allUniforms.forEach(({ uniforms }) => {
-      uniforms.uMinValue = newMinValue;
-      uniforms.uMaxValue = newMaxValue;
+      uniforms.uMinValue = newDomain[0];
+      uniforms.uMaxValue = newDomain[1];
     });
   };
 
