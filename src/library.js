@@ -814,7 +814,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pile.animateMoveTo(...transformPointToScreen([x, y]), options);
 
   const updateLayout = oldLayout => {
-    const { arrangementType } = store.state;
+    const { arrangementType, items } = store.state;
 
     scaleItems();
 
@@ -856,7 +856,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       renderedItems.forEach(item => {
         item.setOriginalPosition(
           layout.idxToXy(
-            item.id,
+            items[item.id].index,
             item.image.width,
             item.image.height,
             item.image.center
