@@ -62,12 +62,23 @@ const createSvgLinesPiles = async element => {
   };
 
   const createTitle = (titleLeft, titleRight) =>
-    `<foreignObject x="0" y="0" width="100" height="8">
+    `<foreignObject x="0" y="0" width="100" height="12">
   <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; justify-content: space-between; font: 8px sans-serif; color: #808080">
     <span>${titleLeft}</span>
     <span>${titleRight}</span>
   </div>
 </foreignObject>`;
+
+  const createAxis = (ticks, domain) => {
+    const dSize = domain[1] - domain[0];
+    const tickEls = ticks
+      .map(tick => {
+        const x = ((tick - domain[0]) / dSize) * 100;
+        return `<line x1="${x}" y1="0" x2="${x}" y2="3" stroke="black" opacity="0.33" />`;
+      })
+      .join('');
+    return `<g transform="translate(0 ${absHeight - 3})">${tickEls}</g>`;
+  };
 
   // prettier-ignore
   const createLinePlot = (hist, years, month) => [
@@ -76,6 +87,7 @@ const createSvgLinesPiles = async element => {
     createGradient('linear-stroke', '#1d4266', '#666666', '#663413'),
     createTitle(months[month], years),
     createPath(hist),
+    createAxis([-1, 0, 1], [-1.5, 1.5]),
     createSvgEnd()
   ].join('');
 
