@@ -134,38 +134,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.mask = mask;
 
   const properties = {
-    coverRenderer: true,
     arrangementObjective: true,
     arrangementOnPile: true,
     arrangementOptions: true,
     arrangementType: true,
     backgroundColor: true,
+    cellAspectRatio: true,
+    cellPadding: true,
+    columns: true,
+    coverAggregator: true,
+    coverRenderer: true,
     darkMode: true,
-    focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
     dimensionalityReducer: true,
     easing: true,
-    coverAggregator: true,
-    items: {
-      get: () => Object.values(state.items),
-      set: newItems => [
-        createAction.setItems(newItems),
-        createAction.initPiles(newItems)
-      ]
-    },
-    itemSize: true,
-    itemSizeRange: true,
-    columns: true,
-    rowHeight: true,
-    cellAspectRatio: true,
-    cellPadding: true,
-    pileItemOffset: true,
-    pileItemBrightness: true,
-    pileItemOpacity: true,
-    pileItemOrder: true,
-    pileItemRotation: true,
-    pileItemTint: true,
+    focusedPiles: true,
     gridColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -176,7 +160,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     gridOpacity: true,
-    popupBackgroundOpacity: true,
+    items: {
+      get: () => Object.values(state.items),
+      set: newItems => [
+        createAction.setItems(newItems),
+        createAction.initPiles(newItems)
+      ]
+    },
+    itemSize: true,
+    itemSizeRange: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -203,6 +195,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
+    pileItemBrightness: true,
+    pileItemOffset: true,
+    pileItemOpacity: true,
+    pileItemOrder: true,
+    pileItemRotation: true,
+    pileItemTint: true,
     pileBorderColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -259,6 +257,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileOpacity: true,
     pileScale: true,
     pileVisibilityItems: true,
+    popupBackgroundOpacity: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -287,11 +286,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
     },
+    rowHeight: true,
     showGrid: true,
     showSpatialIndex: true,
-    temporaryDepiledPiles: true,
     tempDepileDirection: true,
-    tempDepileOneDNum: true
+    tempDepileOneDNum: true,
+    temporaryDepiledPiles: true
   };
 
   const get = property => {
