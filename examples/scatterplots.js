@@ -109,7 +109,7 @@ const createScatterplotPiles = async element => {
     darkMode: true,
     renderer: scatterplotRenderer.renderer,
     coverAggregator,
-    aggregateRenderer: scatterplotRenderer.renderer,
+    coverRenderer: scatterplotRenderer.renderer,
     previewAggregator,
     previewRenderer: previewRenderer.renderer,
     items,
