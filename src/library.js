@@ -2293,9 +2293,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { labels } = await clusterer(points);
 
     return Object.values(
-      Array.from(labels).reduce((piledPiles, x, i) => {
-        if (!piledPiles[x]) piledPiles[x] = [];
-        piledPiles[x].push(points[i].id);
+      Array.from(labels).reduce((piledPiles, label, i) => {
+        if (label === -1) return piledPiles;
+
+        if (!piledPiles[label]) piledPiles[label] = [];
+        piledPiles[label].push(points[i].id);
+
         return piledPiles;
       }, {})
     );
