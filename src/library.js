@@ -2221,7 +2221,35 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(() => [])
     );
 
-  const pileByCategory = () => {};
+  const pileByCategory = objective =>
+    Object.values(
+      Object.entries(store.state.piles).reduce(
+        (groups, [pileId, pileState]) => {
+          if (!pileState.items.length) return groups;
+
+          const pileCategory = objective
+            .map(o =>
+              o.aggregator(
+                pileState.items.map((itemId, index) =>
+                  o.property(
+                    store.state.items[itemId],
+                    itemId,
+                    index,
+                    renderedItems.get(itemId)
+                  )
+                )
+              )
+            )
+            .join('|');
+
+          if (!groups[pileCategory]) groups[pileCategory] = [pileId];
+          else groups[pileCategory].push(pileId);
+
+          return groups;
+        },
+        {}
+      )
+    );
 
   const pileByCluster = () => {};
 

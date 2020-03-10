@@ -260,6 +260,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     prop =>
       excludedProps.indexOf(prop) === -1 && !Number.isNaN(+firstItem[prop])
   );
+  const categoricalProps = Object.keys(firstItem).filter(
+    prop =>
+      excludedProps.indexOf(prop) === -1 && typeof firstItem[prop] === 'string'
+  );
 
   const pileByGrid = document.body.querySelector('#group-by-grid');
   const pileByGridCanvas = pileByGrid.querySelector('canvas');
@@ -318,6 +322,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
   let pileByOverlapSqPx = 1;
   let pileByDistancePx = 1;
+  let pileByCategory;
 
   const options = [
     {
@@ -504,6 +509,21 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           onInput: true,
           setter: px => {
             pileByDistancePx = px;
+          }
+        },
+        {
+          name: 'Pile By Category',
+          onClick: true,
+          action: () => {
+            pilingLib.pileBy('category', pileByCategory);
+          }
+        },
+        {
+          name: 'Category',
+          dtype: 'string',
+          values: categoricalProps,
+          setter: category => {
+            pileByCategory = category;
           }
         }
       ]
