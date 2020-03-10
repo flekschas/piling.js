@@ -176,9 +176,6 @@ export const whichTransitionEvent = () => {
 
 export const uniqueStr = v => unique(v).join('-');
 
-export const createUrlScript = fnStr =>
-  window.URL.createObjectURL(new Blob([fnStr], { type: 'text/javascript' }));
-
 /**
  * A custom buffer resource for PIXI to support WebGL2 data textures
  */
