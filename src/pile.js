@@ -544,7 +544,7 @@ const createPile = (
   ) => {
     const pileState = store.state.piles[id];
 
-    if (getCover()) {
+    if (getCover() && previewItemContainer.children.length) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
         const halfWidth = coverImage.width / 2;
