@@ -15,11 +15,9 @@ import { ifNotNull } from './utils';
 
 import {
   DEFAULT_DARK_MODE,
-  DEFAULT_LASSO_FILL_COLOR,
   DEFAULT_LASSO_FILL_OPACITY,
   DEFAULT_LASSO_SHOW_START_INDICATOR,
   DEFAULT_LASSO_START_INDICATOR_OPACITY,
-  DEFAULT_LASSO_STROKE_COLOR,
   DEFAULT_LASSO_STROKE_OPACITY,
   DEFAULT_LASSO_STROKE_SIZE,
   LASSO_MIN_DELAY,
@@ -80,14 +78,14 @@ const createOutAnimationRule = (currentOpacity, currentScale) => `
 let outAnimationRuleIndex = null;
 
 const createLasso = ({
-  fillColor: initialFillColor = DEFAULT_LASSO_FILL_COLOR,
+  fillColor: initialFillColor = null,
   fillOpacity: initialFillOpacity = DEFAULT_LASSO_FILL_OPACITY,
   isShowStartIndicator: initialIsShowStartIndicator = DEFAULT_LASSO_SHOW_START_INDICATOR,
   isDarkMode: initialIsDarkMode = DEFAULT_DARK_MODE,
   onDraw: initialOnDraw = identity,
   onStart: initialOnStart = identity,
   startIndicatorOpacity: initialStartIndicatorOpacity = DEFAULT_LASSO_START_INDICATOR_OPACITY,
-  strokeColor: initialStrokeColor = DEFAULT_LASSO_STROKE_COLOR,
+  strokeColor: initialStrokeColor = null,
   strokeOpacity: initialStrokeOpacity = DEFAULT_LASSO_STROKE_OPACITY,
   strokeSize: initialStrokeSize = DEFAULT_LASSO_STROKE_SIZE
 } = {}) => {
@@ -110,6 +108,12 @@ const createLasso = ({
 
   lineContainer.addChild(lineGfx);
   fillContainer.addChild(fillGfx);
+
+  const getLassoFillColor = () =>
+    fillColor || isDarkMode ? 0xffffff : 0x000000;
+
+  const getLassoStrokeColor = () =>
+    fillColor || isDarkMode ? 0xffffff : 0x000000;
 
   const getBackgroundColor = () =>
     isDarkMode
@@ -233,13 +237,13 @@ const createLasso = ({
     lineGfx.clear();
     fillGfx.clear();
     if (lassoPos.length) {
-      lineGfx.lineStyle(strokeSize, strokeColor, strokeOpacity);
+      lineGfx.lineStyle(strokeSize, getLassoStrokeColor(), strokeOpacity);
       lineGfx.moveTo(...lassoPos[0]);
       lassoPos.forEach(pos => {
         lineGfx.lineTo(...pos);
         lineGfx.moveTo(...pos);
       });
-      fillGfx.beginFill(fillColor, fillOpacity);
+      fillGfx.beginFill(getLassoFillColor(), fillOpacity);
       fillGfx.drawPolygon(lassoPosFlat);
     }
     onDraw();
@@ -364,6 +368,19 @@ const createLasso = ({
       set,
       showStartIndicator
     });
+
+  set({
+    fillColor,
+    fillOpacity,
+    isShowStartIndicator,
+    isDarkMode,
+    onDraw,
+    onStart,
+    startIndicatorOpacity,
+    strokeColor,
+    strokeOpacity,
+    strokeSize
+  });
 
   return pipe(
     withStaticProperty('startIndicator', startIndicator),
