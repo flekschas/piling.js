@@ -126,7 +126,7 @@ const createSvgLinesPiles = async element => {
     lassoStrokeColor: '#000000'
   });
 
-  piling.arrangeBy('data', 'decade');
+  piling.arrangeByOnce('data', 'decade');
 
   return piling;
 };
