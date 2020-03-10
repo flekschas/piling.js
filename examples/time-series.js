@@ -1,6 +1,10 @@
 import * as d3 from 'd3';
 import createPilingJs from '../src/library';
-import { createImageRenderer } from '../src/renderer';
+import {
+  createImageRenderer,
+  createRepresentativeRenderer
+} from '../src/renderer';
+import { createRepresentativeAggregator } from '../src/aggregator';
 
 const createTimeSeriesPiles = async element => {
   const response = await fetch('data/us-daily-precipitation.json');
@@ -85,14 +89,25 @@ const createTimeSeriesPiles = async element => {
 
   let cameraScale = 1;
 
+  const representativeRenderer = createRepresentativeRenderer(imageRenderer);
+
+  const representativeAggregator = createRepresentativeAggregator(1, {
+    valueGetter: item => item.umap_hsl
+  });
+
   const piling = createPilingJs(element, {
     renderer: imageRenderer,
+    coverRenderer: representativeRenderer,
+    coverAggregator: representativeAggregator,
     items: data,
-    itemSize: 32,
+    itemSize: 192,
+    pileCoverScale: 0.9,
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
+    pileItemBrightness: (item, i, pile) =>
+      pile.items.length > 1 ? -0.33 - Math.max(0.33, i * 0.001) : 0,
     pileScale: () =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2,
     darkMode: true
