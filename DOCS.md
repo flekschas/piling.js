@@ -309,7 +309,7 @@ The list of all understood properties is given below.
   ]);
   ```
 
-- `pileBorderSize`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
+- `pileBorderSize`, `pileCoverScale`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
 
   ```javascript
   // Set to a static number

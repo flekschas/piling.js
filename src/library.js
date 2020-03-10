@@ -155,6 +155,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     rowHeight: true,
     cellAspectRatio: true,
     cellPadding: true,
+    pileCoverScale: true,
     pileItemOffset: true,
     pileItemBrightness: true,
     pileItemOpacity: true,
@@ -1343,6 +1344,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items,
       coverRenderer,
       coverAggregator,
+      pileCoverScale,
       previewAggregator
     } = store.state;
 
@@ -1363,7 +1365,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const coverImage = coverAggregator(itemsOnPile)
         .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => createScaledImage(coverTexture));
+        .then(([coverTexture]) => {
+          const scaledImage = createScaledImage(coverTexture);
+          const extraScale = isFunction(pileCoverScale)
+            ? pileCoverScale(pileState)
+            : pileCoverScale;
+          scaledImage.scale(scaledImage.scaleFactor * extraScale);
+          return scaledImage;
+        });
 
       pileInstance.cover(coverImage);
 

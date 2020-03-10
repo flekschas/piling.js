@@ -25,6 +25,7 @@ import {
   DEFAULT_LASSO_STROKE_COLOR,
   DEFAULT_LASSO_STROKE_OPACITY,
   DEFAULT_LASSO_STROKE_SIZE,
+  DEFAULT_PILE_COVER_SCALE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
   DEFAULT_POPUP_BACKGROUND_OPACITY,
@@ -200,11 +201,14 @@ const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
+const [pileCoverScale, setPileCoverScale] = setter(
+  'pileCoverScale',
+  DEFAULT_PILE_COVER_SCALE
+);
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
-
 const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
@@ -588,6 +592,7 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
+    pileCoverScale,
     pileItemOffset,
     pileItemBrightness,
     pileItemOpacity,
@@ -726,6 +731,7 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
+  setPileCoverScale,
   setPileItemOffset,
   setPileItemOrder,
   setPileItemBrightness,
