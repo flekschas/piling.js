@@ -365,6 +365,19 @@ const createLasso = ({
       showStartIndicator
     });
 
+  set({
+    fillColor,
+    fillOpacity,
+    isShowStartIndicator,
+    isDarkMode,
+    onDraw,
+    onStart,
+    startIndicatorOpacity,
+    strokeColor,
+    strokeOpacity,
+    strokeSize
+  });
+
   return pipe(
     withStaticProperty('startIndicator', startIndicator),
     withStaticProperty('fillContainer', fillContainer),
