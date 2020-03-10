@@ -1,7 +1,5 @@
-import { l2Norm, normalize } from '@flekschas/utils';
+import { l1PointDist, l2Norm, normalize } from '@flekschas/utils';
 import clip from 'liang-barsky';
-
-import { l1Dist } from './utils';
 
 /**
  * Factory function to create a grid
@@ -252,7 +250,7 @@ const createGrid = (
 
       const conflictingPiles = new Set(cells[idx]);
 
-      let dist = l1Dist;
+      let dist = l1PointDist;
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
