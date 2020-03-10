@@ -4,9 +4,10 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import filesize from 'rollup-plugin-filesize';
+import { string } from 'rollup-plugin-string';
 import visualizer from 'rollup-plugin-visualizer';
 
-const bundleConfigurator = (file, plugins = [], format = 'umd') => ({
+const bundleConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/index.js',
   output: {
     name: 'createPilingJs',
@@ -26,16 +27,19 @@ const bundleConfigurator = (file, plugins = [], format = 'umd') => ({
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
+    string({
+      include: '**/skmeans.min'
+    }),
     ...plugins
   ],
-  external: ['pixi.js', 'regl']
+  external: ['pixi.js', 'regl', 'umap-js']
 });
 
-const bundleDev = bundleConfigurator('dist/piling.js', [filesize()]);
-const bundleProd = bundleConfigurator('dist/piling.min.js', [terser()]);
-const bundleEsm = bundleConfigurator('dist/piling.esm.js', [filesize()], 'es');
+const bundleDev = bundleConfig('dist/piling.js', [filesize()]);
+const bundleProd = bundleConfig('dist/piling.min.js', [terser()]);
+const bundleEsm = bundleConfig('dist/piling.esm.js', [filesize()], 'es');
 
-const libConfigurator = (file, plugins = [], format = 'umd') => ({
+const libConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/library.js',
   output: {
     name: 'createPilingJs',
@@ -55,18 +59,11 @@ const libConfigurator = (file, plugins = [], format = 'umd') => ({
   external: ['pixi.js']
 });
 
-const libDev = libConfigurator('dist/piling-library.js', [
-  filesize(),
-  visualizer()
-]);
-const libProd = libConfigurator('dist/piling-library.min.js', [terser()]);
-const libEsm = libConfigurator(
-  'dist/piling-library.esm.js',
-  [filesize()],
-  'es'
-);
+const libDev = libConfig('dist/piling-library.js', [filesize(), visualizer()]);
+const libProd = libConfig('dist/piling-library.min.js', [terser()]);
+const libEsm = libConfig('dist/piling-library.esm.js', [filesize()], 'es');
 
-const rndConfigurator = (file, plugins = [], format = 'umd') => ({
+const rndConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/renderer.js',
   output: {
     name: 'pilingJsRenderer',
@@ -87,15 +84,11 @@ const rndConfigurator = (file, plugins = [], format = 'umd') => ({
   external: ['pixi.js', 'regl']
 });
 
-const rndDev = rndConfigurator('dist/piling-renderer.js', [filesize()]);
-const rndProd = rndConfigurator('dist/piling-renderer.min.js', [terser()]);
-const rndEsm = rndConfigurator(
-  'dist/piling-renderer.esm.js',
-  [filesize()],
-  'es'
-);
+const rndDev = rndConfig('dist/piling-renderer.js', [filesize()]);
+const rndProd = rndConfig('dist/piling-renderer.min.js', [terser()]);
+const rndEsm = rndConfig('dist/piling-renderer.esm.js', [filesize()], 'es');
 
-const agrConfigurator = (file, plugins = [], format = 'umd') => ({
+const agrConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/aggregator.js',
   output: {
     name: 'pilingJsAggregator',
@@ -113,15 +106,11 @@ const agrConfigurator = (file, plugins = [], format = 'umd') => ({
   external: []
 });
 
-const agrDev = agrConfigurator('dist/piling-aggregator.js', [filesize()]);
-const agrProd = agrConfigurator('dist/piling-aggregator.min.js', [terser()]);
-const agrEsm = agrConfigurator(
-  'dist/piling-aggregator.esm.js',
-  [filesize()],
-  'es'
-);
+const agrDev = agrConfig('dist/piling-aggregator.js', [filesize()]);
+const agrProd = agrConfig('dist/piling-aggregator.min.js', [terser()]);
+const agrEsm = agrConfig('dist/piling-aggregator.esm.js', [filesize()], 'es');
 
-const clstConfigurator = (file, plugins = [], format = 'umd') => ({
+const clstConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/clusterer.js',
   output: {
     name: 'pilingJsClusterer',
@@ -134,15 +123,47 @@ const clstConfigurator = (file, plugins = [], format = 'umd') => ({
     resolve(),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
+    string({
+      include: '**/skmeans.min'
+    }),
     ...plugins
   ],
   external: []
 });
 
-const clstDev = clstConfigurator('dist/piling-clusterer.js', [filesize()]);
-const clstProd = clstConfigurator('dist/piling-clusterer.min.js', [terser()]);
-const clstEsm = clstConfigurator(
-  'dist/piling-clusterer.esm.js',
+const clstDev = clstConfig('dist/piling-clusterer.js', [filesize()]);
+const clstProd = clstConfig('dist/piling-clusterer.min.js', [terser()]);
+const clstEsm = clstConfig('dist/piling-clusterer.esm.js', [filesize()], 'es');
+
+const dimRedConfig = (file, plugins = [], format = 'umd') => ({
+  input: 'src/dimensionality-reducer.js',
+  output: {
+    name: 'pilingJsDimensionalityReducer',
+    format,
+    file,
+    globals: {}
+  },
+  plugins: [
+    json(),
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    string({
+      include: '**umap-js.min'
+    }),
+    ...plugins
+  ],
+  external: []
+});
+
+const dimRedDev = dimRedConfig('dist/piling-dimensionality-reducer.js', [
+  filesize()
+]);
+const dimRedProd = dimRedConfig('dist/piling-dimensionality-reducer.min.js', [
+  terser()
+]);
+const dimRedEsm = dimRedConfig(
+  'dist/piling-dimensionality-reducer.esm.js',
   [filesize()],
   'es'
 );
@@ -162,5 +183,8 @@ export default [
   agrEsm,
   clstDev,
   clstProd,
-  clstEsm
+  clstEsm,
+  dimRedDev,
+  dimRedProd,
+  dimRedEsm
 ];
