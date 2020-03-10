@@ -34,6 +34,7 @@ import {
 
 import createAnimator from './animator';
 import createLevels from './levels';
+import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
 
 import {
@@ -2059,7 +2060,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const pileByOverlap = sqrtPixels => {
+  const pileByOverlap = async sqrtPixels => {
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2119,7 +2120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByDistance = pixels => {
+  const pileByDistance = async pixels => {
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2175,7 +2176,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByGrid = objective => {
+  const pileByGrid = async objective => {
     const { orderer, piles } = store.state;
 
     const { width, height } = canvas.getBoundingClientRect();
@@ -2193,7 +2194,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }, []);
   };
 
-  const pileByColumn = () =>
+  const pileByColumn = async () =>
     Object.entries(store.state.piles).reduce(
       (groups, [pileId, pileState]) => {
         if (pileState.items.length) {
@@ -2207,7 +2208,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(() => [])
     );
 
-  const pileByRow = () =>
+  const pileByRow = async () =>
     Object.entries(store.state.piles).reduce(
       (groups, [pileId, pileState]) => {
         if (pileState.items.length) {
@@ -2221,7 +2222,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(() => [])
     );
 
-  const pileByCategory = objective =>
+  const pileByCategory = async objective =>
     Object.values(
       Object.entries(store.state.piles).reduce(
         (groups, [pileId, pileState]) => {
@@ -2251,7 +2252,54 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       )
     );
 
-  const pileByCluster = () => {};
+  const pileByCluster = async (objective, options = {}) => {
+    const points = Object.entries(store.state.piles).reduce(
+      (data, [pileId, pileState]) => {
+        if (!pileState.items.length) return data;
+
+        data.push({
+          id: pileId,
+          data: objective.flatMap(o =>
+            o.aggregator(
+              pileState.items.map((itemId, index) =>
+                o.property(
+                  store.state.items[itemId],
+                  itemId,
+                  index,
+                  renderedItems.get(itemId)
+                )
+              )
+            )
+          )
+        });
+
+        return data;
+      },
+      []
+    );
+
+    let clusterer = options.clusterer;
+
+    if (!clusterer) {
+      const clustererOptions = options.clustererOptions || {};
+      let k = clustererOptions.k;
+      clustererOptions.valueGetter = x => x.data;
+
+      if (!k) k = Math.max(2, Math.ceil(Math.sqrt(points.length / 2)));
+
+      clusterer = createKmeans(k, clustererOptions);
+    }
+
+    const { labels } = await clusterer(points);
+
+    return Object.values(
+      Array.from(labels).reduce((piledPiles, x, i) => {
+        if (!piledPiles[x]) piledPiles[x] = [];
+        piledPiles[x].push(points[i].id);
+        return piledPiles;
+      }, {})
+    );
+  };
 
   const pileBy = (type, objective = null, options = {}) => {
     const expandedObjective = expandPilingObjective(type, objective);
@@ -2290,10 +2338,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // no default
     }
 
-    store.dispatch(createAction.setFocusedPiles([]));
+    piledPiles.then(_piledPiles => {
+      store.dispatch(createAction.setFocusedPiles([]));
 
-    // If there's only one pile on a pile we can ignore it
-    animateMerge(piledPiles.filter(pileIds => pileIds.length > 1));
+      // If there's only one pile on a pile we can ignore it
+      animateMerge(_piledPiles.filter(pileIds => pileIds.length > 1));
+    });
   };
 
   const updateNavigationMode = () => {
@@ -3000,9 +3050,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         expandedObjective.inverse = false;
       } else {
         expandedObjective.property = expandProperty(objective.property);
-        expandedObjective.aggregator = expandNumericalAggregator(
-          objective.aggregator
-        );
+        expandedObjective.aggregator = expandNumericalAggregator(objective);
         expandedObjective.scale = expandScale(objective.scale);
         expandedObjective.inverse = !!objective.inverse;
       }
@@ -3078,12 +3126,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (_objective.constructor !== Object) {
         expandedObjective.property = expandProperty(_objective);
-        expandedObjective.aggregator = mean;
+        expandedObjective.aggregator = objective.propertyIsVector
+          ? meanVector
+          : mean;
       } else {
         expandedObjective.property = expandProperty(_objective.property);
-        expandedObjective.aggregator = expandNumericalAggregator(
-          _objective.aggregator
-        );
+        expandedObjective.aggregator = expandNumericalAggregator(_objective);
       }
 
       return expandedObjective;
