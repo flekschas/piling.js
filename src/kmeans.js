@@ -5,7 +5,7 @@ import workerFn from './kmeans-worker';
 
 import { createUrlScript } from './utils';
 
-const createRepresentativeAggregator = (
+const createKmeans = (
   k,
   {
     distanceFunction = null,
@@ -60,4 +60,4 @@ const createRepresentativeAggregator = (
     });
 };
 
-export default createRepresentativeAggregator;
+export default createKmeans;
