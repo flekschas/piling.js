@@ -3,7 +3,7 @@ import skmeans from '../node_modules/skmeans/dist/browser/skmeans.min';
 
 import workerFn from './kmeans-worker';
 
-import { createUrlScript } from './utils';
+import createUrlScript from './utils/create-url-script';
 
 const createKmeans = (
   k,

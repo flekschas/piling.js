@@ -2,38 +2,35 @@ import { createWorker } from '@flekschas/utils';
 
 import workerFn from './dbscan-worker';
 
+import createUrlScript from './utils/create-url-script';
+
 const createDbscan = ({
   distanceFunction = null,
   maxDistance = null,
   minPoints = 2,
-  valueGetter = null
+  valueGetter = null,
+  postProcessing = null
 } = {}) => {
   const scripts = [];
 
   if (valueGetter) {
     scripts.push(
-      window.URL.createObjectURL(
-        new Blob(
-          [`(() => { self.valueGetter = ${valueGetter.toString()}; })();`],
-          {
-            type: 'text/javascript'
-          }
-        )
+      createUrlScript(
+        `(() => { self.valueGetter = ${valueGetter.toString()}; })();`
       )
     );
   }
-
   if (distanceFunction) {
     scripts.push(
-      window.URL.createObjectURL(
-        new Blob(
-          [
-            `(() => { self.distanceFunction = ${distanceFunction.toString()}; })();`
-          ],
-          {
-            type: 'text/javascript'
-          }
-        )
+      createUrlScript(
+        `(() => { self.distanceFunction = ${distanceFunction.toString()}; })();`
+      )
+    );
+  }
+  if (postProcessing) {
+    scripts.push(
+      createUrlScript(
+        `(() => { self.postProcessing = ${postProcessing.toString()}; })();`
       )
     );
   }
