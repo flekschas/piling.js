@@ -8,6 +8,11 @@ import { createRepresentativeAggregator } from '../src/aggregator';
 
 const createTimeSeriesPiles = async element => {
   const response = await fetch('data/us-daily-precipitation.json');
+
+  // const response = await fetch('data/cube.json');
+  // const response = await fetch('data/last-knit.json');
+  // const response = await fetch('data/the-cat.json');
+
   const data = await response.json();
 
   const imageRenderer = createImageRenderer();
@@ -92,7 +97,7 @@ const createTimeSeriesPiles = async element => {
   const representativeRenderer = createRepresentativeRenderer(imageRenderer);
 
   const representativeAggregator = createRepresentativeAggregator(1, {
-    valueGetter: item => item.umap_hsl
+    valueGetter: item => item.umap_gray
   });
 
   const piling = createPilingJs(element, {
@@ -100,7 +105,7 @@ const createTimeSeriesPiles = async element => {
     coverRenderer: representativeRenderer,
     coverAggregator: representativeAggregator,
     items: data,
-    itemSize: 192,
+    itemSize: 64,
     pileCoverScale: 0.9,
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
