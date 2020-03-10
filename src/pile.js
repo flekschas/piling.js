@@ -512,6 +512,7 @@ const createPile = (
           });
           postPilePositionAnimation.clear();
           pubSub.publish('updatePileBounds', id);
+          if (isPlaceholderDrawn) removePlaceholder();
         }
       }
     });
@@ -539,7 +540,7 @@ const createPile = (
   ) => {
     const pileState = store.state.piles[id];
 
-    if (getCover()) {
+    if (getCover() && previewItemContainer.children.length) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
         const halfWidth = coverImage.width / 2;
@@ -633,7 +634,8 @@ const createPile = (
           count === newItems.size
         );
       });
-    }
+      // Cover without previews
+    } else if (isPlaceholderDrawn) removePlaceholder();
     newItems.clear();
   };
 
@@ -965,6 +967,8 @@ const createPile = (
    * @param  {array}  items  List of items
    */
   const setItems = (items, { asPreview = false } = {}) => {
+    if (items.length > 1) drawPlaceholder();
+
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
     // Add new items
@@ -1019,6 +1023,36 @@ const createPile = (
     setCover(newCover);
   };
 
+  const placeholderGfx = new PIXI.Graphics();
+  let isPlaceholderDrawn = false;
+
+  const drawDot = (x, y, r) => {
+    placeholderGfx.lineStyle(0);
+    placeholderGfx.beginFill(0xffffff, 1);
+    placeholderGfx.drawCircle(x, y, r);
+    placeholderGfx.endFill();
+  };
+
+  const drawPlaceholder = () => {
+    const { width } = anchorBox;
+
+    const r = width / 12;
+
+    drawDot(-width / 4, 0, r);
+    drawDot(0, 0, r);
+    drawDot(width / 4, 0, r);
+
+    isPlaceholderDrawn = true;
+
+    render();
+  };
+
+  const removePlaceholder = () => {
+    placeholderGfx.clear();
+    isPlaceholderDrawn = false;
+    render();
+  };
+
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
@@ -1028,6 +1062,7 @@ const createPile = (
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
+    rootGraphics.addChild(placeholderGfx);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
@@ -1136,6 +1171,7 @@ const createPile = (
     calcBBox,
     destroy,
     drawBorder,
+    drawPlaceholder,
     getItemById,
     hasItem,
     magnifyByWheel,
@@ -1143,6 +1179,7 @@ const createPile = (
     moveTo,
     positionItems,
     removeAllItems,
+    removePlaceholder,
     setBorderSize,
     setItems,
     setScale,
