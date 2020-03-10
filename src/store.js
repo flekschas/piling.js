@@ -18,11 +18,9 @@ import createOrderer from './orderer';
 
 import {
   DEFAULT_DARK_MODE,
-  DEFAULT_LASSO_FILL_COLOR,
   DEFAULT_LASSO_FILL_OPACITY,
   DEFAULT_LASSO_SHOW_START_INDICATOR,
   DEFAULT_LASSO_START_INDICATOR_OPACITY,
-  DEFAULT_LASSO_STROKE_COLOR,
   DEFAULT_LASSO_STROKE_OPACITY,
   DEFAULT_LASSO_STROKE_SIZE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
@@ -145,10 +143,7 @@ const [popupBackgroundOpacity, setPopupBackgroundOpacity] = setter(
   DEFAULT_POPUP_BACKGROUND_OPACITY
 );
 
-const [lassoFillColor, setLassoFillColor] = setter(
-  'lassoFillColor',
-  DEFAULT_LASSO_FILL_COLOR
-);
+const [lassoFillColor, setLassoFillColor] = setter('lassoFillColor');
 
 const [lassoFillOpacity, setLassoFillOpacity] = setter(
   'lassoFillOpacity',
@@ -165,10 +160,7 @@ const [lassoStartIndicatorOpacity, setLassoStartIndicatorOpacity] = setter(
   DEFAULT_LASSO_START_INDICATOR_OPACITY
 );
 
-const [lassoStrokeColor, setLassoStrokeColor] = setter(
-  'lassoStrokeColor',
-  DEFAULT_LASSO_STROKE_COLOR
-);
+const [lassoStrokeColor, setLassoStrokeColor] = setter('lassoStrokeColor');
 
 const [lassoStrokeOpacity, setLassoStrokeOpacity] = setter(
   'lassoStrokeOpacity',
