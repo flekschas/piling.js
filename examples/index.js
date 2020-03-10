@@ -408,7 +408,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'Pile By Column',
           onClick: true,
           action: () => {
-            pilingLib.pileBy('column');
+            pilingLib.pileBy('column', 'top');
           }
         },
         {

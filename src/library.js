@@ -1952,24 +1952,56 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const animateMerge = groupsOfPileIds =>
-    Promise.all(
+  const animateMerge = (groupsOfPileIds, centerAggregation) => {
+    const vMean = n => (aggregate, x) => aggregate + x / n;
+    const vMin = () => (aggregate, x) => Math.min(aggregate, x);
+    const vMax = () => (aggregate, x) => Math.max(aggregate, x);
+    const aggregaters = { x: vMean, y: vMean };
+    const startValues = { x: 0, y: 0 };
+
+    switch (centerAggregation) {
+      case 'top':
+        aggregaters.y = vMin;
+        startValues.y = Infinity;
+        break;
+
+      case 'bottom':
+        aggregaters.y = vMax;
+        startValues.y = -Infinity;
+        break;
+
+      case 'left':
+        aggregaters.x = vMin;
+        startValues.x = Infinity;
+        break;
+
+      case 'right':
+        aggregaters.x = vMax;
+        startValues.x = -Infinity;
+        break;
+
+      // no default
+    }
+
+    return Promise.all(
       groupsOfPileIds.map(
         pileIds =>
           new Promise(resolve => {
             const { easing, piles } = store.state;
-            let centerX = 0;
-            let centerY = 0;
+            let finalX = startValues.x;
+            let finalY = startValues.y;
+
+            const xAgg = aggregaters.x(pileIds.length);
+            const yAgg = aggregaters.y(pileIds.length);
+
             pileIds.forEach(id => {
-              centerX += piles[id].x;
-              centerY += piles[id].y;
+              finalX = xAgg(finalX, piles[id].x);
+              finalY = yAgg(finalY, piles[id].y);
             });
-            centerX /= pileIds.length;
-            centerY /= pileIds.length;
 
             const onAllDone = () => {
               updatePileBounds(pileIds[0]);
-              resolve(createAction.mergePiles(pileIds, false));
+              resolve(createAction.mergePiles(pileIds, [finalX, finalY]));
             };
 
             const onDone = () => {
@@ -1981,7 +2013,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             animator.addBatch(
               pileIds
                 .map(id =>
-                  animateMovePileTo(pileInstances.get(id), centerX, centerY, {
+                  animateMovePileTo(pileInstances.get(id), finalX, finalY, {
                     easing,
                     isBatch: true,
                     onDone
@@ -1994,6 +2026,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     ).then(mergeActions => {
       store.dispatch(batchActions(mergeActions));
     });
+  };
 
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
@@ -2308,6 +2341,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const expandedObjective = expandPilingObjective(type, objective);
 
     let piledPiles = [];
+    let mergeCenter = 'mean';
 
     switch (type) {
       case 'overlap':
@@ -2323,10 +2357,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         break;
 
       case 'column':
+        mergeCenter = expandedObjective;
         piledPiles = pileByColumn(expandedObjective);
         break;
 
       case 'row':
+        mergeCenter = expandedObjective;
         piledPiles = pileByRow(expandedObjective);
         break;
 
@@ -2345,7 +2381,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       store.dispatch(createAction.setFocusedPiles([]));
 
       // If there's only one pile on a pile we can ignore it
-      animateMerge(_piledPiles.filter(pileIds => pileIds.length > 1));
+      animateMerge(
+        _piledPiles.filter(pileIds => pileIds.length > 1),
+        mergeCenter
+      );
     });
   };
 
@@ -3170,7 +3209,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const onDone = () => {
       store.dispatch(
-        createAction.mergePiles([sourcePileId, targetPileId], true)
+        createAction.mergePiles(
+          [sourcePileId, targetPileId],
+          [x, y],
+          targetPileId
+        )
       );
     };
 
@@ -3193,7 +3236,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
         const targetPileId = collidePiles[0].id;
-        hit = !pileInstances.get(targetPileId).isTempDepiled;
+        const targetPile = pileInstances.get(targetPileId);
+        hit = !targetPile.isTempDepiled;
         if (hit) {
           // TODO: The drop merge animation code should be unified
 
@@ -3208,7 +3252,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             animateDropMerge(pileId, targetPileId);
           } else {
             store.dispatch(
-              createAction.mergePiles([pileId, targetPileId], true)
+              createAction.mergePiles(
+                [pileId, targetPileId],
+                [targetPile.x, targetPile.y],
+                targetPileId
+              )
             );
           }
         }

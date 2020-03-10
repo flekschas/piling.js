@@ -417,54 +417,32 @@ const piles = (previousState = {}, action) => {
     case 'MERGE_PILES': {
       const newState = { ...previousState };
 
-      if (action.payload.isDropped) {
-        const source = action.payload.pileIds[0];
-        const target = action.payload.pileIds[1];
+      const target =
+        action.payload.targetPileId !== undefined
+          ? action.payload.targetPileId
+          : Math.min.apply([], action.payload.pileIds).toString();
 
-        newState[target] = {
-          ...newState[target],
-          items: [...newState[target].items]
-        };
+      const sourcePileIds = action.payload.pileIds.filter(id => id !== target);
 
-        newState[target].items.push(...newState[source].items);
-        newState[source] = {
-          ...newState[source],
+      const [x, y] = action.payload.targetPos;
+
+      newState[target] = {
+        ...newState[target],
+        items: [...newState[target].items],
+        x,
+        y
+      };
+
+      sourcePileIds.forEach(id => {
+        newState[target].items.push(...newState[id].items);
+        newState[id] = {
+          ...newState[id],
           items: [],
           x: null,
           y: null
         };
-      } else {
-        const target = Math.min.apply([], action.payload.pileIds).toString();
-        const sourcePileIds = action.payload.pileIds.filter(
-          id => id !== target
-        );
+      });
 
-        let centerX = 0;
-        let centerY = 0;
-        action.payload.pileIds.forEach(id => {
-          centerX += newState[id].x;
-          centerY += newState[id].y;
-        });
-        centerX /= action.payload.pileIds.length;
-        centerY /= action.payload.pileIds.length;
-
-        newState[target] = {
-          ...newState[target],
-          items: [...newState[target].items],
-          x: centerX,
-          y: centerY
-        };
-
-        sourcePileIds.forEach(id => {
-          newState[target].items.push(...newState[id].items);
-          newState[id] = {
-            ...newState[id],
-            items: [],
-            x: null,
-            y: null
-          };
-        });
-      }
       return newState;
     }
 
@@ -513,9 +491,9 @@ const initPiles = newItems => ({
   payload: { newItems }
 });
 
-const mergePiles = (pileIds, isDropped) => ({
+const mergePiles = (pileIds, targetPos, targetPileId) => ({
   type: 'MERGE_PILES',
-  payload: { pileIds, isDropped }
+  payload: { pileIds, targetPos, targetPileId }
 });
 
 const movePiles = movingPiles => ({
