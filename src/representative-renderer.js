@@ -37,70 +37,85 @@ const renderRepresentative = async (
   srcs,
   itemRenderer,
   {
-    size = 96,
     innerPadding = 2,
-    outerPadding = 0,
+    outerPadding = 2,
     backgroundColor = 0x000000,
     maxNumberOfRepresentatives = 9
   } = {}
 ) => {
   const n = Math.min(maxNumberOfRepresentatives, srcs.length);
-  const displayObjects = await itemRenderer(srcs.slice(0, n));
+  const renderedItems = await itemRenderer(srcs.slice(0, n));
 
   const [rows, cols, aspectRatio] = getRegularGrid(n);
 
-  const width = size;
-  const height = size / aspectRatio;
+  const width = 1.0;
+  const height = 1.0 / aspectRatio;
   const cellWidth = width / cols;
   const cellHeight = height / rows;
   const cellAspectRatio = cellWidth / cellHeight;
 
   const gfx = new PIXI.Graphics();
-  gfx
-    .beginFill(backgroundColor)
-    .drawRect(
-      0,
-      0,
-      width + 2 * outerPadding + (cols - 1) * innerPadding,
-      height + 2 * outerPadding + (rows - 1) * innerPadding
-    )
-    .endFill();
 
-  displayObjects.forEach((displayObject, i) => {
+  let completeWidth = 0;
+  let completeHeight = 0;
+
+  renderedItems.forEach((renderedItem, i) => {
+    const displayObject =
+      renderedItem instanceof PIXI.Texture
+        ? new PIXI.Sprite(renderedItem)
+        : renderedItem;
+
     const row = Math.floor(i / cols);
     const col = i % cols;
 
     const objectAspectRatio = displayObject.width / displayObject.height;
     const isMorePortrait = objectAspectRatio < cellAspectRatio;
 
-    const scaleFactor = isMorePortrait
-      ? cellWidth / displayObject.width
-      : cellHeight / displayObject.height;
+    const size = isMorePortrait ? displayObject.width : displayObject.height;
 
-    displayObject.width *= scaleFactor;
-    displayObject.height *= scaleFactor;
+    const cellAbsWidth = size * cellWidth;
+    const cellAbsHeight = size * cellHeight;
+
+    const xOffset = isMorePortrait ? 0 : (displayObject.width - size) / 2;
+    const yOffset = isMorePortrait ? (displayObject.height - size) / 2 : 0;
 
     displayObject.x =
-      (col + 0.5) * cellWidth + col * innerPadding + outerPadding;
+      (col - 0.5) * cellAbsWidth + col * innerPadding + outerPadding - xOffset;
     displayObject.y =
-      (row + 0.5) * cellHeight + row * innerPadding + outerPadding;
+      (row - 0.5) * cellAbsHeight + row * innerPadding + outerPadding - yOffset;
 
     gfx.addChild(displayObject);
 
     const mask = new PIXI.Graphics();
     mask
-      .beginFill(0xff0000, 0.5)
+      .beginFill(0xff0000, 1.0)
       .drawRect(
-        col * cellWidth + col * innerPadding + outerPadding,
-        row * cellHeight + row * innerPadding + outerPadding,
-        cellWidth,
-        cellHeight
+        (col - 0.5) * cellAbsWidth + col * innerPadding + outerPadding,
+        (row - 0.5) * cellAbsHeight + row * innerPadding + outerPadding,
+        cellAbsWidth,
+        cellAbsHeight
       )
       .endFill();
+
+    completeWidth += cellAbsWidth;
+    completeHeight += cellAbsHeight;
 
     displayObject.mask = mask;
     gfx.addChild(mask);
   });
+
+  const finalWidth = completeWidth + (cols - 1) * innerPadding;
+  const finalHeight = completeHeight + (rows - 1) * innerPadding;
+
+  gfx
+    .beginFill(backgroundColor)
+    .drawRect(
+      -finalWidth / 2,
+      -finalHeight / 2,
+      finalWidth + 2 * outerPadding,
+      finalHeight + 2 * outerPadding
+    )
+    .endFill();
 
   return gfx;
 };
