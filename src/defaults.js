@@ -22,11 +22,9 @@ export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
 
 export const DEFAULT_POPUP_BACKGROUND_OPACITY = 0.85;
 
-export const DEFAULT_LASSO_FILL_COLOR = 0xffffff;
 export const DEFAULT_LASSO_FILL_OPACITY = 0.15;
 export const DEFAULT_LASSO_SHOW_START_INDICATOR = true;
 export const DEFAULT_LASSO_START_INDICATOR_OPACITY = 0.1;
-export const DEFAULT_LASSO_STROKE_COLOR = 0xffffff;
 export const DEFAULT_LASSO_STROKE_OPACITY = 0.8;
 export const DEFAULT_LASSO_STROKE_SIZE = 1;
 export const LASSO_MIN_DIST = 2;
