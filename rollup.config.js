@@ -121,6 +121,32 @@ const agrEsm = agrConfigurator(
   'es'
 );
 
+const clstConfigurator = (file, plugins = [], format = 'umd') => ({
+  input: 'src/clusterer.js',
+  output: {
+    name: 'pilingJsClusterer',
+    format,
+    file,
+    globals: {}
+  },
+  plugins: [
+    json(),
+    resolve(),
+    commonjs({ sourceMap: false }),
+    babel({ runtimeHelpers: true }),
+    ...plugins
+  ],
+  external: []
+});
+
+const clstDev = clstConfigurator('dist/piling-clusterer.js', [filesize()]);
+const clstProd = clstConfigurator('dist/piling-clusterer.min.js', [terser()]);
+const clstEsm = clstConfigurator(
+  'dist/piling-clusterer.esm.js',
+  [filesize()],
+  'es'
+);
+
 export default [
   bundleDev,
   bundleProd,
@@ -133,5 +159,8 @@ export default [
   rndEsm,
   agrDev,
   agrProd,
-  agrEsm
+  agrEsm,
+  clstDev,
+  clstProd,
+  clstEsm
 ];
