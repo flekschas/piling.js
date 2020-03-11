@@ -228,14 +228,14 @@ const createVitessce = async element => {
     }
   ];
 
-  setTimeout(() => {
-    piling.pileBy('cluster', [
-      {
-        property: 'embeddingTsne',
-        propertyIsVector: true
-      }
-    ]);
-  }, 5000);
+  // setTimeout(() => {
+  //   piling.pileBy('cluster', [
+  //     {
+  //       property: 'embeddingTsne',
+  //       propertyIsVector: true
+  //     }
+  //   ]);
+  // }, 5000);
 
   return [piling, additionalSidebarOptions];
 };
