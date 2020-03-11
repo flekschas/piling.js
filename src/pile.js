@@ -1026,21 +1026,22 @@ const createPile = (
   const placeholderGfx = new PIXI.Graphics();
   let isPlaceholderDrawn = false;
 
-  const drawDot = (x, y, r) => {
-    placeholderGfx.lineStyle(0);
-    placeholderGfx.beginFill(0xffffff, 1);
-    placeholderGfx.drawCircle(x, y, r);
-    placeholderGfx.endFill();
+  const drawDot = (x, y, r, color) => {
+    placeholderGfx
+      .lineStyle(0)
+      .beginFill(color, 1)
+      .drawCircle(x, y, r)
+      .endFill();
   };
 
   const drawPlaceholder = () => {
     const { width } = anchorBox;
-
     const r = width / 12;
+    const color = store.state.darkMode ? 0xffffff : 0x000000;
 
-    drawDot(-width / 4, 0, r);
-    drawDot(0, 0, r);
-    drawDot(width / 4, 0, r);
+    drawDot(-width / 4, 0, r, color);
+    drawDot(0, 0, r, color);
+    drawDot(width / 4, 0, r, color);
 
     isPlaceholderDrawn = true;
 
@@ -1056,13 +1057,13 @@ const createPile = (
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
+    rootGraphics.addChild(placeholderGfx);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
-    rootGraphics.addChild(placeholderGfx);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
