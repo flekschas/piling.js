@@ -1019,6 +1019,34 @@ const createPile = (
     setCover(newCover);
   };
 
+  const labelGraphics = new PIXI.Graphics();
+
+  const drawLabel = () => {
+    labelGraphics.clear();
+
+    const { width, height } = contentGraphics;
+
+    if (label.length) {
+      const labelWidth = width / label.length;
+      const labelHeight = 5;
+      label.forEach((color, index) => {
+        const labelX = labelWidth * index;
+        labelGraphics.beginFill(color, 1);
+        labelGraphics.drawRect(labelX, height, labelWidth, labelHeight);
+        labelGraphics.endFill();
+      });
+    }
+
+    render();
+  };
+
+  let label = [];
+
+  const setLabel = pileLabel => {
+    label = [...pileLabel];
+    drawLabel();
+  };
+
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
@@ -1028,6 +1056,7 @@ const createPile = (
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
+    contentGraphics.addChild(labelGraphics);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
@@ -1102,6 +1131,9 @@ const createPile = (
     get items() {
       return [...allItems];
     },
+    get label() {
+      return [...label];
+    },
     get magnification() {
       return magnification;
     },
@@ -1145,6 +1177,7 @@ const createPile = (
     removeAllItems,
     setBorderSize,
     setItems,
+    setLabel,
     setScale,
     setOpacity,
     setVisibilityItems,
