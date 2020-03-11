@@ -185,7 +185,7 @@ body.dark-mode {
   transition: right $normal $ease;
 }
 
-body.options-open .container {
+body.permanent-options .container {
   right: 16rem;
 }
 
@@ -295,8 +295,27 @@ header #description {
   display: none;
 }
 
+#group-by-grid {
+  position: absolute;
+  z-index: -1;
+  top: 5rem;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+body.permanent-options #group-by-grid {
+  right: 16rem;
+}
+
 #options {
   position: absolute;
+  z-index: 2;
   top: 0;
   right: 0;
   bottom: 0;
@@ -352,7 +371,13 @@ header #description {
   }
 
   .content {
-    margin: 0.5rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0.5rem;
+    overflow: auto;
   }
 
   .content h4 {
@@ -360,14 +385,44 @@ header #description {
     box-shadow: 0 1px 0 0 $gray-lighter;
   }
 
-  label {
+  .label-wrapper {
     display: block;
     margin: 0.25rem 0;
   }
 
-  label div {
+  .label-wrapper .label-title {
     display: block;
     font-size: 0.8rem;
+  }
+
+  .checkbox,
+  .radio,
+  .button {
+    display: block;
+    margin: 0.25rem 0;
+    font-size: 0.8rem;
+  }
+
+  .button {
+    color: $white;
+    background: black;
+    line-height: 1.5em;
+    border-radius: 0.25rem;
+    border: 0;
+    background: $black;
+    transition: color $normal $ease, background $normal $ease,
+      opacity $normal $ease, box-shadow $normal $ease;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
+    }
+
+    :disabled {
+      color: $black;
+      background: $white;
+      opacity: 0.33;
+    }
   }
 
   .title:after {
@@ -378,6 +433,14 @@ header #description {
   .inputs {
     display: flex;
     align-items: center;
+  }
+}
+
+body.permanent-options #options {
+  transform: translate(0, 0);
+
+  .toggler {
+    display: none;
   }
 }
 
@@ -399,6 +462,16 @@ body.dark-mode #options {
   &.open .toggler {
     background: $black;
   }
+
+  .button {
+    color: $black;
+    background: $white;
+
+    :disabled {
+      color: $white;
+      background: $black;
+    }
+  }
 }
 
 #undo {
@@ -408,7 +481,7 @@ body.dark-mode #options {
   line-height: 1.5rem;
   border-radius: 0.25rem;
   color: $white;
-  border: 1px solid white;
+  border: 0;
   background: $black;
   transition: color $normal $ease, border $normal $ease,
     background $normal $ease, opacity $normal $ease, box-shadow $normal $ease;
@@ -428,11 +501,6 @@ body.dark-mode #options {
 body.dark-mode #undo {
   color: $black;
   background: $white;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 1px black, 0 0 0 3px $primary-rgba;
-  }
 
   :disabled {
     color: $white;

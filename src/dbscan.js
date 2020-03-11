@@ -1,21 +1,17 @@
 import { createWorker } from '@flekschas/utils';
-import skmeans from '../node_modules/skmeans/dist/browser/skmeans.min';
 
-import workerFn from './kmeans-worker';
+import workerFn from './dbscan-worker';
 
 import createUrlScript from './utils/create-url-script';
 
-const createKmeans = (
-  k,
-  {
-    distanceFunction = null,
-    initialization = 'kmpp',
-    maxIterations = null,
-    valueGetter = null,
-    postProcessing = null
-  } = {}
-) => {
-  const scripts = [createUrlScript(skmeans.replace(/window/g, 'self'))];
+const createDbscan = ({
+  distanceFunction = null,
+  maxDistance = null,
+  minPoints = 2,
+  valueGetter = null,
+  postProcessing = null
+} = {}) => {
+  const scripts = [];
 
   if (valueGetter) {
     scripts.push(
@@ -51,13 +47,12 @@ const createKmeans = (
       };
 
       worker.postMessage({
-        initialization,
-        k,
-        maxIterations,
+        maxDistance,
+        minPoints,
         items,
         scripts
       });
     });
 };
 
-export default createKmeans;
+export default createDbscan;
