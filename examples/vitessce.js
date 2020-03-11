@@ -171,7 +171,7 @@ const createVitessce = async element => {
   const additionalSidebarOptions = [
     {
       id: 'factor',
-      title: 'Cluster',
+      title: 'Subset',
       fields: [
         {
           name: 'items',
@@ -227,6 +227,15 @@ const createVitessce = async element => {
       ]
     }
   ];
+
+  // setTimeout(() => {
+  //   piling.pileBy('cluster', [
+  //     {
+  //       property: 'embeddingTsne',
+  //       propertyIsVector: true
+  //     }
+  //   ]);
+  // }, 5000);
 
   return [piling, additionalSidebarOptions];
 };

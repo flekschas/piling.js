@@ -184,6 +184,7 @@ The list of all understood properties is given below.
 | lassoStrokeColor           | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | lassoStrokeOpacity         | float                   | `0.8`        | must be in [`0`,`1`]                                                 | `false`    |
 | lassoStrokeSize            | int                     | `1`          | must be greater or equal than `1`                                    | `false`    |
+| layout                     | object                  |              | read-only                                                            | `false`    |
 | orderer                    | function                | row-major    | see [`notes`](#notes)                                                | `true`     |
 | magnifiedPiles             | array                   | `[]`         | the id of current magnified pile                                     | `true`     |
 | navigationMode             | string                  | auto         | Can be one of auto, panZoom, or scroll                               | `false`    |
@@ -406,12 +407,16 @@ Position piles with user-specified arrangement method.
 
 | Type      | Objective                                                                             | Options  |
 | --------- | ------------------------------------------------------------------------------------- | -------- |
-| `null`    | `undefined` _(manual positioning)_                                                    |          |
-| `'index'` | `function` that returns the linear index                                              |          |
-| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in |          |
-| `'xy'`    | `function` that returns the final xy position                                         |          |
-| `'uv'`    | `function` that returns the final uv position of the canvas                           |          |
+| `null`    | `undefined` _(manual positioning)_                                                    | `object` |
+| `'index'` | `function` that returns the linear index                                              | `object` |
+| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in | `object` |
+| `'xy'`    | `function` that returns the final xy position                                         | `object` |
+| `'uv'`    | `function` that returns the final uv position of the canvas                           | `object` |
 | `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      | `object` |
+
+The following options are available for all types:
+
+- `options.onPile` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
 
 **Notes and examples:**
 
@@ -505,9 +510,51 @@ Position piles with user-specified arrangement method.
     piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
     ```
 
-#### `piling.arrangeByOnce(type, objective)`
+#### `piling.pileBy(type, objective, options)`
 
-Same as [`arrangeBy()`](#pilingarrangebytype-objective) but it applies the automatic pile arrangement only once and then switches back to manual pile arrangement.
+Programmatically group items and piles based on the layout, spatial proximity, or data together.
+
+`type`, `objective`, and `options` can be one of the following combinations:
+
+| Type       | Objective                                                                               | Options  |
+| ---------- | --------------------------------------------------------------------------------------- | -------- |
+| `row`      | `left`, `center` (default), or `right`                                                  |          |
+| `column`   | `top`, `center` (default), or `bottom`                                                  |          |
+| `grid`     | `null` (default) or `{ columns, cellAspectRatio}`                                       |          |
+| `overlap`  | Overlap threshold in square pixels. Default is `0`.                                     |          |
+| `distance` | Distance threshold in pixels. Default is `0`.                                           |          |
+| `category` | A `string`, `object`, `function`, or `array` of the previous types. See examples below. |          |
+| `cluster`  | A `string`, `object`, `function`, or `array` of the previous types. See examples below. | `object` |
+
+**Notes and examples:**
+
+```javascript
+piling.pileBy('row', 'left'); // Pile by row and align pile to the left most item/pile.
+
+piling.pileBy('column', 'top'); // Pile by column and align pile to the top most item/pile.
+
+piling.pileBy('grid'); // Pile by grid using the current layout
+piling.pileBy('grid', { columns: 10, cellAspectRatio: 1.5 }); // Pile by grid using a grid of 10 columns with a cell aspect ratio of 1.5 (= width/height)
+
+piling.pileBy('overlap'); // Pile all overlapping items/piles
+piling.pileBy('overlap', 64); // Pile all items/piles that overlap by 64 or more square pixels
+
+piling.pileBy('distance'); // Pile all items/piles that touch each other
+piling.pileBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
+
+piling.pileBy('category', 'country'); // Pile all items/piles that have the same country value
+piling.pileBy('category', item => item.country); // Same as before
+piling.pileBy('category', {
+  property: 'country',
+  aggregator: countries => countries[0]
+}); // Same as before but with a custom aggregator that simply picks the first country to define the category
+
+piling.pileBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
+piling.pileBy('cluster', item => item.x); // Same as above
+piling.pileBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
+piling.pileBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
+piling.pileBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
+```
 
 #### `piling.destroy()`
 
@@ -543,18 +590,19 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name         | Event Data            | Description                                              |
-| ------------ | --------------------- | -------------------------------------------------------- |
-| render       |                       | Published when the data has been rendered                |
-| update       | `{action}`            | Published when the redux store is updated                |
-| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile            |
-| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
-| pileFocus    | `{pile}`              | Published when the user focuses a pile                   |
-| pileBlur     | `{pile}`              | Published when the user blurs a pile                     |
-| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile       |
-| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile |
-| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
-| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
+| Name         | Event Data            | Description                                                            |
+| ------------ | --------------------- | ---------------------------------------------------------------------- |
+| render       |                       | Published when the data has been rendered                              |
+| update       | `{action}`            | Published when the redux store is updated                              |
+| itemUpdate   |                       | Published after items updates and their consequences have been applied |
+| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile                          |
+| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
+| pileFocus    | `{pile}`              | Published when the user focuses a pile                                 |
+| pileBlur     | `{pile}`              | Published when the user blurs a pile                                   |
+| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile                     |
+| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile               |
+| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                               |
+| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                                       |
 
 **Notes:**
 

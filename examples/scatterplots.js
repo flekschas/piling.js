@@ -119,10 +119,10 @@ const createScatterplotPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
-    previewSpacing: 3
+    previewSpacing: 1
   });
 
-  piling.arrangeByOnce('data', 'year');
+  piling.arrangeBy('data', 'year', { once: true });
 
   return piling;
 };

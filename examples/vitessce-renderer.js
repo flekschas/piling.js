@@ -3,7 +3,8 @@ import * as PIXI from 'pixi.js';
 
 import FS from './vitessce.fs';
 import VS from './vitessce.vs';
-import { CustomBufferResource, rgb2hsv } from './vitessce-utils';
+import { rgb2hsv } from './vitessce-utils';
+import { CustomBufferResource } from '../src/utils';
 
 const DEFAULT_COLORS = [
   [255, 0, 0],

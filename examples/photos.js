@@ -17,7 +17,7 @@ const createPhotoPiles = async element => {
 
   piling.set('pileCellAlignment', 'center');
 
-  piling.set('pileBorderSize', pile => pile.items.length - 1);
+  piling.set('pileBorderSize', pile => Math.log(pile.items.length));
 
   piling.set('pileItemOffset', () => [
     Math.random() * 20 - 10,

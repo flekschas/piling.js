@@ -2,17 +2,14 @@ import { assign, createWorker, pipe, withConstructor } from '@flekschas/utils';
 import umapScriptStr from '../node_modules/umap-js/lib/umap-js.min';
 
 import umapWorkerFn from './umap-worker';
-import { scaleLinear } from './utils';
+import scaleLinear from './utils/scale-linear';
+import createUrlScript from './utils/create-url-script';
 
 const createUmap = (config, { padding = 0.1 } = {}) => {
   const xScale = scaleLinear();
   const yScale = scaleLinear();
 
-  const umapUrl = window.URL.createObjectURL(
-    new Blob([umapScriptStr.replace('window', 'self')], {
-      type: 'text/javascript'
-    })
-  );
+  const umapUrl = createUrlScript(umapScriptStr.replace('window', 'self'));
 
   const umapWorker = createWorker(umapWorkerFn);
   umapWorker.postMessage({ task: 'create', config, umapUrl });
