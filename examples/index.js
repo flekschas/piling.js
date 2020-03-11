@@ -100,7 +100,8 @@ const pilingEls = {
   drawings: drawingsEl,
   joyplot: joyplotEl,
   vitessce: vitessceEl,
-  scatterplots: scatterplotsEl
+  scatterplots: scatterplotsEl,
+  timeseries: timeseriesEl
 };
 const createPiles = async example => {
   let additionalOptions;
