@@ -3183,8 +3183,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const expandPilingObjectiveOverlap = objectives =>
-    objectives.length === 1 ? [objectives[0], objectives[0]] : objectives;
+  const expandPilingObjectiveOverlap = objective =>
+    objective && objective.length === 1
+      ? [objective[0], objective[0]]
+      : objective || 1;
 
   const expandPilingObjectiveGrid = objective => {
     let expandedObjective = null;
