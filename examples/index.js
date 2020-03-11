@@ -845,13 +845,6 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
         const valueEl = document.createElement('span');
         valueEl.setAttribute('class', 'value');
-        if (field.dtype === 'int' && (field.min || field.max)) {
-          valueEl.textContent =
-            field.defaultValue !== undefined
-              ? field.defaultValue
-              : pilingLib.get(field.name);
-        }
-        labelTitle.appendChild(valueEl);
 
         const inputWrapper = document.createElement('div');
         inputWrapper.className = `input-wrapper ${
@@ -865,8 +858,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
         let newElements = addListeners(input, field, valueEl);
 
-        inputs.appendChild(input);
         newElements.forEach(el => inputs.appendChild(el));
+        inputs.appendChild(input);
+        if (field.dtype === 'int' && (field.min || field.max)) {
+          inputs.appendChild(valueEl);
+          valueEl.textContent =
+            field.defaultValue !== undefined
+              ? field.defaultValue
+              : pilingLib.get(field.name);
+        }
 
         if (subInput) {
           newElements = addListeners(subInput, field.subInput, valueEl, true);
