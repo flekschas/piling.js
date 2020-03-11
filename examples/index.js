@@ -320,6 +320,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     pileByGridCtx.stroke();
   };
 
+  let pileByRow = 'center';
+  let pileByColumn = 'top';
   let pileByOverlapSqPx = 1;
   let pileByDistancePx = 1;
   let pileByCategory;
@@ -395,24 +397,43 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     },
     {
       id: 'piling',
-      title: 'Piling',
+      title: 'Pile By...',
       fields: [
         {
-          name: 'Pile By Row',
+          name: 'Row',
+          width: '4rem',
           onClick: true,
           action: () => {
-            pilingLib.pileBy('row');
+            pilingLib.pileBy('row', pileByRow);
+          },
+          subInput: {
+            dtype: 'string',
+            values: ['left', 'center', 'right'],
+            defaultValue: pileByRow,
+            setter: direction => {
+              pileByRow = direction;
+            }
           }
         },
         {
-          name: 'Pile By Column',
+          name: 'Column',
+          width: '4rem',
           onClick: true,
           action: () => {
-            pilingLib.pileBy('column', 'top');
+            pilingLib.pileBy('column', pileByColumn);
+          },
+          subInput: {
+            dtype: 'string',
+            values: ['top', 'center', 'bottom'],
+            defaultValue: pileByColumn,
+            setter: direction => {
+              pileByColumn = direction;
+            }
           }
         },
         {
-          name: 'Pile By Grid',
+          name: 'Grid',
+          width: '4rem',
           onClick: true,
           action: () => {
             const objective =
@@ -438,92 +459,96 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             pileByGridActive = false;
             clearPileByGrid();
             pileByGrid.style.zIndex = -1;
-          }
-        },
-        {
-          name: 'Pile by grid: # columns',
-          dtype: 'int',
-          min: 1,
-          max: 20,
-          onInput: true,
-          setter: columns => {
-            pileByGridColumns = columns;
-            if (pileByGridActive && columns !== null) {
-              drawPileByGrid(columns);
-            } else {
+          },
+          subInput: {
+            name: 'Pile by grid: # columns',
+            dtype: 'int',
+            min: 1,
+            max: 20,
+            onInput: true,
+            setter: columns => {
+              pileByGridColumns = columns;
+              if (pileByGridActive && columns !== null) {
+                drawPileByGrid(columns);
+              } else {
+                clearPileByGrid();
+                pileByGrid.style.zIndex = -1;
+              }
+            },
+            nullifiable: true,
+            onMouseenter: () => {
+              if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+            },
+            onMousedown: () => {
+              pileByGridActive = true;
+              if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+            },
+            onMouseleave: function onMouseup() {
+              if (!pileByGridActive) {
+                clearPileByGrid();
+                pileByGrid.style.zIndex = -1;
+              }
+            },
+            onMouseup: function onMouseup() {
+              pileByGridActive = false;
               clearPileByGrid();
               pileByGrid.style.zIndex = -1;
             }
-          },
-          nullifiable: true,
-          onMouseenter: () => {
-            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
-          },
-          onMousedown: () => {
-            pileByGridActive = true;
-            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
-          },
-          onMouseleave: function onMouseup() {
-            if (!pileByGridActive) {
-              clearPileByGrid();
-              pileByGrid.style.zIndex = -1;
-            }
-          },
-          onMouseup: function onMouseup() {
-            pileByGridActive = false;
-            clearPileByGrid();
-            pileByGrid.style.zIndex = -1;
           }
         },
         {
-          name: 'Pile By Overlap',
+          name: 'Overlap',
+          width: '4rem',
           onClick: true,
           action: () => {
             pilingLib.pileBy('overlap', pileByOverlapSqPx);
+          },
+          subInput: {
+            name: 'Min overlap in pixel^2',
+            dtype: 'int',
+            min: 1,
+            max: 256,
+            defaultValue: 1,
+            onInput: true,
+            setter: sqPx => {
+              pileByOverlapSqPx = sqPx;
+            }
           }
         },
         {
-          name: 'Min overlap in pixel^2',
-          dtype: 'int',
-          min: 1,
-          max: 256,
-          defaultValue: 1,
-          onInput: true,
-          setter: sqPx => {
-            pileByOverlapSqPx = sqPx;
-          }
-        },
-        {
-          name: 'Pile By Distance',
+          name: 'Distance',
+          width: '4rem',
           onClick: true,
           action: () => {
             pilingLib.pileBy('distance', pileByDistancePx);
-          }
-        },
-        {
-          name: 'Min distance in pixel',
-          dtype: 'int',
-          min: 1,
-          max: 256,
-          defaultValue: 1,
-          onInput: true,
-          setter: px => {
-            pileByDistancePx = px;
-          }
-        },
-        {
-          name: 'Pile By Category',
-          onClick: true,
-          action: () => {
-            pilingLib.pileBy('category', pileByCategory);
+          },
+          subInput: {
+            name: 'Min distance in pixel',
+            dtype: 'int',
+            min: 1,
+            max: 256,
+            defaultValue: 1,
+            onInput: true,
+            setter: px => {
+              pileByDistancePx = px;
+            }
           }
         },
         {
           name: 'Category',
-          dtype: 'string',
-          values: categoricalProps,
-          setter: category => {
-            pileByCategory = category;
+          hide: categoricalProps.length === 0,
+          onClick: true,
+          width: '4rem',
+          action: () => {
+            pilingLib.pileBy('category', pileByCategory);
+          },
+          subInput: {
+            name: 'Category',
+            dtype: 'string',
+            values: categoricalProps,
+            setter: category => {
+              pileByCategory = category;
+            }
           }
         }
       ]
@@ -545,7 +570,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     string: v => v
   };
 
-  const createInput = field => {
+  const createInput = (field, isSub = false) => {
     const currentValue =
       !Number.isNaN(+field.defaultValue) || field.defaultValue
         ? field.defaultValue
@@ -555,6 +580,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       const button = document.createElement('button');
       button.className = 'button';
       button.textContent = field.name;
+      if (field.width) button.style.minWidth = field.width;
       return button;
     }
 
@@ -600,7 +626,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         return checkboxes;
       }
 
-      if (field.values.length > 3) {
+      if (field.values.length > 3 || isSub) {
         const select = document.createElement('select');
 
         field.values.forEach((value, i) => {
@@ -695,50 +721,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     return input;
   };
 
-  const optionsContent = document.querySelector('#options .content');
-  options.forEach(section => {
-    const validFields = section.fields.filter(
-      field => typeof field.values === 'undefined' || field.values.length
-    );
+  const addListeners = (input, field, valueEl) => {
+    const outElements = [];
+    let isSet = { checked: true }; // Just a dummy
 
-    if (!validFields.length) return;
-
-    const sectionEl = document.createElement('section');
-    sectionEl.id = section.id;
-    optionsContent.appendChild(sectionEl);
-
-    const headline = document.createElement('h4');
-    headline.textContent = section.title;
-    sectionEl.appendChild(headline);
-
-    const fields = document.createElement('div');
-    fields.setAttribute('class', 'fields');
-    sectionEl.appendChild(fields);
-
-    validFields.forEach(field => {
-      const label = document.createElement('div');
-      label.className = 'label-wrapper';
-      const labelTitle = document.createElement('div');
-      labelTitle.className = 'label-title';
-
-      const title = document.createElement('span');
-      title.setAttribute('class', 'title');
-      title.textContent = field.name;
-      labelTitle.appendChild(title);
-      label.appendChild(labelTitle);
-
-      const valueEl = document.createElement('span');
-      valueEl.setAttribute('class', 'value');
-      if (field.dtype === 'int' && (field.min || field.max)) {
-        valueEl.textContent = field.defaultValue || pilingLib.get(field.name);
-      }
-      labelTitle.appendChild(valueEl);
-
-      const inputs = document.createElement('div');
-      inputs.setAttribute('class', 'inputs');
-      const input = createInput(field);
-
-      const isSet = document.createElement('input');
+    if (!field.action) {
+      isSet = document.createElement('input');
       isSet.setAttribute('type', 'checkbox');
       if (field.nullifiable) {
         if (
@@ -774,57 +762,135 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       } else {
         isSet.checked = true;
         isSet.disabled = true;
-
-        if (field.action) {
-          isSet.style.display = 'none';
-          labelTitle.style.display = 'none';
-        }
       }
 
       if (!(field.values && (field.multiple || !field.nullifiable))) {
-        inputs.appendChild(isSet);
+        outElements.push(isSet);
+      }
+    }
+
+    let eventType = 'change';
+    if (field.onInput) eventType = 'input';
+    if (field.onClick) eventType = 'click';
+
+    input.addEventListener(eventType, event => {
+      let value = event.target.value;
+
+      if (field.values && field.multiple) {
+        value = input.value;
+        isSet.checked = value.length;
       }
 
-      let eventType = 'change';
-      if (field.onInput) eventType = 'input';
-      if (field.onClick) eventType = 'click';
+      if (isSet && isSet.checked) {
+        value = field.dtype && parseDtype[field.dtype](value);
 
-      input.addEventListener(eventType, event => {
-        let value = event.target.value;
-
-        if (field.values && field.multiple) {
-          value = input.value;
-          isSet.checked = value.length;
+        if (field.setter) {
+          field.setter(value);
+        } else if (field.action) {
+          field.action(value);
+        } else {
+          pilingLib.set(field.name, value);
         }
 
-        if (isSet && isSet.checked) {
-          value = field.dtype && parseDtype[field.dtype](value);
-
-          if (field.setter) {
-            field.setter(value);
-          } else if (field.action) {
-            field.action(value);
-          } else {
-            pilingLib.set(field.name, value);
-          }
-
-          if (field.dtype === 'int' && (field.min || field.max)) {
-            valueEl.textContent = value;
-          }
+        if (field.dtype === 'int' && (field.min || field.max)) {
+          valueEl.textContent = value;
         }
-      });
-
-      if (field.onMouseenter)
-        input.addEventListener('mouseenter', field.onMouseenter);
-      if (field.onMouseleave)
-        input.addEventListener('mouseleave', field.onMouseleave);
-      if (field.onMousedown)
-        input.addEventListener('mousedown', field.onMousedown);
-      if (field.onMouseup) input.addEventListener('mouseup', field.onMouseup);
-
-      inputs.appendChild(input);
-      label.appendChild(inputs);
-      fields.appendChild(label);
+      }
     });
+
+    if (field.onMouseenter)
+      input.addEventListener('mouseenter', field.onMouseenter);
+    if (field.onMouseleave)
+      input.addEventListener('mouseleave', field.onMouseleave);
+    if (field.onMousedown)
+      input.addEventListener('mousedown', field.onMousedown);
+    if (field.onMouseup) input.addEventListener('mouseup', field.onMouseup);
+
+    return outElements;
+  };
+
+  const optionsContent = document.querySelector('#options .content');
+  options.forEach(section => {
+    const validFields = section.fields.filter(
+      field => typeof field.values === 'undefined' || field.values.length
+    );
+
+    if (!validFields.length) return;
+
+    const sectionEl = document.createElement('section');
+    sectionEl.id = section.id;
+    optionsContent.appendChild(sectionEl);
+
+    const headline = document.createElement('h4');
+    headline.textContent = section.title;
+    sectionEl.appendChild(headline);
+
+    const fields = document.createElement('div');
+    fields.setAttribute('class', 'fields');
+    sectionEl.appendChild(fields);
+
+    validFields
+      .filter(field => !field.hide)
+      .forEach(field => {
+        const label = document.createElement('div');
+        label.className = 'label-wrapper';
+        const labelTitle = document.createElement('div');
+        labelTitle.className = 'label-title';
+
+        const title = document.createElement('span');
+        title.setAttribute('class', 'title');
+        title.textContent = field.name;
+        labelTitle.appendChild(title);
+        label.appendChild(labelTitle);
+
+        const valueEl = document.createElement('span');
+        valueEl.setAttribute('class', 'value');
+        if (field.dtype === 'int' && (field.min || field.max)) {
+          valueEl.textContent =
+            field.defaultValue !== undefined
+              ? field.defaultValue
+              : pilingLib.get(field.name);
+        }
+        labelTitle.appendChild(valueEl);
+
+        const inputWrapper = document.createElement('div');
+        inputWrapper.className = `input-wrapper ${
+          field.subInput ? 'with-sub-inputs' : ''
+        }`;
+        const inputs = document.createElement('div');
+        inputs.className = 'inputs';
+
+        const input = createInput(field);
+        const subInput = field.subInput && createInput(field.subInput, true);
+
+        let newElements = addListeners(input, field, valueEl);
+
+        inputs.appendChild(input);
+        newElements.forEach(el => inputs.appendChild(el));
+
+        if (subInput) {
+          newElements = addListeners(subInput, field.subInput, valueEl, true);
+          newElements.forEach(el => inputs.appendChild(el));
+          inputs.appendChild(subInput);
+          if (
+            field.subInput.dtype === 'int' &&
+            (field.subInput.min || field.subInput.max)
+          ) {
+            inputs.appendChild(valueEl);
+            valueEl.textContent =
+              field.subInput.defaultValue !== undefined
+                ? field.subInput.defaultValue
+                : pilingLib.get(field.name);
+          }
+        }
+
+        if (field.action) {
+          labelTitle.style.display = 'none';
+        }
+
+        inputWrapper.appendChild(inputs);
+        label.appendChild(inputWrapper);
+        fields.appendChild(label);
+      });
   });
 });

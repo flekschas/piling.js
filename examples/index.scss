@@ -434,6 +434,25 @@ body.permanent-options #group-by-grid {
     display: flex;
     align-items: center;
   }
+
+  .input-wrapper.with-sub-inputs {
+    display: flex;
+
+    .button {
+      white-space: nowrap;
+      margin-right: 0.25rem;
+    }
+
+    .inputs {
+      width: 100%;
+    }
+
+    .value {
+      font-size: 0.8em;
+      text-align: right;
+      width: 2rem;
+    }
+  }
 }
 
 body.permanent-options #options {
