@@ -1026,22 +1026,18 @@ const createPile = (
   const placeholderGfx = new PIXI.Graphics();
   let isPlaceholderDrawn = false;
 
-  const drawDot = (x, y, r, color) => {
-    placeholderGfx
-      .lineStyle(0)
-      .beginFill(color, 1)
-      .drawCircle(x, y, r)
-      .endFill();
-  };
-
   const drawPlaceholder = () => {
     const { width, height } = anchorBox;
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
 
-    drawDot(-width / 4, 0, r, color);
-    drawDot(0, 0, r, color);
-    drawDot(width / 4, 0, r, color);
+    placeholderGfx
+      .lineStyle(0)
+      .beginFill(color, 1)
+      .drawCircle(-width / 4, 0, r)
+      .drawCircle(0, 0, r)
+      .drawCircle(width / 4, 0, r)
+      .endFill();
 
     // Draw background
     placeholderGfx
