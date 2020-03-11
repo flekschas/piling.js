@@ -48,22 +48,28 @@ const renderRepresentative = async (
 
   const [rows, cols, aspectRatio] = getRegularGrid(n);
 
-  const width = 1.0;
-  const height = 1.0 / aspectRatio;
-  const cellWidth = width / cols;
-  const cellHeight = height / rows;
-  const cellAspectRatio = cellWidth / cellHeight;
+  const relWidth = 1.0;
+  const relHeight = 1.0 / aspectRatio;
+  const cellAspectRatio = relHeight;
 
   const gfx = new PIXI.Graphics();
 
-  let completeWidth = 0;
-  let completeHeight = 0;
+  let maxSize = -Infinity;
+
+  renderedItems.forEach(renderedItem => {
+    maxSize = Math.max(maxSize, renderedItem.width, renderedItem.height);
+  });
+
+  const width = maxSize;
+  const height = maxSize * cellAspectRatio;
+  const cellWidth = maxSize * (relWidth / cols);
+  const cellHeight = maxSize * (relHeight / rows);
 
   renderedItems.forEach((renderedItem, i) => {
-    const displayObject =
-      renderedItem instanceof PIXI.Texture
-        ? new PIXI.Sprite(renderedItem)
-        : renderedItem;
+    const isTexture = renderedItem instanceof PIXI.Texture;
+    const displayObject = isTexture
+      ? new PIXI.Sprite(renderedItem)
+      : renderedItem;
 
     const row = Math.floor(i / cols);
     const col = i % cols;
@@ -73,49 +79,56 @@ const renderRepresentative = async (
 
     const size = isMorePortrait ? displayObject.width : displayObject.height;
 
-    const cellAbsWidth = size * cellWidth;
-    const cellAbsHeight = size * cellHeight;
+    const scaleFactor = isMorePortrait
+      ? cellWidth / displayObject.width
+      : cellHeight / displayObject.height;
 
-    const xOffset = isMorePortrait ? 0 : (displayObject.width - size) / 2;
-    const yOffset = isMorePortrait ? (displayObject.height - size) / 2 : 0;
+    if (scaleFactor > 1) {
+      displayObject.width *= scaleFactor;
+      displayObject.height *= scaleFactor;
+    }
 
-    displayObject.x =
-      (col - 0.5) * cellAbsWidth + col * innerPadding + outerPadding - xOffset;
-    displayObject.y =
-      (row - 0.5) * cellAbsHeight + row * innerPadding + outerPadding - yOffset;
+    const objCol = isTexture ? col : col + 0.5;
+    const objRow = isTexture ? row : row + 0.5;
+
+    displayObject.x = objCol * cellWidth + col * innerPadding + outerPadding;
+    displayObject.y = objRow * cellHeight + row * innerPadding + outerPadding;
+
+    if (isTexture) {
+      const xOffset = isMorePortrait ? 0 : (displayObject.width - size) / 2;
+      const yOffset = isMorePortrait ? (displayObject.height - size) / 2 : 0;
+
+      displayObject.x -= xOffset;
+      displayObject.y -= yOffset;
+    }
 
     gfx.addChild(displayObject);
 
     const mask = new PIXI.Graphics();
     mask
-      .beginFill(0xff0000, 1.0)
+      .beginFill(0xff0000, 0.5)
       .drawRect(
-        (col - 0.5) * cellAbsWidth + col * innerPadding + outerPadding,
-        (row - 0.5) * cellAbsHeight + row * innerPadding + outerPadding,
-        cellAbsWidth,
-        cellAbsHeight
+        col * cellWidth + col * innerPadding + outerPadding,
+        row * cellHeight + row * innerPadding + outerPadding,
+        cellWidth,
+        cellHeight
       )
       .endFill();
-
-    completeWidth += cellAbsWidth;
-    completeHeight += cellAbsHeight;
 
     displayObject.mask = mask;
     gfx.addChild(mask);
   });
 
-  const finalWidth = completeWidth + (cols - 1) * innerPadding;
-  const finalHeight = completeHeight + (rows - 1) * innerPadding;
+  const finalWidth = width + (cols - 1) * innerPadding + 2 * outerPadding;
+  const finalHeight = height + (rows - 1) * innerPadding + 2 * outerPadding;
 
   gfx
     .beginFill(backgroundColor)
-    .drawRect(
-      -finalWidth / 2,
-      -finalHeight / 2,
-      finalWidth + 2 * outerPadding,
-      finalHeight + 2 * outerPadding
-    )
+    .drawRect(0, 0, finalWidth, finalHeight)
     .endFill();
+
+  gfx.pivot.x = finalWidth / 2;
+  gfx.pivot.y = finalHeight / 2;
 
   return gfx;
 };
