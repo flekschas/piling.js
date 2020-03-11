@@ -590,18 +590,19 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name         | Event Data            | Description                                              |
-| ------------ | --------------------- | -------------------------------------------------------- |
-| render       |                       | Published when the data has been rendered                |
-| update       | `{action}`            | Published when the redux store is updated                |
-| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile            |
-| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile            |
-| pileFocus    | `{pile}`              | Published when the user focuses a pile                   |
-| pileBlur     | `{pile}`              | Published when the user blurs a pile                     |
-| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile       |
-| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile |
-| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                 |
-| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                         |
+| Name         | Event Data            | Description                                                            |
+| ------------ | --------------------- | ---------------------------------------------------------------------- |
+| render       |                       | Published when the data has been rendered                              |
+| update       | `{action}`            | Published when the redux store is updated                              |
+| itemUpdate   |                       | Published after items updates and their consequences have been applied |
+| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile                          |
+| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
+| pileFocus    | `{pile}`              | Published when the user focuses a pile                                 |
+| pileBlur     | `{pile}`              | Published when the user blurs a pile                                   |
+| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile                     |
+| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile               |
+| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                               |
+| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                                       |
 
 **Notes:**
 

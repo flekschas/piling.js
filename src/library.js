@@ -1986,7 +1986,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all(
       groupsOfPileIds.map(
         pileIds =>
-          new Promise(resolve => {
+          new Promise((resolve, reject) => {
             const { easing, piles } = store.state;
             let finalX = startValues.x;
             let finalY = startValues.y;
@@ -2012,13 +2012,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             let done = 0;
             animator.addBatch(
               pileIds
-                .map(id =>
-                  animateMovePileTo(pileInstances.get(id), finalX, finalY, {
-                    easing,
-                    isBatch: true,
-                    onDone
-                  })
-                )
+                .map(id => {
+                  const pileInstance = pileInstances.get(id);
+                  if (!pileInstance) reject(new Error(`Pile #${id} not ready`));
+                  return animateMovePileTo(
+                    pileInstances.get(id),
+                    finalX,
+                    finalY,
+                    {
+                      easing,
+                      isBatch: true,
+                      onDone
+                    }
+                  );
+                })
                 .filter(identity)
             );
           })
@@ -2228,32 +2235,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const pileByColumn = async () =>
-    Object.entries(store.state.piles).reduce(
-      (groups, [pileId, pileState]) => {
-        if (pileState.items.length) {
-          const ij = layout.xyToIj(pileState.x, pileState.y);
-          groups[ij[1]].push(pileId);
-        }
-        return groups;
-      },
-      Array(layout.numColumns)
-        .fill()
-        .map(() => [])
-    );
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[1]]) groups[ij[1]] = [];
+        groups[ij[1]].push(pileId);
+      }
+      return groups;
+    }, []);
 
   const pileByRow = async () =>
-    Object.entries(store.state.piles).reduce(
-      (groups, [pileId, pileState]) => {
-        if (pileState.items.length) {
-          const ij = layout.xyToIj(pileState.x, pileState.y);
-          groups[ij[0]].push(pileId);
-        }
-        return groups;
-      },
-      Array(layout.numRows)
-        .fill()
-        .map(() => [])
-    );
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[0]]) groups[ij[0]] = [];
+        groups[ij[0]].push(pileId);
+      }
+      return groups;
+    }, []);
 
   const pileByCategory = async objective =>
     Object.values(
@@ -2693,12 +2692,43 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const itemUpdates = [];
+  const itemUpdatesConsequences = [];
+
+  let itemUpdateCalls = 0;
+  const awaitItemUpdates = newItemUpdates => {
+    if (newItemUpdates.length) {
+      // Add updates
+      itemUpdates.push(...newItemUpdates);
+
+      // We need to keep track of the update call as promises can be canceled
+      // and we really only want to apply the consequences once all the item
+      // updates finished.
+      const itemUpdateCall = ++itemUpdateCalls;
+      Promise.all(itemUpdates)
+        .then(() => {
+          if (itemUpdateCall === itemUpdateCalls)
+            // Apply all consequences and wait for them to finish
+            return Promise.all(
+              itemUpdatesConsequences.map(consequence => consequence())
+            );
+          return undefined; // No further actions
+        })
+        .then(() => {
+          // Clear consequences and updates
+          itemUpdatesConsequences.splice(0, itemUpdatesConsequences.length);
+          itemUpdates.splice(0, itemUpdates.length);
+          pubSub.publish('itemUpdate');
+        });
+    }
+  };
+
   const updated = () => {
     const newState = store.state;
 
     const stateUpdates = new Set();
 
-    const itemUpdates = [];
+    const currentItemUpdates = [];
     const updatedPileItems = [];
 
     if (state.items !== newState.items && state.itemRenderer) {
@@ -2722,15 +2752,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numDeletedItems = Object.keys(deletedItems).length;
 
       if (numNewItems) {
-        itemUpdates.push(createItemsAndPiles(newItems));
+        currentItemUpdates.push(createItemsAndPiles(newItems));
       }
 
       if (numUpdatedItems) {
-        itemUpdates.push(updateItemTexture(updatedItems));
+        currentItemUpdates.push(updateItemTexture(updatedItems));
       }
 
       if (numDeletedItems) {
-        itemUpdates.push(deleteItemsAndPiles(deletedItems));
+        currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
       }
 
       if (numNewItems || numDeletedItems) {
@@ -2740,17 +2770,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      state.itemRenderer !== newState.itemRenderer ||
-      state.previewRenderer !== newState.previewRenderer ||
-      state.coverRenderer !== newState.coverRenderer ||
-      state.previewAggregator !== newState.previewAggregator ||
-      state.coverAggregator !== newState.coverAggregator
+      Object.values(newState.items).length &&
+      (state.itemRenderer !== newState.itemRenderer ||
+        state.previewRenderer !== newState.previewRenderer ||
+        state.coverRenderer !== newState.coverRenderer ||
+        state.previewAggregator !== newState.previewAggregator ||
+        state.coverAggregator !== newState.coverAggregator)
     ) {
       if (renderedItems.size) {
-        itemUpdates.push(updateItemTexture());
+        currentItemUpdates.push(updateItemTexture());
       } else {
         // In case the user first setup the items and then defined the renderer
-        itemUpdates.push(createItemsAndPiles(newState.items));
+        currentItemUpdates.push(createItemsAndPiles(newState.items));
       }
     }
 
@@ -2949,7 +2980,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         (
           newState.arrangementType &&
           (
-            (itemUpdates.length || updatedPileItems.length) ||
+            (currentItemUpdates.length || updatedPileItems.length) ||
             (
               newState.arrangementObjective.length > 2 &&
               state.dimensionalityReducer !== newState.dimensionalityReducer
@@ -2959,10 +2990,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       )
     ) {
       stateUpdates.add('layout');
-      const newObjective = state.arrangementObjective !== newState.arrangementObjective;
-      Promise.all(itemUpdates).then(() => {
-        updateArrangement(updatedPileItems, newObjective);
-      });
+
+      const arrangementUpdater = ((_updatedPileItems, newObjective) => async () =>
+        updateArrangement(_updatedPileItems, newObjective)
+      )([...updatedPileItems], state.arrangementObjective !== newState.arrangementObjective)
+
+      if (currentItemUpdates.length) {
+        itemUpdatesConsequences.push(arrangementUpdater);
+      } else {
+        arrangementUpdater();
+      }
     }
 
     if (state.navigationMode !== newState.navigationMode) {
@@ -3007,19 +3044,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       stateUpdates.has('layout') ||
-      itemUpdates.length > 0 ||
+      currentItemUpdates.length > 0 ||
       updatedPileItems.length > 0
     ) {
-      const currUpdatedPileItems = [...updatedPileItems];
-      Promise.all(itemUpdates).then(() => {
-        // Reposition of all piles
-        positionPiles(currUpdatedPileItems);
-      });
+      const positionUpdater = (_updatedPileItems => async () =>
+        positionPiles(_updatedPileItems))([...updatedPileItems]);
+
+      if (currentItemUpdates.length) {
+        itemUpdatesConsequences.push(positionUpdater);
+      } else {
+        positionUpdater();
+      }
     }
 
     if (stateUpdates.has('navigation')) {
       updateNavigationMode();
     }
+
+    awaitItemUpdates(currentItemUpdates);
   };
 
   const resetPileBorder = () => {
