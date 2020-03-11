@@ -1035,13 +1035,19 @@ const createPile = (
   };
 
   const drawPlaceholder = () => {
-    const { width } = anchorBox;
+    const { width, height } = anchorBox;
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
 
     drawDot(-width / 4, 0, r, color);
     drawDot(0, 0, r, color);
     drawDot(width / 4, 0, r, color);
+
+    // Draw background
+    placeholderGfx
+      .beginFill(color, 0.1)
+      .drawRect(-width / 2, -height / 2, width, height)
+      .endFill();
 
     isPlaceholderDrawn = true;
 
