@@ -3170,15 +3170,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
-    const onGroup = !!options.onGroup;
-    delete options.onGroup;
+    const onPile = !!options.onPile;
+    delete options.onPile;
 
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true),
         ...set('arrangementOptions', options, true),
-        ...set('arrangementOnPile', onGroup, true)
+        ...set('arrangementOnPile', onPile, true)
       ])
     );
   };
