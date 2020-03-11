@@ -1411,6 +1411,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
+  const updatePileLabel = (pileState, id) => {
+    const pileInstance = pileInstances.get(id);
+    if (pileInstance) {
+      pileInstance.setLabel(pileState.label);
+    }
+  };
+
   const updateGridMat = pileId => {
     const mat = ndarray(
       new Uint16Array(new Array(layout.numColumns * layout.numRows).fill(0)),
@@ -2443,6 +2450,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             updatePilePosition(pile, id);
           }
 
+          if (pile.label !== state.piles[id].label) {
+            updatePileLabel(pile, id);
+          }
+
           updatePileStyle(pile, id);
         });
       }
@@ -3220,6 +3231,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     hideContextMenu(contextMenuElement);
   };
 
+  const labelGreenHandler = (contextMenuElement, pileId) => () => {
+    store.dispatch(createAction.setLabel(pileId, '0x00ff00'));
+    hideContextMenu(contextMenuElement);
+  };
+
+  const labelRedHandler = (contextMenuElement, pileId) => () => {
+    store.dispatch(createAction.setLabel(pileId, '0xff0000'));
+    hideContextMenu(contextMenuElement);
+  };
+
+  const removeLabelHandler = (contextMenuElement, pileId) => () => {
+    store.dispatch(createAction.removeLabel(pileId));
+    hideContextMenu(contextMenuElement);
+  };
+
   const contextmenuHandler = event => {
     closeContextMenu();
 
@@ -3254,6 +3280,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const toggleGridBtn = element.querySelector('#grid-button');
     const alignBtn = element.querySelector('#align-button');
     const magnifyBtn = element.querySelector('#magnify-button');
+    const lableGreenBtn = element.querySelector('#label-green');
+    const lableRedBtn = element.querySelector('#label-red');
+    const removeLabelBtn = element.querySelector('#remove-label');
 
     // click on pile
     if (clickedOnPile) {
@@ -3316,6 +3345,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       magnifyBtn.addEventListener(
         'click',
         pileMagnificationHandler(element, pile.id),
+        EVENT_LISTENER_PASSIVE
+      );
+      lableGreenBtn.addEventListener(
+        'click',
+        labelGreenHandler(element, pile.id),
+        EVENT_LISTENER_PASSIVE
+      );
+      lableRedBtn.addEventListener(
+        'click',
+        labelRedHandler(element, pile.id),
+        EVENT_LISTENER_PASSIVE
+      );
+      removeLabelBtn.addEventListener(
+        'click',
+        removeLabelHandler(element, pile.id),
         EVENT_LISTENER_PASSIVE
       );
 
