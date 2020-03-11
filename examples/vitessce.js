@@ -140,7 +140,8 @@ const createVitessce = async element => {
   };
 
   const representativeRenderer = createRepresentativeRenderer(
-    vitessceRenderer.renderer
+    vitessceRenderer.renderer,
+    { backgroundColor: 0xffffff }
   );
 
   const representativeAggregator = createRepresentativeAggregator(4, {
