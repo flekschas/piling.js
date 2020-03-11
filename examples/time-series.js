@@ -94,7 +94,9 @@ const createTimeSeriesPiles = async element => {
 
   let cameraScale = 1;
 
-  const representativeRenderer = createRepresentativeRenderer(imageRenderer);
+  const representativeRenderer = createRepresentativeRenderer(imageRenderer, {
+    backgroundColor: 0xffffff
+  });
 
   const representativeAggregator = createRepresentativeAggregator(1, {
     valueGetter: item => item.umap_gray
@@ -118,7 +120,9 @@ const createTimeSeriesPiles = async element => {
     darkMode: true
   });
 
-  piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray);
+  piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray, {
+    onPile: true
+  });
 
   let transformData = [];
 
