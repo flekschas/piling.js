@@ -5,6 +5,7 @@ import createScatterplotPiles from './scatterplots';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createJoyPlotPiles from './joy-plot';
+import createTimeSeriesPiles from './time-series';
 
 import './index.scss';
 
@@ -15,6 +16,7 @@ const scatterplotsEl = document.getElementById('scatterplots');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
 const joyplotEl = document.getElementById('joyplot');
+const timeseriesEl = document.getElementById('timeseries');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
@@ -23,6 +25,7 @@ const scatterplotsCreditEl = document.getElementById('scatterplots-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
 const joyplotCreditEl = document.getElementById('joyplot-credit');
+const timeseriesCreditEl = document.getElementById('timeseries-credit');
 
 const conditionalElements = [
   photosEl,
@@ -32,13 +35,15 @@ const conditionalElements = [
   drawingsEl,
   vitessceEl,
   joyplotEl,
+  timeseriesEl,
   photosCreditEl,
   matricesCreditEl,
   svgCreditEl,
   scatterplotsCreditEl,
   drawingsCreditEl,
   vitessceCreditEl,
-  joyplotCreditEl
+  joyplotCreditEl,
+  timeseriesCreditEl
 ];
 
 const optionsEl = document.getElementById('options');
@@ -95,7 +100,8 @@ const pilingEls = {
   drawings: drawingsEl,
   joyplot: joyplotEl,
   vitessce: vitessceEl,
-  scatterplots: scatterplotsEl
+  scatterplots: scatterplotsEl,
+  timeseries: timeseriesEl
 };
 const createPiles = async example => {
   let additionalOptions;
@@ -178,6 +184,17 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandler);
       break;
 
+    case 'timeseries':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      timeseriesEl.style.display = 'block';
+      timeseriesCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createTimeSeriesPiles(timeseriesEl);
+      history = [];
+      piling.subscribe('update', updateHandler);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -227,6 +244,10 @@ switch (example) {
 
   case 'scatterplots':
     exampleEl.selectedIndex = 6;
+    break;
+
+  case 'timeseries':
+    exampleEl.selectedIndex = 7;
     break;
 
   default:
@@ -845,13 +866,6 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
         const valueEl = document.createElement('span');
         valueEl.setAttribute('class', 'value');
-        if (field.dtype === 'int' && (field.min || field.max)) {
-          valueEl.textContent =
-            field.defaultValue !== undefined
-              ? field.defaultValue
-              : pilingLib.get(field.name);
-        }
-        labelTitle.appendChild(valueEl);
 
         const inputWrapper = document.createElement('div');
         inputWrapper.className = `input-wrapper ${
@@ -865,8 +879,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
         let newElements = addListeners(input, field, valueEl);
 
-        inputs.appendChild(input);
         newElements.forEach(el => inputs.appendChild(el));
+        inputs.appendChild(input);
+        if (field.dtype === 'int' && (field.min || field.max)) {
+          inputs.appendChild(valueEl);
+          valueEl.textContent =
+            field.defaultValue !== undefined
+              ? field.defaultValue
+              : pilingLib.get(field.name);
+        }
 
         if (subInput) {
           newElements = addListeners(subInput, field.subInput, valueEl, true);

@@ -37,53 +37,70 @@ const renderRepresentative = async (
   srcs,
   itemRenderer,
   {
-    size = 96,
     innerPadding = 2,
-    outerPadding = 0,
+    outerPadding = 2,
     backgroundColor = 0x000000,
     maxNumberOfRepresentatives = 9
   } = {}
 ) => {
   const n = Math.min(maxNumberOfRepresentatives, srcs.length);
-  const displayObjects = await itemRenderer(srcs.slice(0, n));
+  const renderedItems = await itemRenderer(srcs.slice(0, n));
 
   const [rows, cols, aspectRatio] = getRegularGrid(n);
 
-  const width = size;
-  const height = size / aspectRatio;
-  const cellWidth = width / cols;
-  const cellHeight = height / rows;
-  const cellAspectRatio = cellWidth / cellHeight;
+  const relWidth = 1.0;
+  const relHeight = 1.0 / aspectRatio;
+  const cellAspectRatio = relHeight;
 
   const gfx = new PIXI.Graphics();
-  gfx
-    .beginFill(backgroundColor)
-    .drawRect(
-      0,
-      0,
-      width + 2 * outerPadding + (cols - 1) * innerPadding,
-      height + 2 * outerPadding + (rows - 1) * innerPadding
-    )
-    .endFill();
 
-  displayObjects.forEach((displayObject, i) => {
+  let maxSize = -Infinity;
+
+  renderedItems.forEach(renderedItem => {
+    maxSize = Math.max(maxSize, renderedItem.width, renderedItem.height);
+  });
+
+  const width = maxSize;
+  const height = maxSize * cellAspectRatio;
+  const cellWidth = maxSize * (relWidth / cols);
+  const cellHeight = maxSize * (relHeight / rows);
+
+  renderedItems.forEach((renderedItem, i) => {
+    const isTexture = renderedItem instanceof PIXI.Texture;
+    const displayObject = isTexture
+      ? new PIXI.Sprite(renderedItem)
+      : renderedItem;
+
     const row = Math.floor(i / cols);
     const col = i % cols;
 
     const objectAspectRatio = displayObject.width / displayObject.height;
     const isMorePortrait = objectAspectRatio < cellAspectRatio;
 
+    const size = isMorePortrait ? displayObject.width : displayObject.height;
+
     const scaleFactor = isMorePortrait
       ? cellWidth / displayObject.width
       : cellHeight / displayObject.height;
 
-    displayObject.width *= scaleFactor;
-    displayObject.height *= scaleFactor;
+    if (scaleFactor > 1) {
+      displayObject.width *= scaleFactor;
+      displayObject.height *= scaleFactor;
+    }
 
-    displayObject.x =
-      (col + 0.5) * cellWidth + col * innerPadding + outerPadding;
-    displayObject.y =
-      (row + 0.5) * cellHeight + row * innerPadding + outerPadding;
+    const objCol = isTexture ? col : col + 0.5;
+    const objRow = isTexture ? row : row + 0.5;
+
+    displayObject.x = objCol * cellWidth + col * innerPadding + outerPadding;
+    displayObject.y = objRow * cellHeight + row * innerPadding + outerPadding;
+
+    if (isTexture) {
+      const xOffset = isMorePortrait ? 0 : (displayObject.width - size) / 2;
+      const yOffset = isMorePortrait ? (displayObject.height - size) / 2 : 0;
+
+      displayObject.x -= xOffset;
+      displayObject.y -= yOffset;
+    }
 
     gfx.addChild(displayObject);
 
@@ -101,6 +118,17 @@ const renderRepresentative = async (
     displayObject.mask = mask;
     gfx.addChild(mask);
   });
+
+  const finalWidth = width + (cols - 1) * innerPadding + 2 * outerPadding;
+  const finalHeight = height + (rows - 1) * innerPadding + 2 * outerPadding;
+
+  gfx
+    .beginFill(backgroundColor)
+    .drawRect(0, 0, finalWidth, finalHeight)
+    .endFill();
+
+  gfx.pivot.x = finalWidth / 2;
+  gfx.pivot.y = finalHeight / 2;
 
   return gfx;
 };

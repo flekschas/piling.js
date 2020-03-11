@@ -13,7 +13,7 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite } from './utils';
+import { cloneSprite, colorToDecAlpha } from './utils';
 
 import { INHERIT } from './defaults';
 
@@ -216,12 +216,17 @@ const createPile = (
     );
     borderGraphics.endFill();
 
+    let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
+    let opacity = state[`pileBorderOpacity${modeToString.get(mode) || ''}`];
+
+    color = isFunction(color)
+      ? colorToDecAlpha(color(state.piles[id]))[0]
+      : color;
+
+    opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
+
     // draw border
-    borderGraphics.lineStyle(
-      size,
-      state[`pileBorderColor${modeToString.get(mode) || ''}`],
-      state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
-    );
+    borderGraphics.lineStyle(size, color, opacity);
     borderGraphics.drawRect(
       x - borderOffset,
       y - borderOffset,

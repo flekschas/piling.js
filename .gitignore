@@ -9,6 +9,8 @@ coverage
 *.DS_cache
 .stats.html
 
+*.ipynb_checkpoints
+
 pids
 logs
 results

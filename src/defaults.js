@@ -41,6 +41,7 @@ export const NAVIGATION_MODES = [
   NAVIGATION_MODE_SCROLL
 ];
 
+export const DEFAULT_PILE_COVER_SCALE = 1.0;
 export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
 export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
 

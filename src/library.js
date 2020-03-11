@@ -211,6 +211,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
+    pileCoverScale: true,
     pileItemBrightness: true,
     pileItemOffset: true,
     pileItemOpacity: true,
@@ -219,16 +220,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemTint: true,
     pileBorderColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColor(color)];
         if (opacity !== null)
           actions.push(createAction.setPileBorderOpacity(opacity));
+
         return actions;
       }
     },
     pileBorderOpacity: true,
     pileBorderColorHover: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorHover(color)];
         if (opacity !== null)
@@ -239,6 +245,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorFocus(color)];
         if (opacity !== null)
@@ -249,6 +257,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorActive(color)];
         if (opacity !== null)
@@ -260,6 +270,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderSize: true,
     pileBackgroundColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBackgroundColor(color)];
         if (opacity !== null)
@@ -489,6 +501,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     translatePiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
+    pubSub.publish('zoom', camera);
   };
 
   const panZoomEndHandler = () => {
@@ -497,6 +510,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePiles();
+    pubSub.publish('zoom', camera);
   };
 
   let layout;
@@ -1337,6 +1351,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items,
       coverRenderer,
       coverAggregator,
+      pileCoverScale,
       previewAggregator
     } = store.state;
 
@@ -1357,7 +1372,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const coverImage = coverAggregator(itemsOnPile)
         .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => createScaledImage(coverTexture));
+        .then(([coverTexture]) => {
+          const scaledImage = createScaledImage(coverTexture);
+          const extraScale = isFunction(pileCoverScale)
+            ? pileCoverScale(pileState)
+            : pileCoverScale;
+          scaledImage.scale(scaledImage.scaleFactor * extraScale);
+          return scaledImage;
+        });
 
       pileInstance.cover(coverImage);
 
@@ -3148,21 +3170,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
-    const onGroup = !!options.onGroup;
-    delete options.onGroup;
+    const onPile = !!options.onPile;
+    delete options.onPile;
 
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true),
         ...set('arrangementOptions', options, true),
-        ...set('arrangementOnPile', onGroup, true)
+        ...set('arrangementOnPile', onPile, true)
       ])
     );
   };
 
-  const expandPilingObjectiveOverlap = objectives =>
-    objectives.length === 1 ? [objectives[0], objectives[0]] : objectives;
+  const expandPilingObjectiveOverlap = objective =>
+    objective && objective.length === 1
+      ? [objective[0], objective[0]]
+      : objective || 1;
 
   const expandPilingObjectiveGrid = objective => {
     let expandedObjective = null;
