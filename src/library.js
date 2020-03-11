@@ -1986,7 +1986,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.all(
       groupsOfPileIds.map(
         pileIds =>
-          new Promise(resolve => {
+          new Promise((resolve, reject) => {
             const { easing, piles } = store.state;
             let finalX = startValues.x;
             let finalY = startValues.y;
@@ -2012,13 +2012,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             let done = 0;
             animator.addBatch(
               pileIds
-                .map(id =>
-                  animateMovePileTo(pileInstances.get(id), finalX, finalY, {
+                .map(id => {
+                  const pileInstance = pileInstances.get(id);
+                  if (!pileInstance) reject(new Error(`Pile #${id} not ready`));
+                  return animateMovePileTo(pileInstance, finalX, finalY, {
                     easing,
                     isBatch: true,
                     onDone
-                  })
-                )
+                  });
+                })
                 .filter(identity)
             );
           })
@@ -2228,32 +2230,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const pileByColumn = async () =>
-    Object.entries(store.state.piles).reduce(
-      (groups, [pileId, pileState]) => {
-        if (pileState.items.length) {
-          const ij = layout.xyToIj(pileState.x, pileState.y);
-          groups[ij[1]].push(pileId);
-        }
-        return groups;
-      },
-      Array(layout.numColumns)
-        .fill()
-        .map(() => [])
-    );
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[1]]) groups[ij[1]] = [];
+        groups[ij[1]].push(pileId);
+      }
+      return groups;
+    }, []);
 
   const pileByRow = async () =>
-    Object.entries(store.state.piles).reduce(
-      (groups, [pileId, pileState]) => {
-        if (pileState.items.length) {
-          const ij = layout.xyToIj(pileState.x, pileState.y);
-          groups[ij[0]].push(pileId);
-        }
-        return groups;
-      },
-      Array(layout.numRows)
-        .fill()
-        .map(() => [])
-    );
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[0]]) groups[ij[0]] = [];
+        groups[ij[0]].push(pileId);
+      }
+      return groups;
+    }, []);
 
   const pileByCategory = async objective =>
     Object.values(
