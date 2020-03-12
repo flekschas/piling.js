@@ -114,12 +114,23 @@ const createScatterplotPiles = async element => {
     previewRenderer: previewRenderer.renderer,
     items,
     columns: Object.keys(data).length,
-    cellPadding: 6,
+    cellPadding: 12,
     cellAspectRatio,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
-    previewSpacing: 1
+    previewSpacing: 1,
+    itemLabel: ['region'],
+    itemLabelColor: [
+      '0xe05aa9',
+      '0xe0722b',
+      '0xe0a638',
+      '0xe0d42c',
+      '0x62d9a5',
+      '0x48a5ff',
+      '0xae77f5'
+    ],
+    itemLabelText: ['NA', 'LA', 'EA', 'ME', 'A', 'SA', 'EA']
   });
 
   piling.arrangeBy('data', 'year', { once: true });
