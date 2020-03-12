@@ -353,6 +353,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       title: 'Grid',
       fields: [
         {
+          name: 'cellSize',
+          dtype: 'int',
+          min: 16,
+          max: 320,
+          numSteps: 16,
+          nullifiable: true
+        },
+        {
           name: 'itemSize',
           dtype: 'int',
           min: 16,

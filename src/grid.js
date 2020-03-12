@@ -18,12 +18,13 @@ const createGrid = (
     rowHeight = null,
     cellAspectRatio = 1,
     pileCellAlignment = 'topLeft',
-    cellPadding = 0
+    cellPadding = 0,
+    cellSize = null
   } = {}
 ) => {
   let numColumns = columns;
 
-  if (!+itemSize && !+columns) {
+  if (!+cellSize && !+itemSize && !+columns) {
     numColumns = 10;
   }
 
@@ -31,8 +32,16 @@ const createGrid = (
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
 
-  if (+itemSize) {
+  if (+itemSize && !+cellSize) {
     columnWidth = itemSize + cellPadding * 2;
+    numColumns = Math.floor(width / columnWidth);
+    cellWidth = itemSize;
+  }
+
+  if (+cellSize) {
+    columnWidth = cellSize;
+    // eslint-disable-next-line no-param-reassign
+    itemSize = cellSize - cellPadding * 2;
     numColumns = Math.floor(width / columnWidth);
     cellWidth = itemSize;
   }

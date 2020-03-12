@@ -142,6 +142,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     backgroundColor: true,
     cellAspectRatio: true,
     cellPadding: true,
+    cellSize: true,
     columns: true,
     coverAggregator: true,
     coverRenderer: true,
@@ -198,6 +199,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         cellAspectRatio: layout.cellAspectRatio,
         cellHeight: layout.cellHeight,
         cellPadding: layout.cellPadding,
+        cellSize: layout.cellSize,
         cellWidth: layout.cellWidth,
         columnWidth: layout.columnWidth,
         height: layout.height,
@@ -2882,6 +2884,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.cellPadding !== newState.cellPadding ||
+      state.cellSize !== newState.cellSize ||
       state.orderer !== newState.orderer ||
       state.pileCellAlignment !== newState.pileCellAlignment
     ) {
