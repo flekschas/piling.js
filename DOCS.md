@@ -170,6 +170,9 @@ The list of all understood properties is given below.
 | easing                     | function                | cubicInOut   | see [`notes`](#notes)                                                | `true`     |
 | gridColor                  | string or int           | `0x787878`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | gridOpacity                | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
+| itemLabel                  | string, array, function or object |    | see [`notes`](#notes)                                                  | `true`    |
+| itemLabelColor             | array or function       |              | see [`notes`](#notes)                                                  | `true`    |
+| itemLabelText              | array or function       | `false`      | see [`notes`](#notes)                                                  | `true`    |
 | items                      | array                   | `[]`         | see [`data`](#data)                                                  | `false`    |
 | itemSize                   | int                     |              | number of pixels                                                     | `true`     |
 | itemSizeRange              | array                   | `[0.7, 0.9]` | array of two numbers between (0, 1)                                  | `true`     |
@@ -397,6 +400,49 @@ The list of all understood properties is given below.
     // Calculate the position
     return [x, y];
   });
+  ```
+
+- `itemLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
+
+  ```javascript
+  piling.set('itemLabel', 'country');
+  piling.set('itemLabel', itemState => itemState.country);
+  piling.set('itemLabel', ['country', 'year']);
+  piling.set('itemLabel', { property: item => item.country, aggregator: countries => countries[0] });
+  ```
+
+- `itemLabelColor` can be set to an `array` of RGB strings, or a callback function. E.g.,
+
+  ```javascript
+  piling.set('itemLabelColor', ['0xe05aa9', '0xe0722b', '0xe0a638']);
+  piling.set('itemLabelColor', (label, allLabels) => myOwnFancyColorMap[label]);
+  ```
+
+  The callback function receives the current label (`string`), and an array of all the labels, and it should return an RGB string. The signature is as follows:
+
+  ```javascript
+    function (label, allLabels) {
+      // Create color map
+      return color;
+    }
+  ```
+
+- `itemLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,
+
+  ```javascript
+  piling.set('itemLabelText', false); // default, i.e., no text by default
+  piling.set('itemLabelText', true); // simply show the label string
+  piling.set('itemLabelText', ['red', 'blue', 'yellow', 'green']);
+  piling.set('itemLabelText', (label, allLabels) => `#{abbreviation[label]}`);
+  ```
+
+  The callback function receives the current label (`string`), and an array of all the labels, and it should return a text string. The signature is as follows:
+
+  ```javascript
+    function (label, allLabels) {
+      // Create text
+      return text;
+    }
   ```
 
 #### `piling.arrangeBy(type, objective, options)`
