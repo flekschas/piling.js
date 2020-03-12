@@ -142,6 +142,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     dimensionalityReducer: true,
     easing: true,
     coverAggregator: true,
+    itemLabel: true,
+    itemLabelColor: true,
+    itemLabelText: true,
     items: {
       get: () => Object.values(state.items),
       set: newItems => [

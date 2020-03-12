@@ -172,6 +172,12 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter(
   DEFAULT_LASSO_STROKE_SIZE
 );
 
+const [itemLabel, setItemLabel] = setter('itemLabel');
+
+const [itemLabelColor, setItemLabelColor] = setter('itemLabelColor');
+
+const [itemLabelText, setItemLabelText] = setter('itemLabelText');
+
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
@@ -553,6 +559,9 @@ const createStore = () => {
     gridOpacity,
     darkMode,
     popupBackgroundOpacity,
+    itemLabel,
+    itemLabelColor,
+    itemLabelText,
     itemRenderer,
     items,
     itemSize,
@@ -691,6 +700,9 @@ export const createAction = {
   setGridOpacity,
   setDarkMode,
   setPopupBackgroundOpacity,
+  setItemLabel,
+  setItemLabelColor,
+  setItemLabelText,
   setItemRenderer,
   setItems,
   setItemSize,
