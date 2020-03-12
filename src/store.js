@@ -3,7 +3,6 @@ import {
   camelToConst,
   deepClone,
   cubicInOut,
-  unique,
   update,
   withForwardedMethod,
   withReadOnlyProperty,
@@ -390,7 +389,6 @@ const piles = (previousState = {}, action) => {
           items: [itemId],
           x: null,
           y: null,
-          label: [],
           ...previousPileState
         };
 
@@ -426,11 +424,6 @@ const piles = (previousState = {}, action) => {
         };
 
         newState[target].items.push(...newState[source].items);
-
-        const label = [...newState[target].label];
-        label.push(...newState[source].label);
-        newState[target].label = unique(label);
-
         newState[source] = {
           ...newState[source],
           items: [],
@@ -456,15 +449,11 @@ const piles = (previousState = {}, action) => {
           ...newState[target],
           items: [...newState[target].items],
           x: centerX,
-          y: centerY,
-          label: [...newState[target].label]
+          y: centerY
         };
-
-        const label = [...newState[target].label];
 
         sourcePileIds.forEach(id => {
           newState[target].items.push(...newState[id].items);
-          label.push(...newState[id].label);
           newState[id] = {
             ...newState[id],
             items: [],
@@ -472,8 +461,6 @@ const piles = (previousState = {}, action) => {
             y: null
           };
         });
-
-        newState[target].label = unique(label);
       }
       return newState;
     }
@@ -501,50 +488,14 @@ const piles = (previousState = {}, action) => {
 
       depilePiles.forEach(pile => {
         pile.items.forEach(itemId => {
-          const label = newState[itemId].label.length
-            ? [newState[itemId].label[0]]
-            : [];
-
           newState[itemId] = {
             ...newState[itemId],
             items: [itemId],
             x: pile.x,
-            y: pile.y,
-            label
+            y: pile.y
           };
         });
       });
-      return newState;
-    }
-
-    case 'SET_LABEL': {
-      const newState = { ...previousState };
-
-      const id = action.payload.pileId;
-      const color = action.payload.color;
-
-      newState[id].items.forEach(itemId => {
-        newState[itemId] = {
-          ...newState[itemId],
-          label: [color]
-        };
-      });
-
-      return newState;
-    }
-
-    case 'REMOVE_LABEL': {
-      const newState = { ...previousState };
-
-      const id = action.payload.pileId;
-
-      newState[id].items.forEach(itemId => {
-        newState[itemId] = {
-          ...newState[itemId],
-          label: []
-        };
-      });
-
       return newState;
     }
 
@@ -572,16 +523,6 @@ const movePiles = movingPiles => ({
 const depilePiles = depiledPiles => ({
   type: 'DEPILE_PILES',
   payload: { piles: depiledPiles }
-});
-
-const setLabel = (pileId, color) => ({
-  type: 'SET_LABEL',
-  payload: { pileId, color }
-});
-
-const removeLabel = pileId => ({
-  type: 'REMOVE_LABEL',
-  payload: { pileId }
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -731,8 +672,6 @@ export const createAction = {
   initPiles,
   mergePiles,
   movePiles,
-  setLabel,
-  removeLabel,
   setCoverRenderer,
   setArrangementObjective,
   setArrangementOnce,
