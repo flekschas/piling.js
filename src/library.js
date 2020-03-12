@@ -29,7 +29,8 @@ import {
   removeClass,
   sortPos,
   sum,
-  sumVector
+  sumVector,
+  unique
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
@@ -2721,6 +2722,81 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const allLabels = new Map();
+
+  const setPileLabel = (pileState, pileId, reset = false) => {
+    const {
+      items,
+      itemLabel,
+      itemLabelColor,
+      itemLabelText,
+      piles
+    } = store.state;
+
+    if (!itemLabel) return;
+
+    const objective = expandLabelObjective(itemLabel);
+
+    if (!allLabels.size || reset) {
+      let labelArray = Object.entries(piles).reduce((labels, [, pile]) => {
+        if (!pile.items.length) return labels;
+
+        const label = objective.flatMap(o => {
+          if (o.aggregator) {
+            return o.aggregator(
+              pile.items.map(itemId => o.property(items[itemId]))
+            );
+          }
+          return pile.items.map(itemId => o.property(items[itemId]));
+        });
+
+        return [...labels, ...label];
+      }, []);
+
+      labelArray = unique(labelArray);
+      labelArray.forEach((label, index) => {
+        allLabels.set(label, index);
+      });
+    }
+
+    const pileInstance = pileInstances.get(pileId);
+
+    if (!pileInstance) return;
+
+    const label = unique(
+      objective.flatMap(o => {
+        if (o.aggregator) {
+          return o.aggregator(
+            pileState.items.map(itemId => o.property(items[itemId]))
+          );
+        }
+        return pileState.items.map(itemId => o.property(items[itemId]));
+      })
+    );
+
+    const color = label.map(l =>
+      isFunction(itemLabelColor)
+        ? itemLabelColor(l, allLabels)
+        : itemLabelColor[allLabels.get(l)]
+    );
+
+    let text = [];
+
+    if (itemLabelText) {
+      text = label.map(l => {
+        if (isFunction(itemLabelText)) {
+          return itemLabelText(l, allLabels);
+        }
+        if (itemLabelText.constructor === Array) {
+          return itemLabelText[allLabels.get(l)];
+        }
+        return l;
+      });
+    }
+
+    pileInstance.drawLabel(label, color, text);
+  };
+
   const itemUpdates = [];
   const itemUpdatesConsequences = [];
 
@@ -2849,8 +2925,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
 
           updatePileStyle(pile, id);
+          setPileLabel(pile, id);
         });
       }
+    }
+
+    if (
+      pileInstances.size &&
+      (state.itemLabel !== newState.itemLabel ||
+        state.itemLabelColor !== newState.itemLabelColor ||
+        state.itemLabelText !== newState.itemLabelText)
+    ) {
+      Object.entries(newState.piles).forEach(([id, pile], index) => {
+        setPileLabel(pile, id, !index);
+      });
     }
 
     if (
@@ -3273,6 +3361,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       default:
         return objective;
     }
+  };
+
+  const expandLabelObjective = objective => {
+    const objectives = Array.isArray(objective) ? objective : [objective];
+
+    return objectives.map(_objective => {
+      const expandedObjective = {};
+
+      if (isObject(objective)) {
+        expandedObjective.property = expandProperty(_objective.property);
+        expandedObjective.aggregator = isFunction(_objective.aggregator)
+          ? _objective.aggregator
+          : null;
+      } else {
+        expandedObjective.property = expandProperty(_objective);
+        expandedObjective.aggregator = null;
+      }
+
+      return expandedObjective;
+    });
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {
