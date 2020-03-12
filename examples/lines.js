@@ -20,7 +20,7 @@ const createRandomLinePlot = () => {
 const createSvgLinesPiles = element => {
   const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
 
-  let data = new Array(5).fill().map((_, i) => ({
+  let data = new Array(100).fill().map((_, i) => ({
     id: i.toString(),
     src: createRandomLinePlot()
   }));

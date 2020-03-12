@@ -95,16 +95,16 @@ const createSvgLinesPiles = async element => {
   const numYearPerStep = 10;
 
   const items = data.flatMap((kdes, month) =>
-    kdes.map((kde, decade) => {
-      const years = `${startYear + numYearPerStep * decade}-${startYear +
-        numYearPerStep * (decade + 1) -
+    kdes.map((kde, numDecade) => {
+      const years = `${startYear + numYearPerStep * numDecade}-${startYear +
+        numYearPerStep * (numDecade + 1) -
         1}`;
       return {
         kde,
         src: createLinePlot(kde, years, month),
-        years,
-        month,
-        decade
+        decade: years,
+        month: months[month],
+        numDecade
       };
     })
   );
@@ -126,7 +126,7 @@ const createSvgLinesPiles = async element => {
     lassoStrokeColor: '#000000'
   });
 
-  piling.arrangeByOnce('data', 'decade');
+  piling.arrangeBy('data', 'numDecade');
 
   return piling;
 };

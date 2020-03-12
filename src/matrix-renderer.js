@@ -1,51 +1,13 @@
 import * as PIXI from 'pixi.js';
-import createRegl from 'regl';
 
-const VS = `
-  precision mediump float;
+import { CustomBufferResource } from './utils';
 
-  attribute vec2 aPosition;
+import FS from './matrix-renderer.fs';
+import VS from './matrix-renderer.vs';
 
-  // index into the texture state
-  varying vec2 vTexIdx;
+const BLACK_WHITE_COLOR_MAP = [];
 
-  void main() {
-    // map bottom left -1,-1 (normalized device coords) to 0,0 (particle texture index)
-    // and 1,1 (ndc) to 1,1 (texture)
-    vTexIdx = 0.5 * (1.0 + aPosition);
-    gl_Position = vec4(aPosition, 0, 1);
-  }
-`;
-
-const FS = `
-  precision mediump float;
-
-  uniform sampler2D uDataTex;
-  uniform float uMinValue;
-  uniform float uMaxValue;
-  uniform sampler2D uColorMapTex;
-  uniform float uColorMapRes;
-
-  varying vec2 vTexIdx;
-
-  vec3 toColor(float value) {
-    // Linear index into the colormap, e.g., 5 means the 5th color
-    float linIdx = (value - uMinValue) / uMaxValue * uColorMapRes * uColorMapRes;
-    // Texture index into the colormap texture
-    vec2 texIdx = vec2(
-      (mod(linIdx, uColorMapRes) / uColorMapRes),
-      (floor(linIdx / uColorMapRes) / uColorMapRes)
-    );
-    return texture2D(uColorMapTex, texIdx).xyz;
-  }
-
-  void main() {
-    float value = texture2D(uDataTex, vTexIdx).x;
-    gl_FragColor = vec4(toColor(value), 1.0);
-  }
-`;
-
-const createColorTexture = (regl, colors) => {
+const createColorTexture = colors => {
   const colorTexRes = Math.max(2, Math.ceil(Math.sqrt(colors.length)));
   const rgba = new Float32Array(colorTexRes ** 2 * 4);
   colors.forEach((color, i) => {
@@ -55,101 +17,95 @@ const createColorTexture = (regl, colors) => {
     rgba[i * 4 + 3] = color[3]; // a
   });
 
-  return [
-    regl.texture({
-      data: rgba,
-      shape: [colorTexRes, colorTexRes, 4],
-      type: 'float'
-    }),
-    colorTexRes
-  ];
+  return [PIXI.Texture.fromBuffer(rgba, colorTexRes, colorTexRes), colorTexRes];
 };
 
 const createMatrixRenderer = ({
-  colorMap,
-  shape: dataShape,
-  minValue = 0,
-  maxValue = 1
-}) => sources => {
-  const canvas = document.createElement('canvas');
+  colorMap = BLACK_WHITE_COLOR_MAP,
+  domain = [0, 1],
+  shape
+} = {}) => {
+  const geometry = new PIXI.Geometry();
+  geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
+  geometry.addAttribute('aTextureCoord', [0, 1, 1, 1, 1, 0, 0, 0], 2);
+  geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
-  const regl = createRegl({
-    canvas,
-    // needed for float textures
-    extensions: 'OES_texture_float'
-  });
+  const [uColorMapTex, uColorMapTexRes] = createColorTexture(colorMap);
 
-  const textureBuffer = new Float32Array(dataShape[0] * dataShape[1] * 4);
-  const texture = regl.texture({
-    data: textureBuffer,
-    shape: [...dataShape, 4],
-    type: 'float'
-  });
+  const uColorMapSize = colorMap.length - 1;
 
-  const framebuffer = regl.framebuffer({
-    color: texture,
-    depth: false,
-    stencil: false
-  });
+  let allUniforms = [];
 
-  const [uColorMapTex, uColorMapRes] = createColorTexture(regl, colorMap);
+  const renderer = async sources =>
+    Promise.all(
+      sources.map(async source => {
+        const [height, width] = shape || source.shape;
 
-  let dataTexture;
+        const createDataTexture = data => {
+          const resource = new CustomBufferResource(new Float32Array(data), {
+            width,
+            height,
+            internalFormat: 'R32F',
+            format: 'RED',
+            type: 'FLOAT'
+          });
 
-  const renderTexture = regl({
-    framebuffer: () => framebuffer,
-
-    vert: VS,
-    frag: FS,
-
-    attributes: {
-      // a triangle big enough to fill the screen
-      aPosition: [-4, 0, 4, 4, 4, -4]
-    },
-
-    uniforms: {
-      uColorMapTex,
-      uColorMapRes,
-      uMinValue: minValue,
-      uMaxValue: maxValue,
-      // Must use a function to pick up the most current `dataTexture`
-      uDataTex: () => dataTexture
-    },
-
-    count: 3
-  });
-
-  const textures = sources.map(
-    ({ data, shape, dtype }) =>
-      new Promise((resolve, reject) => {
-        if (shape[0] !== dataShape[0] || shape[1] !== dataShape[1]) {
-          reject(
-            new Error('The renderer currently only matrices of equal shape.')
+          return new PIXI.Texture(
+            new PIXI.BaseTexture(resource, {
+              scaleMode: PIXI.SCALE_MODES.NEAREST
+            })
           );
-        }
+        };
 
-        dataTexture = regl.texture({
-          data,
-          shape: [...shape, 1],
-          type: dtype
+        const uniforms = new PIXI.UniformGroup({
+          uColorMapTex,
+          uColorMapTexRes,
+          uColorMapSize,
+          uMinValue: domain[0],
+          uMaxValue: domain[1],
+          uDataTex: createDataTexture(source.data)
         });
 
-        regl.clear({
-          // background color (transparent)
-          color: [0, 0, 0, 0],
-          depth: 1
-        });
+        allUniforms.push(uniforms);
 
-        renderTexture(() => {
-          regl.draw();
-          resolve(PIXI.Texture.fromBuffer(regl.read(), ...shape));
-        });
+        const shader = PIXI.Shader.from(VS, FS, uniforms);
+
+        const state = new PIXI.State();
+
+        const mesh = new PIXI.Mesh(geometry, shader, state);
+        mesh.width = width;
+        mesh.height = height;
+
+        return mesh;
       })
-  );
+    );
 
-  framebuffer.destroy();
+  const setColorMap = newColorMap => {
+    const [newColorMapTex, newColorMapTexRes] = createColorTexture(newColorMap);
 
-  return Promise.all(textures);
+    allUniforms.forEach(({ uniforms }) => {
+      uniforms.uColorMapTex = newColorMapTex;
+      uniforms.uColorMapTexRes = newColorMapTexRes;
+    });
+  };
+
+  const setDomain = newDomain => {
+    allUniforms.forEach(({ uniforms }) => {
+      uniforms.uMinValue = newDomain[0];
+      uniforms.uMaxValue = newDomain[1];
+    });
+  };
+
+  const clear = () => {
+    allUniforms = [];
+  };
+
+  return {
+    clear,
+    renderer,
+    setColorMap,
+    setDomain
+  };
 };
 
 export default createMatrixRenderer;

@@ -140,7 +140,8 @@ const createVitessce = async element => {
   };
 
   const representativeRenderer = createRepresentativeRenderer(
-    vitessceRenderer.renderer
+    vitessceRenderer.renderer,
+    { backgroundColor: 0xffffff }
   );
 
   const representativeAggregator = createRepresentativeAggregator(4, {
@@ -171,7 +172,7 @@ const createVitessce = async element => {
   const additionalSidebarOptions = [
     {
       id: 'factor',
-      title: 'Cluster',
+      title: 'Subset',
       fields: [
         {
           name: 'items',
@@ -227,6 +228,15 @@ const createVitessce = async element => {
       ]
     }
   ];
+
+  // setTimeout(() => {
+  //   piling.pileBy('cluster', [
+  //     {
+  //       property: 'embeddingTsne',
+  //       propertyIsVector: true
+  //     }
+  //   ]);
+  // }, 5000);
 
   return [piling, additionalSidebarOptions];
 };

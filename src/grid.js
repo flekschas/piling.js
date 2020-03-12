@@ -1,7 +1,5 @@
-import { l2Norm, normalize } from '@flekschas/utils';
+import { l1PointDist, l2Norm, normalize } from '@flekschas/utils';
 import clip from 'liang-barsky';
-
-import { l1Dist } from './utils';
 
 /**
  * Factory function to create a grid
@@ -13,19 +11,17 @@ import { l1Dist } from './utils';
  * @param {number} cellPadding - The padding between items
  */
 const createGrid = (
-  { width, height },
+  { width, height, orderer },
   {
     itemSize = null,
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
-    orderer,
     pileCellAlignment = 'topLeft',
     cellPadding = 0
   } = {}
 ) => {
   let numColumns = columns;
-  let numRows = 0;
 
   if (!+itemSize && !+columns) {
     numColumns = 10;
@@ -59,13 +55,15 @@ const createGrid = (
   const rowHeightHalf = rowHeight / 2;
   const cellDiameterWithPadding = l2Norm([columnWidthHalf, rowHeightHalf]);
 
+  let numRows = Math.ceil(height / rowHeight);
+
   /**
    * Convert an i,j cell position to a linear index
-   * @param   {number}  i  Position on the x-axis
-   * @param   {number}  j  Position on the y-axis
+   * @param   {number}  i  Row number
+   * @param   {number}  j  Column number
    * @return  {number}  Index of the i,j-th cell
    */
-  const ijToIdx = (i, j) => j * numColumns + i;
+  const ijToIdx = (i, j) => i * numColumns + j;
 
   /**
    * Convert an index to the i,j cell position
@@ -75,16 +73,27 @@ const createGrid = (
   const idxToIj = orderer(numColumns);
 
   /**
+   * Convert XY to IJ position
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @return {array} Tuple with rowNumber and column number, i.e., [i,j]
+   */
+  const xyToIj = (x, y) => [
+    Math.floor(y / rowHeight),
+    Math.floor(x / columnWidth)
+  ];
+
+  /**
    * Convert the i,j cell position to an x,y pixel position
-   * @param   {number}  i  Position of the cell on the x-axis
-   * @param   {number}  j  Position of the cell on the y-axis
+   * @param   {number}  i  Row number
+   * @param   {number}  j  Column number
    * @param   {number}  width  Width of the pile to be positioned
    * @param   {number}  height  Height of the pile to be positioned
    * @return  {array}  Tuple representing the x,y position
    */
   const ijToXy = (i, j, pileWidth, pileHeight, pileOffset) => {
-    let top = j * rowHeight + cellPadding;
-    let left = i * columnWidth + cellPadding;
+    let top = i * rowHeight + cellPadding;
+    let left = j * columnWidth + cellPadding;
 
     if (!pileWidth || !pileHeight) {
       return [left, top];
@@ -171,21 +180,21 @@ const createGrid = (
 
     const assignPileToCell = pile => {
       // The +1 and -1 are to avoid floating point precision-related glitches
-      const i1 = (pile.minX + 1) / columnWidth;
-      const j1 = (pile.minY + 1) / rowHeight;
-      const i2 = (pile.maxX - 1) / columnWidth;
-      const j2 = (pile.maxY - 1) / rowHeight;
+      const i1 = (pile.minY + 1) / rowHeight;
+      const j1 = (pile.minX + 1) / columnWidth;
+      const i2 = (pile.maxY - 1) / rowHeight;
+      const j2 = (pile.maxX - 1) / columnWidth;
 
       let i;
       let j;
 
       switch (pileCellAlignment) {
         case 'topRight':
-          i = Math.floor(i2);
+          j = Math.floor(j2);
           break;
 
         case 'bottomLeft':
-          j = Math.floor(j2);
+          i = Math.floor(i2);
           break;
 
         case 'bottomRight':
@@ -241,7 +250,7 @@ const createGrid = (
 
       const conflictingPiles = new Set(cells[idx]);
 
-      let dist = l1Dist;
+      let dist = l1PointDist;
 
       // 2a. Determine anchor point. For that we check if the top, left, or right
       // cell is empty
@@ -366,48 +375,30 @@ const createGrid = (
 
   return {
     // Properties
-    get itemSize() {
-      return itemSize;
-    },
-    get numColumns() {
-      return numColumns;
-    },
     get numRows() {
       return numRows;
     },
     set numRows(newNumRows) {
       if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
-    get columnWidth() {
-      return columnWidth;
-    },
-    get rowHeight() {
-      return rowHeight;
-    },
-    get cellWidth() {
-      return cellWidth;
-    },
-    get cellHeight() {
-      return cellHeight;
-    },
-    get cellAspectRatio() {
-      return cellAspectRatio;
-    },
-    get cellPadding() {
-      return cellPadding;
-    },
-    get width() {
-      return width;
-    },
-    get height() {
-      return height;
-    },
+    itemSize,
+    numColumns,
+    columnWidth,
+    rowHeight,
+    cellWidth,
+    cellHeight,
+    cellAspectRatio,
+    cellPadding,
+    width,
+    height,
     // Methods
     align,
     ijToXy,
+    ijToIdx,
     idxToIj,
     idxToXy,
-    uvToXy
+    uvToXy,
+    xyToIj
   };
 };
 

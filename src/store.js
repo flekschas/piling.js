@@ -23,6 +23,7 @@ import {
   DEFAULT_LASSO_START_INDICATOR_OPACITY,
   DEFAULT_LASSO_STROKE_OPACITY,
   DEFAULT_LASSO_STROKE_SIZE,
+  DEFAULT_PILE_COVER_SCALE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
   DEFAULT_POPUP_BACKGROUND_OPACITY,
@@ -114,7 +115,10 @@ const [arrangementObjective, setArrangementObjective] = setter(
   'arrangementObjective'
 );
 
-const [arrangementOnce, setArrangementOnce] = setter('arrangementOnce', false);
+const [arrangementOnPile, setArrangementOnPile] = setter(
+  'arrangementOnPile',
+  false
+);
 
 const [arrangementOptions, setArrangementOptions] = setter(
   'arrangementOptions',
@@ -198,11 +202,14 @@ const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
 
+const [pileCoverScale, setPileCoverScale] = setter(
+  'pileCoverScale',
+  DEFAULT_PILE_COVER_SCALE
+);
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
-
 const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
@@ -420,54 +427,32 @@ const piles = (previousState = {}, action) => {
     case 'MERGE_PILES': {
       const newState = { ...previousState };
 
-      if (action.payload.isDropped) {
-        const source = action.payload.pileIds[0];
-        const target = action.payload.pileIds[1];
+      const target =
+        action.payload.targetPileId !== undefined
+          ? action.payload.targetPileId
+          : Math.min.apply([], action.payload.pileIds).toString();
 
-        newState[target] = {
-          ...newState[target],
-          items: [...newState[target].items]
-        };
+      const sourcePileIds = action.payload.pileIds.filter(id => id !== target);
 
-        newState[target].items.push(...newState[source].items);
-        newState[source] = {
-          ...newState[source],
+      const [x, y] = action.payload.targetPos;
+
+      newState[target] = {
+        ...newState[target],
+        items: [...newState[target].items],
+        x,
+        y
+      };
+
+      sourcePileIds.forEach(id => {
+        newState[target].items.push(...newState[id].items);
+        newState[id] = {
+          ...newState[id],
           items: [],
           x: null,
           y: null
         };
-      } else {
-        const target = Math.min.apply([], action.payload.pileIds).toString();
-        const sourcePileIds = action.payload.pileIds.filter(
-          id => id !== target
-        );
+      });
 
-        let centerX = 0;
-        let centerY = 0;
-        action.payload.pileIds.forEach(id => {
-          centerX += newState[id].x;
-          centerY += newState[id].y;
-        });
-        centerX /= action.payload.pileIds.length;
-        centerY /= action.payload.pileIds.length;
-
-        newState[target] = {
-          ...newState[target],
-          items: [...newState[target].items],
-          x: centerX,
-          y: centerY
-        };
-
-        sourcePileIds.forEach(id => {
-          newState[target].items.push(...newState[id].items);
-          newState[id] = {
-            ...newState[id],
-            items: [],
-            x: null,
-            y: null
-          };
-        });
-      }
       return newState;
     }
 
@@ -483,16 +468,16 @@ const piles = (previousState = {}, action) => {
       return newState;
     }
 
-    case 'DEPILE_PILES': {
-      const depilePiles = action.payload.piles.filter(
+    case 'SCATTER_PILES': {
+      const scatterPiles = action.payload.piles.filter(
         pile => pile.items.length > 1
       );
 
-      if (!depilePiles.length) return previousState;
+      if (!scatterPiles.length) return previousState;
 
       const newState = { ...previousState };
 
-      depilePiles.forEach(pile => {
+      scatterPiles.forEach(pile => {
         pile.items.forEach(itemId => {
           newState[itemId] = {
             ...newState[itemId],
@@ -516,9 +501,9 @@ const initPiles = newItems => ({
   payload: { newItems }
 });
 
-const mergePiles = (pileIds, isDropped) => ({
+const mergePiles = (pileIds, targetPos, targetPileId) => ({
   type: 'MERGE_PILES',
-  payload: { pileIds, isDropped }
+  payload: { pileIds, targetPos, targetPileId }
 });
 
 const movePiles = movingPiles => ({
@@ -526,9 +511,9 @@ const movePiles = movingPiles => ({
   payload: { movingPiles }
 });
 
-const depilePiles = depiledPiles => ({
-  type: 'DEPILE_PILES',
-  payload: { piles: depiledPiles }
+const scatterPiles = pilesToBeScattered => ({
+  type: 'SCATTER_PILES',
+  payload: { piles: pilesToBeScattered }
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -542,7 +527,7 @@ const createStore = () => {
   const appReducer = combineReducers({
     coverRenderer,
     arrangementObjective,
-    arrangementOnce,
+    arrangementOnPile,
     arrangementOptions,
     arrangementType,
     backgroundColor,
@@ -589,6 +574,7 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
+    pileCoverScale,
     pileItemOffset,
     pileItemBrightness,
     pileItemOpacity,
@@ -677,13 +663,13 @@ const createStore = () => {
 export default createStore;
 
 export const createAction = {
-  depilePiles,
+  scatterPiles,
   initPiles,
   mergePiles,
   movePiles,
   setCoverRenderer,
   setArrangementObjective,
-  setArrangementOnce,
+  setArrangementOnPile,
   setArrangementOptions,
   setArrangementType,
   setBackgroundColor,
@@ -730,6 +716,7 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
+  setPileCoverScale,
   setPileItemOffset,
   setPileItemOrder,
   setPileItemBrightness,

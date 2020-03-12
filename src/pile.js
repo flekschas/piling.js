@@ -13,7 +13,7 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite } from './utils';
+import { cloneSprite, colorToDecAlpha } from './utils';
 
 import { INHERIT } from './defaults';
 
@@ -216,12 +216,17 @@ const createPile = (
     );
     borderGraphics.endFill();
 
+    let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
+    let opacity = state[`pileBorderOpacity${modeToString.get(mode) || ''}`];
+
+    color = isFunction(color)
+      ? colorToDecAlpha(color(state.piles[id]))[0]
+      : color;
+
+    opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
+
     // draw border
-    borderGraphics.lineStyle(
-      size,
-      state[`pileBorderColor${modeToString.get(mode) || ''}`],
-      state[`pileBorderOpacity${modeToString.get(mode) || ''}`]
-    );
+    borderGraphics.lineStyle(size, color, opacity);
     borderGraphics.drawRect(
       x - borderOffset,
       y - borderOffset,
@@ -512,6 +517,7 @@ const createPile = (
           });
           postPilePositionAnimation.clear();
           pubSub.publish('updatePileBounds', id);
+          if (isPlaceholderDrawn) removePlaceholder();
         }
       }
     });
@@ -539,7 +545,7 @@ const createPile = (
   ) => {
     const pileState = store.state.piles[id];
 
-    if (getCover()) {
+    if (getCover() && previewItemContainer.children.length) {
       getCover().then(coverImage => {
         const halfSpacing = previewSpacing / 2;
         const halfWidth = coverImage.width / 2;
@@ -633,7 +639,8 @@ const createPile = (
           count === newItems.size
         );
       });
-    }
+      // Cover without previews
+    } else if (isPlaceholderDrawn) removePlaceholder();
     newItems.clear();
   };
 
@@ -964,7 +971,13 @@ const createPile = (
    *
    * @param  {array}  items  List of items
    */
-  const setItems = (items, { asPreview = false } = {}) => {
+  const setItems = (
+    items,
+    { asPreview = false } = {},
+    shouldDrawPlaceholer = false
+  ) => {
+    if (shouldDrawPlaceholer) drawPlaceholder();
+
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
     // Add new items
@@ -1036,8 +1049,6 @@ const createPile = (
         labelGraphics.endFill();
       });
     }
-
-    render();
   };
 
   let label = [];
@@ -1047,9 +1058,43 @@ const createPile = (
     drawLabel();
   };
 
+  const placeholderGfx = new PIXI.Graphics();
+  let isPlaceholderDrawn = false;
+
+  const drawPlaceholder = () => {
+    const { width, height } = anchorBox;
+    const r = width / 12;
+    const color = store.state.darkMode ? 0xffffff : 0x000000;
+
+    placeholderGfx
+      .lineStyle(0)
+      .beginFill(color, 1)
+      .drawCircle(-width / 4, 0, r)
+      .drawCircle(0, 0, r)
+      .drawCircle(width / 4, 0, r)
+      .endFill();
+
+    // Draw background
+    placeholderGfx
+      .beginFill(color, 0.1)
+      .drawRect(-width / 2, -height / 2, width, height)
+      .endFill();
+
+    isPlaceholderDrawn = true;
+
+    render();
+  };
+
+  const removePlaceholder = () => {
+    placeholderGfx.clear();
+    isPlaceholderDrawn = false;
+    render();
+  };
+
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
+    rootGraphics.addChild(placeholderGfx);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
@@ -1168,6 +1213,7 @@ const createPile = (
     calcBBox,
     destroy,
     drawBorder,
+    drawPlaceholder,
     getItemById,
     hasItem,
     magnifyByWheel,
@@ -1175,6 +1221,7 @@ const createPile = (
     moveTo,
     positionItems,
     removeAllItems,
+    removePlaceholder,
     setBorderSize,
     setItems,
     setLabel,

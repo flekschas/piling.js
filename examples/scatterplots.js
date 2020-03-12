@@ -122,7 +122,7 @@ const createScatterplotPiles = async element => {
     previewSpacing: 1
   });
 
-  piling.arrangeByOnce('data', 'year');
+  piling.arrangeBy('data', 'year', { once: true });
 
   return piling;
 };

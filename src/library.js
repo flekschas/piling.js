@@ -12,11 +12,13 @@ import {
   cubicOut,
   debounce,
   identity,
-  isFunction,
-  isPointInPolygon,
-  interpolateVector,
   interpolateNumber,
+  interpolateVector,
+  isFunction,
+  isObject,
+  isPointInPolygon,
   l2PointDist,
+  lRectDist,
   max,
   maxVector,
   mean,
@@ -32,6 +34,7 @@ import {
 
 import createAnimator from './animator';
 import createLevels from './levels';
+import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
 
 import {
@@ -52,7 +55,8 @@ import {
   colorToDecAlpha,
   getBBox,
   scaleLinear,
-  toHomogeneous
+  toHomogeneous,
+  uniqueStr
 } from './utils';
 
 import createImage from './image';
@@ -73,6 +77,8 @@ const convolve = require('ndarray-convolve');
 const ndarray = require('ndarray');
 
 const EXTRA_ROWS = 3;
+
+const l2RectDist = lRectDist(2);
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
@@ -129,19 +135,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.mask = mask;
 
   const properties = {
-    coverRenderer: true,
     arrangementObjective: true,
-    arrangementOnce: true,
+    arrangementOnPile: true,
     arrangementOptions: true,
     arrangementType: true,
     backgroundColor: true,
+    cellAspectRatio: true,
+    cellPadding: true,
+    columns: true,
+    coverAggregator: true,
+    coverRenderer: true,
     darkMode: true,
-    focusedPiles: true,
     depiledPile: true,
     depileMethod: true,
     dimensionalityReducer: true,
     easing: true,
-    coverAggregator: true,
+    focusedPiles: true,
+    gridColor: {
+      set: value => {
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setGridColor(color)];
+        if (opacity !== null)
+          actions.push(createAction.setGridOpacity(opacity));
+        return actions;
+      }
+    },
+    gridOpacity: true,
     itemLabel: true,
     itemLabelColor: true,
     itemLabelText: true,
@@ -154,27 +173,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     itemSize: true,
     itemSizeRange: true,
-    columns: true,
-    rowHeight: true,
-    cellAspectRatio: true,
-    cellPadding: true,
-    pileItemOffset: true,
-    pileItemBrightness: true,
-    pileItemOpacity: true,
-    pileItemOrder: true,
-    pileItemRotation: true,
-    pileItemTint: true,
-    gridColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setGridColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setGridOpacity(opacity));
-        return actions;
-      }
-    },
-    gridOpacity: true,
-    popupBackgroundOpacity: true,
     lassoFillColor: {
       set: value => {
         const [color, opacity] = colorToDecAlpha(value, null);
@@ -198,21 +196,48 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     lassoStrokeOpacity: true,
     lassoStrokeSize: true,
+    layout: {
+      get: () => ({
+        cellAspectRatio: layout.cellAspectRatio,
+        cellHeight: layout.cellHeight,
+        cellPadding: layout.cellPadding,
+        cellWidth: layout.cellWidth,
+        columnWidth: layout.columnWidth,
+        height: layout.height,
+        itemSize: layout.itemSize,
+        numColumns: layout.numColumns,
+        numRows: layout.numRows,
+        rowHeight: layout.rowHeight,
+        width: layout.width
+      })
+    },
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
+    pileCoverScale: true,
+    pileItemBrightness: true,
+    pileItemOffset: true,
+    pileItemOpacity: true,
+    pileItemOrder: true,
+    pileItemRotation: true,
+    pileItemTint: true,
     pileBorderColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColor(color)];
         if (opacity !== null)
           actions.push(createAction.setPileBorderOpacity(opacity));
+
         return actions;
       }
     },
     pileBorderOpacity: true,
     pileBorderColorHover: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorHover(color)];
         if (opacity !== null)
@@ -223,6 +248,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorFocus(color)];
         if (opacity !== null)
@@ -233,6 +260,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBorderColorActive(color)];
         if (opacity !== null)
@@ -244,6 +273,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBorderSize: true,
     pileBackgroundColor: {
       set: value => {
+        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
+
         const [color, opacity] = colorToDecAlpha(value, null);
         const actions = [createAction.setPileBackgroundColor(color)];
         if (opacity !== null)
@@ -257,6 +288,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileOpacity: true,
     pileScale: true,
     pileVisibilityItems: true,
+    popupBackgroundOpacity: true,
     previewAggregator: true,
     previewRenderer: true,
     previewSpacing: true,
@@ -285,11 +317,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
     },
+    rowHeight: true,
     showGrid: true,
     showSpatialIndex: true,
-    temporaryDepiledPiles: true,
     tempDepileDirection: true,
-    tempDepileOneDNum: true
+    tempDepileOneDNum: true,
+    temporaryDepiledPiles: true
   };
 
   const get = property => {
@@ -471,6 +504,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     translatePiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
+    pubSub.publish('zoom', camera);
   };
 
   const panZoomEndHandler = () => {
@@ -479,6 +513,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // Update the camera
     camera.tick();
     translatePiles();
+    pubSub.publish('zoom', camera);
   };
 
   let layout;
@@ -599,40 +634,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const initGrid = () => {
-    const {
-      cellAspectRatio,
-      cellPadding,
-      columns,
-      itemSize,
-      orderer,
-      pileCellAlignment,
-      rowHeight
-    } = store.state;
+    const { orderer } = store.state;
 
     const { width, height } = canvas.getBoundingClientRect();
 
-    layout = createGrid(
-      { width, height },
-      {
-        cellAspectRatio,
-        cellPadding,
-        columns,
-        itemSize,
-        orderer,
-        pileCellAlignment,
-        rowHeight
-      }
-    );
+    layout = createGrid({ width, height, orderer }, store.state);
 
     updateScrollHeight();
   };
 
   const updateGrid = () => {
+    const { orderer } = store.state;
+
     const oldLayout = layout;
 
     const { width, height } = canvas.getBoundingClientRect();
 
-    layout = createGrid({ width, height }, store.state);
+    layout = createGrid({ width, height, orderer }, store.state);
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
@@ -649,7 +667,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       () => {
         if (layout.width !== width || layout.height !== height) {
           // Set layout to the old layout given the old element width and height
-          layout = createGrid({ width, height }, store.state);
+          layout = createGrid(
+            { width, height, orderer: store.state.orderer },
+            store.state
+          );
           updateGrid();
         }
       },
@@ -828,15 +849,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
       pileInstances.forEach(pile => {
-        const oldRowNum = Math.floor(pile.bBox.cY / oldLayout.rowHeight);
-        const oldColumnNum = Math.floor(pile.bBox.cX / oldLayout.columnWidth);
+        const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(
+          pile.bBox.cX,
+          pile.bBox.cY
+        );
 
         pile.updateOffset();
         updatePileBounds(pile.id);
 
-        const oldCellIndex = Math.round(
-          oldRowNum * oldLayout.numColumns + oldColumnNum
-        );
+        const oldCellIndex = oldLayout.ijToIdx(oldRowNum, oldColumnNum);
 
         const [x, y] = layout.idxToXy(
           oldCellIndex,
@@ -1213,7 +1234,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     isInitialPositioning = false;
 
-    if (store.state.arrangementOnce) {
+    if (!store.state.arrangementOnPile) {
       cancelArrangement();
     }
 
@@ -1333,6 +1354,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items,
       coverRenderer,
       coverAggregator,
+      pileCoverScale,
       previewAggregator
     } = store.state;
 
@@ -1349,11 +1371,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         itemInstances.push(renderedItems.get(itemId));
       });
 
-      pileInstance.setItems(itemInstances, { asPreview: !!previewAggregator });
+      pileInstance.setItems(
+        itemInstances,
+        { asPreview: !!previewAggregator },
+        true
+      );
 
       const coverImage = coverAggregator(itemsOnPile)
         .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => createScaledImage(coverTexture));
+        .then(([coverTexture]) => {
+          const scaledImage = createScaledImage(coverTexture);
+          const extraScale = isFunction(pileCoverScale)
+            ? pileCoverScale(pileState)
+            : pileCoverScale;
+          scaledImage.scale(scaledImage.scaleFactor * extraScale);
+          return scaledImage;
+        });
 
       pileInstance.cover(coverImage);
 
@@ -1711,7 +1744,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       y: piles[pileId].y
     };
     depiledPiles.push(depiledPile);
-    store.dispatch(createAction.depilePiles(depiledPiles));
+    store.dispatch(createAction.scatterPiles(depiledPiles));
     animateDepile(pileId, items, itemPositions);
     store.dispatch(createAction.setDepiledPile([]));
   };
@@ -1728,7 +1761,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       y: piles[pileId].y
     };
 
-    store.dispatch(createAction.depilePiles([depiledPile]));
+    store.dispatch(createAction.scatterPiles([depiledPile]));
     blurPrevHoveredPiles();
 
     if (!store.state.arrangementType) {
@@ -1944,43 +1977,91 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pilesInLasso = findPilesInLasso(lassoPolygon);
     if (pilesInLasso.length > 1) {
       store.dispatch(createAction.setFocusedPiles([]));
-      animateMerge(pilesInLasso);
+      animateMerge([pilesInLasso]);
     }
   };
 
-  const animateMerge = pileIds => {
-    const { easing, piles } = store.state;
-    let centerX = 0;
-    let centerY = 0;
-    pileIds.forEach(id => {
-      centerX += piles[id].x;
-      centerY += piles[id].y;
-    });
-    centerX /= pileIds.length;
-    centerY /= pileIds.length;
+  const animateMerge = (groupsOfPileIds, centerAggregation) => {
+    const vMean = n => (aggregate, x) => aggregate + x / n;
+    const vMin = () => (aggregate, x) => Math.min(aggregate, x);
+    const vMax = () => (aggregate, x) => Math.max(aggregate, x);
+    const aggregaters = { x: vMean, y: vMean };
+    const startValues = { x: 0, y: 0 };
 
-    const onAllDone = () => {
-      updatePileBounds(pileIds[0]);
-      store.dispatch(createAction.mergePiles(pileIds, false));
-    };
+    switch (centerAggregation) {
+      case 'top':
+        aggregaters.y = vMin;
+        startValues.y = Infinity;
+        break;
 
-    const onDone = () => {
-      done++;
-      if (done === pileIds.length) onAllDone();
-    };
+      case 'bottom':
+        aggregaters.y = vMax;
+        startValues.y = -Infinity;
+        break;
 
-    let done = 0;
-    animator.addBatch(
-      pileIds
-        .map(id =>
-          animateMovePileTo(pileInstances.get(id), centerX, centerY, {
-            easing,
-            isBatch: true,
-            onDone
+      case 'left':
+        aggregaters.x = vMin;
+        startValues.x = Infinity;
+        break;
+
+      case 'right':
+        aggregaters.x = vMax;
+        startValues.x = -Infinity;
+        break;
+
+      // no default
+    }
+
+    return Promise.all(
+      groupsOfPileIds.map(
+        pileIds =>
+          new Promise((resolve, reject) => {
+            const { easing, piles } = store.state;
+            let finalX = startValues.x;
+            let finalY = startValues.y;
+
+            const xAgg = aggregaters.x(pileIds.length);
+            const yAgg = aggregaters.y(pileIds.length);
+
+            pileIds.forEach(id => {
+              finalX = xAgg(finalX, piles[id].x);
+              finalY = yAgg(finalY, piles[id].y);
+            });
+
+            const onAllDone = () => {
+              updatePileBounds(pileIds[0]);
+              resolve(createAction.mergePiles(pileIds, [finalX, finalY]));
+            };
+
+            const onDone = () => {
+              done++;
+              if (done === pileIds.length) onAllDone();
+            };
+
+            let done = 0;
+            animator.addBatch(
+              pileIds
+                .map(id => {
+                  const pileInstance = pileInstances.get(id);
+                  if (!pileInstance) reject(new Error(`Pile #${id} not ready`));
+                  return animateMovePileTo(
+                    pileInstances.get(id),
+                    finalX,
+                    finalY,
+                    {
+                      easing,
+                      isBatch: true,
+                      onDone
+                    }
+                  );
+                })
+                .filter(identity)
+            );
           })
-        )
-        .filter(identity)
-    );
+      )
+    ).then(mergeActions => {
+      store.dispatch(batchActions(mergeActions));
+    });
   };
 
   const scalePile = (pileId, wheelDelta) => {
@@ -2046,6 +2127,293 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     delete aggregatedPileValues[pileId];
     // We *do not* delete the cached multi-dimensional position as that
     // position can come in handy when we depile the pile again
+  };
+
+  const pileByOverlap = async sqrtPixels => {
+    const alreadyPiledPiles = new Map();
+    const newPiles = {};
+
+    const addPile = (target, hit, overlap) => {
+      if (!newPiles[target.id]) {
+        newPiles[target.id] = [target.id];
+        alreadyPiledPiles.set(target.id, [target.id, 1]);
+      }
+      newPiles[target.id].push(hit.id);
+      const relOverlap =
+        overlap / ((target.maxX - target.minX) * (target.maxY - target.minY));
+      alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
+    };
+
+    spatialIndex.all().forEach(pileBBox => {
+      if (alreadyPiledPiles.has(pileBBox.id)) return;
+
+      const hits = spatialIndex.search(pileBBox);
+
+      if (hits.length === 1) return;
+
+      hits.forEach(hit => {
+        if (hit.id === pileBBox.id) return;
+
+        const minX = Math.max(pileBBox.minX, hit.minX);
+        const minY = Math.max(pileBBox.minY, hit.minY);
+        const maxX = Math.min(pileBBox.maxX, hit.maxX);
+        const maxY = Math.min(pileBBox.maxY, hit.maxY);
+        const overlap = (maxX - minX) * (maxY - minY);
+
+        if (overlap >= sqrtPixels) {
+          if (alreadyPiledPiles.has(hit.id)) {
+            const [targetId, relTargetOverlap] = alreadyPiledPiles.get(hit.id);
+
+            const relOverlap =
+              overlap /
+              ((pileBBox.maxX - pileBBox.minX) *
+                (pileBBox.maxY - pileBBox.minY));
+
+            if (relTargetOverlap > relOverlap) {
+              // Hit overlaps more with the previous target so we do nothing
+              return;
+            }
+
+            // Hit overlaps more with the new target so we move the hit
+            newPiles[targetId].splice(
+              newPiles[targetId].indexOf(pileBBox.id),
+              1
+            );
+          }
+
+          addPile(pileBBox, hit, overlap);
+        }
+      });
+    });
+
+    return Object.values(newPiles);
+  };
+
+  const pileByDistance = async pixels => {
+    const alreadyPiledPiles = new Map();
+    const newPiles = {};
+
+    const addPile = (target, hit, distance) => {
+      if (!newPiles[target.id]) {
+        newPiles[target.id] = [target.id];
+        alreadyPiledPiles.set(target.id, [target.id, 1]);
+      }
+      newPiles[target.id].push(hit.id);
+      alreadyPiledPiles.set(hit.id, [target.id, distance]);
+    };
+
+    spatialIndex.all().forEach(pileBBox => {
+      if (alreadyPiledPiles.has(pileBBox.id)) return;
+
+      const searchBBox = {
+        minX: pileBBox.minX - pixels,
+        minY: pileBBox.minY - pixels,
+        maxX: pileBBox.maxX + pixels,
+        maxY: pileBBox.maxY + pixels
+      };
+
+      const hits = spatialIndex.search(searchBBox);
+
+      if (hits.length === 1) return;
+
+      hits.forEach(hit => {
+        if (hit.id === pileBBox.id) return;
+
+        const distance = l2RectDist(pileBBox, hit);
+
+        if (distance <= pixels) {
+          if (alreadyPiledPiles.has(hit.id)) {
+            const [targetId, targetDistance] = alreadyPiledPiles.get(hit.id);
+
+            if (targetDistance < distance) {
+              // Hit is closer to the previous target so we do nothing
+              return;
+            }
+
+            // Hit is closer to the new target so we move the hit
+            newPiles[targetId].splice(
+              newPiles[targetId].indexOf(pileBBox.id),
+              1
+            );
+          }
+
+          addPile(pileBBox, hit, distance);
+        }
+      });
+    });
+
+    return Object.values(newPiles);
+  };
+
+  const pileByGrid = async objective => {
+    const { orderer, piles } = store.state;
+
+    const { width, height } = canvas.getBoundingClientRect();
+
+    const grid = objective
+      ? createGrid({ width, height, orderer }, objective)
+      : layout;
+
+    return Object.entries(piles).reduce((groups, [pileId, pileState]) => {
+      const ij = grid.xyToIj(pileState.x, pileState.y);
+      const idx = grid.ijToIdx(...ij);
+      if (!groups[idx]) groups[idx] = [];
+      groups[idx].push(pileId);
+      return groups;
+    }, []);
+  };
+
+  const pileByColumn = async () =>
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[1]]) groups[ij[1]] = [];
+        groups[ij[1]].push(pileId);
+      }
+      return groups;
+    }, []);
+
+  const pileByRow = async () =>
+    Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
+      if (pileState.items.length) {
+        const ij = layout.xyToIj(pileState.x, pileState.y);
+        if (!groups[ij[0]]) groups[ij[0]] = [];
+        groups[ij[0]].push(pileId);
+      }
+      return groups;
+    }, []);
+
+  const pileByCategory = async objective =>
+    Object.values(
+      Object.entries(store.state.piles).reduce(
+        (groups, [pileId, pileState]) => {
+          if (!pileState.items.length) return groups;
+
+          const pileCategory = objective
+            .map(o =>
+              o.aggregator(
+                pileState.items.map((itemId, index) =>
+                  o.property(
+                    store.state.items[itemId],
+                    itemId,
+                    index,
+                    renderedItems.get(itemId)
+                  )
+                )
+              )
+            )
+            .join('|');
+
+          if (!groups[pileCategory]) groups[pileCategory] = [pileId];
+          else groups[pileCategory].push(pileId);
+
+          return groups;
+        },
+        {}
+      )
+    );
+
+  const pileByCluster = async (objective, options = {}) => {
+    const points = Object.entries(store.state.piles).reduce(
+      (data, [pileId, pileState]) => {
+        if (!pileState.items.length) return data;
+
+        data.push({
+          id: pileId,
+          data: objective.flatMap(o =>
+            o.aggregator(
+              pileState.items.map((itemId, index) =>
+                o.property(
+                  store.state.items[itemId],
+                  itemId,
+                  index,
+                  renderedItems.get(itemId)
+                )
+              )
+            )
+          )
+        });
+
+        return data;
+      },
+      []
+    );
+
+    let clusterer = options.clusterer;
+
+    if (!clusterer) {
+      const clustererOptions = options.clustererOptions || {};
+      let k = clustererOptions.k;
+      clustererOptions.valueGetter = x => x.data;
+
+      if (!k) k = Math.max(2, Math.ceil(Math.sqrt(points.length / 2)));
+
+      clusterer = createKmeans(k, clustererOptions);
+    }
+
+    const { labels } = await clusterer(points);
+
+    return Object.values(
+      Array.from(labels).reduce((piledPiles, label, i) => {
+        if (label === -1) return piledPiles;
+
+        if (!piledPiles[label]) piledPiles[label] = [];
+        piledPiles[label].push(points[i].id);
+
+        return piledPiles;
+      }, {})
+    );
+  };
+
+  const pileBy = (type, objective = null, options = {}) => {
+    const expandedObjective = expandPilingObjective(type, objective);
+
+    let piledPiles = [];
+    let mergeCenter = 'mean';
+
+    switch (type) {
+      case 'overlap':
+        piledPiles = pileByOverlap(expandedObjective);
+        break;
+
+      case 'distance':
+        piledPiles = pileByDistance(expandedObjective);
+        break;
+
+      case 'grid':
+        piledPiles = pileByGrid(expandedObjective);
+        break;
+
+      case 'column':
+        mergeCenter = expandedObjective;
+        piledPiles = pileByColumn(expandedObjective);
+        break;
+
+      case 'row':
+        mergeCenter = expandedObjective;
+        piledPiles = pileByRow(expandedObjective);
+        break;
+
+      case 'category':
+        piledPiles = pileByCategory(expandedObjective);
+        break;
+
+      case 'cluster':
+        piledPiles = pileByCluster(expandedObjective, options);
+        break;
+
+      // no default
+    }
+
+    piledPiles.then(_piledPiles => {
+      store.dispatch(createAction.setFocusedPiles([]));
+
+      // If there's only one pile on a pile we can ignore it
+      animateMerge(
+        _piledPiles.filter(pileIds => pileIds.length > 1),
+        mergeCenter
+      );
+    });
   };
 
   const updateNavigationMode = () => {
@@ -2341,14 +2709,47 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const cancelArrangement = () => {
+    if (store.state.arrangementType === null) return;
+
     store.dispatch(
       batchActions([
         ...set('arrangementType', null, true),
         ...set('arrangementObjective', null, true),
         ...set('arrangementOptions', {}, true),
-        ...set('arrangementOnce', false, true)
+        ...set('arrangementOnPile', false, true)
       ])
     );
+  };
+
+  const itemUpdates = [];
+  const itemUpdatesConsequences = [];
+
+  let itemUpdateCalls = 0;
+  const awaitItemUpdates = newItemUpdates => {
+    if (newItemUpdates.length) {
+      // Add updates
+      itemUpdates.push(...newItemUpdates);
+
+      // We need to keep track of the update call as promises can be canceled
+      // and we really only want to apply the consequences once all the item
+      // updates finished.
+      const itemUpdateCall = ++itemUpdateCalls;
+      Promise.all(itemUpdates)
+        .then(() => {
+          if (itemUpdateCall === itemUpdateCalls)
+            // Apply all consequences and wait for them to finish
+            return Promise.all(
+              itemUpdatesConsequences.map(consequence => consequence())
+            );
+          return undefined; // No further actions
+        })
+        .then(() => {
+          // Clear consequences and updates
+          itemUpdatesConsequences.splice(0, itemUpdatesConsequences.length);
+          itemUpdates.splice(0, itemUpdates.length);
+          pubSub.publish('itemUpdate');
+        });
+    }
   };
 
   const updated = () => {
@@ -2356,7 +2757,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const stateUpdates = new Set();
 
-    const itemUpdates = [];
+    const currentItemUpdates = [];
     const updatedPileItems = [];
 
     if (state.items !== newState.items && state.itemRenderer) {
@@ -2380,15 +2781,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numDeletedItems = Object.keys(deletedItems).length;
 
       if (numNewItems) {
-        itemUpdates.push(createItemsAndPiles(newItems));
+        currentItemUpdates.push(createItemsAndPiles(newItems));
       }
 
       if (numUpdatedItems) {
-        itemUpdates.push(updateItemTexture(updatedItems));
+        currentItemUpdates.push(updateItemTexture(updatedItems));
       }
 
       if (numDeletedItems) {
-        itemUpdates.push(deleteItemsAndPiles(deletedItems));
+        currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
       }
 
       if (numNewItems || numDeletedItems) {
@@ -2398,17 +2799,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
-      state.itemRenderer !== newState.itemRenderer ||
-      state.previewRenderer !== newState.previewRenderer ||
-      state.coverRenderer !== newState.coverRenderer ||
-      state.previewAggregator !== newState.previewAggregator ||
-      state.coverAggregator !== newState.coverAggregator
+      Object.values(newState.items).length &&
+      (state.itemRenderer !== newState.itemRenderer ||
+        state.previewRenderer !== newState.previewRenderer ||
+        state.coverRenderer !== newState.coverRenderer ||
+        state.previewAggregator !== newState.previewAggregator ||
+        state.coverAggregator !== newState.coverAggregator)
     ) {
       if (renderedItems.size) {
-        itemUpdates.push(updateItemTexture());
+        currentItemUpdates.push(updateItemTexture());
       } else {
         // In case the user first setup the items and then defined the renderer
-        itemUpdates.push(createItemsAndPiles(newState.items));
+        currentItemUpdates.push(createItemsAndPiles(newState.items));
       }
     }
 
@@ -2607,7 +3009,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         (
           newState.arrangementType &&
           (
-            (itemUpdates.length || updatedPileItems.length) ||
+            (currentItemUpdates.length || updatedPileItems.length) ||
             (
               newState.arrangementObjective.length > 2 &&
               state.dimensionalityReducer !== newState.dimensionalityReducer
@@ -2617,10 +3019,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       )
     ) {
       stateUpdates.add('layout');
-      const newObjective = state.arrangementObjective !== newState.arrangementObjective;
-      Promise.all(itemUpdates).then(() => {
-        updateArrangement(updatedPileItems, newObjective);
-      });
+
+      const arrangementUpdater = ((_updatedPileItems, newObjective) => async () =>
+        updateArrangement(_updatedPileItems, newObjective)
+      )([...updatedPileItems], state.arrangementObjective !== newState.arrangementObjective)
+
+      if (currentItemUpdates.length) {
+        itemUpdatesConsequences.push(arrangementUpdater);
+      } else {
+        arrangementUpdater();
+      }
     }
 
     if (state.navigationMode !== newState.navigationMode) {
@@ -2665,19 +3073,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       stateUpdates.has('layout') ||
-      itemUpdates.length > 0 ||
+      currentItemUpdates.length > 0 ||
       updatedPileItems.length > 0
     ) {
-      const currUpdatedPileItems = [...updatedPileItems];
-      Promise.all(itemUpdates).then(() => {
-        // Reposition of all piles
-        positionPiles(currUpdatedPileItems);
-      });
+      const positionUpdater = (_updatedPileItems => async () =>
+        positionPiles(_updatedPileItems))([...updatedPileItems]);
+
+      if (currentItemUpdates.length) {
+        itemUpdatesConsequences.push(positionUpdater);
+      } else {
+        positionUpdater();
+      }
     }
 
     if (stateUpdates.has('navigation')) {
       updateNavigationMode();
     }
+
+    awaitItemUpdates(currentItemUpdates);
   };
 
   const resetPileBorder = () => {
@@ -2702,6 +3115,35 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return itemState => itemState[objective];
   };
 
+  const expandNumericalAggregator = objective => {
+    if (isFunction(objective.aggregator)) return objective.aggregator;
+
+    switch (objective.aggregator) {
+      case 'max':
+        return objective.propertyIsVector ? maxVector : max;
+
+      case 'min':
+        return objective.propertyIsVector ? minVector : min;
+
+      case 'sum':
+        return objective.propertyIsVector ? sumVector : sum;
+
+      case 'mean':
+      default:
+        return objective.propertyIsVector ? meanVector : mean;
+    }
+  };
+
+  const expandScale = scale => {
+    if (isFunction(scale)) return scale;
+
+    switch (scale) {
+      case 'linear':
+      default:
+        return scaleLinear;
+    }
+  };
+
   const expandArrangementObjective = arrangementObjective => {
     if (!Array.isArray(arrangementObjective)) {
       // eslint-disable-next-line no-param-reassign
@@ -2721,46 +3163,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         expandedObjective.inverse = false;
       } else {
         expandedObjective.property = expandProperty(objective.property);
-
-        if (isFunction(objective.aggregator)) {
-          expandedObjective.aggregator = objective.aggregator;
-        } else {
-          switch (objective.aggregator) {
-            case 'max':
-              expandedObjective.aggregator = objective.propertyIsVector
-                ? maxVector
-                : max;
-              break;
-            case 'min':
-              expandedObjective.aggregator = objective.propertyIsVector
-                ? minVector
-                : min;
-              break;
-            case 'sum':
-              expandedObjective.aggregator = objective.propertyIsVector
-                ? sumVector
-                : sum;
-              break;
-            case 'mean':
-            default:
-              expandedObjective.aggregator = objective.propertyIsVector
-                ? meanVector
-                : mean;
-              break;
-          }
-        }
-
-        if (isFunction(objective.scale)) {
-          expandedObjective.scale = objective.scale;
-        } else {
-          switch (objective.scale) {
-            case 'linear':
-            default:
-              expandedObjective.scale = scaleLinear;
-              break;
-          }
-        }
-
+        expandedObjective.aggregator = expandNumericalAggregator(objective);
+        expandedObjective.scale = expandScale(objective.scale);
         expandedObjective.inverse = !!objective.inverse;
       }
 
@@ -2773,27 +3177,102 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const expandedObjective =
       type === 'data' ? expandArrangementObjective(objective) : objective;
 
-    store.dispatch(
-      batchActions([
-        ...set('arrangementType', type, true),
-        ...set('arrangementObjective', expandedObjective, true),
-        ...set('arrangementOptions', options, true)
-      ])
-    );
-  };
-
-  const arrangeByOnce = (type = null, objective = null, options = {}) => {
-    const expandedObjective =
-      type === 'data' ? expandArrangementObjective(objective) : objective;
+    const onPile = !!options.onPile;
+    delete options.onPile;
 
     store.dispatch(
       batchActions([
         ...set('arrangementType', type, true),
         ...set('arrangementObjective', expandedObjective, true),
         ...set('arrangementOptions', options, true),
-        ...set('arrangementOnce', true, true)
+        ...set('arrangementOnPile', onPile, true)
       ])
     );
+  };
+
+  const expandPilingObjectiveOverlap = objective =>
+    objective && objective.length === 1
+      ? [objective[0], objective[0]]
+      : objective || 1;
+
+  const expandPilingObjectiveGrid = objective => {
+    let expandedObjective = null;
+
+    if (isObject(objective)) {
+      expandedObjective = { ...expandedObjective, ...objective };
+    } else if (+objective) {
+      expandedObjective.columns = {
+        columns: +objective,
+        cellAspectRatio: layout.cellAspectRatio
+      };
+    }
+
+    return expandedObjective;
+  };
+
+  const expandPilingObjectiveDistance = objective =>
+    objective.length === 1 ? [objective[0], objective[0]] : objective;
+
+  const expandPilingObjectiveCategory = objective => {
+    const objectives = Array.isArray(objective) ? objective : [objective];
+
+    return objectives.map(_objective => {
+      const expandedObjective = {};
+
+      if (isObject(objective)) {
+        expandedObjective.property = expandProperty(_objective.property);
+        expandedObjective.aggregator = isFunction(_objective.aggregator)
+          ? _objective.aggregator
+          : uniqueStr;
+      } else {
+        expandedObjective.property = expandProperty(_objective);
+        expandedObjective.aggregator = uniqueStr;
+      }
+
+      return expandedObjective;
+    });
+  };
+
+  const expandPilingObjectiveCluster = objective => {
+    const objectives = Array.isArray(objective) ? objective : [objective];
+
+    return objectives.map(_objective => {
+      const expandedObjective = {};
+
+      if (_objective.constructor !== Object) {
+        expandedObjective.property = expandProperty(_objective);
+        expandedObjective.aggregator = objective.propertyIsVector
+          ? meanVector
+          : mean;
+      } else {
+        expandedObjective.property = expandProperty(_objective.property);
+        expandedObjective.aggregator = expandNumericalAggregator(_objective);
+      }
+
+      return expandedObjective;
+    });
+  };
+
+  const expandPilingObjective = (type, objective) => {
+    switch (type) {
+      case 'overlap':
+        return expandPilingObjectiveOverlap(objective);
+
+      case 'grid':
+        return expandPilingObjectiveGrid(objective);
+
+      case 'distance':
+        return expandPilingObjectiveDistance(objective);
+
+      case 'category':
+        return expandPilingObjectiveCategory(objective);
+
+      case 'cluster':
+        return expandPilingObjectiveCluster(objective);
+
+      default:
+        return objective;
+    }
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {
@@ -2803,7 +3282,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const onDone = () => {
       store.dispatch(
-        createAction.mergePiles([sourcePileId, targetPileId], true)
+        createAction.mergePiles(
+          [sourcePileId, targetPileId],
+          [x, y],
+          targetPileId
+        )
       );
     };
 
@@ -2826,7 +3309,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
         const targetPileId = collidePiles[0].id;
-        hit = !pileInstances.get(targetPileId).isTempDepiled;
+        const targetPile = pileInstances.get(targetPileId);
+        const targetPileState = store.state.piles[targetPileId];
+        hit = !targetPile.isTempDepiled;
         if (hit) {
           // TODO: The drop merge animation code should be unified
 
@@ -2841,7 +3326,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             animateDropMerge(pileId, targetPileId);
           } else {
             store.dispatch(
-              createAction.mergePiles([pileId, targetPileId], true)
+              createAction.mergePiles(
+                [pileId, targetPileId],
+                [targetPileState.x, targetPileState.y],
+                targetPileId
+              )
             );
           }
         }
@@ -3079,8 +3568,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
       } else {
         if (!closedContextMenu) lasso.showStartIndicator(mouseDownPosition);
-        store.dispatch(createAction.setFocusedPiles([]));
-        store.dispatch(createAction.setMagnifiedPiles([]));
+        if (store.state.focusedPiles.length)
+          store.dispatch(createAction.setFocusedPiles([]));
+        if (store.state.magnifiedPiles.length)
+          store.dispatch(createAction.setMagnifiedPiles([]));
       }
     }
   };
@@ -3500,14 +3991,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   return {
     // Properties
     get version() {
-      return { version };
+      return version;
     },
     // Methods
     arrangeBy,
-    arrangeByOnce,
     destroy,
     exportState,
     get,
+    pileBy,
     halt,
     importState,
     render: renderRaf,
