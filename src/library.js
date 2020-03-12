@@ -2723,6 +2723,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const allLabels = new Map();
+  let labelArray;
 
   const setPileLabel = (pileState, pileId, reset = false) => {
     const {
@@ -2738,7 +2739,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const objective = expandLabelObjective(itemLabel);
 
     if (!allLabels.size || reset) {
-      let labelArray = Object.entries(piles).reduce((labels, [, pile]) => {
+      labelArray = Object.entries(piles).reduce((labels, [, pile]) => {
         if (!pile.items.length) return labels;
 
         const label = objective.flatMap(o => {
@@ -2776,7 +2777,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const color = label.map(l =>
       isFunction(itemLabelColor)
-        ? itemLabelColor(l, allLabels)
+        ? itemLabelColor(l, labelArray)
         : itemLabelColor[allLabels.get(l)]
     );
 
@@ -2785,7 +2786,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (itemLabelText) {
       text = label.map(l => {
         if (isFunction(itemLabelText)) {
-          return itemLabelText(l, allLabels);
+          return itemLabelText(l, labelArray);
         }
         if (itemLabelText.constructor === Array) {
           return itemLabelText[allLabels.get(l)];
