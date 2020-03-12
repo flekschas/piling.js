@@ -841,7 +841,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     scaleItems();
 
-    if (arrangementType === null) {
+    if (arrangementType === null && !isPanZoom) {
       // Since there is no automatic arrangement in place we manually move
       // piles from their old cell position to their new cell position
       const movingPiles = [];
