@@ -971,8 +971,12 @@ const createPile = (
    *
    * @param  {array}  items  List of items
    */
-  const setItems = (items, { asPreview = false } = {}) => {
-    if (items.length > 1) drawPlaceholder();
+  const setItems = (
+    items,
+    { asPreview = false } = {},
+    shouldDrawPlaceholer = false
+  ) => {
+    if (shouldDrawPlaceholer) drawPlaceholder();
 
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
