@@ -82,15 +82,6 @@ const TEMPLATE = `<ul id="piling-js-context-menu-list">
   <li>
     <button id="magnify-button">Magnify</button>
   </li>
-  <li>
-    <button id="label-green">Label: green</button>
-  </li>
-  <li>
-    <button id="label-red">Label: red</button>
-  </li>
-  <li>
-    <button id="remove-label">Remove Label</button>
-  </li>
 </ul>`;
 
 const createContextMenu = ({
