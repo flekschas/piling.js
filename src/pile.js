@@ -1032,30 +1032,52 @@ const createPile = (
     setCover(newCover);
   };
 
-  const labelGraphics = new PIXI.Graphics();
+  let labelGraphics;
+  let labelTextContainer;
 
-  const drawLabel = () => {
-    labelGraphics.clear();
+  const drawLabel = (labels, colors, texts) => {
+    if (isPositioning || isScaling) {
+      postPilePositionAnimation.set('drawLabel', () => {
+        drawLabel(labels, colors, texts);
+      });
+      return;
+    }
+
+    if (!labelGraphics || !labelTextContainer) {
+      labelGraphics = new PIXI.Graphics();
+      labelTextContainer = new PIXI.Container();
+      contentGraphics.addChild(labelGraphics);
+      contentGraphics.addChild(labelTextContainer);
+    } else {
+      labelGraphics.clear();
+      labelTextContainer.removeChildren();
+    }
 
     const { width, height } = contentGraphics;
 
-    if (label.length) {
-      const labelWidth = width / label.length;
-      const labelHeight = 5;
-      label.forEach((color, index) => {
-        const labelX = labelWidth * index;
+    if (labels.length) {
+      const labelWidth = width / labels.length;
+      const labelHeight = 15;
+      labels.forEach((label, index) => {
+        const labelX = labelWidth * index - width / 2;
+        const color = colors[index];
         labelGraphics.beginFill(color, 1);
-        labelGraphics.drawRect(labelX, height, labelWidth, labelHeight);
+        labelGraphics.drawRect(labelX, height / 2, labelWidth, labelHeight);
         labelGraphics.endFill();
       });
     }
-  };
 
-  let label = [];
-
-  const setLabel = pileLabel => {
-    label = [...pileLabel];
-    drawLabel();
+    if (texts.length) {
+      const textWidth = width / texts.length;
+      texts.forEach((text, index) => {
+        const labelText = new PIXI.Text(text);
+        labelText.anchor.set(0.5, 0);
+        labelText.x = textWidth * index - width / 2 + textWidth / 2;
+        labelText.y = height / 2;
+        labelText.style.fontSize = 15;
+        labelTextContainer.addChild(labelText);
+      });
+    }
   };
 
   const placeholderGfx = new PIXI.Graphics();
@@ -1101,7 +1123,6 @@ const createPile = (
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
-    contentGraphics.addChild(labelGraphics);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
@@ -1176,9 +1197,6 @@ const createPile = (
     get items() {
       return [...allItems];
     },
-    get label() {
-      return [...label];
-    },
     get magnification() {
       return magnification;
     },
@@ -1224,7 +1242,7 @@ const createPile = (
     removePlaceholder,
     setBorderSize,
     setItems,
-    setLabel,
+    drawLabel,
     setScale,
     setOpacity,
     setVisibilityItems,
