@@ -1,9 +1,9 @@
 const colorToDecAlpha = (color, defaultAlpha = 1) => {
   if (typeof color === 'string' || color instanceof String) {
-    // HEX
+    // HEX string, e.g., `#ff0000`
     if (color[0] === '#') return [parseInt(color.substr(1), 16), defaultAlpha];
 
-    // RGBA
+    // RGBA string, e.g., `rgba(255, 0, 0, 0.5)`
     if (color.substring(0, 3) === 'rgb') {
       const matches = color.match(/(\d+),\s*(\d+),\s*(\d+),?\s*([\d.]+)?/);
       return [
@@ -16,7 +16,7 @@ const colorToDecAlpha = (color, defaultAlpha = 1) => {
       ];
     }
 
-    // RGB
+    // RGB string, e.g., `rgb(255, 0, 0)`
     return [
       color
         .match(/(\d+),\s*(\d+),\s*(\d+)/)
@@ -28,6 +28,7 @@ const colorToDecAlpha = (color, defaultAlpha = 1) => {
     ];
   }
 
+  // Hexadecimal number, e.g., `0xff0000`
   return [parseInt(color, 10), defaultAlpha];
 };
 
