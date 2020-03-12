@@ -171,12 +171,13 @@ The list of all understood properties is given below.
 | gridColor                  | string or int           | `0x787878`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | gridOpacity                | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
 | items                      | array                   | `[]`         | see [`data`](#data)                                                  | `false`    |
-| itemSize                   | int                     |              | number of pixels                                                     | `true`     |
+| itemSize                   | int                     |              | ignored when `cellSize` is defined                                                | `true`     |
 | itemSizeRange              | array                   | `[0.7, 0.9]` | array of two numbers between (0, 1)                                  | `true`     |
 | columns                    | int                     | `10`         | ignored when `itemSize` is defined                                   | `false`    |
 | rowHeight                  | int                     |              |                                                                      | `true`     |
 | cellAspectRatio            | float                   |              | ignored when `rowHeight` is defined                                  | `false`    |
 | cellPadding                | int                     |              |                                                                      | `true`     |
+| cellSize                   | int                     |              | number of pixels                                                   | `true`     |
 | lassoFillColor             | string or int           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | lassoFillOpacity           | float                   | `0.15`       | must be in [`0`,`1`]                                                 | `false`    |
 | lassoShowStartIndicator    | boolean                 | `true`       |                                                                      | `false`    |
@@ -257,9 +258,9 @@ The list of all understood properties is given below.
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
   ```
 
-- The following properties to define the _grid_: `itemSize`, `cellPadding`, `columns`, `rowHeight`, and `cellAspectRatio`
+- The following properties to define the _grid_: `itemSize`, `cellPadding`, `columns`, `rowHeight`, `cellAspectRatio` and `cellSize`.
 
-  One has to at least provide `columns` or `itemSize` to define a grid. If `itemSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
+  One has to at least provide `columns`, `itemSize` or `cellSize` to define a grid. If `cellSize` is defined, other 2 properties are ignored. `itemSize` is then defined by `cellSize` and `cellPadding`. If `itemSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
 
   When `itemSize` is defined, `itemSize` and `cellPadding` add up together to define the cell width. When `itemSize` is undefined, `itemSize` is defined by the derived cell width (given `columns`) minues `cellPadding`!
 
