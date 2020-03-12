@@ -3303,6 +3303,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (collidePiles.length === 1) {
         const targetPileId = collidePiles[0].id;
         const targetPile = pileInstances.get(targetPileId);
+        const targetPileState = store.state.piles[targetPileId];
         hit = !targetPile.isTempDepiled;
         if (hit) {
           // TODO: The drop merge animation code should be unified
@@ -3320,7 +3321,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             store.dispatch(
               createAction.mergePiles(
                 [pileId, targetPileId],
-                [targetPile.x, targetPile.y],
+                [targetPileState.x, targetPileState.y],
                 targetPileId
               )
             );
