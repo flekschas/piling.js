@@ -285,6 +285,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     prop =>
       excludedProps.indexOf(prop) === -1 && typeof firstItem[prop] === 'string'
   );
+  const spatialProps = Object.keys(firstItem).filter(
+    prop =>
+      excludedProps.indexOf(prop) === -1 &&
+      Array.isArray(firstItem[prop]) &&
+      firstItem[prop].length === 2
+  );
 
   const pileByGrid = document.body.querySelector('#group-by-grid');
   const pileByGridCanvas = pileByGrid.querySelector('canvas');
@@ -340,6 +346,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
     pileByGridCtx.stroke();
   };
+
+  let arrangeByType = 'uv';
+  let arrangeByProp = spatialProps[0];
 
   let pileByRow = 'center';
   let pileByColumn = 'top';
@@ -410,6 +419,32 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
+          name: 'arrangeBy',
+          hide: spatialProps.length === 0,
+          width: '4rem',
+          action: () => {
+            pilingLib.arrangeBy(arrangeByType, arrangeByProp);
+          },
+          subInputs: [
+            {
+              dtype: 'string',
+              values: ['uv', 'ij', 'xy'],
+              defaultValue: arrangeByType,
+              setter: type => {
+                arrangeByType = type;
+              }
+            },
+            {
+              dtype: 'string',
+              values: spatialProps,
+              defaultValue: arrangeByProp,
+              setter: prop => {
+                arrangeByProp = prop;
+              }
+            }
+          ]
+        },
+        {
           name: 'navigationMode',
           dtype: 'string',
           values: ['auto', 'panZoom', 'scroll']
@@ -423,39 +458,40 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         {
           name: 'Row',
           width: '4rem',
-          onClick: true,
           action: () => {
             pilingLib.pileBy('row', pileByRow);
           },
-          subInput: {
-            dtype: 'string',
-            values: ['left', 'center', 'right'],
-            defaultValue: pileByRow,
-            setter: direction => {
-              pileByRow = direction;
+          subInputs: [
+            {
+              dtype: 'string',
+              values: ['left', 'center', 'right'],
+              defaultValue: pileByRow,
+              setter: direction => {
+                pileByRow = direction;
+              }
             }
-          }
+          ]
         },
         {
           name: 'Column',
           width: '4rem',
-          onClick: true,
           action: () => {
             pilingLib.pileBy('column', pileByColumn);
           },
-          subInput: {
-            dtype: 'string',
-            values: ['top', 'center', 'bottom'],
-            defaultValue: pileByColumn,
-            setter: direction => {
-              pileByColumn = direction;
+          subInputs: [
+            {
+              dtype: 'string',
+              values: ['top', 'center', 'bottom'],
+              defaultValue: pileByColumn,
+              setter: direction => {
+                pileByColumn = direction;
+              }
             }
-          }
+          ]
         },
         {
           name: 'Grid',
           width: '4rem',
-          onClick: true,
           action: () => {
             const objective =
               pileByGridColumns !== null
@@ -481,97 +517,98 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             clearPileByGrid();
             pileByGrid.style.zIndex = -1;
           },
-          subInput: {
-            name: 'Pile by grid: # columns',
-            dtype: 'int',
-            min: 1,
-            max: 20,
-            onInput: true,
-            setter: columns => {
-              pileByGridColumns = columns;
-              if (pileByGridActive && columns !== null) {
-                drawPileByGrid(columns);
-              } else {
+          subInputs: [
+            {
+              dtype: 'int',
+              min: 1,
+              max: 20,
+              onInput: true,
+              setter: columns => {
+                pileByGridColumns = columns;
+                if (pileByGridActive && columns !== null) {
+                  drawPileByGrid(columns);
+                } else {
+                  clearPileByGrid();
+                  pileByGrid.style.zIndex = -1;
+                }
+              },
+              nullifiable: true,
+              onMouseenter: () => {
+                if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+              },
+              onMousedown: () => {
+                pileByGridActive = true;
+                if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+              },
+              onMouseleave: function onMouseup() {
+                if (!pileByGridActive) {
+                  clearPileByGrid();
+                  pileByGrid.style.zIndex = -1;
+                }
+              },
+              onMouseup: function onMouseup() {
+                pileByGridActive = false;
                 clearPileByGrid();
                 pileByGrid.style.zIndex = -1;
               }
-            },
-            nullifiable: true,
-            onMouseenter: () => {
-              if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
-            },
-            onMousedown: () => {
-              pileByGridActive = true;
-              if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
-            },
-            onMouseleave: function onMouseup() {
-              if (!pileByGridActive) {
-                clearPileByGrid();
-                pileByGrid.style.zIndex = -1;
-              }
-            },
-            onMouseup: function onMouseup() {
-              pileByGridActive = false;
-              clearPileByGrid();
-              pileByGrid.style.zIndex = -1;
             }
-          }
+          ]
         },
         {
           name: 'Overlap',
           width: '4rem',
-          onClick: true,
           action: () => {
             pilingLib.pileBy('overlap', pileByOverlapSqPx);
           },
-          subInput: {
-            name: 'Min overlap in pixel^2',
-            dtype: 'int',
-            min: 1,
-            max: 256,
-            defaultValue: 1,
-            onInput: true,
-            setter: sqPx => {
-              pileByOverlapSqPx = sqPx;
+          subInputs: [
+            {
+              dtype: 'int',
+              min: 1,
+              max: 256,
+              defaultValue: 1,
+              onInput: true,
+              setter: sqPx => {
+                pileByOverlapSqPx = sqPx;
+              }
             }
-          }
+          ]
         },
         {
           name: 'Distance',
           width: '4rem',
-          onClick: true,
           action: () => {
             pilingLib.pileBy('distance', pileByDistancePx);
           },
-          subInput: {
-            name: 'Min distance in pixel',
-            dtype: 'int',
-            min: 1,
-            max: 256,
-            defaultValue: 1,
-            onInput: true,
-            setter: px => {
-              pileByDistancePx = px;
+          subInputs: [
+            {
+              dtype: 'int',
+              min: 1,
+              max: 256,
+              defaultValue: 1,
+              onInput: true,
+              setter: px => {
+                pileByDistancePx = px;
+              }
             }
-          }
+          ]
         },
         {
           name: 'Category',
           hide: categoricalProps.length === 0,
-          onClick: true,
           width: '4rem',
-          defaultValue: pileByCategory,
           action: () => {
             pilingLib.pileBy('category', pileByCategory);
           },
-          subInput: {
-            name: 'Category',
-            dtype: 'string',
-            values: categoricalProps,
-            setter: category => {
-              pileByCategory = category;
+          subInputs: [
+            {
+              dtype: 'string',
+              values: categoricalProps,
+              defaultValue: pileByCategory,
+              setter: category => {
+                pileByCategory = category;
+              }
             }
-          }
+          ]
         }
       ]
     },
@@ -793,7 +830,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
     let eventType = 'change';
     if (field.onInput) eventType = 'input';
-    if (field.onClick) eventType = 'click';
+    if (field.action) eventType = 'click';
 
     input.addEventListener(eventType, event => {
       let value = event.target.value;
@@ -876,7 +913,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         inputs.className = 'inputs';
 
         const input = createInput(field);
-        const subInput = field.subInput && createInput(field.subInput, true);
+        const subInputs = field.subInputs
+          ? field.subInputs.map(subInput => createInput(subInput, true))
+          : [];
 
         let newElements = addListeners(input, field, valueEl);
 
@@ -890,21 +929,22 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               : pilingLib.get(field.name);
         }
 
-        if (subInput) {
-          newElements = addListeners(subInput, field.subInput, valueEl, true);
+        subInputs.forEach((subInput, i) => {
+          const subInputField = field.subInputs[i];
+          newElements = addListeners(subInput, subInputField, valueEl, true);
           newElements.forEach(el => inputs.appendChild(el));
           inputs.appendChild(subInput);
           if (
-            field.subInput.dtype === 'int' &&
-            (field.subInput.min || field.subInput.max)
+            subInputField.dtype === 'int' &&
+            (subInputField.min || subInputField.max)
           ) {
             inputs.appendChild(valueEl);
             valueEl.textContent =
-              field.subInput.defaultValue !== undefined
-                ? field.subInput.defaultValue
+              subInputField.defaultValue !== undefined
+                ? subInputField.defaultValue
                 : pilingLib.get(field.name);
           }
-        }
+        });
 
         if (field.action) {
           labelTitle.style.display = 'none';
