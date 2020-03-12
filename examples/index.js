@@ -345,7 +345,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   let pileByColumn = 'top';
   let pileByOverlapSqPx = 1;
   let pileByDistancePx = 1;
-  let pileByCategory;
+  let pileByCategory = categoricalProps[0];
 
   const options = [
     {
@@ -560,6 +560,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           hide: categoricalProps.length === 0,
           onClick: true,
           width: '4rem',
+          defaultValue: pileByCategory,
           action: () => {
             pilingLib.pileBy('category', pileByCategory);
           },
