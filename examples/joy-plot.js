@@ -8,9 +8,15 @@ const createSvgLinesPiles = async element => {
 
   const { width } = element.getBoundingClientRect();
 
+  const fromX = -1.5;
+  const toX = 1.5;
+  const numSteps = 50;
+  const domainSize = toX - fromX;
+  const stepSize = domainSize / numSteps;
   const columns = 12;
   const relHeight = 0.4;
   const absHeight = 100 * relHeight;
+  const tickHeight = 3;
   const aspectRatio = 1 / relHeight;
   const itemWidth = (width / columns) * 3;
   const itemHeight = itemWidth * relHeight;
@@ -40,7 +46,8 @@ const createSvgLinesPiles = async element => {
   ];
 
   const createSvgStart = () =>
-    `<svg viewBox="0 0 100 ${absHeight}" xmlns="http://www.w3.org/2000/svg">`;
+    `<svg viewBox="0 0 100 ${absHeight +
+      tickHeight}" xmlns="http://www.w3.org/2000/svg">`;
 
   const createGradient = (name, startColor, midColor, endColor) => `<defs>
   <linearGradient id="${name}" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -61,49 +68,48 @@ const createSvgLinesPiles = async element => {
     return `<path d="M${absHeight},0${path}L100,${absHeight}L" stroke="url(#linear-stroke)" stroke-size="1" fill="url(#linear-fill)"/>`;
   };
 
-  const createTitle = (titleLeft, titleRight) =>
-    `<foreignObject x="0" y="0" width="100" height="12">
-  <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; justify-content: space-between; font: 8px sans-serif; color: #808080">
-    <span>${titleLeft}</span>
-    <span>${titleRight}</span>
+  const createTitle = (titleLeft, titleRight, avgTemp) =>
+    `<foreignObject x="1" y="${absHeight - 9}" width="100" height="12">
+  <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; justify-content: space-between; font: 8px sans-serif; color: #999">
+    <span>${titleLeft} ${avgTemp > 0 ? titleRight : ''}</span>
+    <span>${avgTemp <= 0 ? titleRight : ''}</span>
   </div>
 </foreignObject>`;
 
-  const createAxis = (ticks, domain) => {
-    const dSize = domain[1] - domain[0];
-    const tickEls = ticks
-      .map(tick => {
-        const x = ((tick - domain[0]) / dSize) * 100;
-        return `<line x1="${x}" y1="0" x2="${x}" y2="3" stroke="black" opacity="0.33" />`;
-      })
-      .join('');
-    return `<g transform="translate(0 ${absHeight - 3})">${tickEls}</g>`;
+  const createAxis = ticks => {
+    const tickEls = ticks.map(tick => {
+      const x = ((tick - fromX) / domainSize) * 100;
+      return `<line x1="${x}" y1="0" x2="${x}" y2="${tickHeight}" stroke="black" opacity="0.33" />`;
+    });
+    return `<g transform="translate(0 ${absHeight})">${tickEls.join('')}</g>`;
   };
+
+  const getAvgTemp = hist =>
+    fromX + (hist.findIndex(x => x === 1) + 0.5) * stepSize;
 
   // prettier-ignore
   const createLinePlot = (hist, years, month) => [
     createSvgStart(),
     createGradient('linear-fill', '#3170ad', '#cccccc', '#c76526'),
     createGradient('linear-stroke', '#1d4266', '#666666', '#663413'),
-    createTitle(months[month], years),
+    createTitle(months[month], years, getAvgTemp(hist)),
     createPath(hist),
-    createAxis([-1, 0, 1], [-1.5, 1.5]),
+    createAxis([-1, 0, 1]),
     createSvgEnd()
   ].join('');
 
   const startYear = 1880;
   const numYearPerStep = 10;
 
-  const items = data.flatMap((kdes, month) =>
+  const items = data.flatMap((kdes, numMonth) =>
     kdes.map((kde, numDecade) => {
-      const years = `${startYear + numYearPerStep * numDecade}-${startYear +
-        numYearPerStep * (numDecade + 1) -
-        1}`;
+      const years = `${startYear + numYearPerStep * numDecade}s`;
       return {
         kde,
-        src: createLinePlot(kde, years, month),
+        src: createLinePlot(kde, years, numMonth),
         decade: years,
-        month: months[month],
+        month: months[numMonth],
+        numMonth,
         numDecade
       };
     })
@@ -116,7 +122,7 @@ const createSvgLinesPiles = async element => {
     renderer: svgRenderer,
     items,
     columns: 12,
-    pileItemOffset: [-1, 5],
+    pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',

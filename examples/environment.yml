@@ -7,6 +7,12 @@ dependencies:
   - imageio
   - matplotlib
   - numba
+  - pip
+  - scikit-image
   - scikit-learn
   - umap-learn
   - jupyterlab
+  - pip:
+      - apricot-select
+      - ndjson
+      - pycountry
