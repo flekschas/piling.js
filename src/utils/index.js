@@ -4,6 +4,7 @@ export { default as CustomBufferResource } from './custom-buffer-resource';
 export { default as ifNotNull } from './if-not-null';
 export { default as getBBox } from './get-bbox';
 export { default as scaleLinear } from './scale-linear';
+export { default as toAlignment } from './to-alignment';
 export { default as toHomogeneous } from './to-homogeneous';
 export { default as uniqueStr } from './unique-str';
 export { default as whichTransitionEvent } from './which-transition-event';

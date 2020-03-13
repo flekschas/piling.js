@@ -57,6 +57,7 @@ import {
   colorToDecAlpha,
   getBBox,
   scaleLinear,
+  toAlignment,
   toHomogeneous,
   uniqueStr
 } from './utils';
@@ -286,6 +287,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileContextMenuItems: true,
     pileOpacity: true,
     pileScale: true,
+    pileSizeBadge: true,
+    pileSizeBadgeAlign: {
+      set: alignment => [
+        createAction.setPreviewBackgroundColor(toAlignment(alignment))
+      ]
+    },
     pileVisibilityItems: true,
     popupBackgroundOpacity: true,
     previewAggregator: true,
@@ -2874,7 +2881,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.size &&
       (state.pileOpacity !== newState.pileOpacity ||
         state.pileBorderSize !== newState.pileBorderSize ||
-        state.pileScale !== newState.pileScale)
+        state.pileScale !== newState.pileScale ||
+        state.pileSizeBadge !== newState.pileSizeBadge)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);

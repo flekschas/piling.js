@@ -9,14 +9,15 @@ import {
 
 import createSpinner from './spinner';
 
-import { ifNotNull } from './utils';
+import { ifNotNull, whichTransitionEvent } from './utils';
 
 import {
-  TRANSITION_EVENT,
   CSS_EASING_CUBIC_IN_OUT,
   DEFAULT_DARK_MODE,
   DEFAULT_POPUP_BACKGROUND_OPACITY
 } from './defaults';
+
+const TRANSITION_EVENT = whichTransitionEvent();
 
 const createPopup = ({
   backgroundOpacity: initialBackgroundOpacity = DEFAULT_POPUP_BACKGROUND_OPACITY,

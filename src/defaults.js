@@ -1,4 +1,5 @@
-import { whichTransitionEvent } from './utils';
+export const ALIGNMENTS_X = ['left', 'center', 'right'];
+export const ALIGNMENTS_Y = ['top', 'center', 'bottom'];
 
 // prettier-ignore
 export const CAMERA_VIEW = new Float32Array([
@@ -47,10 +48,9 @@ export const NAVIGATION_MODES = [
 export const DEFAULT_PILE_COVER_SCALE = 1.0;
 export const DEFAULT_PILE_ITEM_BRIGHTNESS = 0;
 export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
+export const DEFAULT_PILE_SIZE_BADGE_ALIGN = ['top', 'right'];
 
 export const DEFAULT_PREVIEW_BACKGROUND_COLOR = INHERIT;
 export const DEFAULT_PREVIEW_BACKGROUND_OPACITY = INHERIT;
 
 export const POSITION_PILES_DEBOUNCE_TIME = 100;
-
-export const TRANSITION_EVENT = whichTransitionEvent();
