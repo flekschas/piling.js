@@ -122,13 +122,13 @@ const createScatterplotPiles = async element => {
     previewSpacing: 1,
     itemLabel: ['region'],
     itemLabelColor: [
-      '0xe05aa9',
-      '0xe0722b',
-      '0xe0a638',
-      '0xe0d42c',
-      '0x62d9a5',
-      '0x48a5ff',
-      '0xae77f5'
+      '#e05aa9',
+      '#e0722b',
+      '#e0a638',
+      '#e0d42c',
+      '#62d9a5',
+      '#48a5ff',
+      '#ae77f5'
     ],
     itemLabelText: ['NA', 'LA', 'EA', 'ME', 'A', 'SA', 'EA']
   });
