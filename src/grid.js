@@ -13,13 +13,13 @@ import clip from 'liang-barsky';
 const createGrid = (
   { width, height, orderer },
   {
+    cellSize = null,
     itemSize = null,
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
     pileCellAlignment = 'topLeft',
-    cellPadding = 0,
-    cellSize = null
+    cellPadding = 0
   } = {}
 ) => {
   let numColumns = columns;
@@ -28,22 +28,23 @@ const createGrid = (
     numColumns = 10;
   }
 
+  if (!+cellSize && +itemSize) {
+    // eslint-disable-next-line no-param-reassign
+    cellSize = itemSize;
+  }
+
   let columnWidth = width / numColumns;
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
 
-  if (+itemSize && !+cellSize) {
-    columnWidth = itemSize + cellPadding * 2;
-    numColumns = Math.floor(width / columnWidth);
-    cellWidth = itemSize;
-  }
-
   if (+cellSize) {
-    columnWidth = cellSize;
-    // eslint-disable-next-line no-param-reassign
-    itemSize = cellSize - cellPadding * 2;
+    columnWidth = cellSize + cellPadding * 2;
     numColumns = Math.floor(width / columnWidth);
-    cellWidth = itemSize;
+    cellWidth = cellSize;
+    if (!+itemSize) {
+      // eslint-disable-next-line no-param-reassign
+      itemSize = cellSize;
+    }
   }
 
   if (!+rowHeight) {
@@ -59,6 +60,17 @@ const createGrid = (
   }
 
   cellHeight = rowHeight - cellPadding * 2;
+
+  let itemWidth;
+  let itemHeight;
+
+  if (!+itemSize) {
+    itemWidth = cellWidth;
+    itemHeight = cellHeight;
+  } else {
+    itemWidth = itemSize;
+    itemHeight = itemWidth / cellAspectRatio;
+  }
 
   const columnWidthHalf = columnWidth / 2;
   const rowHeightHalf = rowHeight / 2;
@@ -391,6 +403,8 @@ const createGrid = (
       if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
     itemSize,
+    itemHeight,
+    itemWidth,
     numColumns,
     columnWidth,
     rowHeight,
