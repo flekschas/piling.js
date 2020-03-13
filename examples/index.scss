@@ -397,7 +397,9 @@ body.permanent-options #group-by-grid {
 
   .checkbox,
   .radio,
-  .button {
+  .button,
+  input[type='text'],
+  input[type='number'] {
     display: block;
     margin: 0.25rem 0;
     font-size: 0.8rem;

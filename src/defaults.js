@@ -18,7 +18,10 @@ export const EVENT_LISTENER_PASSIVE = { passive: true };
 export const INHERIT = 'inherit';
 
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
-export const INITIAL_ARRANGEMENT_OBJECTIVE = (pileState, i) => i;
+export const INITIAL_ARRANGEMENT_OBJECTIVE = {
+  property: (pileState, i) => i,
+  isCustom: true
+};
 
 export const DEFAULT_POPUP_BACKGROUND_OPACITY = 0.85;
 
