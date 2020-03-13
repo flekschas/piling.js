@@ -1,4 +1,3 @@
-import { ndjsonToJsonText } from 'ndjson-to-json-text';
 import createPilingJs from '../src/library';
 
 import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
@@ -6,19 +5,8 @@ import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-rendere
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
 const createDrawingPiles = async element => {
-  const ndjsonText = await fetch('data/apple.ndjson').then(body =>
-    body.text().then(s => s)
-  );
-
-  const jsonText = ndjsonToJsonText(ndjsonText);
-
-  const data = JSON.parse(jsonText).map(d => {
-    d.src = d.drawing;
-    delete d.drawing;
-    return d;
-  });
-
-  const testData = data.slice(0, 1000);
+  const response = await fetch('data/teapot.json');
+  const items = await response.json();
 
   const coverOptions = { size: 128, lineWidth: 3 };
 
@@ -30,11 +18,11 @@ const createDrawingPiles = async element => {
     coverOptions
   );
 
-  const pilingJs = createPilingJs(element, {
+  const piling = createPilingJs(element, {
     renderer: quickDrawRenderer,
     coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
-    items: testData,
+    items,
     itemSize: 32,
     cellPadding: 16,
     pileItemOffset: [0, 0],
@@ -46,7 +34,7 @@ const createDrawingPiles = async element => {
     lassoStrokeColor: '#000000'
   });
 
-  return [pilingJs];
+  return [piling];
 };
 
 export default createDrawingPiles;
