@@ -783,16 +783,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] <= 1
     ) {
       widthRange = [
-        layout.cellWidth * itemSizeRange[0],
-        layout.cellWidth * itemSizeRange[1]
+        layout.itemWidth * itemSizeRange[0],
+        layout.itemWidth * itemSizeRange[1]
       ];
       heightRange = [
-        layout.cellHeight * itemSizeRange[0],
-        layout.cellHeight * itemSizeRange[1]
+        layout.itemHeight * itemSizeRange[0],
+        layout.itemHeight * itemSizeRange[1]
       ];
     } else {
-      widthRange = [0, layout.cellWidth];
-      heightRange = [0, layout.cellHeight];
+      widthRange = [0, layout.itemWidth];
+      heightRange = [0, layout.itemHeight];
     }
 
     itemWidthScale = scaleLinear()
