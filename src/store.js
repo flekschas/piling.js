@@ -178,13 +178,7 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter(
 
 const [itemLabel, setItemLabel] = setter('itemLabel');
 
-const [itemLabelColor, setItemLabelColor] = setter('itemLabelColor', [
-  '0xf60029',
-  '0xff8800',
-  '0xffcc00',
-  '0x40bf00',
-  '0x4e40ff'
-]);
+const [itemLabelColor, setItemLabelColor] = setter('itemLabelColor');
 
 const [itemLabelText, setItemLabelText] = setter('itemLabelText', false);
 
