@@ -23,6 +23,8 @@ import {
   maxVector,
   mean,
   meanVector,
+  median,
+  medianVector,
   min,
   minVector,
   nextAnimationFrame,
@@ -1093,6 +1095,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Promise.resolve([pileState.x, pileState.y]);
   };
 
+  const getPilePositionByCoords = (pileState, objective) => {
+    if (objective.isCustom) {
+      return objective.property(pileState, pileState.index);
+    }
+
+    const { items } = store.state;
+
+    return objective.aggregator(
+      pileState.items.map(itemId => objective.property(items[itemId]))
+    );
+  };
+
   const getPilePosition = async (pileId, init) => {
     const { arrangementType, arrangementObjective, piles } = store.state;
 
@@ -1114,27 +1128,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const ijToXy = (i, j) =>
       layout.ijToXy(i, j, pile.width, pile.height, pile.offset);
 
-    switch (type) {
-      case 'data':
-        return getPilePositionByData(pileId, pileState);
+    if (type === 'data') return getPilePositionByData(pileId, pileState);
 
+    const pos = type && getPilePositionByCoords(pileState, objective);
+
+    switch (type) {
       case 'index':
-        return Promise.resolve(
-          ijToXy(...layout.idxToIj(objective(pileState, pileState.index)))
-        );
+        return ijToXy(...layout.idxToIj(pos));
 
       case 'ij':
-        return Promise.resolve(
-          ijToXy(...objective(pileState, pileState.index))
-        );
+        return ijToXy(...pos);
 
       case 'xy':
-        return Promise.resolve(objective(pileState, pileState.index));
+        return pos;
 
       case 'uv':
-        return Promise.resolve(
-          layout.uvToXy(...objective(pileState, pileState.index))
-        );
+        return layout.uvToXy(...pos);
 
       default:
         return Promise.resolve([pileState.x, pileState.y]);
@@ -2710,10 +2719,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(
       batchActions([
-        ...set('arrangementType', null, true),
-        ...set('arrangementObjective', null, true),
+        ...set('arrangementOnPile', false, true),
         ...set('arrangementOptions', {}, true),
-        ...set('arrangementOnPile', false, true)
+        ...set('arrangementObjective', null, true),
+        ...set('arrangementType', null, true)
       ])
     );
   };
@@ -3119,6 +3128,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'max':
         return objective.propertyIsVector ? maxVector : max;
 
+      case 'median':
+        return objective.propertyIsVector ? medianVector : median;
+
       case 'min':
         return objective.propertyIsVector ? minVector : min;
 
@@ -3141,7 +3153,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const expandArrangementObjective = arrangementObjective => {
+  const expandArrangementObjectiveData = arrangementObjective => {
     if (!Array.isArray(arrangementObjective)) {
       // eslint-disable-next-line no-param-reassign
       arrangementObjective = [arrangementObjective];
@@ -3170,19 +3182,51 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return expandedArrangementObjective;
   };
 
+  const expandArrangementObjectiveCoords = (objective, is2d) => {
+    const expandedObjective = {};
+
+    if (objective.constructor !== Object) {
+      expandedObjective.property = expandProperty(objective);
+      expandedObjective.isCustom = isFunction(objective);
+      expandedObjective.aggregator = is2d ? meanVector : mean;
+    } else {
+      expandedObjective.property = expandProperty(objective.property);
+      expandedObjective.aggregator = expandNumericalAggregator(objective);
+    }
+
+    return expandedObjective;
+  };
+
   const arrangeBy = (type = null, objective = null, options = {}) => {
-    const expandedObjective =
-      type === 'data' ? expandArrangementObjective(objective) : objective;
+    let expandedObjective = objective;
+
+    switch (type) {
+      case 'data':
+        expandedObjective = expandArrangementObjectiveData(objective);
+        break;
+
+      case 'xy':
+      case 'ij':
+      case 'uv':
+        expandedObjective = expandArrangementObjectiveCoords(objective, true);
+        break;
+
+      case 'index':
+        expandedObjective = expandArrangementObjectiveCoords(objective);
+        break;
+
+      // no default
+    }
 
     const onPile = !!options.onPile;
     delete options.onPile;
 
     store.dispatch(
       batchActions([
-        ...set('arrangementType', type, true),
-        ...set('arrangementObjective', expandedObjective, true),
+        ...set('arrangementOnPile', onPile, true),
         ...set('arrangementOptions', options, true),
-        ...set('arrangementOnPile', onPile, true)
+        ...set('arrangementObjective', expandedObjective, true),
+        ...set('arrangementType', type, true)
       ])
     );
   };
