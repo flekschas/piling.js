@@ -5,7 +5,7 @@ import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-rendere
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
 const createDrawingPiles = async element => {
-  const response = await fetch('data/teapot.json');
+  const response = await fetch('data/apple.json');
   const items = await response.json();
 
   const coverOptions = { size: 128, lineWidth: 3 };
