@@ -1980,10 +1980,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       [lassoPolygon.length - 2, lassoPolygon.length - 1],
       lassoPolygon
     );
-    const pilesInLasso = findPilesInLasso(lassoPolygon);
-    if (pilesInLasso.length > 1) {
-      store.dispatch(createAction.setFocusedPiles([]));
-      animateMerge([pilesInLasso]);
+    if (!store.state.temporaryDepiledPiles.length) {
+      const pilesInLasso = findPilesInLasso(lassoPolygon);
+      if (pilesInLasso.length > 1) {
+        store.dispatch(createAction.setFocusedPiles([]));
+        animateMerge([pilesInLasso]);
+      }
     }
   };
 
@@ -3349,30 +3351,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
-        const targetPileId = collidePiles[0].id;
-        const targetPile = pileInstances.get(targetPileId);
-        const targetPileState = store.state.piles[targetPileId];
-        hit = !targetPile.isTempDepiled;
-        if (hit) {
-          // TODO: The drop merge animation code should be unified
+        if (!pile.isTempDepiled) {
+          const targetPileId = collidePiles[0].id;
+          const targetPile = pileInstances.get(targetPileId);
+          const targetPileState = store.state.piles[targetPileId];
+          hit = !targetPile.isTempDepiled;
+          if (hit) {
+            // TODO: The drop merge animation code should be unified
 
-          // This is needed for the drop merge animation of the pile class
-          pile.items.forEach(pileItem => {
-            pileItem.item.tmpAbsX = pileGfx.x;
-            pileItem.item.tmpAbsY = pileGfx.y;
-            pileItem.item.tmpRelScale = pile.scale;
-          });
+            // This is needed for the drop merge animation of the pile class
+            pile.items.forEach(pileItem => {
+              pileItem.item.tmpAbsX = pileGfx.x;
+              pileItem.item.tmpAbsY = pileGfx.y;
+              pileItem.item.tmpRelScale = pile.scale;
+            });
 
-          if (store.state.previewAggregator) {
-            animateDropMerge(pileId, targetPileId);
-          } else {
-            store.dispatch(
-              createAction.mergePiles(
-                [pileId, targetPileId],
-                [targetPileState.x, targetPileState.y],
-                targetPileId
-              )
-            );
+            if (store.state.previewAggregator) {
+              animateDropMerge(pileId, targetPileId);
+            } else {
+              store.dispatch(
+                createAction.mergePiles(
+                  [pileId, targetPileId],
+                  [targetPileState.x, targetPileState.y],
+                  targetPileId
+                )
+              );
+            }
           }
         }
       } else {
