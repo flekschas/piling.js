@@ -1033,9 +1033,14 @@ const createPile = (
   };
 
   let labelGraphics;
-  let labelTextContainer;
 
   const drawLabel = (labels, colors, texts) => {
+    if (!labels.length) {
+      labelGraphics.clear();
+      labelGraphics.removeChildren();
+      return;
+    }
+
     if (isPositioning || isScaling) {
       postPilePositionAnimation.set('drawLabel', () => {
         drawLabel(labels, colors, texts);
@@ -1043,29 +1048,25 @@ const createPile = (
       return;
     }
 
-    if (!labelGraphics || !labelTextContainer) {
+    if (!labelGraphics) {
       labelGraphics = new PIXI.Graphics();
-      labelTextContainer = new PIXI.Container();
       contentGraphics.addChild(labelGraphics);
-      contentGraphics.addChild(labelTextContainer);
     } else {
       labelGraphics.clear();
-      labelTextContainer.removeChildren();
+      labelGraphics.removeChildren();
     }
 
     const { width, height } = contentGraphics;
 
-    if (labels.length) {
-      const labelWidth = width / labels.length;
-      const labelHeight = 15;
-      labels.forEach((label, index) => {
-        const labelX = labelWidth * index - width / 2;
-        const color = colors[index];
-        labelGraphics.beginFill(color, 1);
-        labelGraphics.drawRect(labelX, height / 2, labelWidth, labelHeight);
-        labelGraphics.endFill();
-      });
-    }
+    const labelWidth = width / labels.length;
+    const labelHeight = 8;
+    labels.forEach((label, index) => {
+      const labelX = labelWidth * index - width / 2;
+      const color = colors[index];
+      labelGraphics.beginFill(color, 1);
+      labelGraphics.drawRect(labelX, height / 2, labelWidth, labelHeight);
+      labelGraphics.endFill();
+    });
 
     if (texts.length) {
       const textWidth = width / texts.length;
@@ -1074,8 +1075,8 @@ const createPile = (
         labelText.anchor.set(0.5, 0);
         labelText.x = textWidth * index - width / 2 + textWidth / 2;
         labelText.y = height / 2;
-        labelText.style.fontSize = 15;
-        labelTextContainer.addChild(labelText);
+        labelText.style.fontSize = 8;
+        labelGraphics.addChild(labelText);
       });
     }
   };
