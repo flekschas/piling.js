@@ -405,14 +405,14 @@ Position piles with user-specified arrangement method.
 
 `type`, `objective`, and `options` can be one of the following combinations:
 
-| Type      | Objective                                                                             | Options  |
-| --------- | ------------------------------------------------------------------------------------- | -------- |
-| `null`    | `undefined` _(manual positioning)_                                                    | `object` |
-| `'index'` | `function` that returns the linear index                                              | `object` |
-| `'ij'`    | `function` that returns the cell (i.e., ij position) the pile should be positioned in | `object` |
-| `'xy'`    | `function` that returns the final xy position                                         | `object` |
-| `'uv'`    | `function` that returns the final uv position of the canvas                           | `object` |
-| `'data'`  | `string`, `object`, `function`, or `array` of the previous types                      | `object` |
+| Type      | Objective                                                          | Options  |
+| --------- | ------------------------------------------------------------------ | -------- |
+| `null`    | `undefined` _(manual positioning)_                                 | `object` |
+| `'index'` | a `string`, `object`, or `function`                                | `object` |
+| `'ij'`    | a `string`, `object`, or `function`                                | `object` |
+| `'xy'`    | a `string`, `object`, or `function`                                | `object` |
+| `'uv'`    | a `string`, `object`, or `function`                                | `object` |
+| `'data'`  | a `string`, `object`, `function`, or `array` of the previous types | `object` |
 
 The following options are available for all types:
 
@@ -424,8 +424,25 @@ The following options are available for all types:
 
   ```javascript
   function (pileState, pileId) {
-    // Do something
+    // Based on the `type` return the index, or the ij, xy, or uv coordinate
     return pilePosition;
+  }
+  ```
+
+  Alternatively, one can specify a data property holding the pile position as follows:
+
+  ```javascript
+  piling.arrangeBy('index', 'myIndex');
+  piling.arrangeBy('index', { property: 'myIndex', aggregator: 'median' });
+  ```
+
+  The `property` must correspond to a property of the item. The `aggregator` can be `min`, `max`, `mean`, `median`, `sum`, or a custom function with the following signature:
+
+  ```javascript
+  function (data) {
+    // Do something with `data`
+    // Based on the `type` the value must be a scalar or a tuple
+    return aSingleValue;
   }
   ```
 
