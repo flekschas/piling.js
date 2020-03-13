@@ -171,7 +171,7 @@ The list of all understood properties is given below.
 | gridColor                  | string or int           | `0x787878`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | gridOpacity                | float                   | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
 | items                      | array                   | `[]`         | see [`data`](#data)                                                  | `false`    |
-| itemSize                   | int                     |              | ignored when `cellSize` is defined                                                | `true`     |
+| itemSize                   | int                     |              | number of pixels                                                   | `true`     |
 | itemSizeRange              | array                   | `[0.7, 0.9]` | array of two numbers between (0, 1)                                  | `true`     |
 | columns                    | int                     | `10`         | ignored when `itemSize` is defined                                   | `false`    |
 | rowHeight                  | int                     |              |                                                                      | `true`     |
@@ -260,9 +260,11 @@ The list of all understood properties is given below.
 
 - The following properties to define the _grid_: `itemSize`, `cellPadding`, `columns`, `rowHeight`, `cellAspectRatio` and `cellSize`.
 
-  One has to at least provide `columns`, `itemSize` or `cellSize` to define a grid. If `cellSize` is defined, other 2 properties are ignored. `itemSize` is then defined by `cellSize` and `cellPadding`. If `itemSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
+  `itemSize` should define the size of the item and `cellSize` should define the size of the cell.
 
-  When `itemSize` is defined, `itemSize` and `cellPadding` add up together to define the cell width. When `itemSize` is undefined, `itemSize` is defined by the derived cell width (given `columns`) minues `cellPadding`!
+  One has to at least provide `columns` or `cellSize` to define a grid. If `cellSize` is not defined, it should be derived from `itemSize`. If `cellSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
+
+  When `cellSize` is defined, `cellSize` and `cellPadding` add up together to define the cell width. When `cellSize` is undefined, `cellSize` is defined by the derived cell width (given `columns`) minues `cellPadding`!
 
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
