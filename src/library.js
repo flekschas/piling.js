@@ -40,6 +40,7 @@ import createStore, { createAction } from './store';
 
 import {
   CAMERA_VIEW,
+  DEFAULT_COLOR_MAP,
   EVENT_LISTENER_ACTIVE,
   EVENT_LISTENER_PASSIVE,
   INHERIT,
@@ -162,7 +163,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     gridOpacity: true,
-    itemLabel: true,
+    itemLabel: {
+      set: value => {
+        const objective = expandLabelObjective(value);
+        const actions = [createAction.setItemLabel(objective)];
+        return actions;
+      }
+    },
     itemLabelColor: true,
     itemLabelText: true,
     items: {
@@ -2736,25 +2743,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!itemLabel) return;
 
-    const objective = expandLabelObjective(itemLabel);
-
     if (!allLabels.size || reset) {
-      labelArray = Object.entries(piles).reduce((labels, [, pile]) => {
-        if (!pile.items.length) return labels;
+      labelArray = unique(
+        Object.values(piles).reduce((labels, pile) => {
+          if (!pile.items.length) return labels;
 
-        const label = objective.flatMap(o => {
-          if (o.aggregator) {
-            return o.aggregator(
-              pile.items.map(itemId => o.property(items[itemId]))
-            );
-          }
-          return pile.items.map(itemId => o.property(items[itemId]));
-        });
+          const label = itemLabel.flatMap(objective => {
+            if (objective.aggregator) {
+              return objective.aggregator(
+                pile.items.map(itemId => objective.property(items[itemId]))
+              );
+            }
+            return pile.items.map(itemId => objective.property(items[itemId]));
+          });
 
-        return [...labels, ...label];
-      }, []);
+          return [...labels, ...label];
+        }, [])
+      );
 
-      labelArray = unique(labelArray);
       labelArray.forEach((label, index) => {
         allLabels.set(label, index);
       });
@@ -2765,21 +2771,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!pileInstance) return;
 
     const label = unique(
-      objective.flatMap(o => {
-        if (o.aggregator) {
-          return o.aggregator(
-            pileState.items.map(itemId => o.property(items[itemId]))
+      itemLabel.flatMap(objective => {
+        if (objective.aggregator) {
+          return objective.aggregator(
+            pileState.items.map(itemId => objective.property(items[itemId]))
           );
         }
-        return pileState.items.map(itemId => o.property(items[itemId]));
+        return pileState.items.map(itemId => objective.property(items[itemId]));
       })
     );
 
-    const color = label.map(l =>
-      isFunction(itemLabelColor)
-        ? itemLabelColor(l, labelArray)
-        : itemLabelColor[allLabels.get(l)]
-    );
+    const color = label.map(l => {
+      if (isFunction(itemLabelColor)) {
+        return colorToDecAlpha(itemLabelColor(l, labelArray))[0];
+      }
+      if (Array.isArray(itemLabelColor)) {
+        return colorToDecAlpha(itemLabelColor[allLabels.get(l)])[0];
+      }
+      const n = DEFAULT_COLOR_MAP.length;
+      return colorToDecAlpha(DEFAULT_COLOR_MAP[allLabels.get(l) % n])[0];
+    });
 
     let text = [];
 
@@ -2788,7 +2799,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         if (isFunction(itemLabelText)) {
           return itemLabelText(l, labelArray);
         }
-        if (itemLabelText.constructor === Array) {
+        if (Array.isArray(itemLabelText)) {
           return itemLabelText[allLabels.get(l)];
         }
         return l;
