@@ -1,6 +1,6 @@
 ### Next
 
-- Add `cellSize`. `itemSize` is then defined by `cellSize` and `cellPadding`.
+- Add `cellSize` to define the size of the cell
 - Add `pileBy()` for layout-, location-, and data-driven piling
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position the previews as user specified
