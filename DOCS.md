@@ -411,18 +411,18 @@ The list of all understood properties is given below.
   piling.set('itemLabel', { property: item => item.country, aggregator: countries => countries[0] });
   ```
 
-- `itemLabelColor` can be set to an `array` of RGB strings, or a callback function. E.g.,
+- `itemLabelColor` can be set to an `array` of HEX, RGB string or hexadecimal value, or a callback function. E.g.,
 
   ```javascript
-  piling.set('itemLabelColor', ['0xe05aa9', '0xe0722b', '0xe0a638']);
+  piling.set('itemLabelColor', ['#e05aa9', '#e0722b', '#e0a638']);
   piling.set('itemLabelColor', (label, allLabels) => myOwnFancyColorMap[label]);
   ```
 
-  The callback function receives the current label (`string`), and an array of all the labels, and it should return an RGB string. The signature is as follows:
+  The callback function receives the current label (`string`), and an array of all the labels, and it should return a HEX, RGB string or hexadecimal value. The signature is as follows:
 
   ```javascript
     function (label, allLabels) {
-      // Create color map
+      // Pick the color for the `label`
       return color;
     }
   ```
