@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 
 import { colorToDecAlpha } from './utils';
 
-const fragment = `
+const BRIGHTEN_FS = `
 varying vec2 vTextureCoord;
 varying vec4 vColor;
 varying float vTextureId;
@@ -16,8 +16,28 @@ void main(void){
 }
 `;
 
-const BrightenTintBatchRenderer = PIXI.BatchPluginFactory.create({ fragment });
+const BrightenTintBatchRenderer = PIXI.BatchPluginFactory.create({
+  fragment: BRIGHTEN_FS
+});
 PIXI.Renderer.registerPlugin('brighten-tint', BrightenTintBatchRenderer);
+
+const INVERT_FS = `
+varying vec2 vTextureCoord;
+varying vec4 vColor;
+varying float vTextureId;
+uniform sampler2D uSamplers[%count%];
+
+void main(void){
+    vec4 color;
+    %forloop%
+    gl_FragColor = vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
+}
+`;
+
+const InvertBatchRenderer = PIXI.BatchPluginFactory.create({
+  fragment: INVERT_FS
+});
+PIXI.Renderer.registerPlugin('invert', InvertBatchRenderer);
 
 const withColorFilters = sprite => self => {
   let brightness = 0;
@@ -42,6 +62,9 @@ const withColorFilters = sprite => self => {
 
         sprite.pluginName = value < 0 ? 'batch' : 'brighten-tint';
       }
+    },
+    invert(value) {
+      sprite.pluginName = value ? 'batch' : 'invert';
     },
     tint(value) {
       // If brightness and tint are assigned, brightness is preferred
