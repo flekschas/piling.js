@@ -48,6 +48,16 @@ export const DEFAULT_PILE_ITEM_TINT = 0xffffff;
 export const DEFAULT_PREVIEW_BACKGROUND_COLOR = INHERIT;
 export const DEFAULT_PREVIEW_BACKGROUND_OPACITY = INHERIT;
 
+export const DEFAULT_COLOR_MAP = [
+  '#E69F00', // orange
+  '#56B4E9', // sky blue
+  '#009E73', // bluish green
+  '#F0E442', // yellow
+  '#0072B2', // blue
+  '#D55E00', // vermillion
+  '#CC79A7' // reddish purple
+];
+
 export const POSITION_PILES_DEBOUNCE_TIME = 100;
 
 export const TRANSITION_EVENT = whichTransitionEvent();
