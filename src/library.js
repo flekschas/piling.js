@@ -35,6 +35,7 @@ import {
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
+import createBadgeFactory from './badge-factory';
 import createLevels from './levels';
 import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
@@ -90,6 +91,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const pubSub = createPubSub();
   const store = createStore();
+  const badgeFactory = createBadgeFactory();
 
   let state = store.state;
 
@@ -1334,6 +1336,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileOpacity,
       pileBorderSize,
       pileScale,
+      pileSizeBadge,
       pileVisibilityItems
     } = store.state;
 
@@ -1348,6 +1351,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileInstance.setBorderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
+
+    pileInstance.showSizeBadge(pileSizeBadge);
 
     pileInstance.setVisibilityItems(
       isFunction(pileVisibilityItems)
@@ -2110,7 +2115,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         render: renderRaf,
         id: pileId,
         pubSub,
-        store
+        store,
+        badgeFactory
       },
       { x, y }
     );

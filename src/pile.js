@@ -39,7 +39,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = (
-  { render, id, pubSub, store },
+  { render, id, pubSub, store, badgeFactory },
   { x: initialX = 0, y: initialY = 0 } = {}
 ) => {
   const allItems = [];
@@ -84,6 +84,7 @@ const createPile = (
 
   const destroy = () => {
     rootGraphics.destroy();
+    if (previousSizeBadge) previousSizeBadge.destroy();
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -143,6 +144,45 @@ const createPile = (
         item.image.drawBackground(backgroundColor, backgroundOpacity);
       }
       render();
+    }
+  };
+
+  let previousSize;
+  let previousSizeBadge;
+  const drawSizeBadge = () => {
+    // const { pileSizeBadgeAlign } = store.state;
+    const size = allItems.length;
+
+    let sizeBadge = previousSizeBadge;
+
+    if (size !== previousSize) {
+      sizeBadge = badgeFactory.create(size);
+
+      if (previousSize !== undefined) {
+        rootGraphics.removeChild(previousSizeBadge.displayObject);
+        previousSizeBadge.destroy();
+      }
+    }
+
+    const borderBounds = contentGraphics.getBounds();
+
+    sizeBadge.displayObject.x = borderBounds.width / 2;
+    sizeBadge.displayObject.y = -borderBounds.height / 2;
+
+    rootGraphics.addChild(sizeBadge.displayObject);
+
+    previousSizeBadge = sizeBadge;
+
+    render();
+  };
+
+  let isShowSizeBadge = false;
+  const showSizeBadge = show => {
+    isShowSizeBadge = show;
+    if (isShowSizeBadge) {
+      drawSizeBadge();
+    } else if (previousSizeBadge) {
+      previousSizeBadge.destroy();
     }
   };
 
@@ -233,6 +273,8 @@ const createPile = (
       contentBounds.width + 2 * borderOffset,
       contentBounds.height + 2 * borderOffset
     );
+
+    if (isShowSizeBadge) drawSizeBadge();
 
     render();
   };
@@ -1184,6 +1226,7 @@ const createPile = (
     destroy,
     drawBorder,
     drawPlaceholder,
+    drawSizeBadge,
     getItemById,
     hasItem,
     magnifyByWheel,
@@ -1198,6 +1241,7 @@ const createPile = (
     setOpacity,
     setVisibilityItems,
     setItemOrder,
+    showSizeBadge,
     updateBounds,
     updateOffset: updateBaseOffset,
     replaceItemsImage,
