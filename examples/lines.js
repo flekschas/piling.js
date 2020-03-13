@@ -46,6 +46,7 @@ const createSvgLinesPiles = element => {
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
     lassoStrokeColor: '#000000',
+    pileSizeBadge: true,
     pileContextMenuItems: [
       {
         label: 'Redraw',
