@@ -1083,6 +1083,7 @@ const createPile = (
       const textWidth = width / labelTextures.length / baseScale;
       labelTextures.forEach((texture, index) => {
         const labelText = new PIXI.Sprite(texture);
+        labelText.anchor.set(0.5, 0);
         labelText.x = textWidth * index - width / 2 / baseScale + textWidth / 2;
         labelText.y = height / 2 / baseScale;
         labelText.width /= window.devicePixelRatio;
