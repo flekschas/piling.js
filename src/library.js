@@ -2782,9 +2782,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const createUniquePileLabels = () => {
     const { itemLabel, itemLabelColor, itemLabelText, items } = store.state;
 
-    const tmp = new Set();
+    // Destroy existing labels to avoid memory leaks
+    uniqueLabels.forEach(label => {
+      label.pixiText.destroy();
+    });
+
     uniqueLabels.clear();
     idToLabel.clear();
+
+    const tmp = new Set();
 
     Object.values(items).forEach(item => {
       const label = itemLabel.flatMap(objective => objective(item)).join('-');
@@ -2827,6 +2833,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
         pixiText.updateText();
         label.texture = pixiText.texture;
+        label.pixiText = pixiText;
       }
     });
   };
