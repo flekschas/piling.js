@@ -1037,12 +1037,12 @@ const createPile = (
   let labelGraphics;
   let pileLabels = [];
   let labelColors = [];
-  let labelTexts = [];
+  let labelTextures = [];
 
   const drawLabel = (
     labels = pileLabels,
     colors = labelColors,
-    texts = labelTexts
+    textures = labelTextures
   ) => {
     if (!labels.length) {
       if (labelGraphics) {
@@ -1054,7 +1054,7 @@ const createPile = (
 
     pileLabels = labels;
     labelColors = colors;
-    labelTexts = texts;
+    labelTextures = textures;
 
     if (isPositioning || isScaling) return;
 
@@ -1079,14 +1079,14 @@ const createPile = (
       labelGraphics.endFill();
     });
 
-    if (texts.length) {
-      const textWidth = width / texts.length / baseScale;
-      texts.forEach((text, index) => {
-        const labelText = new PIXI.Text(text);
-        labelText.anchor.set(0.5, 0);
+    if (labelTextures.length) {
+      const textWidth = width / labelTextures.length / baseScale;
+      labelTextures.forEach((texture, index) => {
+        const labelText = new PIXI.Sprite(texture);
         labelText.x = textWidth * index - width / 2 / baseScale + textWidth / 2;
         labelText.y = height / 2 / baseScale;
-        labelText.style.fontSize = 8;
+        labelText.width /= window.devicePixelRatio;
+        labelText.height /= window.devicePixelRatio;
         labelGraphics.addChild(labelText);
       });
     }

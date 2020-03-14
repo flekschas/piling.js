@@ -2776,84 +2776,88 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const allLabels = new Map();
-  let labelArray;
+  const uniqueLabels = new Map();
+  const idToLabel = new Map();
 
-  const setPileLabel = (pileState, pileId, reset = false) => {
-    const {
-      items,
-      itemLabel,
-      itemLabelColor,
-      itemLabelText,
-      piles
-    } = store.state;
+  const createUniquePileLabels = () => {
+    const { itemLabel, itemLabelColor, itemLabelText, items } = store.state;
 
-    if (!itemLabel) return;
+    const tmp = new Set();
+    uniqueLabels.clear();
+    idToLabel.clear();
 
-    if (!allLabels.size || reset) {
-      labelArray = unique(
-        Object.values(piles).reduce((labels, pile) => {
-          if (!pile.items.length) return labels;
+    Object.values(items).forEach(item => {
+      const label = itemLabel.flatMap(objective => objective(item)).join('-');
 
-          const label = itemLabel.flatMap(objective => {
-            if (objective.aggregator) {
-              return objective.aggregator(
-                pile.items.map(itemId => objective.property(items[itemId]))
-              );
-            }
-            return pile.items.map(itemId => objective.property(items[itemId]));
-          });
+      idToLabel.set(item.id, label);
 
-          return [...labels, ...label];
-        }, [])
-      );
-
-      labelArray.forEach((label, index) => {
-        allLabels.set(label, index);
-      });
-    }
-
-    const pileInstance = pileInstances.get(pileId);
-
-    if (!pileInstance) return;
-
-    const label = unique(
-      itemLabel.flatMap(objective => {
-        if (objective.aggregator) {
-          return objective.aggregator(
-            pileState.items.map(itemId => objective.property(items[itemId]))
-          );
-        }
-        return pileState.items.map(itemId => objective.property(items[itemId]));
-      })
-    );
-
-    const color = label.map(l => {
-      if (isFunction(itemLabelColor)) {
-        return colorToDecAlpha(itemLabelColor(l, labelArray))[0];
+      if (!tmp.has(label)) {
+        uniqueLabels.set(label, { text: label, index: tmp.size });
+        tmp.add(label);
       }
-      if (Array.isArray(itemLabelColor)) {
-        return colorToDecAlpha(itemLabelColor[allLabels.get(l)])[0];
-      }
-      const n = DEFAULT_COLOR_MAP.length;
-      return colorToDecAlpha(DEFAULT_COLOR_MAP[allLabels.get(l) % n])[0];
     });
 
-    let text = [];
+    uniqueLabels.forEach(label => {
+      let color;
 
-    if (itemLabelText) {
-      text = label.map(l => {
+      if (isFunction(itemLabelColor)) {
+        color = colorToDecAlpha(itemLabelColor(label.text, idToLabel))[0];
+      } else if (Array.isArray(itemLabelColor)) {
+        color = colorToDecAlpha(itemLabelColor[label.index])[0];
+      } else {
+        const n = DEFAULT_COLOR_MAP.length;
+        color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
+      }
+
+      label.color = color;
+
+      if (itemLabelText) {
+        let labelText = label;
+
         if (isFunction(itemLabelText)) {
-          return itemLabelText(l, labelArray);
+          labelText = itemLabelText(label, idToLabel);
         }
         if (Array.isArray(itemLabelText)) {
-          return itemLabelText[allLabels.get(l)];
+          labelText = itemLabelText[label.index];
         }
-        return l;
-      });
-    }
 
-    pileInstance.drawLabel(label, color, text);
+        const pixiText = new PIXI.Text(labelText, {
+          fontSize: 8 * window.devicePixelRatio,
+          align: 'center'
+        });
+        pixiText.updateText();
+        label.texture = pixiText.texture;
+      }
+    });
+  };
+
+  const setPileLabel = (pileState, pileId, reset = false) => {
+    const pileInstance = pileInstances.get(pileId);
+
+    if (!store.state.itemLabel || !pileInstance) return;
+
+    const { itemLabel, items } = store.state;
+
+    if (!idToLabel.size || reset) createUniquePileLabels();
+
+    const labels = unique(
+      pileState.items.flatMap(itemId =>
+        itemLabel.map(objective => objective(items[itemId]))
+      )
+    );
+
+    const args = labels.reduce(
+      (_args, labelText) => {
+        const label = uniqueLabels.get(labelText);
+        _args[0].push(label.text);
+        _args[1].push(label.color);
+        _args[2].push(label.texture);
+        return _args;
+      },
+      [[], [], []]
+    );
+
+    pileInstance.drawLabel(...args);
   };
 
   const itemUpdates = [];
@@ -3459,22 +3463,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const expandLabelObjective = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
-
-    return objectives.map(_objective => {
-      const expandedObjective = {};
-
-      if (isObject(objective)) {
-        expandedObjective.property = expandProperty(_objective.property);
-        expandedObjective.aggregator = isFunction(_objective.aggregator)
-          ? _objective.aggregator
-          : null;
-      } else {
-        expandedObjective.property = expandProperty(_objective);
-        expandedObjective.aggregator = null;
-      }
-
-      return expandedObjective;
-    });
+    return objectives.map(_objective => expandProperty(_objective));
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {
