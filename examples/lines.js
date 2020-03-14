@@ -50,6 +50,12 @@ const createSvgLinesPiles = element => {
       {
         label: 'Redraw',
         callback: redrawHandler
+      },
+      {
+        label: 'Split All',
+        callback: () => {
+          piling.splitAll();
+        }
       }
     ]
   });
