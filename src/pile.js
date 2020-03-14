@@ -512,6 +512,7 @@ const createPile = (
         if (isLastOne) {
           isPositioning = false;
           drawBorder();
+          drawLabel();
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -660,6 +661,7 @@ const createPile = (
   ) => {
     const done = () => {
       drawBorder();
+      drawLabel();
       pubSub.publish('updatePileBounds', id);
       onDone();
     };
@@ -1033,20 +1035,28 @@ const createPile = (
   };
 
   let labelGraphics;
+  let pileLabels = [];
+  let labelColors = [];
+  let labelTexts = [];
 
-  const drawLabel = (labels, colors, texts) => {
+  const drawLabel = (
+    labels = pileLabels,
+    colors = labelColors,
+    texts = labelTexts
+  ) => {
     if (!labels.length) {
-      labelGraphics.clear();
-      labelGraphics.removeChildren();
+      if (labelGraphics) {
+        labelGraphics.clear();
+        labelGraphics.removeChildren();
+      }
       return;
     }
 
-    if (isPositioning || isScaling) {
-      postPilePositionAnimation.set('drawLabel', () => {
-        drawLabel(labels, colors, texts);
-      });
-      return;
-    }
+    pileLabels = labels;
+    labelColors = colors;
+    labelTexts = texts;
+
+    if (isPositioning || isScaling) return;
 
     if (!labelGraphics) {
       labelGraphics = new PIXI.Graphics();
@@ -1058,27 +1068,30 @@ const createPile = (
 
     const { width, height } = contentGraphics;
 
-    const labelWidth = width / labels.length;
+    const labelWidth = width / labels.length / baseScale;
     const labelHeight = 8;
     labels.forEach((label, index) => {
-      const labelX = labelWidth * index - width / 2;
+      const labelX = labelWidth * index - width / 2 / baseScale;
+      const labelY = height / 2 / baseScale;
       const color = colors[index];
       labelGraphics.beginFill(color, 1);
-      labelGraphics.drawRect(labelX, height / 2, labelWidth, labelHeight);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
       labelGraphics.endFill();
     });
 
     if (texts.length) {
-      const textWidth = width / texts.length;
+      const textWidth = width / texts.length / baseScale;
       texts.forEach((text, index) => {
         const labelText = new PIXI.Text(text);
         labelText.anchor.set(0.5, 0);
-        labelText.x = textWidth * index - width / 2 + textWidth / 2;
-        labelText.y = height / 2;
+        labelText.x = textWidth * index - width / 2 / baseScale + textWidth / 2;
+        labelText.y = height / 2 / baseScale;
         labelText.style.fontSize = 8;
         labelGraphics.addChild(labelText);
       });
     }
+
+    render();
   };
 
   const placeholderGfx = new PIXI.Graphics();
