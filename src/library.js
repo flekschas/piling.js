@@ -1775,6 +1775,42 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
+  const splitAll = () => {
+    const { piles } = store.state;
+
+    const scatteredPiles = [];
+    const movingPiles = [];
+
+    Object.entries(piles).forEach(([id, pile]) => {
+      const items = [...pile.items];
+      if (items.length > 1) {
+        scatteredPiles.push({
+          items,
+          x: pile.x,
+          y: pile.y
+        });
+      } else if (items.length === 1) {
+        const pos = renderedItems.get(items[0]).originalPosition;
+        movingPiles.push({
+          id,
+          x: pos[0],
+          y: pos[1]
+        });
+      }
+    });
+
+    store.dispatch(
+      batchActions([
+        createAction.scatterPiles(scatteredPiles),
+        createAction.movePiles(movingPiles)
+      ])
+    );
+
+    scatteredPiles.forEach(pile => {
+      animateDepile(pile.items[0], pile.items);
+    });
+  };
+
   const animateTempDepileItems = (item, x, y, { onDone = identity } = {}) => {
     const tweener = createTweener({
       interpolator: interpolateVector,
@@ -4050,6 +4086,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderer,
     resume,
     set: setPublic,
+    splitAll,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };

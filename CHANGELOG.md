@@ -1,5 +1,6 @@
 ### Next
 
+- Add `splitAll()` to scatter all piles
 - Add `pileBy()` for layout-, location-, and data-driven piling
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position the previews as user specified

@@ -589,6 +589,10 @@ Render the root PIXI container.
 
 This will the halting popup.
 
+#### `piling.splitAll()`
+
+Scatter all the piles at the same time.
+
 #### `piling.subscribe(eventName, eventHandler)`
 
 Subscribe to an event.
