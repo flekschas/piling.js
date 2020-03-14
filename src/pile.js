@@ -1066,13 +1066,15 @@ const createPile = (
       labelGraphics.removeChildren();
     }
 
-    const { width, height } = contentGraphics;
+    const { width, height } = contentGraphics.getBounds();
+
+    const y = height / baseScale - normalItemContainer.getChildAt(0).height / 2;
 
     const labelWidth = width / labels.length / baseScale;
     const labelHeight = 8;
     labels.forEach((label, index) => {
       const labelX = labelWidth * index - width / 2 / baseScale;
-      const labelY = height / 2 / baseScale;
+      const labelY = y;
       const color = colors[index];
       labelGraphics.beginFill(color, 1);
       labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
@@ -1085,7 +1087,7 @@ const createPile = (
         const labelText = new PIXI.Sprite(texture);
         labelText.anchor.set(0.5, 0);
         labelText.x = textWidth * index - width / 2 / baseScale + textWidth / 2;
-        labelText.y = height / 2 / baseScale;
+        labelText.y = y;
         labelText.width /= window.devicePixelRatio;
         labelText.height /= window.devicePixelRatio;
         labelGraphics.addChild(labelText);
