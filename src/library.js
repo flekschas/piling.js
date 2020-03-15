@@ -772,7 +772,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
-    const { itemSizeRange } = store.state;
+    const { itemSizeRange, itemSize } = store.state;
+
+    const itemWidth = itemSize || layout.cellWidth;
+    const itemHeight = itemSize || layout.cellHeight;
 
     let widthRange;
     let heightRange;
@@ -784,17 +787,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] > 0 &&
       itemSizeRange[1] <= 1
     ) {
-      widthRange = [
-        layout.itemWidth * itemSizeRange[0],
-        layout.itemWidth * itemSizeRange[1]
-      ];
+      widthRange = [itemWidth * itemSizeRange[0], itemWidth * itemSizeRange[1]];
       heightRange = [
-        layout.itemHeight * itemSizeRange[0],
-        layout.itemHeight * itemSizeRange[1]
+        itemHeight * itemSizeRange[0],
+        itemHeight * itemSizeRange[1]
       ];
     } else {
-      widthRange = [0, layout.itemWidth];
-      heightRange = [0, layout.itemHeight];
+      widthRange = [0, itemWidth];
+      heightRange = [0, itemHeight];
     }
 
     itemWidthScale = scaleLinear()
