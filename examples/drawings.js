@@ -1,11 +1,10 @@
 import createPilingJs from '../src/library';
-
 import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
 const createDrawingPiles = async element => {
-  const response = await fetch('data/apple.json');
+  const response = await fetch('data/teapot.json');
   const items = await response.json();
 
   const coverOptions = { size: 128, lineWidth: 3 };
@@ -31,7 +30,10 @@ const createDrawingPiles = async element => {
     pileVisibilityItems: pile => pile.items.length === 1,
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000'
+    lassoStrokeColor: '#000000',
+    pileLabel: ['countryCode'],
+    pileLabelText: true,
+    pileLabelStackAlign: 'vertical'
   });
 
   return [piling];
