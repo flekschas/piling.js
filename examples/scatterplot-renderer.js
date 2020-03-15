@@ -193,7 +193,7 @@ const createScatterplotRenderer = ({
       .selectAll('#year-text')
       .data(years)
       .join('text')
-      .attr('x', width + paddingLeft)
+      .attr('x', width + paddingLeft + 2)
       .attr('y', (d, i) => (i === 0 ? 42 : height + paddingBottom + 40))
       .attr('fill', textColor)
       .attr('font-size', '42px')
