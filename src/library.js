@@ -2803,7 +2803,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     });
 
-    uniqueLabels.forEach(label => {
+    uniqueLabels.forEach((label, labelKey) => {
       let color;
 
       if (isFunction(itemLabelColor)) {
@@ -2818,7 +2818,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       label.color = color;
 
       if (itemLabelText) {
-        let labelText = label;
+        let labelText = labelKey;
 
         if (isFunction(itemLabelText)) {
           labelText = itemLabelText(label, idToLabel);
@@ -2855,7 +2855,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const args = labels.reduce(
       (_args, labelText) => {
-        const label = uniqueLabels.get(labelText);
+        const label = uniqueLabels.get(labelText.toString());
         _args[0].push(label.text);
         _args[1].push(label.color);
         _args[2].push(label.texture);
