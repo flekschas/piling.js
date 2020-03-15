@@ -5,6 +5,7 @@
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position the previews as user specified
 - Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
+- Add `pileItemInvert` property for inverting colors
 - Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
 - Show spinner during the initial item rendering
