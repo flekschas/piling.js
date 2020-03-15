@@ -4,7 +4,7 @@ import clip from 'liang-barsky';
 /**
  * Factory function to create a grid
  * @param {object} canvas - The canvas instance
- * @param {number} itemSize - The maximum length of either side of an item
+ * @param {number} cellSize - The size of the cell
  * @param {number} columns - The number of column
  * @param {number} rowHeight - The height of row
  * @param {number} cellAspectRatio - The ratio of cell height and width
