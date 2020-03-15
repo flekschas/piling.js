@@ -1066,19 +1066,53 @@ const createPile = (
       labelGraphics.removeChildren();
     }
 
+    const {
+      pileLabelHeight,
+      pileLabelAlign,
+      pileLabelStackAlign,
+      pileLabelFontSize
+    } = store.state;
+
     const { width } = contentGraphics.getBounds();
 
     const firstItem = normalItemContainer.children.length
       ? normalItemContainer.getChildAt(0)
       : coverItemContainer.getChildAt(0);
 
-    const y = firstItem.height / 2;
+    let labelWidth = width / labels.length / baseScale;
+    const labelHeight = labelTextures.length
+      ? Math.max(pileLabelFontSize, pileLabelHeight)
+      : pileLabelHeight;
 
-    const labelWidth = width / labels.length / baseScale;
-    const labelHeight = 8;
+    let y;
+
+    switch (pileLabelAlign) {
+      case 'top':
+        y = -firstItem.height / 2 - labelHeight;
+        break;
+
+      case 'bottom':
+      default:
+        y = firstItem.height / 2;
+        break;
+    }
+
     labels.forEach((label, index) => {
-      const labelX = labelWidth * index - width / 2 / baseScale;
-      const labelY = y;
+      let labelX;
+      let labelY = y;
+      switch (pileLabelStackAlign) {
+        case 'vertical':
+          labelWidth = width / baseScale;
+          labelX = -width / 2 / baseScale;
+          if (y > 0) labelY += labelHeight * index;
+          else labelY -= labelHeight * index;
+          break;
+
+        case 'horizontal':
+        default:
+          labelX = labelWidth * index - width / 2 / baseScale;
+          break;
+      }
       const color = colors[index];
       labelGraphics.beginFill(color, 1);
       labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
@@ -1086,12 +1120,27 @@ const createPile = (
     });
 
     if (labelTextures.length) {
-      const textWidth = width / labelTextures.length / baseScale;
+      let textWidth = width / labelTextures.length / baseScale;
       labelTextures.forEach((texture, index) => {
+        let textX;
+        let textY = y;
+        switch (pileLabelStackAlign) {
+          case 'vertical':
+            textWidth = width / baseScale;
+            textX = -width / 2 / baseScale + textWidth / 2;
+            if (y > 0) textY += labelHeight * index;
+            else textY -= labelHeight * index;
+            break;
+
+          case 'horizontal':
+          default:
+            textX = textWidth * index - width / 2 / baseScale + textWidth / 2;
+            break;
+        }
         const labelText = new PIXI.Sprite(texture);
         labelText.anchor.set(0.5, 0);
-        labelText.x = textWidth * index - width / 2 / baseScale + textWidth / 2;
-        labelText.y = y;
+        labelText.x = textX;
+        labelText.y = textY;
         labelText.width /= window.devicePixelRatio;
         labelText.height /= window.devicePixelRatio;
         labelGraphics.addChild(labelText);

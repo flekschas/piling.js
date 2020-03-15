@@ -165,15 +165,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     gridOpacity: true,
-    itemLabel: {
-      set: value => {
-        const objective = expandLabelObjective(value);
-        const actions = [createAction.setItemLabel(objective)];
-        return actions;
-      }
-    },
-    itemLabelColor: true,
-    itemLabelText: true,
     items: {
       get: () => Object.values(state.items),
       set: newItems => [
@@ -231,6 +222,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
+    pileLabel: {
+      set: value => {
+        const objective = expandLabelObjective(value);
+        const actions = [createAction.setPileLabel(objective)];
+        return actions;
+      }
+    },
+    pileLabelAlign: true,
+    pileLabelColor: true,
+    pileLabelFontSize: true,
+    pileLabelHeight: true,
+    pileLabelStackAlign: true,
+    pileLabelText: true,
     pileBorderColor: {
       set: value => {
         if (isFunction(value)) return [createAction.setPileBorderColor(value)];
@@ -2780,7 +2784,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const idToLabel = new Map();
 
   const createUniquePileLabels = () => {
-    const { itemLabel, itemLabelColor, itemLabelText, items } = store.state;
+    const {
+      items,
+      pileLabel,
+      pileLabelColor,
+      pileLabelText,
+      pileLabelFontSize
+    } = store.state;
 
     // Destroy existing labels to avoid memory leaks
     uniqueLabels.forEach(label => {
@@ -2793,7 +2803,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const tmp = new Set();
 
     Object.values(items).forEach(item => {
-      const label = itemLabel.flatMap(objective => objective(item)).join('-');
+      const label = pileLabel.flatMap(objective => objective(item)).join('-');
 
       idToLabel.set(item.id, label);
 
@@ -2803,13 +2813,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     });
 
-    uniqueLabels.forEach((label, labelKey) => {
+    uniqueLabels.forEach(label => {
       let color;
 
-      if (isFunction(itemLabelColor)) {
-        color = colorToDecAlpha(itemLabelColor(label.text, idToLabel))[0];
-      } else if (Array.isArray(itemLabelColor)) {
-        color = colorToDecAlpha(itemLabelColor[label.index])[0];
+      if (isFunction(pileLabelColor)) {
+        color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+      } else if (Array.isArray(pileLabelColor)) {
+        color = colorToDecAlpha(pileLabelColor[label.index])[0];
       } else {
         const n = DEFAULT_COLOR_MAP.length;
         color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
@@ -2817,18 +2827,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       label.color = color;
 
-      if (itemLabelText) {
-        let labelText = labelKey;
+      if (pileLabelText) {
+        let labelText = label.text;
 
-        if (isFunction(itemLabelText)) {
-          labelText = itemLabelText(label, idToLabel);
+        if (isFunction(pileLabelText)) {
+          labelText = pileLabelText(label.text, uniqueLabels);
         }
-        if (Array.isArray(itemLabelText)) {
-          labelText = itemLabelText[label.index];
+        if (Array.isArray(pileLabelText)) {
+          labelText = pileLabelText[label.index];
         }
 
         const pixiText = new PIXI.Text(labelText, {
-          fontSize: 8 * window.devicePixelRatio,
+          fontSize: pileLabelFontSize * window.devicePixelRatio,
           align: 'center'
         });
         pixiText.updateText();
@@ -2841,15 +2851,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
-    if (!store.state.itemLabel || !pileInstance) return;
+    if (!store.state.pileLabel || !pileInstance) return;
 
-    const { itemLabel, items } = store.state;
+    const { pileLabel, items } = store.state;
 
     if (!idToLabel.size || reset) createUniquePileLabels();
 
     const labels = unique(
       pileState.items.flatMap(itemId =>
-        itemLabel.map(objective => objective(items[itemId]))
+        pileLabel.map(objective => objective(items[itemId]))
       )
     );
 
@@ -3002,9 +3012,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (
       pileInstances.size &&
-      (state.itemLabel !== newState.itemLabel ||
-        state.itemLabelColor !== newState.itemLabelColor ||
-        state.itemLabelText !== newState.itemLabelText)
+      (state.pileLabel !== newState.pileLabel ||
+        state.pileLabelColor !== newState.pileLabelColor ||
+        state.pileLabelText !== newState.pileLabelText ||
+        state.pileLabelAlign !== newState.pileLabelAlign ||
+        state.pileLabelFontSize !== newState.pileLabelFontSize ||
+        state.pileLabelHeight !== newState.pileLabelHeight ||
+        state.pileLabelStackAlign !== newState.pileLabelStackAlign)
     ) {
       Object.entries(newState.piles).forEach(([id, pile], index) => {
         setPileLabel(pile, id, !index);

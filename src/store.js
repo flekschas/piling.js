@@ -176,12 +176,6 @@ const [lassoStrokeSize, setLassoStrokeSize] = setter(
   DEFAULT_LASSO_STROKE_SIZE
 );
 
-const [itemLabel, setItemLabel] = setter('itemLabel');
-
-const [itemLabelColor, setItemLabelColor] = setter('itemLabelColor');
-
-const [itemLabelText, setItemLabelText] = setter('itemLabelText', false);
-
 const [itemRenderer, setItemRenderer] = setter('itemRenderer');
 
 const [previewRenderer, setPreviewRenderer] = setter('previewRenderer');
@@ -347,6 +341,21 @@ const [pileVisibilityItems, setPileVisibilityItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
+
+// Label
+const [pileLabel, setPileLabel] = setter('pileLabel');
+const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
+const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
+const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
+  'pileLabelStackAlign',
+  'horizontal'
+);
+const [pileLabelFontSize, setPileLabelFontSize] = setter(
+  'pileLabelFontSize',
+  8
+);
+const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 8);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -544,9 +553,6 @@ const createStore = () => {
     gridOpacity,
     darkMode,
     popupBackgroundOpacity,
-    itemLabel,
-    itemLabelColor,
-    itemLabelText,
     itemRenderer,
     items,
     itemSize,
@@ -581,6 +587,13 @@ const createStore = () => {
     pileItemOrder,
     pileItemRotation,
     pileItemTint,
+    pileLabel,
+    pileLabelAlign,
+    pileLabelColor,
+    pileLabelFontSize,
+    pileLabelHeight,
+    pileLabelStackAlign,
+    pileLabelText,
     pileVisibilityItems,
     pileOpacity,
     piles,
@@ -686,9 +699,6 @@ export const createAction = {
   setGridOpacity,
   setDarkMode,
   setPopupBackgroundOpacity,
-  setItemLabel,
-  setItemLabelColor,
-  setItemLabelText,
   setItemRenderer,
   setItems,
   setItemSize,
@@ -723,6 +733,13 @@ export const createAction = {
   setPileItemOpacity,
   setPileItemRotation,
   setPileItemTint,
+  setPileLabel,
+  setPileLabelAlign,
+  setPileLabelColor,
+  setPileLabelFontSize,
+  setPileLabelHeight,
+  setPileLabelStackAlign,
+  setPileLabelText,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
