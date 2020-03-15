@@ -39,19 +39,30 @@ const createScatterplotPiles = async element => {
   // width and height are just for the scatterplot, not including the title
   const width = 480;
   const height = 480;
-  const paddingHorizontal = 140;
-  const paddingVertical = 60;
+  const padding = [60, 140, 60, 60];
+  const dotSizeRange = [12, 24];
+  const backgroundColor = '#fff';
+  const lineColor = '#ccc';
+  const tickColor = '#bbb';
+  const textColor = '#000';
   const previewWidth = 15;
   const previewHeight = 10;
 
+  const [paddingTop, paddingRight, paddingBottom, paddingLeft] = padding;
+
   const cellAspectRatio =
-    (width + paddingHorizontal * 2) / (height + paddingVertical * 2);
+    (width + paddingLeft + paddingRight) /
+    (height + paddingTop + paddingBottom);
 
   const scatterplotRenderer = createScatterplotRenderer({
     width,
     height,
-    paddingV: paddingVertical,
-    paddingH: paddingHorizontal
+    padding,
+    backgroundColor,
+    lineColor,
+    tickColor,
+    textColor,
+    dotSizeRange
   });
   const coverAggregator = createScatterplotCoverAggregator();
   const previewAggregator = createScatterplotPreviewAggregator();
@@ -83,12 +94,12 @@ const createScatterplotPiles = async element => {
       beginYear = scatterplotRenderer.yearDomain[0];
       const years = scatterplotRenderer.yearDomain[1] - beginYear + 1;
       const rangeMin = Math.max(
-        paddingVertical,
-        paddingVertical + height / 2 - years * 6.5
+        paddingTop,
+        paddingBottom + height / 2 - years * 6.5
       );
       const rangeMax = Math.min(
-        paddingVertical + height,
-        paddingVertical + height / 2 + years * 6.5
+        paddingTop + height,
+        paddingBottom + height / 2 + years * 6.5
       );
       previewItemYOffset
         .domain(scatterplotRenderer.yearDomain)
@@ -97,7 +108,7 @@ const createScatterplotPiles = async element => {
     const x =
       regionOrderIndex[itemState.region] * 20 +
       width +
-      paddingHorizontal +
+      paddingLeft +
       previewWidth;
 
     const y = previewItemYOffset(itemState.year);
@@ -106,7 +117,7 @@ const createScatterplotPiles = async element => {
   };
 
   const piling = createPilingJs(element, {
-    darkMode: true,
+    // darkMode: true,
     renderer: scatterplotRenderer.renderer,
     coverAggregator,
     coverRenderer: scatterplotRenderer.renderer,
@@ -116,6 +127,7 @@ const createScatterplotPiles = async element => {
     columns: Object.keys(data).length,
     cellPadding: 6,
     cellAspectRatio,
+    pileBackgroundColor: 0xffffff,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
