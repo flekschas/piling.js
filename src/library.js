@@ -40,6 +40,7 @@ import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
 
 import {
+  BLACK,
   CAMERA_VIEW,
   EVENT_LISTENER_ACTIVE,
   EVENT_LISTENER_PASSIVE,
@@ -49,7 +50,8 @@ import {
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
-  POSITION_PILES_DEBOUNCE_TIME
+  POSITION_PILES_DEBOUNCE_TIME,
+  WHITE
 } from './defaults';
 
 import {
@@ -91,6 +93,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const store = createStore();
 
   let state = store.state;
+
+  let backgroundColor = WHITE;
 
   let gridMat;
 
@@ -900,12 +904,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const getBackgroundColor = () => {
+    if (store.state.pileBackgroundColor !== null)
+      return store.state.pileBackgroundColor;
+    return backgroundColor;
+  };
+
   const createImagesAndPreviews = items => {
     const {
       itemRenderer,
       previewBackgroundColor,
       previewBackgroundOpacity,
-      pileBackgroundColor,
       pileBackgroundOpacity,
       previewAggregator,
       previewRenderer,
@@ -913,6 +922,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } = store.state;
 
     const itemList = Object.values(items);
+    const pileBackgroundColor = getBackgroundColor();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
@@ -3088,8 +3098,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.darkMode !== newState.darkMode) {
       updateLevels();
-      if (newState.darkMode) addClass(rootElement, 'pilingjs-darkmode');
-      else removeClass(rootElement, 'pilingjs-darkmode');
+      if (newState.darkMode) {
+        backgroundColor = BLACK;
+        addClass(rootElement, 'pilingjs-darkmode');
+      } else {
+        backgroundColor = WHITE;
+        removeClass(rootElement, 'pilingjs-darkmode');
+      }
     }
 
     if (

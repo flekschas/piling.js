@@ -313,8 +313,7 @@ const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
 const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 0);
 
 const [pileBackgroundColor, setPileBackgroundColor] = setter(
-  'pileBackgroundColor',
-  0x000000
+  'pileBackgroundColor'
 );
 
 const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
