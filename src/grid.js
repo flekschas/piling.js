@@ -14,7 +14,6 @@ const createGrid = (
   { width, height, orderer },
   {
     cellSize = null,
-    itemSize = null,
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
@@ -24,13 +23,8 @@ const createGrid = (
 ) => {
   let numColumns = columns;
 
-  if (!+cellSize && !+itemSize && !+columns) {
+  if (!+cellSize && !+columns) {
     numColumns = 10;
-  }
-
-  if (!+cellSize && +itemSize) {
-    // eslint-disable-next-line no-param-reassign
-    cellSize = itemSize;
   }
 
   let columnWidth = width / numColumns;
@@ -41,10 +35,6 @@ const createGrid = (
     columnWidth = cellSize + cellPadding * 2;
     numColumns = Math.floor(width / columnWidth);
     cellWidth = cellSize;
-    if (!+itemSize) {
-      // eslint-disable-next-line no-param-reassign
-      itemSize = cellSize;
-    }
   }
 
   if (!+rowHeight) {
@@ -60,17 +50,6 @@ const createGrid = (
   }
 
   cellHeight = rowHeight - cellPadding * 2;
-
-  let itemWidth;
-  let itemHeight;
-
-  if (!+itemSize) {
-    itemWidth = cellWidth;
-    itemHeight = cellHeight;
-  } else {
-    itemWidth = itemSize;
-    itemHeight = itemWidth / cellAspectRatio;
-  }
 
   const columnWidthHalf = columnWidth / 2;
   const rowHeightHalf = rowHeight / 2;
@@ -402,9 +381,6 @@ const createGrid = (
     set numRows(newNumRows) {
       if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
-    itemSize,
-    itemHeight,
-    itemWidth,
     numColumns,
     columnWidth,
     rowHeight,
