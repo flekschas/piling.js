@@ -156,6 +156,7 @@ const createVitessce = async element => {
     coverRenderer: representativeRenderer,
     items,
     itemSize,
+    cellSize: 64,
     cellPadding: 8,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,

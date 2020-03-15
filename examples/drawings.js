@@ -23,7 +23,7 @@ const createDrawingPiles = async element => {
     coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
     items,
-    itemSize: 32,
+    cellSize: 32,
     cellPadding: 16,
     pileItemOffset: [0, 0],
     pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',

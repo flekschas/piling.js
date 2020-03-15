@@ -11,7 +11,7 @@ const createPhotoPiles = async element => {
 
   piling.set('darkMode', true);
 
-  piling.set('itemSize', 160);
+  piling.set('cellSize', 160);
   piling.set('renderer', imageRenderer);
   piling.set('items', data);
 
