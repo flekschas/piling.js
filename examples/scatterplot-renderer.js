@@ -6,11 +6,11 @@ const DEFAULT_WIDTH = 480;
 const DEFAULT_HEIGHT = 480;
 const DEFAULT_PADDING = [60, 140, 60, 60];
 const DEFAULT_DOTSIZE_RANGE = [6, 18];
-const DEFAULT_COLOR_RANGE = [
+export const DEFAULT_COLOR_RANGE = [
   '#d99600',
   '#23a1e8',
   '#009e73',
-  '#e5d500',
+  '#d1c200',
   '#bf6999',
   '#0053a6',
   '#d55e00'
@@ -39,6 +39,7 @@ const createScatterplotRenderer = ({
   lineColor = DEFAULT_LINE_COLOR,
   tickColor = DEFAULT_TICK_LABEL_COLOR,
   textColor = DEFAULT_TEXT_COLOR,
+  colorRange = DEFAULT_COLOR_RANGE,
   dotSizeRange = DEFAULT_DOTSIZE_RANGE,
   x: xProp = 'fertilityRate',
   y: yProp = 'lifeExpectancy',
@@ -77,7 +78,7 @@ const createScatterplotRenderer = ({
     d3
       .scaleOrdinal()
       .domain(domain)
-      .range(DEFAULT_COLOR_RANGE);
+      .range(colorRange);
 
   const createXAxis = xScale => axis =>
     axis

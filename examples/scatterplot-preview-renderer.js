@@ -1,15 +1,7 @@
 import * as d3 from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
-const DEFAULT_COLOR_RANGE = [
-  '#d99600',
-  '#23a1e8',
-  '#009e73',
-  '#e5d500',
-  '#bf6999',
-  '#0053a6',
-  '#d55e00'
-];
+import { DEFAULT_COLOR_RANGE } from './scatterplot-renderer';
 
 const createScatterplotPreviewRenderer = ({
   width = 20,

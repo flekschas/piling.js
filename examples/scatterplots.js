@@ -1,11 +1,23 @@
 import * as d3 from 'd3';
 import createPilingJs from '../src/library';
-import createScatterplotRenderer from './scatterplot-renderer';
+import createScatterplotRenderer, {
+  DEFAULT_COLOR_RANGE
+} from './scatterplot-renderer';
 import createScatterplotCoverAggregator from './scatterplot-cover-aggregator';
 import createScatterplotPreviewAggregator from './scatterplot-preview-aggregator';
 import createScatterplotPreviewRenderer from './scatterplot-preview-renderer';
 
-const createScatterplotPiles = async element => {
+const colorRangeDarkMode = [
+  '#dca237',
+  '#6fb2e4',
+  '#51b288',
+  '#e5d500',
+  '#c17da5',
+  '#295fcc',
+  '#d55e00'
+];
+
+const createScatterplotPiles = async (element, darkMode = false) => {
   const response = await fetch('data/worldbank-objects.json');
   const data = await response.json();
 
@@ -41,10 +53,11 @@ const createScatterplotPiles = async element => {
   const height = 480;
   const padding = [60, 140, 60, 60];
   const dotSizeRange = [12, 24];
-  const backgroundColor = '#fff';
-  const lineColor = '#ccc';
-  const tickColor = '#bbb';
-  const textColor = '#000';
+  const colorRange = darkMode ? colorRangeDarkMode : DEFAULT_COLOR_RANGE;
+  const backgroundColor = darkMode ? '#000' : '#fff';
+  const lineColor = darkMode ? '#333' : '#ccc';
+  const tickColor = darkMode ? '#444' : '#bbb';
+  const textColor = darkMode ? '#fff' : '#000';
   const previewWidth = 15;
   const previewHeight = 10;
 
@@ -58,6 +71,7 @@ const createScatterplotPiles = async element => {
     width,
     height,
     padding,
+    colorRange,
     backgroundColor,
     lineColor,
     tickColor,
@@ -117,7 +131,7 @@ const createScatterplotPiles = async element => {
   };
 
   const piling = createPilingJs(element, {
-    // darkMode: true,
+    darkMode,
     renderer: scatterplotRenderer.renderer,
     coverAggregator,
     coverRenderer: scatterplotRenderer.renderer,
@@ -127,7 +141,6 @@ const createScatterplotPiles = async element => {
     columns: Object.keys(data).length,
     cellPadding: 6,
     cellAspectRatio,
-    pileBackgroundColor: 0xffffff,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
