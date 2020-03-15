@@ -219,6 +219,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     orderer: true,
     pileCoverScale: true,
     pileItemBrightness: true,
+    pileItemInvert: true,
     pileItemOffset: true,
     pileItemOpacity: true,
     pileItemOrder: true,
@@ -1295,6 +1296,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       items,
       pileItemBrightness,
+      pileItemInvert,
       pileItemOpacity,
       pileItemTint
     } = store.state;
@@ -1310,20 +1312,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : pileItemOpacity
       );
 
-      pileItem.image.brightness(
-        isFunction(pileItemBrightness)
-          ? pileItemBrightness(itemState, i, pileState)
-          : pileItemBrightness
+      pileItem.image.invert(
+        isFunction(pileItemInvert)
+          ? pileItemInvert(itemState, i, pileState)
+          : pileItemInvert
       );
 
-      // We can't apply a brightness and tint effect as both rely on the same
-      // mechanism. Therefore we decide to give brightness higher precedence.
-      if (!pileItemBrightness) {
-        pileItem.image.tint(
-          isFunction(pileItemTint)
-            ? pileItemTint(itemState, i, pileState)
-            : pileItemTint
+      // We can't apply a brightness and invert effect as both rely on the same
+      // mechanism. Therefore we decide to give invert higher precedence.
+      if (!pileItemInvert) {
+        pileItem.image.brightness(
+          isFunction(pileItemBrightness)
+            ? pileItemBrightness(itemState, i, pileState)
+            : pileItemBrightness
         );
+
+        // We can't apply a brightness and tint effect as both rely on the same
+        // mechanism. Therefore we decide to give brightness higher precedence.
+        if (!pileItemBrightness) {
+          pileItem.image.tint(
+            isFunction(pileItemTint)
+              ? pileItemTint(itemState, i, pileState)
+              : pileItemTint
+          );
+        }
       }
     });
   };
@@ -2911,6 +2923,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.size &&
       (state.pileItemOpacity !== newState.pileItemOpacity ||
         state.pileItemBrightness !== newState.pileItemBrightness ||
+        state.pileItemInvert !== newState.pileItemInvert ||
         state.pileItemTint !== newState.pileItemTint)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
