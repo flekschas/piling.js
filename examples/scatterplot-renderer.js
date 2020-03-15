@@ -265,7 +265,7 @@ const createScatterplotRenderer = ({
             .attr('d', line(lineData))
             .attr('stroke', getColor(index + 1, numOfYears))
             .attr('stroke-width', 6)
-            .attr('stroke-opacity', DEFAULT_OPACITY);
+            .attr('stroke-opacity', (DEFAULT_OPACITY * 2) / 3);
         });
       });
 
@@ -287,10 +287,9 @@ const createScatterplotRenderer = ({
             'stroke-width',
             Math.max(0, 2 - Math.abs(country.length - index - 1) / 3)
           )
-          // .attr('stroke-width', index === country.length - 1 ? 2 : 0)
-          .attr('stroke-opacity', DEFAULT_OPACITY)
+          .attr('stroke-opacity', country.length > 1 ? 1 : DEFAULT_OPACITY)
           .attr('fill', getColor(index + 1, numOfYears))
-          .attr('fill-opacity', DEFAULT_OPACITY);
+          .attr('fill-opacity', country.length > 1 ? 1 : DEFAULT_OPACITY);
       });
     });
 
