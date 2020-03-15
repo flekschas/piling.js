@@ -217,6 +217,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
+    pileCoverInvert: true,
     pileCoverScale: true,
     pileItemBrightness: true,
     pileItemInvert: true,
@@ -1382,6 +1383,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items,
       coverRenderer,
       coverAggregator,
+      pileCoverInvert,
       pileCoverScale,
       previewAggregator
     } = store.state;
@@ -1409,10 +1411,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => {
           const scaledImage = createScaledImage(coverTexture);
+
+          scaledImage.invert(
+            isFunction(pileCoverInvert)
+              ? pileCoverInvert(pileState)
+              : pileCoverInvert
+          );
+
           const extraScale = isFunction(pileCoverScale)
             ? pileCoverScale(pileState)
             : pileCoverScale;
+
           scaledImage.scale(scaledImage.scaleFactor * extraScale);
+
           return scaledImage;
         });
 

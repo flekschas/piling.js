@@ -200,6 +200,7 @@ const [pileCoverScale, setPileCoverScale] = setter(
   'pileCoverScale',
   DEFAULT_PILE_COVER_SCALE
 );
+const [pileCoverInvert, setPileCoverInvert] = setter('pileCoverInvert', false);
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
@@ -565,6 +566,7 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
+    pileCoverInvert,
     pileCoverScale,
     pileItemOffset,
     pileItemBrightness,
@@ -705,6 +707,7 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
+  setPileCoverInvert,
   setPileCoverScale,
   setPileItemOffset,
   setPileItemOrder,

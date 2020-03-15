@@ -201,6 +201,8 @@ The list of all understood properties is given below.
 | pileBorderSize             | float or function       | `0`          | see [`notes`](#notes)                                                                           | `true`     |
 | pileCellAlignment          | string                  | topLeft      | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                                  | `true`     |
 | pileContextMenuItems       | array                   | `[]`         | see _examples_ below                                                                            | `true`     |
+| pileCoverInvert            | boolean or function     | `false`      | see _examples_ below                                                                            | `false`    |
+| pileCoverScale             | float or function       | `1.0`        | see _examples_ below                                                                            | `false`    |
 | pileItemBrightness         | string, int or function | `0`          | must be in [-1,1] where `-1` refers to black and `1` refers to white                            | `false`    |
 | pileItemInvert             | boolean or function     | `false`      | can only be `true` or `false` where `true` refers inverted colors and `false` are normal colors | `false`    |
 | pileItemOffset             | array or function       | `[5, 5]`     | see [`notes`](#notes)                                                                           | `true`     |
@@ -311,7 +313,7 @@ The list of all understood properties is given below.
   ]);
   ```
 
-- `pileBorderSize`, `pileCoverScale`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
+- `pileBorderSize`, `pileCoverInvert`, `pileCoverScale`, `pileOpacity` and `pileScale` can be set to a static float value, or the user can specify a callback function to dynamically style piles. E.g.,
 
   ```javascript
   // Set to a static number
