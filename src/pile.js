@@ -1066,9 +1066,13 @@ const createPile = (
       labelGraphics.removeChildren();
     }
 
-    const { width, height } = contentGraphics.getBounds();
+    const { width } = contentGraphics.getBounds();
 
-    const y = height / baseScale - normalItemContainer.getChildAt(0).height / 2;
+    const firstItem = normalItemContainer.children.length
+      ? normalItemContainer.getChildAt(0)
+      : coverItemContainer.getChildAt(0);
+
+    const y = firstItem.height / 2;
 
     const labelWidth = width / labels.length / baseScale;
     const labelHeight = 8;
