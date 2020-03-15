@@ -258,13 +258,13 @@ The list of all understood properties is given below.
   const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
   ```
 
-- The following properties to define the _grid_: `itemSize`, `cellPadding`, `columns`, `rowHeight`, `cellAspectRatio` and `cellSize`.
+- The following properties to define the _grid_: `cellSize`, `cellPadding`, `columns`, `rowHeight` and `cellAspectRatio`.
 
-  `itemSize` should define the size of the item and `cellSize` should define the size of the cell.
-
-  One has to at least provide `columns` or `cellSize` to define a grid. If `cellSize` is not defined, it should be derived from `itemSize`. If `cellSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
+  One has to at least provide `columns` or `cellSize` to define a grid. If `cellSize` is defined `columns` are ignored. Similarly, when `rowHeight` is defined `cellAspectRatio` is ignored.
 
   When `cellSize` is defined, `cellSize` and `cellPadding` add up together to define the cell width. When `cellSize` is undefined, `cellSize` is defined by the derived cell width (given `columns`) minues `cellPadding`!
+
+- `itemSize` defines the size of the items. If it's not defined, it should be derived from the cell size.
 
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
