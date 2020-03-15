@@ -129,8 +129,7 @@ const createSvgLinesPiles = async element => {
     pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000',
-    itemLabel: ['decade']
+    lassoStrokeColor: '#000000'
   });
 
   piling.arrangeBy('data', 'numDecade');

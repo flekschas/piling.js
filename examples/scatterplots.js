@@ -119,18 +119,7 @@ const createScatterplotPiles = async element => {
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
     previewItemOffset,
-    previewSpacing: 1,
-    itemLabel: ['region'],
-    itemLabelColor: [
-      '#e05aa9',
-      '#e0722b',
-      '#e0a638',
-      '#e0d42c',
-      '#62d9a5',
-      '#48a5ff',
-      '#ae77f5'
-    ],
-    itemLabelText: ['NA', 'LA', 'EA', 'ME', 'A', 'SA', 'EA']
+    previewSpacing: 1
   });
 
   piling.arrangeBy('data', 'year', { once: true });
