@@ -250,6 +250,8 @@ const [navigationMode, setNavigationMode] = setterOptions(
 
 const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
 
+const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
+
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
@@ -575,10 +577,10 @@ const createStore = () => {
     pileItemOrder,
     pileItemRotation,
     pileItemTint,
-    pileVisibilityItems,
     pileOpacity,
     piles,
     pileScale,
+    pileVisibilityItems,
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
@@ -586,6 +588,7 @@ const createStore = () => {
     previewBorderOpacity,
     previewItemOffset,
     previewRenderer,
+    previewScaling,
     previewSpacing,
     rowHeight,
     showGrid,
@@ -726,6 +729,7 @@ export const createAction = {
   setPreviewBorderOpacity,
   setPreviewItemOffset,
   setPreviewRenderer,
+  setPreviewScaling,
   setPreviewSpacing,
   setRowHeight,
   setShowGrid,

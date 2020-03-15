@@ -296,6 +296,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     popupBackgroundOpacity: true,
     previewAggregator: true,
     previewRenderer: true,
+    previewScaling: true,
     previewSpacing: true,
     previewBackgroundColor: {
       set: value => {
@@ -776,7 +777,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
-    const { itemSizeRange } = store.state;
+    const { itemSizeRange, previewScaling } = store.state;
 
     let widthRange;
     let heightRange;
@@ -814,7 +815,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       item.image.scale(scaleFactor);
 
       if (item.preview) {
-        item.preview.scale(scaleFactor);
+        const xScale = 1 + (scaleFactor - 1) * previewScaling[0];
+        const yScale = 1 + (scaleFactor - 1) * previewScaling[1];
+        item.preview.scaleX(xScale);
+        item.preview.scaleY(yScale);
         item.preview.drawBackground();
       }
     });
