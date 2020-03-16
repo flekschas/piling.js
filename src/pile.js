@@ -1098,13 +1098,13 @@ const createPile = (
 
     labels.forEach((label, index) => {
       let labelX;
-      let labelY = y;
+      const toTop = 1 + (y < 0) * -2;
+      let labelY = y + toTop;
       switch (pileLabelStackAlign) {
         case 'vertical':
           labelWidth = width / baseScale;
           labelX = -width / 2 / baseScale;
-          if (y > 0) labelY += labelHeight * index;
-          else labelY -= labelHeight * index;
+          labelY += (labelHeight + 1) * index * toTop;
           break;
 
         case 'horizontal':
