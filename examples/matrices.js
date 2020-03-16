@@ -150,7 +150,11 @@ const createMatrixPiles = async (element, darkMode) => {
         itemIdsMap.set(item.id.toString(), index);
       });
       return itemIdsMap;
-    }
+    },
+    previewScaling: pile => [1, Math.max(0, 1 - (pile.items.length - 2) / 10)],
+    previewOffset: 1,
+    previewPadding: 2,
+    previewSpacing: pile => Math.max(0, 2 - (pile.items.length - 2) / 10)
   });
 
   // Uncomment the following code to apply UMAP on the raw data

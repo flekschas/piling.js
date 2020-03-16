@@ -227,8 +227,11 @@ The list of all understood properties is given below.
 | previewBorderColor         | string or int                     | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
 | previewBorderOpacity       | float                             | `0.85`       | must be in [`0`,`1`]                                                                            | `false`    |
 | previewItemOffset          | function                          |              | see [`notes`](#notes)                                                                           | `true`     |
+| previewOffset              | number or function                | `2`          | see [`notes`](#notes)                                                                           | `false`    |
+| previewPadding             | number                            | `2`          | see [`notes`](#notes)                                                                           | `false`    |
 | previewRenderer            | function                          |              | see [`renderers`](#renderers)                                                                   | `true`     |
-| previewSpacing             | number                            | `2`          | the spacing between 1D previews                                                                 | `true`     |
+| previewScaling             | array or function                 | `[1,1]`      | the spacing between 1D previews                                                                 | `false`    |
+| previewSpacing             | number or function                | `2`          | the spacing between 1D previews                                                                 | `true`     |
 | renderer                   | function                          |              | see [`renderers`](#renderers)                                                                   | `false`    |
 | showGrid                   | boolean                           | `false`      |                                                                                                 | `false`    |
 | tempDepileDirection        | string                            | horizontal   | horizontal or vertical                                                                          | `true`     |
@@ -403,15 +406,6 @@ The list of all understood properties is given below.
     }
   ```
 
-- `previewItemOffset` is used to position the previews on a pile as user specified. If it's not set, the preview will be positioned to the top of the cover by default. It should be set to a callback function which receives the current [preview item](#stateitems), the item's current index, and the [pile](#statepiles) that the item belongs to, and it should return a tuple of xy position of the preview. I.e., the function signature is as follows:
-
-  ```javascript
-  piling.set('previewItemOffset', (itemState, itemIndex, pileState) => {
-    // Calculate the position
-    return [x, y];
-  });
-  ```
-
 - `pileLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
 
   ```javascript
@@ -456,6 +450,35 @@ The list of all understood properties is given below.
       // Create text
       return text;
     }
+  ```
+
+- `previewPadding` defines how much larger the preview items' background is sized. For example, a padding of `2` means that the background of a preview item is 1 pixel larger in eath direction (top, right, bottom, left).
+
+- `previewItemOffset` is used to position the previews **individually** based on a per-preview item specific callback function. If it's not set, the preview will be positioned to the top of the cover by default. It should be set to a callback function which receives the current [preview item](#stateitems), the item's current index, and the [pile](#statepiles) that the item belongs to, and it should return a tuple of xy position of the preview. I.e., the function signature is as follows:
+
+  ```javascript
+  piling.set('previewItemOffset', (itemState, itemIndex, pileState) => {
+    // Calculate the position
+    return [x, y];
+  });
+  ```
+
+- `previewOffset` and `previewSpacing` are used to **globally** position preview items. Hereby, `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
+
+  ```javascript
+  piling.set('previewOffset', pileState => {
+    // Define the offset
+    return offset;
+  });
+  ```
+
+- `previewScaling` defines how much preview items are scaled according to the cover. Normally the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
+
+  ```javascript
+  piling.set('previewScaling', pileState => {
+    // Define the x and y scaling
+    return [xScaling, yScaling];
+  });
   ```
 
 #### `piling.arrangeBy(type, objective, options)`
