@@ -1,6 +1,13 @@
 ### Next
 
-- Add `itemLabel`, `itemLabelColor` and `itemLabelText` to define the pile label
+- Add the following properties to define the pile label:
+  - `pileLabel`
+  - `pileLabelAlign`
+  - `pileLabelColor`
+  - `pileLabelFontSize`
+  - `pileLabelHeight`
+  - `pileLabelStackAlign`
+  - `pileLabelText`
 - Add `splitAll()` to scatter all piles
 - Add `pileBy()` for layout-, location-, and data-driven piling
 - Add `pileItemOrder` to sort the items on a pile by a callback function

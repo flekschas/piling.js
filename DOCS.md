@@ -170,9 +170,6 @@ The list of all understood properties is given below.
 | easing                     | function                          | cubicInOut   | see [`notes`](#notes)                                                | `true`     |
 | gridColor                  | string or int                     | `0x787878`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `false`    |
 | gridOpacity                | float                             | `1.0`        | must be in [`0`,`1`]                                                 | `false`    |
-| itemLabel                  | string, array, function or object |              | see [`notes`](#notes)                                                | `true`     |
-| itemLabelColor             | array or function                 |              | see [`notes`](#notes)                                                | `true`     |
-| itemLabelText              | array or function                 | `false`      | see [`notes`](#notes)                                                | `true`     |
 | items                      | array                             | `[]`         | see [`data`](#data)                                                  | `false`    |
 | itemSize                   | int                               |              | number of pixels                                                     | `true`     |
 | itemSizeRange              | array                             | `[0.7, 0.9]` | array of two numbers between (0, 1)                                  | `true`     |
@@ -210,6 +207,13 @@ The list of all understood properties is given below.
 | pileItemOrder              | function                          |              | see [`notes`](#notes)                                                | `true`     |
 | pileItemRotation           | float or function                 | `0`          | see [`notes`](#notes)                                                | `true`     |
 | pileItemTint               | string, int or function           | `0xffffff`   | can be HEX, RGB, or RGBA string or hexadecimal value                 | `true`     |
+| pileLabel                  | string, array, function or object |              | see [`notes`](#notes)                                                | `true`     |
+| pileLabelAlign             | String                            | `bottom`     | `bottom` or `top`                                                    | `true`     |
+| pileLabelColor             | array or function                 |              | see [`notes`](#notes)                                                | `true`     |
+| pileLabelFontSize          | int                               | 8            |                                                                    | `true`     |
+| pileLabelHeight            | float                             | 8            |                                                                    | `true`     |
+| pileLabelStackAlign        | String                            | `horizontal` | `horizontal` or `vertical`                                           | `true`     |
+| pileLabelText              | array or function                 | `false`      | see [`notes`](#notes)                                                | `true`     |
 | pileOpacity                | float or function                 | `1.0`        | see [`notes`](#notes)                                                | `true`     |
 | pileScale                  | float or function                 | `1.0`        | see [`notes`](#notes)                                                | `true`     |
 | popupBackgroundOpacity     | float                             | `0.85`       | must be in [`0`,`1`]                                                 | `false`    |
@@ -402,23 +406,23 @@ The list of all understood properties is given below.
   });
   ```
 
-- `itemLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
+- `pileLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
 
   ```javascript
-  piling.set('itemLabel', 'country');
-  piling.set('itemLabel', itemState => itemState.country);
-  piling.set('itemLabel', ['country', 'year']);
-  piling.set('itemLabel', {
+  piling.set('pileLabel', 'country');
+  piling.set('pileLabel', itemState => itemState.country);
+  piling.set('pileLabel', ['country', 'year']);
+  piling.set('pileLabel', {
     property: item => item.country,
     aggregator: countries => countries[0]
   });
   ```
 
-- `itemLabelColor` can be set to an `array` of HEX, RGB string or hexadecimal value, or a callback function. E.g.,
+- `pileLabelColor` can be set to an `array` of HEX, RGB string or hexadecimal value, or a callback function. E.g.,
 
   ```javascript
-  piling.set('itemLabelColor', ['#e05aa9', '#e0722b', '#e0a638']);
-  piling.set('itemLabelColor', (label, allLabels) => myOwnFancyColorMap[label]);
+  piling.set('pileLabelColor', ['#e05aa9', '#e0722b', '#e0a638']);
+  piling.set('pileLabelColor', (label, allLabels) => myOwnFancyColorMap[label]);
   ```
 
   The callback function receives the current label (`string`), and an array of all the labels, and it should return a HEX, RGB string or hexadecimal value. The signature is as follows:
@@ -430,13 +434,13 @@ The list of all understood properties is given below.
     }
   ```
 
-- `itemLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,
+- `pileLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,
 
   ```javascript
-  piling.set('itemLabelText', false); // default, i.e., no text by default
-  piling.set('itemLabelText', true); // simply show the label string
-  piling.set('itemLabelText', ['red', 'blue', 'yellow', 'green']);
-  piling.set('itemLabelText', (label, allLabels) => `#{abbreviation[label]}`);
+  piling.set('pileLabelText', false); // default, i.e., no text by default
+  piling.set('pileLabelText', true); // simply show the label string
+  piling.set('pileLabelText', ['red', 'blue', 'yellow', 'green']);
+  piling.set('pileLabelText', (label, allLabels) => `#{abbreviation[label]}`);
   ```
 
   The callback function receives the current label (`string`), and an array of all the labels, and it should return a text string. The signature is as follows:
