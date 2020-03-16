@@ -63,6 +63,21 @@
       window.permanentOptions = urlParams.has('options')
         ? 'permanent-options'
         : '';
+
+      switch (urlParams.get('mode')) {
+        case 'white':
+          window.mode = 'white-mode';
+          break;
+
+        case 'dark':
+          window.mode = 'dark-mode';
+          break;
+
+        default:
+          window.mode = null;
+          break;
+      }
+
       window.example = urlParams.has('example')
         ? urlParams
             .get('example')
@@ -74,21 +89,22 @@
 
   <body>
     <script>
-      let mode = 'dark-mode';
-      switch (window.example) {
-        case 'lines':
-        case 'drawings':
-        case 'joyplot':
-          mode = 'white-mode';
-          break;
+      if (window.mode === null) {
+        switch (window.example) {
+          case 'lines':
+          case 'drawings':
+          case 'joyplot':
+            window.mode = 'white-mode';
+            break;
 
-        default:
-          mode = 'dark-mode';
-          break;
+          default:
+            window.mode = 'dark-mode';
+            break;
+        }
       }
       document.body.setAttribute(
         'class',
-        [window.example, window.permanentOptions, mode].join(' ')
+        [window.example, window.permanentOptions, window.mode].join(' ')
       );
     </script>
 

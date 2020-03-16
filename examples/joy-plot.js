@@ -2,7 +2,7 @@ import { line } from 'd3-shape';
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
 
-const createSvgLinesPiles = async element => {
+const createSvgLinesPiles = async (element, darkMode) => {
   const response = await fetch('data/monthly_temp_deviation_decades.json');
   const data = await response.json();
 
@@ -24,7 +24,7 @@ const createSvgLinesPiles = async element => {
   const svgRenderer = createSvgRenderer({
     width: itemWidth,
     height: itemHeight,
-    color: '#ccc'
+    color: darkMode ? '#333' : '#ccc'
   });
   const numBins = data[0][0].length;
   const barWidth = 100 / numBins;
@@ -87,11 +87,18 @@ const createSvgLinesPiles = async element => {
   const getAvgTemp = hist =>
     fromX + (hist.findIndex(x => x === 1) + 0.5) * stepSize;
 
+  const fillColorRange = darkMode
+    ? ['#245280', '#333333', '#804118']
+    : ['#3170ad', '#cccccc', '#c76526'];
+  const strokeColorRange = darkMode
+    ? ['#3d8cd9', '#808080', '#d96921']
+    : ['#1d4266', '#333333', '#663413'];
+
   // prettier-ignore
   const createLinePlot = (hist, years, month) => [
     createSvgStart(),
-    createGradient('linear-fill', '#3170ad', '#cccccc', '#c76526'),
-    createGradient('linear-stroke', '#1d4266', '#666666', '#663413'),
+    createGradient('linear-fill', ...fillColorRange),
+    createGradient('linear-stroke', ...strokeColorRange),
     createTitle(months[month], years, getAvgTemp(hist)),
     createPath(hist),
     createAxis([-1, 0, 1]),
@@ -116,6 +123,7 @@ const createSvgLinesPiles = async element => {
   );
 
   const piling = createPilingJs(element, {
+    darkMode,
     cellAspectRatio: aspectRatio,
     pileCellAlignment: 'center',
     cellPadding: 4,
@@ -125,11 +133,10 @@ const createSvgLinesPiles = async element => {
     pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
-    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
-    backgroundColor: '#ffffff',
-    lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000'
+    pileBackgroundColor: darkMode
+      ? 'rgba(0,0,0,0.85)'
+      : 'rgba(255,255,255,0.85)',
+    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1)
   });
 
   piling.arrangeBy('data', 'numDecade');

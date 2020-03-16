@@ -1,5 +1,8 @@
 import { whichTransitionEvent } from './utils';
 
+export const BLACK = 0x000000;
+export const WHITE = 0xffffff;
+
 // prettier-ignore
 export const CAMERA_VIEW = new Float32Array([
   1, 0, 0, 0,

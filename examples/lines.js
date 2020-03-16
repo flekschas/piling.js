@@ -12,13 +12,17 @@ const createRandomLinePlot = () => {
   const y2 = Math.random() * (100 - y1);
   return [
     SVG_START,
-    `<path d="M 0 100 C ${x1} ${y1}, ${x2} ${y2}, 100 0" stroke="black" fill="transparent"/>`,
+    `<path d="M 0 100 C ${x1} ${y1}, ${x2} ${y2}, 100 0" stroke="currentColor" fill="transparent"/>`,
     SVG_END
   ].join('');
 };
 
-const createSvgLinesPiles = element => {
-  const svgRenderer = createSvgRenderer({ width: 600, height: 600 });
+const createSvgLinesPiles = (element, darkMode) => {
+  const svgRenderer = createSvgRenderer({
+    color: darkMode ? 'white' : 'black',
+    width: 600,
+    height: 600
+  });
 
   let data = new Array(100).fill().map((_, i) => ({
     id: i.toString(),
@@ -37,19 +41,25 @@ const createSvgLinesPiles = element => {
   };
 
   const piling = createPilingJs(element, {
+    darkMode,
     renderer: svgRenderer,
     items: data,
     pileItemOpacity: (item, i, pile) =>
       (1 / pile.items.length) * (2 / 3) + 1 / 3,
     pileItemOffset: [0, 0],
-    pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
-    backgroundColor: '#ffffff',
-    lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000',
+    pileBackgroundColor: darkMode
+      ? 'rgba(0, 0, 0, 0.85)'
+      : 'rgba(255, 255, 255, 0.85)',
     pileContextMenuItems: [
       {
         label: 'Redraw',
         callback: redrawHandler
+      },
+      {
+        label: 'Split All',
+        callback: () => {
+          piling.splitAll();
+        }
       }
     ]
   });

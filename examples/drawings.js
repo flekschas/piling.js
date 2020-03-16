@@ -4,7 +4,7 @@ import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
-const createDrawingPiles = async element => {
+const createDrawingPiles = async (element, darkMode) => {
   const response = await fetch('data/apple.json');
   const items = await response.json();
 
@@ -19,19 +19,22 @@ const createDrawingPiles = async element => {
   );
 
   const piling = createPilingJs(element, {
+    darkMode,
     renderer: quickDrawRenderer,
     coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
     items,
     cellSize: 32,
+    itemSize: 32,
     cellPadding: 16,
+    pileCoverInvert: darkMode,
+    pileItemInvert: darkMode,
     pileItemOffset: [0, 0],
-    pileBackgroundColor: 'rgba(255, 255, 255, 0.66)',
+    pileBackgroundColor: darkMode
+      ? 'rgba(0, 0, 0, 0.85)'
+      : 'rgba(255, 255, 255, 0.85)',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
-    pileVisibilityItems: pile => pile.items.length === 1,
-    backgroundColor: '#ffffff',
-    lassoFillColor: '#000000',
-    lassoStrokeColor: '#000000'
+    pileVisibilityItems: pile => pile.items.length === 1
   });
 
   return [piling];
