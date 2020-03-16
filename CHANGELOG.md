@@ -1,6 +1,6 @@
 ### Next
 
-- Add the following properties to define the pile label:
+- Add the following properties to define the pile label (#133)
   - `pileLabel`
   - `pileLabelAlign`
   - `pileLabelColor`
@@ -8,8 +8,9 @@
   - `pileLabelHeight`
   - `pileLabelStackAlign`
   - `pileLabelText`
-- Add `splitAll()` to scatter all piles
-- Add `pileBy()` for layout-, location-, and data-driven piling
+- Add `cellSize` to define the size of the cell (#136)
+- Add `splitAll()` to scatter all piles (#144)
+- Add `pileBy()` for layout-, location-, and data-driven piling (#129)
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position the previews as user specified
 - Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)

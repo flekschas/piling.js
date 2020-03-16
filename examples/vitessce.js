@@ -157,6 +157,7 @@ const createVitessce = async (element, darkMode) => {
     coverRenderer: representativeRenderer,
     items,
     itemSize,
+    cellSize: 64,
     cellPadding: 8,
     pileBorderSize: 1,
     pileBorderColor: darkMode ? 0x333333 : 0xcccccc,
