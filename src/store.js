@@ -354,7 +354,7 @@ const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
 );
 const [pileLabelFontSize, setPileLabelFontSize] = setter(
   'pileLabelFontSize',
-  8
+  7
 );
 const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 8);
 
