@@ -64,6 +64,10 @@ export const DEFAULT_COLOR_MAP = [
   '#CC79A7' // reddish purple
 ];
 
+export const UNKNOWN_LABEL = {
+  color: '#808080'
+};
+
 export const POSITION_PILES_DEBOUNCE_TIME = 100;
 
 export const TRANSITION_EVENT = whichTransitionEvent();

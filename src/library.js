@@ -53,6 +53,7 @@ import {
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
   POSITION_PILES_DEBOUNCE_TIME,
+  UNKNOWN_LABEL,
   WHITE
 } from './defaults';
 
@@ -2840,7 +2841,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       idToLabel.set(item.id, label);
 
-      if (!tmp.has(label)) {
+      if (!tmp.has(label) && label) {
         uniqueLabels.set(label, { text: label, index: tmp.size });
         tmp.add(label);
       }
@@ -2898,7 +2899,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const args = labels.reduce(
       (_args, labelText) => {
-        const label = uniqueLabels.get(labelText.toString());
+        const label =
+          labelText && labelText.toString
+            ? uniqueLabels.get(labelText.toString()) || UNKNOWN_LABEL
+            : UNKNOWN_LABEL;
         _args[0].push(label.text);
         _args[1].push(label.color);
         _args[2].push(label.texture);
