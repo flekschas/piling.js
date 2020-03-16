@@ -23,7 +23,7 @@ const createDrawingPiles = async (element, darkMode) => {
     renderer: quickDrawRenderer,
     coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
-    items: items.slice(0, 50),
+    items,
     itemSize: 32,
     cellPadding: 16,
     pileCoverInvert: darkMode,
