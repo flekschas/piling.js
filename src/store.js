@@ -356,7 +356,7 @@ const [pileLabelFontSize, setPileLabelFontSize] = setter(
   'pileLabelFontSize',
   7
 );
-const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 8);
+const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
