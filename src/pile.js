@@ -1075,8 +1075,9 @@ const createPile = (
     const {
       pileLabelHeight,
       pileLabelAlign,
+      pileLabelFontSize,
       pileLabelStackAlign,
-      pileLabelFontSize
+      pileLabelText
     } = store.state;
 
     const { width } = contentGraphics.getBounds();
@@ -1087,7 +1088,7 @@ const createPile = (
 
     let labelWidth = width / labels.length / baseScale;
     const labelHeight = labelTextures.length
-      ? Math.max(pileLabelFontSize + 1, pileLabelHeight)
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
       : pileLabelHeight;
 
     const y =
