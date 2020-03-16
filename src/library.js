@@ -1392,7 +1392,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePreviewStyle = pileState => {
-    const { previewScaling } = store.state;
+    const { previewRenderer, previewScaling } = store.state;
+
+    if (!previewRenderer) return;
 
     const scaling = isFunction(previewScaling)
       ? previewScaling(pileState)
@@ -2145,8 +2147,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             };
 
             const onDone = () => {
-              done++;
-              if (done === pileIds.length) onAllDone();
+              if (++done === pileIds.length) onAllDone();
             };
 
             let done = 0;
@@ -2166,7 +2167,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
                     }
                   );
                 })
-                .filter(identity)
+                .filter(x => {
+                  if (x === null) {
+                    onDone();
+                  }
+                  return x;
+                })
             );
           })
       )
@@ -2240,7 +2246,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const pileByOverlap = async sqrtPixels => {
+  const pileByOverlap = async (sqrtPixels, { conditions = [] } = {}) => {
+    const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2255,44 +2262,50 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
     };
 
-    spatialIndex.all().forEach(pileBBox => {
-      if (alreadyPiledPiles.has(pileBBox.id)) return;
+    spatialIndex.all().forEach(currentTarget => {
+      if (alreadyPiledPiles.has(currentTarget.id)) return;
 
-      const hits = spatialIndex.search(pileBBox);
+      const hits = spatialIndex.search(currentTarget);
 
       if (hits.length === 1) return;
 
       hits.forEach(hit => {
-        if (hit.id === pileBBox.id) return;
+        if (hit.id === currentTarget.id) return;
 
-        const minX = Math.max(pileBBox.minX, hit.minX);
-        const minY = Math.max(pileBBox.minY, hit.minY);
-        const maxX = Math.min(pileBBox.maxX, hit.maxX);
-        const maxY = Math.min(pileBBox.maxY, hit.maxY);
+        const minX = Math.max(currentTarget.minX, hit.minX);
+        const minY = Math.max(currentTarget.minY, hit.minY);
+        const maxX = Math.min(currentTarget.maxX, hit.maxX);
+        const maxY = Math.min(currentTarget.maxY, hit.maxY);
         const overlap = (maxX - minX) * (maxY - minY);
 
-        if (overlap >= sqrtPixels) {
+        const okay = conditions.every(condition =>
+          condition(piles[currentTarget.id], piles[hit.id])
+        );
+
+        if (overlap >= sqrtPixels && okay) {
           if (alreadyPiledPiles.has(hit.id)) {
-            const [targetId, relTargetOverlap] = alreadyPiledPiles.get(hit.id);
+            const [prevTargetId, preTargetRelOverlap] = alreadyPiledPiles.get(
+              hit.id
+            );
 
             const relOverlap =
               overlap /
-              ((pileBBox.maxX - pileBBox.minX) *
-                (pileBBox.maxY - pileBBox.minY));
+              ((currentTarget.maxX - currentTarget.minX) *
+                (currentTarget.maxY - currentTarget.minY));
 
-            if (relTargetOverlap > relOverlap) {
+            if (preTargetRelOverlap > relOverlap) {
               // Hit overlaps more with the previous target so we do nothing
               return;
             }
 
             // Hit overlaps more with the new target so we move the hit
-            newPiles[targetId].splice(
-              newPiles[targetId].indexOf(pileBBox.id),
+            newPiles[prevTargetId].splice(
+              newPiles[prevTargetId].indexOf(hit.id),
               1
             );
           }
 
-          addPile(pileBBox, hit, overlap);
+          addPile(currentTarget, hit, overlap);
         }
       });
     });
@@ -2300,7 +2313,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByDistance = async pixels => {
+  const pileByDistance = async (pixels, { conditions = [] } = {}) => {
+    const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2313,14 +2327,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       alreadyPiledPiles.set(hit.id, [target.id, distance]);
     };
 
-    spatialIndex.all().forEach(pileBBox => {
-      if (alreadyPiledPiles.has(pileBBox.id)) return;
+    spatialIndex.all().forEach(currentTarget => {
+      if (alreadyPiledPiles.has(currentTarget.id)) return;
 
       const searchBBox = {
-        minX: pileBBox.minX - pixels,
-        minY: pileBBox.minY - pixels,
-        maxX: pileBBox.maxX + pixels,
-        maxY: pileBBox.maxY + pixels
+        minX: currentTarget.minX - pixels,
+        minY: currentTarget.minY - pixels,
+        maxX: currentTarget.maxX + pixels,
+        maxY: currentTarget.maxY + pixels
       };
 
       const hits = spatialIndex.search(searchBBox);
@@ -2328,11 +2342,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (hits.length === 1) return;
 
       hits.forEach(hit => {
-        if (hit.id === pileBBox.id) return;
+        if (hit.id === currentTarget.id) return;
 
-        const distance = l2RectDist(pileBBox, hit);
+        const distance = l2RectDist(currentTarget, hit);
 
-        if (distance <= pixels) {
+        const okay = conditions.every(condition =>
+          condition(piles[currentTarget.id], piles[hit.id])
+        );
+
+        if (distance <= pixels && okay) {
           if (alreadyPiledPiles.has(hit.id)) {
             const [targetId, targetDistance] = alreadyPiledPiles.get(hit.id);
 
@@ -2342,13 +2360,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             }
 
             // Hit is closer to the new target so we move the hit
-            newPiles[targetId].splice(
-              newPiles[targetId].indexOf(pileBBox.id),
-              1
-            );
+            newPiles[targetId].splice(newPiles[targetId].indexOf(hit.id), 1);
           }
 
-          addPile(pileBBox, hit, distance);
+          addPile(currentTarget, hit, distance);
         }
       });
     });
@@ -2484,11 +2499,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (type) {
       case 'overlap':
-        piledPiles = pileByOverlap(expandedObjective);
+        piledPiles = pileByOverlap(expandedObjective, options);
         break;
 
       case 'distance':
-        piledPiles = pileByDistance(expandedObjective);
+        piledPiles = pileByDistance(expandedObjective, options);
         break;
 
       case 'grid':
@@ -2947,11 +2962,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const itemUpdateCall = ++itemUpdateCalls;
       Promise.all(itemUpdates)
         .then(() => {
-          if (itemUpdateCall === itemUpdateCalls)
+          if (itemUpdateCall === itemUpdateCalls) {
             // Apply all consequences and wait for them to finish
             return Promise.all(
               itemUpdatesConsequences.map(consequence => consequence())
             );
+          }
           return undefined; // No further actions
         })
         .then(() => {
