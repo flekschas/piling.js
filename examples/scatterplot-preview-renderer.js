@@ -1,20 +1,13 @@
 import * as d3 from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
-const DEFAULT_COLOR_RANGE = [
-  '#e05aa9',
-  '#e0722b',
-  '#e0a638',
-  '#e0d42c',
-  '#62d9a5',
-  '#48a5ff',
-  '#ae77f5'
-];
+import { DEFAULT_COLOR_RANGE } from './scatterplot-renderer';
 
 const createScatterplotPreviewRenderer = ({
   width = 20,
   height = 60,
-  color: colorProp = 'region'
+  color: colorProp = 'region',
+  colorRange = DEFAULT_COLOR_RANGE
 } = {}) => {
   const svgRenderer = createSvgRenderer({ width, height });
 
@@ -22,7 +15,7 @@ const createScatterplotPreviewRenderer = ({
     d3
       .scaleOrdinal()
       .domain(domain)
-      .range(DEFAULT_COLOR_RANGE);
+      .range(colorRange);
 
   const renderPreview = color => {
     const svg = d3.create('svg').attr('viewBox', `0 0 ${width} ${height}`);

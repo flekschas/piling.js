@@ -41,6 +41,7 @@ import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
 
 import {
+  BLACK,
   CAMERA_VIEW,
   DEFAULT_COLOR_MAP,
   EVENT_LISTENER_ACTIVE,
@@ -51,7 +52,8 @@ import {
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
-  POSITION_PILES_DEBOUNCE_TIME
+  POSITION_PILES_DEBOUNCE_TIME,
+  WHITE
 } from './defaults';
 
 import {
@@ -93,6 +95,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const store = createStore();
 
   let state = store.state;
+
+  let backgroundColor = WHITE;
 
   let gridMat;
 
@@ -215,8 +219,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     magnifiedPiles: true,
     navigationMode: true,
     orderer: true,
+    pileCoverInvert: true,
     pileCoverScale: true,
     pileItemBrightness: true,
+    pileItemInvert: true,
     pileItemOffset: true,
     pileItemOpacity: true,
     pileItemOrder: true,
@@ -915,12 +921,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const getBackgroundColor = () => {
+    if (store.state.pileBackgroundColor !== null)
+      return store.state.pileBackgroundColor;
+    return backgroundColor;
+  };
+
   const createImagesAndPreviews = items => {
     const {
       itemRenderer,
       previewBackgroundColor,
       previewBackgroundOpacity,
-      pileBackgroundColor,
       pileBackgroundOpacity,
       previewAggregator,
       previewRenderer,
@@ -928,6 +939,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } = store.state;
 
     const itemList = Object.values(items);
+    const pileBackgroundColor = getBackgroundColor();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
@@ -1300,6 +1312,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const {
       items,
       pileItemBrightness,
+      pileItemInvert,
       pileItemOpacity,
       pileItemTint
     } = store.state;
@@ -1315,20 +1328,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           : pileItemOpacity
       );
 
-      pileItem.image.brightness(
-        isFunction(pileItemBrightness)
-          ? pileItemBrightness(itemState, i, pileState)
-          : pileItemBrightness
+      pileItem.image.invert(
+        isFunction(pileItemInvert)
+          ? pileItemInvert(itemState, i, pileState)
+          : pileItemInvert
       );
 
-      // We can't apply a brightness and tint effect as both rely on the same
-      // mechanism. Therefore we decide to give brightness higher precedence.
-      if (!pileItemBrightness) {
-        pileItem.image.tint(
-          isFunction(pileItemTint)
-            ? pileItemTint(itemState, i, pileState)
-            : pileItemTint
+      // We can't apply a brightness and invert effect as both rely on the same
+      // mechanism. Therefore we decide to give invert higher precedence.
+      if (!pileItemInvert) {
+        pileItem.image.brightness(
+          isFunction(pileItemBrightness)
+            ? pileItemBrightness(itemState, i, pileState)
+            : pileItemBrightness
         );
+
+        // We can't apply a brightness and tint effect as both rely on the same
+        // mechanism. Therefore we decide to give brightness higher precedence.
+        if (!pileItemBrightness) {
+          pileItem.image.tint(
+            isFunction(pileItemTint)
+              ? pileItemTint(itemState, i, pileState)
+              : pileItemTint
+          );
+        }
       }
     });
   };
@@ -1375,6 +1398,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       items,
       coverRenderer,
       coverAggregator,
+      pileCoverInvert,
       pileCoverScale,
       previewAggregator
     } = store.state;
@@ -1402,10 +1426,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
         .then(([coverTexture]) => {
           const scaledImage = createScaledImage(coverTexture);
+
+          scaledImage.invert(
+            isFunction(pileCoverInvert)
+              ? pileCoverInvert(pileState)
+              : pileCoverInvert
+          );
+
           const extraScale = isFunction(pileCoverScale)
             ? pileCoverScale(pileState)
             : pileCoverScale;
+
           scaledImage.scale(scaledImage.scaleFactor * extraScale);
+
           return scaledImage;
         });
 
@@ -3029,6 +3062,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.size &&
       (state.pileItemOpacity !== newState.pileItemOpacity ||
         state.pileItemBrightness !== newState.pileItemBrightness ||
+        state.pileItemInvert !== newState.pileItemInvert ||
         state.pileItemTint !== newState.pileItemTint)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
@@ -3216,8 +3250,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.darkMode !== newState.darkMode) {
       updateLevels();
-      if (newState.darkMode) addClass(rootElement, 'pilingjs-darkmode');
-      else removeClass(rootElement, 'pilingjs-darkmode');
+      if (newState.darkMode) {
+        backgroundColor = BLACK;
+        addClass(rootElement, 'pilingjs-darkmode');
+      } else {
+        backgroundColor = WHITE;
+        removeClass(rootElement, 'pilingjs-darkmode');
+      }
     }
 
     if (

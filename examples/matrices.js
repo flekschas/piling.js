@@ -23,7 +23,7 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
   ];
 };
 
-const createColorMap = (interpolator, numColors = 512) => {
+const createColorMap = (interpolator, numColors = 512, invert = false) => {
   let interpolatorFn;
 
   switch (interpolator) {
@@ -43,21 +43,25 @@ const createColorMap = (interpolator, numColors = 512) => {
 
   const colorMap = new Array(numColors)
     .fill(0)
-    .map((x, i) => rgbStr2rgba(interpolatorFn((numColors - i) / numColors)));
+    .map((x, i) =>
+      rgbStr2rgba(
+        interpolatorFn(Math.abs((invert * numColors - i) / numColors))
+      )
+    );
 
   colorMap[0] = [0, 0, 0, 0]; // Transparent
 
   return colorMap;
 };
 
-const createMatrixPiles = async element => {
+const createMatrixPiles = async (element, darkMode) => {
   const response = await fetch('data/rao-2014-gm12878-chr-22-peaks.json');
   const data = await response.json();
 
   const domain = [0, 1];
 
   const coverRenderer = createMatrixRenderer({
-    colorMap: createColorMap('red')
+    colorMap: createColorMap('red', 512, darkMode)
   });
 
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
@@ -68,7 +72,7 @@ const createMatrixPiles = async element => {
 
   const piling = createPilingJs(element);
 
-  let colorMap = createColorMap('purple');
+  let colorMap = createColorMap('purple', 512, darkMode);
 
   const matrixRenderer = createMatrixRenderer({ colorMap });
   const matrix1DRenderer = createMatrixRenderer({
@@ -87,9 +91,9 @@ const createMatrixPiles = async element => {
           defaultValue: 'purple',
           values: ['purple', 'rainbow'],
           setter: newColorMap => {
-            colorMap = createColorMap(newColorMap);
-            matrixRenderer.setColorMap(colorMap);
-            matrix1DRenderer.setColorMap(colorMap);
+            colorMap = createColorMap(newColorMap, 512, darkMode);
+            matrixRenderer.setColorMap(colorMap, 512, darkMode);
+            matrix1DRenderer.setColorMap(colorMap, 512, darkMode);
             piling.render();
           }
         },
@@ -128,9 +132,9 @@ const createMatrixPiles = async element => {
   ];
 
   piling.set({
+    darkMode,
     renderer: matrixRenderer.renderer,
     previewRenderer: matrix1DRenderer.renderer,
-    darkMode: true,
     dimensionalityReducer: umap,
     coverRenderer: coverRenderer.renderer,
     coverAggregator: matrixCoverAggregator,

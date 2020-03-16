@@ -15,7 +15,7 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import { cloneSprite, colorToDecAlpha } from './utils';
 
-import { INHERIT } from './defaults';
+import { BLACK, INHERIT, WHITE } from './defaults';
 
 export const MAX_MAGNIFICATION = 3;
 export const MODE_NORMAL = Symbol('Normal');
@@ -119,6 +119,12 @@ const createPile = (
     }
   };
 
+  const getBackgroundColor = () => {
+    if (store.state.pileBackgroundColor !== null)
+      return store.state.pileBackgroundColor;
+    return store.state.darkMode ? BLACK : WHITE;
+  };
+
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
       coverItemContainer.visible = true;
@@ -129,9 +135,11 @@ const createPile = (
         const {
           previewBackgroundColor,
           previewBackgroundOpacity,
-          pileBackgroundColor,
           pileBackgroundOpacity
         } = store.state;
+
+        const pileBackgroundColor = getBackgroundColor();
+
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
@@ -202,12 +210,10 @@ const createPile = (
     const x = contentBounds.x - borderBounds.x;
     const y = contentBounds.y - borderBounds.y;
     const borderOffset = Math.ceil(size / 2);
+    const pileBackgroundColor = getBackgroundColor();
 
     // draw black background
-    borderGraphics.beginFill(
-      state.pileBackgroundColor,
-      state.pileBackgroundOpacity
-    );
+    borderGraphics.beginFill(pileBackgroundColor, state.pileBackgroundOpacity);
     borderGraphics.drawRect(
       x - borderOffset,
       y - borderOffset,

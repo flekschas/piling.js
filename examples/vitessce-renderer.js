@@ -23,7 +23,11 @@ const DEFAULT_DOMAINS = [
 
 const createVitessceRenderer = (
   getData,
-  { domains: customDomains = null, colors: customColors = [] }
+  {
+    darkMode = false,
+    domains: customDomains = null,
+    colors: customColors = []
+  } = {}
 ) => {
   const geometry = new PIXI.Geometry();
   geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
@@ -83,6 +87,8 @@ const createVitessceRenderer = (
         }, {});
 
         const uniforms = new PIXI.UniformGroup({
+          uBackground: darkMode ? 0.0 : 1.0,
+          uComboModifier: darkMode ? 1.0 : -1.0, // addition vs substraction
           uColors: colors,
           uDomains: valueRanges,
           ...textures
