@@ -27,9 +27,16 @@ const withBackground = ({
     get backgroundOpacity() {
       return backgroundGraphics.fill.alpha;
     },
-    drawBackground(color = backgroundColor, opacity = backgroundOpacity) {
-      const width = self.width + self.padding;
-      const height = self.height + self.padding;
+    clearBackground() {
+      backgroundGraphics.clear();
+    },
+    drawBackground(
+      color = backgroundColor,
+      opacity = backgroundOpacity,
+      withPadding = false
+    ) {
+      const width = self.width + self.padding * withPadding;
+      const height = self.height + self.padding * withPadding;
 
       backgroundGraphics.clear();
       backgroundGraphics.beginFill(color, opacity);

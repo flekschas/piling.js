@@ -56,6 +56,7 @@ const createPile = (
   const coverItemContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const tempDepileContainer = new PIXI.Container();
+  const hoverPreviewContainer = new PIXI.Container();
 
   const createPileBBox = createBBox({ id });
 
@@ -112,7 +113,13 @@ const createPile = (
         coverItemContainer.visible = false;
         if (hasPreviewItem(item)) {
           const { previewBorderColor, previewBorderOpacity } = store.state;
-          item.image.drawBackground(previewBorderColor, previewBorderOpacity);
+          getForegroundColor(previewBorderColor);
+          item.image.drawBackground(
+            getForegroundColor(previewBorderColor),
+            previewBorderOpacity,
+            true
+          );
+          hoverPreviewContainer.addChild(item.displayObject);
         }
         render();
       }
@@ -123,6 +130,11 @@ const createPile = (
     if (store.state.pileBackgroundColor !== null)
       return store.state.pileBackgroundColor;
     return store.state.darkMode ? BLACK : WHITE;
+  };
+
+  const getForegroundColor = color => {
+    if (color !== null) return color;
+    return store.state.darkMode ? WHITE : BLACK;
   };
 
   const itemOutHandler = ({ item }) => {
@@ -149,6 +161,7 @@ const createPile = (
             ? pileBackgroundOpacity
             : previewBackgroundOpacity;
         item.image.drawBackground(backgroundColor, backgroundOpacity);
+        previewItemContainer.addChild(item.displayObject);
       }
       render();
     }
@@ -542,31 +555,38 @@ const createPile = (
     allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
   };
 
-  const positionItems = (
-    pileItemOffset,
-    pileItemRotation,
-    animator,
-    previewItemOffset,
-    previewSpacing
-  ) => {
-    const pileState = store.state.piles[id];
+  const positionItems = (pileItemOffset, pileItemRotation, animator) => {
+    const {
+      piles,
+      previewItemOffset,
+      previewOffset,
+      previewSpacing
+    } = store.state;
+    const pileState = piles[id];
 
     if (getCover() && previewItemContainer.children.length) {
       getCover().then(coverImage => {
-        const halfSpacing = previewSpacing / 2;
+        const spacing = isFunction(previewSpacing)
+          ? previewSpacing(pileState)
+          : previewSpacing;
+
+        let offset = isFunction(previewOffset)
+          ? previewOffset(pileState)
+          : previewOffset;
+
+        offset = offset !== null ? offset : spacing / 2;
+
+        const halfSpacing = spacing / 2;
         const halfWidth = coverImage.width / 2;
         const halfHeight = coverImage.height / 2;
 
         isPositioning = previewItemContainer.children > 0;
 
-        previewItemContainer.children.forEach((item, index) => {
-          let itemId;
+        previewItemContainer.children.forEach((previewItem, index) => {
+          // eslint-disable-next-line no-underscore-dangle
+          const item = previewItem.__pilingjs__item;
 
-          previewItemIndex.forEach((_item, _itemId) => {
-            if (_item.displayObject === item) itemId = _itemId;
-          });
-
-          const itemState = store.state.items[itemId];
+          const itemState = store.state.items[item.id];
 
           let itemOffset;
 
@@ -577,12 +597,17 @@ const createPile = (
           } else {
             itemOffset = [
               0,
-              -halfHeight - item.height * (index + 0.5) - halfSpacing
+              -halfHeight -
+                item.preview.height * (index + 0.5) -
+                halfSpacing * index -
+                offset
             ];
           }
 
+          item.preview.clearBackground();
+
           animatePositionItems(
-            item,
+            previewItem,
             itemOffset[0],
             itemOffset[1],
             0,
@@ -1086,6 +1111,7 @@ const createPile = (
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
+    contentGraphics.addChild(hoverPreviewContainer);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
