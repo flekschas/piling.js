@@ -381,6 +381,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
+          name: 'cellSize',
+          dtype: 'int',
+          min: 16,
+          max: 320,
+          numSteps: 16,
+          nullifiable: true
+        },
+        {
           name: 'cellPadding',
           dtype: 'int',
           min: 0,

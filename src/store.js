@@ -195,6 +195,7 @@ const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
+const [cellSize, setCellSize] = setter('cellSize');
 
 const [pileCoverScale, setPileCoverScale] = setter(
   'pileCoverScale',
@@ -528,6 +529,7 @@ const createStore = () => {
     backgroundColor,
     cellAspectRatio,
     cellPadding,
+    cellSize,
     columns,
     coverAggregator,
     depiledPile,
@@ -669,6 +671,7 @@ export const createAction = {
   setBackgroundColor,
   setCellAspectRatio,
   setCellPadding,
+  setCellSize,
   setColumns,
   setCoverAggregator,
   setDepiledPile,
