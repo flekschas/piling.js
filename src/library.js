@@ -148,6 +148,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     backgroundColor: true,
     cellAspectRatio: true,
     cellPadding: true,
+    cellSize: true,
     columns: true,
     coverAggregator: true,
     coverRenderer: true,
@@ -204,6 +205,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         cellAspectRatio: layout.cellAspectRatio,
         cellHeight: layout.cellHeight,
         cellPadding: layout.cellPadding,
+        cellSize: layout.cellSize,
         cellWidth: layout.cellWidth,
         columnWidth: layout.columnWidth,
         height: layout.height,
@@ -779,7 +781,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
-    const { itemSizeRange } = store.state;
+    const { itemSizeRange, itemSize } = store.state;
+
+    const itemWidth = itemSize || layout.cellWidth;
+    const itemHeight = itemSize || layout.cellHeight;
 
     let widthRange;
     let heightRange;
@@ -791,17 +796,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemSizeRange[1] > 0 &&
       itemSizeRange[1] <= 1
     ) {
-      widthRange = [
-        layout.cellWidth * itemSizeRange[0],
-        layout.cellWidth * itemSizeRange[1]
-      ];
+      widthRange = [itemWidth * itemSizeRange[0], itemWidth * itemSizeRange[1]];
       heightRange = [
-        layout.cellHeight * itemSizeRange[0],
-        layout.cellHeight * itemSizeRange[1]
+        itemHeight * itemSizeRange[0],
+        itemHeight * itemSizeRange[1]
       ];
     } else {
-      widthRange = [0, layout.cellWidth];
-      heightRange = [0, layout.cellHeight];
+      widthRange = [0, itemWidth];
+      heightRange = [0, itemHeight];
     }
 
     itemWidthScale = scaleLinear()
@@ -850,7 +852,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     scaleItems();
 
-    if (arrangementType === null) {
+    if (arrangementType === null && !isPanZoom) {
       // Since there is no automatic arrangement in place we manually move
       // piles from their old cell position to their new cell position
       const movingPiles = [];
@@ -2979,6 +2981,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.rowHeight !== newState.rowHeight ||
       state.cellAspectRatio !== newState.cellAspectRatio ||
       state.cellPadding !== newState.cellPadding ||
+      state.cellSize !== newState.cellSize ||
       state.orderer !== newState.orderer ||
       state.pileCellAlignment !== newState.pileCellAlignment
     ) {

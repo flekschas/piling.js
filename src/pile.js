@@ -1005,9 +1005,9 @@ const createPile = (
   const setItems = (
     items,
     { asPreview = false } = {},
-    shouldDrawPlaceholer = false
+    shouldDrawPlaceholder = false
   ) => {
-    if (shouldDrawPlaceholer) drawPlaceholder();
+    if (shouldDrawPlaceholder) drawPlaceholder();
 
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
@@ -1063,11 +1063,17 @@ const createPile = (
     setCover(newCover);
   };
 
-  const placeholderGfx = new PIXI.Graphics();
+  let placeholderGfx;
   let isPlaceholderDrawn = false;
 
   const drawPlaceholder = () => {
-    const { width, height } = anchorBox;
+    if (!placeholderGfx) {
+      placeholderGfx = new PIXI.Graphics();
+      contentGraphics.addChild(placeholderGfx);
+    }
+    const width = anchorBox.width / baseScale;
+    const height = anchorBox.height / baseScale;
+
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
 
@@ -1099,7 +1105,6 @@ const createPile = (
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
-    rootGraphics.addChild(placeholderGfx);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
