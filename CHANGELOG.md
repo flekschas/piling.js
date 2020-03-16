@@ -1,9 +1,11 @@
 ### Next
 
-- Add `splitAll()` to scatter all piles
-- Add `pileBy()` for layout-, location-, and data-driven piling
+- Add `splitAll()` to scatter all piles (#144)
+- Add `pileBy()` for layout-, location-, and data-driven piling (#129)
 - Add `pileItemOrder` to sort the items on a pile by a callback function
-- Add `previewItemOffset` to position the previews as user specified
+- Add `previewItemOffset` to position previews with a per-item callback function (#113)
+- Add `previewOffset` and `previewPadding` and adjust `previewSpacing` to position previews with a per-pile callback function (#148)
+- Add `previewScaling` to adjust the x and y scaling factor of previews with a per-pile callback function (#148)
 - Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size
