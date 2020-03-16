@@ -1087,21 +1087,13 @@ const createPile = (
 
     let labelWidth = width / labels.length / baseScale;
     const labelHeight = labelTextures.length
-      ? Math.max(pileLabelFontSize, pileLabelHeight)
+      ? Math.max(pileLabelFontSize + 1, pileLabelHeight)
       : pileLabelHeight;
 
-    let y;
-
-    switch (pileLabelAlign) {
-      case 'top':
-        y = -firstItem.height / 2 - labelHeight;
-        break;
-
-      case 'bottom':
-      default:
-        y = firstItem.height / 2;
-        break;
-    }
+    const y =
+      pileLabelAlign === 'top'
+        ? -firstItem.height / 2 - labelHeight
+        : firstItem.height / 2;
 
     labels.forEach((label, index) => {
       let labelX;
@@ -1147,8 +1139,8 @@ const createPile = (
         labelText.anchor.set(0.5, 0);
         labelText.x = textX;
         labelText.y = textY;
-        labelText.width /= window.devicePixelRatio;
-        labelText.height /= window.devicePixelRatio;
+        labelText.width /= 2 * window.devicePixelRatio;
+        labelText.height /= 2 * window.devicePixelRatio;
         labelGraphics.addChild(labelText);
       });
     }

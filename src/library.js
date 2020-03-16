@@ -2871,7 +2871,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
 
         const pixiText = new PIXI.Text(labelText, {
-          fontSize: pileLabelFontSize * window.devicePixelRatio,
+          fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
           align: 'center'
         });
         pixiText.updateText();
