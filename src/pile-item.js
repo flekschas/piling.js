@@ -46,6 +46,8 @@ const createPileItem = ({ image, item, pubSub }) => {
   };
 
   const container = new PIXI.Container();
+  // eslint-disable-next-line no-underscore-dangle
+  container.__pilingjs__item = item; // Dirty: for quick access in pile.js
 
   const replaceImage = newImage => {
     // eslint-disable-next-line no-param-reassign
