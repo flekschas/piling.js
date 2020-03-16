@@ -3,6 +3,34 @@ import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
+const regionToColor = region => {
+  switch (region.toUpperCase()) {
+    case 'LCN': // Latin America & Caribbean
+      return '#E69F00'; // Orange
+
+    case 'SAS': // South Asia
+      return '#56B4E9'; // sky blue
+
+    case 'SSF': // Sub-Saharan Africa
+      return '#009E73'; // bluish green
+
+    case 'ECS': // Europe & Central Asia
+      return '#D55E00'; // vermillion
+
+    case 'MEA': // Middle East & North Africa
+      return '#F0E442'; // yellow
+
+    case 'EAS': // East Asia & Pacific
+      return '#CC79A7'; // reddish purple
+
+    case 'NAC': // North America
+      return '#0072B2'; // blue
+
+    default:
+      return '#808080';
+  }
+};
+
 const createDrawingPiles = async (element, darkMode) => {
   const response = await fetch('data/apple.json');
   const items = await response.json();
@@ -22,7 +50,7 @@ const createDrawingPiles = async (element, darkMode) => {
     renderer: quickDrawRenderer,
     coverRenderer: quickDrawCoverRenderer,
     coverAggregator: quickDrawCoverAggregator,
-    items: items.slice(0, 50),
+    items,
     itemSize: 32,
     cellPadding: 16,
     pileCoverInvert: darkMode,
@@ -36,8 +64,8 @@ const createDrawingPiles = async (element, darkMode) => {
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
     lassoStrokeColor: '#000000',
-    pileLabel: ['countryCode'],
-    pileLabelText: true,
+    pileLabel: 'region',
+    pileLabelColor: regionToColor,
     pileLabelStackAlign: 'vertical'
   });
 
