@@ -56,6 +56,7 @@ const createPile = (
   const coverItemContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const tempDepileContainer = new PIXI.Container();
+  const hoverPreviewContainer = new PIXI.Container();
 
   const createPileBBox = createBBox({ id });
 
@@ -118,6 +119,7 @@ const createPile = (
             previewBorderOpacity,
             true
           );
+          hoverPreviewContainer.addChild(item.displayObject);
         }
         render();
       }
@@ -159,6 +161,7 @@ const createPile = (
             ? pileBackgroundOpacity
             : previewBackgroundOpacity;
         item.image.drawBackground(backgroundColor, backgroundOpacity);
+        previewItemContainer.addChild(item.displayObject);
       }
       render();
     }
@@ -1103,6 +1106,7 @@ const createPile = (
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
+    contentGraphics.addChild(hoverPreviewContainer);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
