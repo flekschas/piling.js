@@ -1382,6 +1382,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return image;
   };
 
+  const updatePreviewStyle = pileState => {
+    const { previewScaling } = store.state;
+
+    const scaling = isFunction(previewScaling)
+      ? previewScaling(pileState)
+      : previewScaling;
+
+    pileState.items.forEach(itemId => {
+      const item = renderedItems.get(itemId);
+      const scaleFactor = getImageScaleFactor(item.image);
+
+      const xScale = 1 + (scaleFactor - 1) * scaling[0];
+      const yScale = 1 + (scaleFactor - 1) * scaling[1];
+
+      item.preview.scaleX(xScale);
+      item.preview.scaleY(yScale);
+    });
+  };
+
   const updatePreviewAndCover = (pileState, pileInstance) => {
     const {
       items,
@@ -1404,6 +1423,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         itemsOnPile.push(items[itemId]);
         itemInstances.push(renderedItems.get(itemId));
       });
+
+      updatePreviewStyle(pileState);
 
       pileInstance.setItems(
         itemInstances,
