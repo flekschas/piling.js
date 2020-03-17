@@ -189,8 +189,14 @@ The list of all understood properties is given below.
 | orderer                    | function                | row-major    | see [`notes`](#notes)                                                                           | `true`     |
 | magnifiedPiles             | array                   | `[]`         | the id of current magnified pile                                                                | `true`     |
 | navigationMode             | string                  | auto         | Can be one of auto, panZoom, or scroll                                                          | `false`    |
-| pileBackgroundColor        | string or int           | `0x000000`   | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBackgroundOpacity      | float                   | `1.0`        | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColor        | string or int           |              | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacity      | float                   | `0`          | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorHover   | string or int           |              | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityHover | float                   | `0.85`       | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorFocus   | string or int           |              | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityFocus | float                   |              | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorActive  | string or int           |              | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityActive| float                   |              | must be in [`0`,`1`]                                                                            | `false`    |
 | pileBorderColor            | string or int           | `0x808080`   | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
 | pileBorderOpacity          | float                   | `1.0`        | must be in [`0`,`1`]                                                                            | `false`    |
 | pileBorderColorHover       | string or int           | `0x808080`   | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
@@ -300,6 +306,12 @@ The list of all understood properties is given below.
   piling.set('lassoFillColor', 'rgb(255, 0, 0)');
   piling.set('lassoFillOpacity', 0.66);
   ```
+
+- If `pileBackgroundColor` is not defined, it will be set to the same color as the background depending on `darkMode`. 
+
+  `pileBackgroundColorActive`, `pileBackgroundColorFocus`, and `pileBackgroundColorHover` will inherit from `pileBackgroundColor` if not defined.
+  
+  `pileBackgroundOpacityFocus` and `pileBackgroundOpacityActive` will inherit from `pileBackgroundOpacityHover` if not defined.
 
 - `pileContextMenuItems` is an array of objects, which must have a `label` and `callback` property. Optionally, an object can also specify an `id`, which will be assigned to the corresponding button in the context menu, and `keepOpen: true` to not close the context menu after clicking on the corresponding button. The `callback` function is triggered whenever the user clicks on the corresponding button and it receives the pile definition, which contains the pile id, the ids of the items on the pile, and the pile's x and y coordinate.
 

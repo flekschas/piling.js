@@ -1,5 +1,12 @@
 ### Next
 
+- Add the following properties to give more control to the pile background color: (#151)
+  - `pileBackgroundColorActive`
+  - `pileBackgroundColorFocus`
+  - `pileBackgroundColorHover`
+  - `pileBackgroundOpacityActive`
+  - `pileBackgroundOpacityFocus`
+  - `pileBackgroundOpacityHover`
 - Add `cellSize` to define the size of the cell (#136)
 - Add `splitAll()` to scatter all piles (#144)
 - Add `pileBy()` for layout-, location-, and data-driven piling (#129)
