@@ -290,6 +290,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     },
     pileBackgroundOpacity: true,
+    pileBackgroundColorHover: {
+      set: value => {
+        if (isFunction(value))
+          return [createAction.setPileBackgroundColor(value)];
+
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBackgroundColorHover(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBackgroundOpacityHover(opacity));
+        return actions;
+      }
+    },
+    pileBackgroundOpacityHover: true,
+    pileBackgroundColorFocus: {
+      set: value => {
+        if (isFunction(value))
+          return [createAction.setPileBackgroundColor(value)];
+
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBackgroundColorFocus(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBackgroundOpacityFocus(opacity));
+        return actions;
+      }
+    },
+    pileBackgroundOpacityFocus: true,
+    pileBackgroundColorActive: {
+      set: value => {
+        if (isFunction(value))
+          return [createAction.setPileBackgroundColor(value)];
+
+        const [color, opacity] = colorToDecAlpha(value, null);
+        const actions = [createAction.setPileBackgroundColorActive(color)];
+        if (opacity !== null)
+          actions.push(createAction.setPileBackgroundOpacityActive(opacity));
+        return actions;
+      }
+    },
+    pileBackgroundOpacityActive: true,
     pileCellAlignment: true,
     pileContextMenuItems: true,
     pileOpacity: true,
