@@ -781,7 +781,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let maxHeight = 0;
     let minAspectRatio = Infinity;
     let maxAspectRatio = 0;
-
     renderedItems.forEach(item => {
       const width = item.image.originalWidth;
       const height = item.image.originalHeight;
@@ -797,7 +796,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (aspectRatio < minAspectRatio) minAspectRatio = aspectRatio;
     });
 
-    const { itemSizeRange, itemSize } = store.state;
+    const { itemSizeRange, itemSize, piles, previewScaling } = store.state;
 
     const itemWidth = itemSize || layout.cellWidth;
     const itemHeight = itemSize || layout.cellHeight;
@@ -830,14 +829,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .domain([minHeight, maxHeight])
       .range(heightRange);
 
-    renderedItems.forEach(item => {
-      const scaleFactor = getImageScaleFactor(item.image);
-      item.image.scale(scaleFactor);
+    Object.values(piles).forEach(pile => {
+      const scaling = isFunction(previewScaling)
+        ? previewScaling(pile)
+        : previewScaling;
 
-      if (item.preview) {
-        item.preview.scale(scaleFactor);
-        item.preview.drawBackground();
-      }
+      pile.items.forEach(itemId => {
+        const item = renderedItems.get(itemId);
+
+        const scaleFactor = getImageScaleFactor(item.image);
+        item.image.scale(scaleFactor);
+
+        if (item.preview) {
+          const xScale = 1 + (scaleFactor * scaling[0] - 1);
+          const yScale = 1 + (scaleFactor * scaling[1] - 1);
+
+          item.preview.scaleX(xScale);
+          item.preview.scaleY(yScale);
+          item.preview.drawBackground();
+        }
+      });
     });
 
     pileInstances.forEach(pile => {
@@ -1404,8 +1415,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const item = renderedItems.get(itemId);
       const scaleFactor = getImageScaleFactor(item.image);
 
-      const xScale = 1 + (scaleFactor - 1) * scaling[0];
-      const yScale = 1 + (scaleFactor - 1) * scaling[1];
+      const xScale = 1 + (scaleFactor * scaling[0] - 1);
+      const yScale = 1 + (scaleFactor * scaling[1] - 1);
 
       item.preview.scaleX(xScale);
       item.preview.scaleY(yScale);
