@@ -65,8 +65,8 @@ const createDrawingPiles = async (element, darkMode) => {
     pileItemInvert: darkMode,
     pileItemOffset: [0, 0],
     pileBackgroundColor: darkMode
-      ? 'rgba(0, 0, 0, 0.85)'
-      : 'rgba(255, 255, 255, 0.85)',
+      ? 'rgba(0, 0, 0, 0.9)'
+      : 'rgba(255, 255, 255, 0.9)',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
     pileVisibilityItems: pile => pile.items.length === 1,
     backgroundColor: '#ffffff',

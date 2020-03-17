@@ -1,5 +1,12 @@
 ### Next
 
+- Add the following properties to give more control to the pile background color: (#151)
+  - `pileBackgroundColorActive`
+  - `pileBackgroundColorFocus`
+  - `pileBackgroundColorHover`
+  - `pileBackgroundOpacityActive`
+  - `pileBackgroundOpacityFocus`
+  - `pileBackgroundOpacityHover`
 - Add the following properties to define the pile label (#133)
   - `pileLabel`
   - `pileLabelAlign`

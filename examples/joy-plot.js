@@ -133,9 +133,6 @@ const createSvgLinesPiles = async (element, darkMode) => {
     pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileBackgroundColor: darkMode
-      ? 'rgba(0,0,0,0.85)'
-      : 'rgba(255,255,255,0.85)',
     pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1)
   });
 
