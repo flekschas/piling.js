@@ -1386,8 +1386,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const item = renderedItems.get(itemId);
       const scaleFactor = getImageScaleFactor(item.image);
 
-      const xScale = 1 + (scaleFactor - 1) * scaling[0];
-      const yScale = 1 + (scaleFactor - 1) * scaling[1];
+      const xScale = 1 + (scaleFactor * scaling[0] - 1);
+      const yScale = 1 + (scaleFactor * scaling[1] - 1);
 
       item.preview.scaleX(xScale);
       item.preview.scaleY(yScale);
