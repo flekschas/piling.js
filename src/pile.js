@@ -197,10 +197,21 @@ const createPile = (
     }
   };
 
+  const getBackgroundOpacity = () => {
+    let backgroundOpacity =
+      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
+
+    if (backgroundOpacity === null)
+      backgroundOpacity = store.state.pileBackgroundOpacityHover;
+
+    return backgroundOpacity;
+  };
+
   const drawBorder = () => {
     const size = getBorderSize();
+    const backgroundOpacity = getBackgroundOpacity();
 
-    if (!size) {
+    if (!size && !backgroundOpacity) {
       borderGraphics.clear();
       return;
     }
@@ -223,10 +234,12 @@ const createPile = (
     const x = contentBounds.x - borderBounds.x;
     const y = contentBounds.y - borderBounds.y;
     const borderOffset = Math.ceil(size / 2);
-    const pileBackgroundColor = getBackgroundColor();
+    const backgroundColor =
+      state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
+      getBackgroundColor();
 
     // draw black background
-    borderGraphics.beginFill(pileBackgroundColor, state.pileBackgroundOpacity);
+    borderGraphics.beginFill(backgroundColor, backgroundOpacity);
     borderGraphics.drawRect(
       x - borderOffset,
       y - borderOffset,
