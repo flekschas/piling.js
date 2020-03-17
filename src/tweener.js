@@ -33,7 +33,7 @@ const createTweener = ({
   const startAnimation = () => {
     startTime = performance.now();
     startValue = getter();
-    ready = typeof startValue !== 'undefined' && startValue !== null;
+    ready = startValue !== undefined && startValue !== null;
     if (!ready) {
       console.warn(`Invalid start value for animation: ${startValue}`);
     }

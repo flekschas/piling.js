@@ -130,6 +130,8 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     return [x, y];
   };
 
+  let cameraScale = 1;
+
   const piling = createPilingJs(element, {
     darkMode,
     renderer: scatterplotRenderer.renderer,
@@ -139,12 +141,30 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     previewRenderer: previewRenderer.renderer,
     items,
     columns: Object.keys(data).length,
-    cellPadding: 6,
+    cellAlign: 'center',
+    cellPadding: 9,
     cellAspectRatio,
-    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.1, 0.5),
     pileItemOrder,
+    pileScale: () => cameraScale,
     previewItemOffset,
-    previewSpacing: 1
+    previewScaling: pile => {
+      const regionCount = pile.items.reduce((count, itemId) => {
+        if (!count[items[itemId].region]) count[items[itemId].region] = 1;
+        count[items[itemId].region] += 1;
+        return count;
+      }, {});
+      return [
+        1,
+        Math.min(
+          1,
+          height / Math.max(...Object.values(regionCount)) / (previewHeight + 4)
+        )
+      ];
+    }
+  });
+
+  piling.subscribe('zoom', camera => {
+    cameraScale = camera.scaling;
   });
 
   piling.arrangeBy('data', 'year', { once: true });
