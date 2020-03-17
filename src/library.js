@@ -143,6 +143,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   root.addChild(mask);
   stage.mask = mask;
 
+  const createColorOpacityActions = (colorAction, opacityAction) => value => {
+    if (isFunction(value)) return [createAction[colorAction](value)];
+
+    const [color, opacity] = colorToDecAlpha(value, null);
+    const actions = [createAction[colorAction](color)];
+    if (opacity !== null) actions.push(createAction[opacityAction](opacity));
+
+    return actions;
+  };
+
   const properties = {
     arrangementObjective: true,
     arrangementOnPile: true,
@@ -162,13 +172,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     easing: true,
     focusedPiles: true,
     gridColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setGridColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setGridOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions('setGridColor', 'setGridOpacity')
     },
     gridOpacity: true,
     items: {
@@ -181,25 +185,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     itemSize: true,
     itemSizeRange: true,
     lassoFillColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setLassoFillColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setLassoFillOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions('setLassoFillColor', 'setLassoFillOpacity')
     },
     lassoFillOpacity: true,
     lassoShowStartIndicator: true,
     lassoStartIndicatorOpacity: true,
     lassoStrokeColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setLassoStrokeColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setLassoStrokeOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setLassoStrokeColor',
+        'setLassoStrokeOpacity'
+      )
     },
     lassoStrokeOpacity: true,
     lassoStrokeSize: true,
@@ -245,104 +240,60 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileLabelStackAlign: true,
     pileLabelText: true,
     pileBorderColor: {
-      set: value => {
-        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBorderColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBorderOpacity(opacity));
-
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBorderColor',
+        'setPileBorderOpacity'
+      )
     },
     pileBorderOpacity: true,
     pileBorderColorHover: {
-      set: value => {
-        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBorderColorHover(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBorderOpacityHover(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBorderColorHover',
+        'setPileBorderOpacityHover'
+      )
     },
     pileBorderOpacityHover: true,
     pileBorderColorFocus: {
-      set: value => {
-        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBorderColorFocus(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBorderOpacityFocus(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBorderColorFocus',
+        'setPileBorderOpacityFocus'
+      )
     },
     pileBorderOpacityFocus: true,
     pileBorderColorActive: {
-      set: value => {
-        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBorderColorActive(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBorderOpacityActive(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBorderColorActive',
+        'setPileBorderOpacityActive'
+      )
     },
     pileBorderOpacityActive: true,
     pileBorderSize: true,
     pileBackgroundColor: {
-      set: value => {
-        if (isFunction(value)) return [createAction.setPileBorderColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBackgroundColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBackgroundOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBackgroundColor',
+        'setPileBackgroundOpacity'
+      )
     },
     pileBackgroundOpacity: true,
     pileBackgroundColorHover: {
-      set: value => {
-        if (isFunction(value))
-          return [createAction.setPileBackgroundColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBackgroundColorHover(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBackgroundOpacityHover(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBackgroundColorHover',
+        'setPileBackgroundOpacityHover'
+      )
     },
     pileBackgroundOpacityHover: true,
     pileBackgroundColorFocus: {
-      set: value => {
-        if (isFunction(value))
-          return [createAction.setPileBackgroundColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBackgroundColorFocus(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBackgroundOpacityFocus(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBackgroundColorFocus',
+        'setPileBackgroundOpacityFocus'
+      )
     },
     pileBackgroundOpacityFocus: true,
     pileBackgroundColorActive: {
-      set: value => {
-        if (isFunction(value))
-          return [createAction.setPileBackgroundColor(value)];
-
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPileBackgroundColorActive(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPileBackgroundOpacityActive(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPileBackgroundColorActive',
+        'setPileBackgroundOpacityActive'
+      )
     },
     pileBackgroundOpacityActive: true,
     pileCellAlignment: true,
@@ -353,23 +304,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     popupBackgroundOpacity: true,
     previewAggregator: true,
     previewBackgroundColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPreviewBackgroundColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPreviewBackgroundOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPreviewBackgroundColor',
+        'setPreviewBackgroundOpacity'
+      )
     },
     previewBackgroundOpacity: true,
     previewBorderColor: {
-      set: value => {
-        const [color, opacity] = colorToDecAlpha(value, null);
-        const actions = [createAction.setPreviewBorderColor(color)];
-        if (opacity !== null)
-          actions.push(createAction.setPreviewBorderOpacity(opacity));
-        return actions;
-      }
+      set: createColorOpacityActions(
+        'setPreviewBorderColor',
+        'setPreviewBorderOpacity'
+      )
     },
     previewBorderOpacity: true,
     previewItemOffset: true,
