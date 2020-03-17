@@ -1,3 +1,4 @@
+import { unique } from '@flekschas/utils';
 import createPilingJs from '../src/library';
 import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
@@ -45,6 +46,12 @@ const createDrawingPiles = async (element, darkMode) => {
     coverOptions
   );
 
+  const sameRegion = (pileA, pileB) => {
+    const regionsA = unique(pileA.items.map(itemId => items[itemId].region));
+    const regionsB = unique(pileB.items.map(itemId => items[itemId].region));
+    return regionsA.every((region, i) => region === regionsB[i]);
+  };
+
   const piling = createPilingJs(element, {
     darkMode,
     renderer: quickDrawRenderer,
@@ -70,7 +77,29 @@ const createDrawingPiles = async (element, darkMode) => {
     pileLabelStackAlign: 'vertical'
   });
 
-  return [piling];
+  piling.subscribe('itemUpdate', () => {
+    piling.arrangeBy('uv', 'umapEmbedding');
+  });
+
+  const additionalSidebarOptions = [
+    {
+      id: 'positionby',
+      title: 'Custom group by',
+      fields: [
+        {
+          name: 'Group by and region',
+          dtype: 'string',
+          action: () => {
+            piling.pileBy('overlap', 0, {
+              conditions: [sameRegion]
+            });
+          }
+        }
+      ]
+    }
+  ];
+
+  return [piling, additionalSidebarOptions];
 };
 
 export default createDrawingPiles;
