@@ -349,6 +349,21 @@ const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
+// Label
+const [pileLabel, setPileLabel] = setter('pileLabel');
+const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
+const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
+const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
+  'pileLabelStackAlign',
+  'horizontal'
+);
+const [pileLabelFontSize, setPileLabelFontSize] = setter(
+  'pileLabelFontSize',
+  7
+);
+const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
+
 const items = (previousState = {}, action) => {
   switch (action.type) {
     case 'SET_ITEMS': {
@@ -582,6 +597,13 @@ const createStore = () => {
     pileItemOrder,
     pileItemRotation,
     pileItemTint,
+    pileLabel,
+    pileLabelAlign,
+    pileLabelColor,
+    pileLabelFontSize,
+    pileLabelHeight,
+    pileLabelStackAlign,
+    pileLabelText,
     pileOpacity,
     piles,
     pileScale,
@@ -727,6 +749,13 @@ export const createAction = {
   setPileItemOpacity,
   setPileItemRotation,
   setPileItemTint,
+  setPileLabel,
+  setPileLabelAlign,
+  setPileLabelColor,
+  setPileLabelFontSize,
+  setPileLabelHeight,
+  setPileLabelStackAlign,
+  setPileLabelText,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,

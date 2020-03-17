@@ -531,6 +531,7 @@ const createPile = (
         if (isLastOne) {
           isPositioning = false;
           drawBorder();
+          drawLabel();
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -691,6 +692,7 @@ const createPile = (
   ) => {
     const done = () => {
       drawBorder();
+      drawLabel();
       pubSub.publish('updatePileBounds', id);
       onDone();
     };
@@ -1063,6 +1065,117 @@ const createPile = (
     setCover(newCover);
   };
 
+  let labelGraphics;
+  let pileLabels = [];
+  let labelColors = [];
+  let labelTextures = [];
+
+  const drawLabel = (
+    labels = pileLabels,
+    colors = labelColors,
+    textures = labelTextures
+  ) => {
+    if (!labels.length) {
+      if (labelGraphics) {
+        labelGraphics.clear();
+        labelGraphics.removeChildren();
+      }
+      return;
+    }
+
+    pileLabels = labels;
+    labelColors = colors;
+    labelTextures = textures;
+
+    if (isPositioning || isScaling) return;
+
+    if (!labelGraphics) {
+      labelGraphics = new PIXI.Graphics();
+      contentGraphics.addChild(labelGraphics);
+    } else {
+      labelGraphics.clear();
+      labelGraphics.removeChildren();
+    }
+
+    const {
+      pileLabelHeight,
+      pileLabelAlign,
+      pileLabelFontSize,
+      pileLabelStackAlign,
+      pileLabelText
+    } = store.state;
+
+    const { width } = contentGraphics.getBounds();
+
+    const firstItem = normalItemContainer.children.length
+      ? normalItemContainer.getChildAt(0)
+      : coverItemContainer.getChildAt(0);
+
+    const scaleFactor = baseScale * magnification;
+
+    let labelWidth = width / labels.length / scaleFactor;
+    const labelHeight = labelTextures.length
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
+      : pileLabelHeight;
+
+    const y =
+      pileLabelAlign === 'top'
+        ? -firstItem.height / 2 - labelHeight
+        : firstItem.height / 2;
+
+    const toTop = 1 + (y < 0) * -2;
+
+    labels.forEach((label, index) => {
+      let labelX;
+      let labelY = y + toTop;
+      switch (pileLabelStackAlign) {
+        case 'vertical':
+          labelWidth = width / scaleFactor;
+          labelX = -width / 2 / scaleFactor;
+          labelY += (labelHeight + 1) * index * toTop;
+          break;
+
+        case 'horizontal':
+        default:
+          labelX = labelWidth * index - width / 2 / scaleFactor;
+          break;
+      }
+      const color = colors[index];
+      labelGraphics.beginFill(color, 1);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
+      labelGraphics.endFill();
+    });
+
+    if (labelTextures.length) {
+      let textWidth = width / labelTextures.length / scaleFactor;
+      labelTextures.forEach((texture, index) => {
+        let textX;
+        let textY = y + toTop;
+        switch (pileLabelStackAlign) {
+          case 'vertical':
+            textWidth = width / scaleFactor;
+            textX = -width / 2 / scaleFactor + textWidth / 2;
+            textY += (labelHeight + 1) * index * toTop;
+            break;
+
+          case 'horizontal':
+          default:
+            textX = textWidth * index - width / 2 / scaleFactor + textWidth / 2;
+            break;
+        }
+        const labelText = new PIXI.Sprite(texture);
+        labelText.anchor.set(0.5, 0);
+        labelText.x = textX;
+        labelText.y = textY;
+        labelText.width /= 2 * window.devicePixelRatio;
+        labelText.height /= 2 * window.devicePixelRatio;
+        labelGraphics.addChild(labelText);
+      });
+    }
+
+    render();
+  };
+
   let placeholderGfx;
   let isPlaceholderDrawn = false;
 
@@ -1231,6 +1344,7 @@ const createPile = (
     removePlaceholder,
     setBorderSize,
     setItems,
+    drawLabel,
     setScale,
     setOpacity,
     setVisibilityItems,

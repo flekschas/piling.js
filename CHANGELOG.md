@@ -1,5 +1,13 @@
 ### Next
 
+- Add the following properties to define the pile label (#133)
+  - `pileLabel`
+  - `pileLabelAlign`
+  - `pileLabelColor`
+  - `pileLabelFontSize`
+  - `pileLabelHeight`
+  - `pileLabelStackAlign`
+  - `pileLabelText`
 - Add `cellSize` to define the size of the cell (#136)
 - Add `splitAll()` to scatter all piles (#144)
 - Add `pileBy()` for layout-, location-, and data-driven piling (#129)

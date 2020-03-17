@@ -31,7 +31,8 @@ import {
   removeClass,
   sortPos,
   sum,
-  sumVector
+  sumVector,
+  unique
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
@@ -42,6 +43,7 @@ import createStore, { createAction } from './store';
 import {
   BLACK,
   CAMERA_VIEW,
+  DEFAULT_COLOR_MAP,
   EVENT_LISTENER_ACTIVE,
   EVENT_LISTENER_PASSIVE,
   INHERIT,
@@ -51,6 +53,7 @@ import {
   NAVIGATION_MODE_PAN_ZOOM,
   NAVIGATION_MODE_SCROLL,
   POSITION_PILES_DEBOUNCE_TIME,
+  UNKNOWN_LABEL,
   WHITE
 } from './defaults';
 
@@ -228,6 +231,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
+    pileLabel: {
+      set: value => {
+        const objective = expandLabelObjective(value);
+        const actions = [createAction.setPileLabel(objective)];
+        return actions;
+      }
+    },
+    pileLabelAlign: true,
+    pileLabelColor: true,
+    pileLabelFontSize: true,
+    pileLabelHeight: true,
+    pileLabelStackAlign: true,
+    pileLabelText: true,
     pileBorderColor: {
       set: value => {
         if (isFunction(value)) return [createAction.setPileBorderColor(value)];
@@ -2142,8 +2158,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             };
 
             const onDone = () => {
-              done++;
-              if (done === pileIds.length) onAllDone();
+              if (++done === pileIds.length) onAllDone();
             };
 
             let done = 0;
@@ -2163,7 +2178,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
                     }
                   );
                 })
-                .filter(identity)
+                .filter(x => {
+                  if (x === null) {
+                    onDone();
+                  }
+                  return x;
+                })
             );
           })
       )
@@ -2237,7 +2257,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const pileByOverlap = async sqrtPixels => {
+  const pileByOverlap = async (sqrtPixels, { conditions = [] } = {}) => {
+    const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2252,44 +2273,50 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
     };
 
-    spatialIndex.all().forEach(pileBBox => {
-      if (alreadyPiledPiles.has(pileBBox.id)) return;
+    spatialIndex.all().forEach(currentTarget => {
+      if (alreadyPiledPiles.has(currentTarget.id)) return;
 
-      const hits = spatialIndex.search(pileBBox);
+      const hits = spatialIndex.search(currentTarget);
 
       if (hits.length === 1) return;
 
       hits.forEach(hit => {
-        if (hit.id === pileBBox.id) return;
+        if (hit.id === currentTarget.id) return;
 
-        const minX = Math.max(pileBBox.minX, hit.minX);
-        const minY = Math.max(pileBBox.minY, hit.minY);
-        const maxX = Math.min(pileBBox.maxX, hit.maxX);
-        const maxY = Math.min(pileBBox.maxY, hit.maxY);
+        const minX = Math.max(currentTarget.minX, hit.minX);
+        const minY = Math.max(currentTarget.minY, hit.minY);
+        const maxX = Math.min(currentTarget.maxX, hit.maxX);
+        const maxY = Math.min(currentTarget.maxY, hit.maxY);
         const overlap = (maxX - minX) * (maxY - minY);
 
-        if (overlap >= sqrtPixels) {
+        const okay = conditions.every(condition =>
+          condition(piles[currentTarget.id], piles[hit.id])
+        );
+
+        if (overlap >= sqrtPixels && okay) {
           if (alreadyPiledPiles.has(hit.id)) {
-            const [targetId, relTargetOverlap] = alreadyPiledPiles.get(hit.id);
+            const [prevTargetId, preTargetRelOverlap] = alreadyPiledPiles.get(
+              hit.id
+            );
 
             const relOverlap =
               overlap /
-              ((pileBBox.maxX - pileBBox.minX) *
-                (pileBBox.maxY - pileBBox.minY));
+              ((currentTarget.maxX - currentTarget.minX) *
+                (currentTarget.maxY - currentTarget.minY));
 
-            if (relTargetOverlap > relOverlap) {
+            if (preTargetRelOverlap > relOverlap) {
               // Hit overlaps more with the previous target so we do nothing
               return;
             }
 
             // Hit overlaps more with the new target so we move the hit
-            newPiles[targetId].splice(
-              newPiles[targetId].indexOf(pileBBox.id),
+            newPiles[prevTargetId].splice(
+              newPiles[prevTargetId].indexOf(hit.id),
               1
             );
           }
 
-          addPile(pileBBox, hit, overlap);
+          addPile(currentTarget, hit, overlap);
         }
       });
     });
@@ -2297,7 +2324,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByDistance = async pixels => {
+  const pileByDistance = async (pixels, { conditions = [] } = {}) => {
+    const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
 
@@ -2310,14 +2338,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       alreadyPiledPiles.set(hit.id, [target.id, distance]);
     };
 
-    spatialIndex.all().forEach(pileBBox => {
-      if (alreadyPiledPiles.has(pileBBox.id)) return;
+    spatialIndex.all().forEach(currentTarget => {
+      if (alreadyPiledPiles.has(currentTarget.id)) return;
 
       const searchBBox = {
-        minX: pileBBox.minX - pixels,
-        minY: pileBBox.minY - pixels,
-        maxX: pileBBox.maxX + pixels,
-        maxY: pileBBox.maxY + pixels
+        minX: currentTarget.minX - pixels,
+        minY: currentTarget.minY - pixels,
+        maxX: currentTarget.maxX + pixels,
+        maxY: currentTarget.maxY + pixels
       };
 
       const hits = spatialIndex.search(searchBBox);
@@ -2325,11 +2353,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (hits.length === 1) return;
 
       hits.forEach(hit => {
-        if (hit.id === pileBBox.id) return;
+        if (hit.id === currentTarget.id) return;
 
-        const distance = l2RectDist(pileBBox, hit);
+        const distance = l2RectDist(currentTarget, hit);
 
-        if (distance <= pixels) {
+        const okay = conditions.every(condition =>
+          condition(piles[currentTarget.id], piles[hit.id])
+        );
+
+        if (distance <= pixels && okay) {
           if (alreadyPiledPiles.has(hit.id)) {
             const [targetId, targetDistance] = alreadyPiledPiles.get(hit.id);
 
@@ -2339,13 +2371,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             }
 
             // Hit is closer to the new target so we move the hit
-            newPiles[targetId].splice(
-              newPiles[targetId].indexOf(pileBBox.id),
-              1
-            );
+            newPiles[targetId].splice(newPiles[targetId].indexOf(hit.id), 1);
           }
 
-          addPile(pileBBox, hit, distance);
+          addPile(currentTarget, hit, distance);
         }
       });
     });
@@ -2481,11 +2510,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (type) {
       case 'overlap':
-        piledPiles = pileByOverlap(expandedObjective);
+        piledPiles = pileByOverlap(expandedObjective, options);
         break;
 
       case 'distance':
-        piledPiles = pileByDistance(expandedObjective);
+        piledPiles = pileByDistance(expandedObjective, options);
         break;
 
       case 'grid':
@@ -2829,6 +2858,106 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  const uniqueLabels = new Map();
+  const idToLabel = new Map();
+
+  const createUniquePileLabels = () => {
+    const {
+      items,
+      pileLabel,
+      pileLabelColor,
+      pileLabelText,
+      pileLabelFontSize
+    } = store.state;
+
+    // Destroy existing labels to avoid memory leaks
+    uniqueLabels.forEach(label => {
+      label.pixiText.destroy();
+    });
+
+    uniqueLabels.clear();
+    idToLabel.clear();
+
+    const tmp = new Set();
+
+    Object.values(items).forEach(item => {
+      const label = pileLabel.flatMap(objective => objective(item)).join('-');
+
+      idToLabel.set(item.id, label);
+
+      if (!tmp.has(label) && label) {
+        uniqueLabels.set(label, { text: label, index: tmp.size });
+        tmp.add(label);
+      }
+    });
+
+    uniqueLabels.forEach(label => {
+      let color;
+
+      if (isFunction(pileLabelColor)) {
+        color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+      } else if (Array.isArray(pileLabelColor)) {
+        color = colorToDecAlpha(pileLabelColor[label.index])[0];
+      } else {
+        const n = DEFAULT_COLOR_MAP.length;
+        color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
+      }
+
+      label.color = color;
+
+      if (pileLabelText) {
+        let labelText = label.text;
+
+        if (isFunction(pileLabelText)) {
+          labelText = pileLabelText(label.text, uniqueLabels);
+        }
+        if (Array.isArray(pileLabelText)) {
+          labelText = pileLabelText[label.index];
+        }
+
+        const pixiText = new PIXI.Text(labelText, {
+          fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
+          align: 'center'
+        });
+        pixiText.updateText();
+        label.texture = pixiText.texture;
+        label.pixiText = pixiText;
+      }
+    });
+  };
+
+  const setPileLabel = (pileState, pileId, reset = false) => {
+    const pileInstance = pileInstances.get(pileId);
+
+    if (!store.state.pileLabel || !pileInstance) return;
+
+    const { pileLabel, items } = store.state;
+
+    if (!idToLabel.size || reset) createUniquePileLabels();
+
+    const labels = unique(
+      pileState.items.flatMap(itemId =>
+        pileLabel.map(objective => objective(items[itemId]))
+      )
+    );
+
+    const args = labels.reduce(
+      (_args, labelText) => {
+        const label =
+          labelText && labelText.toString
+            ? uniqueLabels.get(labelText.toString()) || UNKNOWN_LABEL
+            : UNKNOWN_LABEL;
+        _args[0].push(label.text);
+        _args[1].push(label.color);
+        _args[2].push(label.texture);
+        return _args;
+      },
+      [[], [], []]
+    );
+
+    pileInstance.drawLabel(...args);
+  };
+
   const itemUpdates = [];
   const itemUpdatesConsequences = [];
 
@@ -2844,11 +2973,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const itemUpdateCall = ++itemUpdateCalls;
       Promise.all(itemUpdates)
         .then(() => {
-          if (itemUpdateCall === itemUpdateCalls)
+          if (itemUpdateCall === itemUpdateCalls) {
             // Apply all consequences and wait for them to finish
             return Promise.all(
               itemUpdatesConsequences.map(consequence => consequence())
             );
+          }
           return undefined; // No further actions
         })
         .then(() => {
@@ -2957,8 +3087,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
 
           updatePileStyle(pile, id);
+          setPileLabel(pile, id);
         });
       }
+    }
+
+    if (
+      pileInstances.size &&
+      (state.pileLabel !== newState.pileLabel ||
+        state.pileLabelColor !== newState.pileLabelColor ||
+        state.pileLabelText !== newState.pileLabelText ||
+        state.pileLabelAlign !== newState.pileLabelAlign ||
+        state.pileLabelFontSize !== newState.pileLabelFontSize ||
+        state.pileLabelHeight !== newState.pileLabelHeight ||
+        state.pileLabelStackAlign !== newState.pileLabelStackAlign)
+    ) {
+      Object.entries(newState.piles).forEach(([id, pile], index) => {
+        setPileLabel(pile, id, !index);
+      });
     }
 
     if (
@@ -3423,6 +3569,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       default:
         return objective;
     }
+  };
+
+  const expandLabelObjective = objective => {
+    const objectives = Array.isArray(objective) ? objective : [objective];
+    return objectives.map(_objective => expandProperty(_objective));
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {

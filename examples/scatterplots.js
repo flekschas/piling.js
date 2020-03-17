@@ -142,7 +142,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     items,
     columns: Object.keys(data).length,
     cellAlign: 'center',
-    cellPadding: 0,
+    cellPadding: 9,
     cellAspectRatio,
     pileItemOrder,
     pileScale: () => cameraScale,
