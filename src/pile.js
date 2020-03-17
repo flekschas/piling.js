@@ -1111,7 +1111,9 @@ const createPile = (
       ? normalItemContainer.getChildAt(0)
       : coverItemContainer.getChildAt(0);
 
-    let labelWidth = width / labels.length / baseScale;
+    const scaleFactor = baseScale * magnification;
+
+    let labelWidth = width / labels.length / scaleFactor;
     const labelHeight = labelTextures.length
       ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
       : pileLabelHeight;
@@ -1121,20 +1123,21 @@ const createPile = (
         ? -firstItem.height / 2 - labelHeight
         : firstItem.height / 2;
 
+    const toTop = 1 + (y < 0) * -2;
+
     labels.forEach((label, index) => {
       let labelX;
-      const toTop = 1 + (y < 0) * -2;
       let labelY = y + toTop;
       switch (pileLabelStackAlign) {
         case 'vertical':
-          labelWidth = width / baseScale;
-          labelX = -width / 2 / baseScale;
+          labelWidth = width / scaleFactor;
+          labelX = -width / 2 / scaleFactor;
           labelY += (labelHeight + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
-          labelX = labelWidth * index - width / 2 / baseScale;
+          labelX = labelWidth * index - width / 2 / scaleFactor;
           break;
       }
       const color = colors[index];
@@ -1144,21 +1147,20 @@ const createPile = (
     });
 
     if (labelTextures.length) {
-      let textWidth = width / labelTextures.length / baseScale;
+      let textWidth = width / labelTextures.length / scaleFactor;
       labelTextures.forEach((texture, index) => {
         let textX;
-        let textY = y;
+        let textY = y + toTop;
         switch (pileLabelStackAlign) {
           case 'vertical':
-            textWidth = width / baseScale;
-            textX = -width / 2 / baseScale + textWidth / 2;
-            if (y > 0) textY += labelHeight * index;
-            else textY -= labelHeight * index;
+            textWidth = width / scaleFactor;
+            textX = -width / 2 / scaleFactor + textWidth / 2;
+            textY += (labelHeight + 1) * index * toTop;
             break;
 
           case 'horizontal':
           default:
-            textX = textWidth * index - width / 2 / baseScale + textWidth / 2;
+            textX = textWidth * index - width / 2 / scaleFactor + textWidth / 2;
             break;
         }
         const labelText = new PIXI.Sprite(texture);
