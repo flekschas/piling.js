@@ -1387,7 +1387,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const updatePreviewStyle = pileState => {
-    const { previewScaling } = store.state;
+    const { previewRenderer, previewScaling } = store.state;
+
+    if (!previewRenderer) return;
 
     const scaling = isFunction(previewScaling)
       ? previewScaling(pileState)
