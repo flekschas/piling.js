@@ -12,15 +12,17 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
   const onDestroy = text => () => {
     sizeUsage[text] = Math.max(0, sizeUsage[text] - 1);
     if (sizeUsage[text] === 0) {
-      sizeTexCache.get(text).destroy();
+      sizeTexCache.get(text).image.destroy();
       delete sizeUsage[text];
     }
   };
 
   const create = (text, { darkMode } = {}) => {
     if (sizeTexCache.has(text)) {
+      ++sizeUsage[text];
       return sizeTexCache.get(text).clone();
     }
+
     const badge = createBadge(text, {
       backgroundFactory: roundedRectangleFactory,
       darkMode,
@@ -28,7 +30,7 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
       onDestroy: onDestroy(text)
     });
 
-    if (!sizeUsage[text]) sizeUsage[text] = 1;
+    sizeUsage[text] = 1;
     sizeTexCache.set(text, badge);
 
     return badge;

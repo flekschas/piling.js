@@ -43,14 +43,12 @@ const createBadge = (
   image.displayObject.height /= window.devicePixelRatio;
 
   let destroyed = false;
-  const superDestroy = image.destroy;
   const withDestroy = () => self =>
     assign(self, {
       destroy() {
         if (destroyed) return;
-        onDestroy();
-        superDestroy();
         destroyed = true;
+        onDestroy();
       }
     });
 
