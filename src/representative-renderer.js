@@ -117,7 +117,7 @@ const renderRepresentative = async (
       )
       .endFill();
 
-    // displayObject.mask = mask;
+    displayObject.mask = mask;
     gfx.addChild(mask);
   });
 
