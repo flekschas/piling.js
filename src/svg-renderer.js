@@ -1,5 +1,3 @@
-import * as PIXI from 'pixi.js';
-
 /**
  * SVG to PIXI texture converter
  * @param {string|object} svg - SVG string or DOM element to be converted
@@ -41,11 +39,7 @@ const svgToImg = (
     image.src = image64;
   });
 
-const renderImage = image => PIXI.Texture.from(image);
-
 const createSvgRenderer = options => sources =>
-  Promise.all(
-    sources.map(src => svgToImg(src, options).then(image => renderImage(image)))
-  );
+  Promise.all(sources.map(src => svgToImg(src, options)));
 
 export default createSvgRenderer;
