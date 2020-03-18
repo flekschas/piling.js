@@ -30,7 +30,7 @@ uniform sampler2D uSamplers[%count%];
 void main(void){
     vec4 color;
     %forloop%
-    gl_FragColor = vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
+    gl_FragColor = vColor * vec4(color.a - color.rgb, color.a);
 }
 `;
 
@@ -64,7 +64,7 @@ const withColorFilters = sprite => self => {
       }
     },
     invert(value) {
-      sprite.pluginName = value ? 'batch' : 'invert';
+      sprite.pluginName = value ? 'invert' : 'batch';
     },
     tint(value) {
       // If brightness and tint are assigned, brightness is preferred

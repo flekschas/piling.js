@@ -1,6 +1,9 @@
 export const ALIGNMENTS_X = ['left', 'center', 'right'];
 export const ALIGNMENTS_Y = ['top', 'center', 'bottom'];
 
+export const BLACK = 0x000000;
+export const WHITE = 0xffffff;
+
 // prettier-ignore
 export const CAMERA_VIEW = new Float32Array([
   1, 0, 0, 0,
@@ -52,5 +55,19 @@ export const DEFAULT_PILE_SIZE_BADGE_ALIGN = ['top', 'right'];
 
 export const DEFAULT_PREVIEW_BACKGROUND_COLOR = INHERIT;
 export const DEFAULT_PREVIEW_BACKGROUND_OPACITY = INHERIT;
+
+export const DEFAULT_COLOR_MAP = [
+  '#E69F00', // orange
+  '#56B4E9', // sky blue
+  '#009E73', // bluish green
+  '#F0E442', // yellow
+  '#0072B2', // blue
+  '#D55E00', // vermillion
+  '#CC79A7' // reddish purple
+];
+
+export const UNKNOWN_LABEL = {
+  color: '#808080'
+};
 
 export const POSITION_PILES_DEBOUNCE_TIME = 100;

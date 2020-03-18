@@ -15,7 +15,7 @@ import createPileItem from './pile-item';
 import createTweener from './tweener';
 import { cloneSprite, colorToDecAlpha } from './utils';
 
-import { INHERIT } from './defaults';
+import { BLACK, INHERIT, WHITE } from './defaults';
 
 export const MAX_MAGNIFICATION = 3;
 export const MODE_NORMAL = Symbol('Normal');
@@ -56,6 +56,7 @@ const createPile = (
   const coverItemContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const tempDepileContainer = new PIXI.Container();
+  const hoverPreviewContainer = new PIXI.Container();
 
   const createPileBBox = createBBox({ id });
 
@@ -113,11 +114,28 @@ const createPile = (
         coverItemContainer.visible = false;
         if (hasPreviewItem(item)) {
           const { previewBorderColor, previewBorderOpacity } = store.state;
-          item.image.drawBackground(previewBorderColor, previewBorderOpacity);
+          getForegroundColor(previewBorderColor);
+          item.image.drawBackground(
+            getForegroundColor(previewBorderColor),
+            previewBorderOpacity,
+            true
+          );
+          hoverPreviewContainer.addChild(item.displayObject);
         }
         render();
       }
     }
+  };
+
+  const getBackgroundColor = () => {
+    if (store.state.pileBackgroundColor !== null)
+      return store.state.pileBackgroundColor;
+    return store.state.darkMode ? BLACK : WHITE;
+  };
+
+  const getForegroundColor = color => {
+    if (color !== null) return color;
+    return store.state.darkMode ? WHITE : BLACK;
   };
 
   const itemOutHandler = ({ item }) => {
@@ -130,9 +148,11 @@ const createPile = (
         const {
           previewBackgroundColor,
           previewBackgroundOpacity,
-          pileBackgroundColor,
           pileBackgroundOpacity
         } = store.state;
+
+        const pileBackgroundColor = getBackgroundColor();
+
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
@@ -142,6 +162,7 @@ const createPile = (
             ? pileBackgroundOpacity
             : previewBackgroundOpacity;
         item.image.drawBackground(backgroundColor, backgroundOpacity);
+        previewItemContainer.addChild(item.displayObject);
       }
       render();
     }
@@ -216,10 +237,21 @@ const createPile = (
     }
   };
 
+  const getBackgroundOpacity = () => {
+    let backgroundOpacity =
+      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
+
+    if (backgroundOpacity === null)
+      backgroundOpacity = store.state.pileBackgroundOpacityHover;
+
+    return backgroundOpacity;
+  };
+
   const drawBorder = () => {
     const size = getBorderSize();
+    const backgroundOpacity = getBackgroundOpacity();
 
-    if (!size) {
+    if (!size && !backgroundOpacity) {
       borderGraphics.clear();
       return;
     }
@@ -242,12 +274,12 @@ const createPile = (
     const x = contentBounds.x - borderBounds.x;
     const y = contentBounds.y - borderBounds.y;
     const borderOffset = Math.ceil(size / 2);
+    const backgroundColor =
+      state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
+      getBackgroundColor();
 
     // draw black background
-    borderGraphics.beginFill(
-      state.pileBackgroundColor,
-      state.pileBackgroundOpacity
-    );
+    borderGraphics.beginFill(backgroundColor, backgroundOpacity);
     borderGraphics.drawRect(
       x - borderOffset,
       y - borderOffset,
@@ -403,6 +435,13 @@ const createPile = (
       x -= rootGraphics.draggingMouseOffset[0];
       y -= rootGraphics.draggingMouseOffset[1];
 
+      const size = getBorderSize();
+
+      if (size % 2 === 1) {
+        x = Math.floor(x) + 0.5;
+        y = Math.floor(y) + 0.5;
+      }
+
       if (isMoving) {
         moveToTweener.updateEndValue([x, y]);
       } else {
@@ -554,6 +593,7 @@ const createPile = (
         if (isLastOne) {
           isPositioning = false;
           drawBorder();
+          drawLabel();
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -578,31 +618,38 @@ const createPile = (
     allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
   };
 
-  const positionItems = (
-    pileItemOffset,
-    pileItemRotation,
-    animator,
-    previewItemOffset,
-    previewSpacing
-  ) => {
-    const pileState = store.state.piles[id];
+  const positionItems = (pileItemOffset, pileItemRotation, animator) => {
+    const {
+      piles,
+      previewItemOffset,
+      previewOffset,
+      previewSpacing
+    } = store.state;
+    const pileState = piles[id];
 
     if (getCover() && previewItemContainer.children.length) {
       getCover().then(coverImage => {
-        const halfSpacing = previewSpacing / 2;
+        const spacing = isFunction(previewSpacing)
+          ? previewSpacing(pileState)
+          : previewSpacing;
+
+        let offset = isFunction(previewOffset)
+          ? previewOffset(pileState)
+          : previewOffset;
+
+        offset = offset !== null ? offset : spacing / 2;
+
+        const halfSpacing = spacing / 2;
         const halfWidth = coverImage.width / 2;
         const halfHeight = coverImage.height / 2;
 
         isPositioning = previewItemContainer.children > 0;
 
-        previewItemContainer.children.forEach((item, index) => {
-          let itemId;
+        previewItemContainer.children.forEach((previewItem, index) => {
+          // eslint-disable-next-line no-underscore-dangle
+          const item = previewItem.__pilingjs__item;
 
-          previewItemIndex.forEach((_item, _itemId) => {
-            if (_item.displayObject === item) itemId = _itemId;
-          });
-
-          const itemState = store.state.items[itemId];
+          const itemState = store.state.items[item.id];
 
           let itemOffset;
 
@@ -613,12 +660,17 @@ const createPile = (
           } else {
             itemOffset = [
               0,
-              -halfHeight - item.height * (index + 0.5) - halfSpacing
+              -halfHeight -
+                item.preview.height * (index + 0.5) -
+                halfSpacing * index -
+                offset
             ];
           }
 
+          item.preview.clearBackground();
+
           animatePositionItems(
-            item,
+            previewItem,
             itemOffset[0],
             itemOffset[1],
             0,
@@ -702,6 +754,7 @@ const createPile = (
   ) => {
     const done = () => {
       drawBorder();
+      drawLabel();
       pubSub.publish('updatePileBounds', id);
       onDone();
     };
@@ -1016,9 +1069,9 @@ const createPile = (
   const setItems = (
     items,
     { asPreview = false } = {},
-    shouldDrawPlaceholer = false
+    shouldDrawPlaceholder = false
   ) => {
-    if (shouldDrawPlaceholer) drawPlaceholder();
+    if (shouldDrawPlaceholder) drawPlaceholder();
 
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
@@ -1074,11 +1127,128 @@ const createPile = (
     setCover(newCover);
   };
 
-  const placeholderGfx = new PIXI.Graphics();
+  let labelGraphics;
+  let pileLabels = [];
+  let labelColors = [];
+  let labelTextures = [];
+
+  const drawLabel = (
+    labels = pileLabels,
+    colors = labelColors,
+    textures = labelTextures
+  ) => {
+    if (!labels.length) {
+      if (labelGraphics) {
+        labelGraphics.clear();
+        labelGraphics.removeChildren();
+      }
+      return;
+    }
+
+    pileLabels = labels;
+    labelColors = colors;
+    labelTextures = textures;
+
+    if (isPositioning || isScaling) return;
+
+    if (!labelGraphics) {
+      labelGraphics = new PIXI.Graphics();
+      contentGraphics.addChild(labelGraphics);
+    } else {
+      labelGraphics.clear();
+      labelGraphics.removeChildren();
+    }
+
+    const {
+      pileLabelHeight,
+      pileLabelAlign,
+      pileLabelFontSize,
+      pileLabelStackAlign,
+      pileLabelText
+    } = store.state;
+
+    const { width } = contentGraphics.getBounds();
+
+    const firstItem = normalItemContainer.children.length
+      ? normalItemContainer.getChildAt(0)
+      : coverItemContainer.getChildAt(0);
+
+    const scaleFactor = baseScale * magnification;
+
+    let labelWidth = width / labels.length / scaleFactor;
+    const labelHeight = labelTextures.length
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
+      : pileLabelHeight;
+
+    const y =
+      pileLabelAlign === 'top'
+        ? -firstItem.height / 2 - labelHeight
+        : firstItem.height / 2;
+
+    const toTop = 1 + (y < 0) * -2;
+
+    labels.forEach((label, index) => {
+      let labelX;
+      let labelY = y + toTop;
+      switch (pileLabelStackAlign) {
+        case 'vertical':
+          labelWidth = width / scaleFactor;
+          labelX = -width / 2 / scaleFactor;
+          labelY += (labelHeight + 1) * index * toTop;
+          break;
+
+        case 'horizontal':
+        default:
+          labelX = labelWidth * index - width / 2 / scaleFactor;
+          break;
+      }
+      const color = colors[index];
+      labelGraphics.beginFill(color, 1);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
+      labelGraphics.endFill();
+    });
+
+    if (labelTextures.length) {
+      let textWidth = width / labelTextures.length / scaleFactor;
+      labelTextures.forEach((texture, index) => {
+        let textX;
+        let textY = y + toTop;
+        switch (pileLabelStackAlign) {
+          case 'vertical':
+            textWidth = width / scaleFactor;
+            textX = -width / 2 / scaleFactor + textWidth / 2;
+            textY += (labelHeight + 1) * index * toTop;
+            break;
+
+          case 'horizontal':
+          default:
+            textX = textWidth * index - width / 2 / scaleFactor + textWidth / 2;
+            break;
+        }
+        const labelText = new PIXI.Sprite(texture);
+        labelText.anchor.set(0.5, 0);
+        labelText.x = textX;
+        labelText.y = textY;
+        labelText.width /= 2 * window.devicePixelRatio;
+        labelText.height /= 2 * window.devicePixelRatio;
+        labelGraphics.addChild(labelText);
+      });
+    }
+
+    render();
+  };
+
+  let placeholderGfx;
   let isPlaceholderDrawn = false;
 
   const drawPlaceholder = () => {
-    const { width, height } = anchorBox;
+    if (!placeholderGfx) {
+      placeholderGfx = new PIXI.Graphics();
+      contentGraphics.addChild(placeholderGfx);
+    }
+    const width = anchorBox.width / baseScale;
+    const height = anchorBox.height / baseScale;
+
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
 
@@ -1110,13 +1280,13 @@ const createPile = (
   const init = () => {
     rootGraphics.addChild(borderGraphics);
     rootGraphics.addChild(contentGraphics);
-    rootGraphics.addChild(placeholderGfx);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
     contentGraphics.addChild(coverItemContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
+    contentGraphics.addChild(hoverPreviewContainer);
 
     rootGraphics.interactive = true;
     rootGraphics.buttonMode = true;
@@ -1237,6 +1407,7 @@ const createPile = (
     removePlaceholder,
     setBorderSize,
     setItems,
+    drawLabel,
     setScale,
     setOpacity,
     setVisibilityItems,

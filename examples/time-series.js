@@ -6,7 +6,7 @@ import {
 } from '../src/renderer';
 import { createRepresentativeAggregator } from '../src/aggregator';
 
-const createTimeSeriesPiles = async element => {
+const createTimeSeriesPiles = async (element, darkMode) => {
   const response = await fetch('data/us-daily-precipitation.json');
 
   // const response = await fetch('data/cube.json');
@@ -20,7 +20,9 @@ const createTimeSeriesPiles = async element => {
   const { width, height } = element.getBoundingClientRect();
 
   const n = data.length;
-  const colorMap = d3.interpolateYlOrBr;
+  const colorMap = darkMode
+    ? d3.interpolateRgbBasis(['#444', 'firebrick', 'orange', 'white'])
+    : d3.interpolateRgbBasis(['lightgray', 'orange', 'black']);
 
   const drawPileConnections = prop => {
     d3.select('#connection').remove();
@@ -79,7 +81,9 @@ const createTimeSeriesPiles = async element => {
             'mds_hsl'
           ],
           setter: values => {
-            piling.arrangeBy('uv', pile => data[pile.items[0]][values]);
+            piling.arrangeBy('uv', pile => data[pile.items[0]][values], {
+              onPile: true
+            });
             lineGroup = drawPileConnections(values);
           }
         }
@@ -102,22 +106,27 @@ const createTimeSeriesPiles = async element => {
     valueGetter: item => item.umap_gray
   });
 
+  const brightnessMod = darkMode ? -1 : 1;
+
   const piling = createPilingJs(element, {
+    darkMode,
     renderer: imageRenderer,
     coverRenderer: representativeRenderer,
     coverAggregator: representativeAggregator,
     items: data,
-    itemSize: 64,
+    cellSize: 128,
+    cellPadding: 32,
     pileCoverScale: 0.9,
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
     pileItemBrightness: (item, i, pile) =>
-      pile.items.length > 1 ? -0.33 - Math.max(0.33, i * 0.001) : 0,
+      pile.items.length > 1
+        ? (0.25 + Math.max(0.25, i * 0.001)) * brightnessMod
+        : 0,
     pileScale: () =>
-      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2,
-    darkMode: true
+      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
   });
 
   piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray, {

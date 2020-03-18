@@ -1,9 +1,30 @@
 ### Next
 
-- Add `pileBy()` for layout-, location-, and data-driven piling
+- Add the following properties to give more control to the pile background color: (#151)
+  - `pileBackgroundColorActive`
+  - `pileBackgroundColorFocus`
+  - `pileBackgroundColorHover`
+  - `pileBackgroundOpacityActive`
+  - `pileBackgroundOpacityFocus`
+  - `pileBackgroundOpacityHover`
+- Add the following properties to define the pile label (#133)
+  - `pileLabel`
+  - `pileLabelAlign`
+  - `pileLabelColor`
+  - `pileLabelFontSize`
+  - `pileLabelHeight`
+  - `pileLabelStackAlign`
+  - `pileLabelText`
+- Add `cellSize` to define the size of the cell (#136)
+- Add `splitAll()` to scatter all piles (#144)
+- Add `pileBy()` for layout-, location-, and data-driven piling (#129)
 - Add `pileItemOrder` to sort the items on a pile by a callback function
-- Add `previewItemOffset` to position the previews as user specified
+- Add `previewItemOffset` to position previews with a per-item callback function (#113)
+- Add `previewOffset` and `previewPadding` and adjust `previewSpacing` to position previews with a per-pile callback function (#148)
+- Add `previewScaling` to adjust the x and y scaling factor of previews with a per-pile callback function (#148)
 - Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
+- Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
+- Add `pileCoverScale` for scaling the cover in comparison to the pile size
 - Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
 - Show spinner during the initial item rendering

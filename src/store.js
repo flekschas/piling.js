@@ -196,15 +196,18 @@ const [columns, setColumns] = setter('columns', 10);
 const [rowHeight, setRowHeight] = setter('rowHeight');
 const [cellAspectRatio, setCellAspectRatio] = setter('cellAspectRatio', 1);
 const [cellPadding, setCellPadding] = setter('cellPadding', 12);
+const [cellSize, setCellSize] = setter('cellSize');
 
 const [pileCoverScale, setPileCoverScale] = setter(
   'pileCoverScale',
   DEFAULT_PILE_COVER_SCALE
 );
+const [pileCoverInvert, setPileCoverInvert] = setter('pileCoverInvert', false);
 const [pileItemBrightness, setPileItemBrightness] = setter(
   'pileItemBrightness',
   DEFAULT_PILE_ITEM_BRIGHTNESS
 );
+const [pileItemInvert, setPileItemInvert] = setter('pileItemInvert', false);
 const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
 const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
@@ -249,7 +252,13 @@ const [navigationMode, setNavigationMode] = setterOptions(
 
 const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
 
+const [previewPadding, setPreviewPadding] = setter('previewPadding', 2);
+
+const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
+
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
+
+const [previewOffset, setPreviewOffset] = setter('previewOffset');
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',
@@ -262,8 +271,7 @@ const [previewBackgroundOpacity, setPreviewBackgroundOpacity] = setter(
 );
 
 const [previewBorderColor, setPreviewBorderColor] = setter(
-  'previewBorderColor',
-  0xffffff
+  'previewBorderColor'
 );
 
 const [previewBorderOpacity, setPreviewBorderOpacity] = setter(
@@ -271,57 +279,67 @@ const [previewBorderOpacity, setPreviewBorderOpacity] = setter(
   0.85
 );
 
+const [pileBackgroundColor, setPileBackgroundColor] = setter(
+  'pileBackgroundColor'
+);
+const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
+  'pileBackgroundOpacity',
+  0
+);
+const [pileBackgroundColorHover, setPileBackgroundColorHover] = setter(
+  'pileBackgroundColorHover'
+);
+const [pileBackgroundOpacityHover, setPileBackgroundOpacityHover] = setter(
+  'pileBackgroundOpacityHover',
+  0.85
+);
+const [pileBackgroundColorFocus, setPileBackgroundColorFocus] = setter(
+  'pileBackgroundColorFocus'
+);
+const [pileBackgroundOpacityFocus, setPileBackgroundOpacityFocus] = setter(
+  'pileBackgroundOpacityFocus'
+);
+const [pileBackgroundColorActive, setPileBackgroundColorActive] = setter(
+  'pileBackgroundColorActive'
+);
+const [pileBackgroundOpacityActive, setPileBackgroundOpacityActive] = setter(
+  'pileBackgroundOpacityActive'
+);
+
 const [pileBorderColor, setPileBorderColor] = setter(
   'pileBorderColor',
   0x808080
 );
-
 const [pileBorderOpacity, setPileBorderOpacity] = setter(
   'pileBorderOpacity',
   1.0
 );
-
 const [pileBorderColorHover, setPileBorderColorHover] = setter(
   'pileBorderColorHover',
   0x808080
 );
-
 const [pileBorderOpacityHover, setPileBorderOpacityHover] = setter(
   'pileBorderOpacityHover',
   1.0
 );
-
 const [pileBorderColorFocus, setPileBorderColorFocus] = setter(
   'pileBorderColorFocus',
   0xeee462
 );
-
 const [pileBorderOpacityFocus, setPileBorderOpacityFocus] = setter(
   'pileBorderOpacityFocus',
   1.0
 );
-
 const [pileBorderColorActive, setPileBorderColorActive] = setter(
   'pileBorderColorActive',
   0xffa5da
 );
-
 const [pileBorderOpacityActive, setPileBorderOpacityActive] = setter(
   'pileBorderOpacityActive',
   1.0
 );
 
 const [pileBorderSize, setPileBorderSize] = setter('pileBorderSize', 0);
-
-const [pileBackgroundColor, setPileBackgroundColor] = setter(
-  'pileBackgroundColor',
-  0x000000
-);
-
-const [pileBackgroundOpacity, setPileBackgroundOpacity] = setter(
-  'pileBackgroundOpacity',
-  0.85
-);
 
 // 'topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center'
 const [pileCellAlignment, setPileCellAlignment] = setter(
@@ -349,6 +367,21 @@ const [pileVisibilityItems, setPileVisibilityItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
+
+// Label
+const [pileLabel, setPileLabel] = setter('pileLabel');
+const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
+const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
+const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
+  'pileLabelStackAlign',
+  'horizontal'
+);
+const [pileLabelFontSize, setPileLabelFontSize] = setter(
+  'pileLabelFontSize',
+  7
+);
+const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -535,6 +568,7 @@ const createStore = () => {
     backgroundColor,
     cellAspectRatio,
     cellPadding,
+    cellSize,
     columns,
     coverAggregator,
     depiledPile,
@@ -561,7 +595,13 @@ const createStore = () => {
     navigationMode,
     orderer,
     pileBackgroundColor,
+    pileBackgroundColorActive,
+    pileBackgroundColorFocus,
+    pileBackgroundColorHover,
     pileBackgroundOpacity,
+    pileBackgroundOpacityActive,
+    pileBackgroundOpacityFocus,
+    pileBackgroundOpacityHover,
     pileBorderColor,
     pileBorderColorActive,
     pileBorderColorFocus,
@@ -573,27 +613,39 @@ const createStore = () => {
     pileBorderSize,
     pileCellAlignment,
     pileContextMenuItems,
+    pileCoverInvert,
     pileCoverScale,
     pileItemOffset,
     pileItemBrightness,
+    pileItemInvert,
     pileItemOpacity,
     pileItemOrder,
     pileItemRotation,
     pileItemTint,
-    pileVisibilityItems,
+    pileLabel,
+    pileLabelAlign,
+    pileLabelColor,
+    pileLabelFontSize,
+    pileLabelHeight,
+    pileLabelStackAlign,
+    pileLabelText,
     pileOpacity,
     piles,
     pileScale,
     pileSizeBadge,
     pileSizeBadgeAlign,
+    pileVisibilityItems,
     previewAggregator,
     previewBackgroundColor,
     previewBackgroundOpacity,
     previewBorderColor,
     previewBorderOpacity,
     previewItemOffset,
+    previewPadding,
     previewRenderer,
+    previewScaling,
     previewSpacing,
+    previewOffset,
     rowHeight,
     showGrid,
     showSpatialIndex,
@@ -676,6 +728,7 @@ export const createAction = {
   setBackgroundColor,
   setCellAspectRatio,
   setCellPadding,
+  setCellSize,
   setColumns,
   setCoverAggregator,
   setDepiledPile,
@@ -702,7 +755,13 @@ export const createAction = {
   setNavigationMode,
   setOrderer,
   setPileBackgroundColor,
+  setPileBackgroundColorActive,
+  setPileBackgroundColorFocus,
+  setPileBackgroundColorHover,
   setPileBackgroundOpacity,
+  setPileBackgroundOpacityActive,
+  setPileBackgroundOpacityFocus,
+  setPileBackgroundOpacityHover,
   setPileBorderColor,
   setPileBorderColorActive,
   setPileBorderColorFocus,
@@ -714,13 +773,22 @@ export const createAction = {
   setPileBorderSize,
   setPileCellAlignment,
   setPileContextMenuItems,
+  setPileCoverInvert,
   setPileCoverScale,
   setPileItemOffset,
   setPileItemOrder,
   setPileItemBrightness,
+  setPileItemInvert,
   setPileItemOpacity,
   setPileItemRotation,
   setPileItemTint,
+  setPileLabel,
+  setPileLabelAlign,
+  setPileLabelColor,
+  setPileLabelFontSize,
+  setPileLabelHeight,
+  setPileLabelStackAlign,
+  setPileLabelText,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
@@ -732,8 +800,11 @@ export const createAction = {
   setPreviewBorderColor,
   setPreviewBorderOpacity,
   setPreviewItemOffset,
+  setPreviewPadding,
   setPreviewRenderer,
+  setPreviewScaling,
   setPreviewSpacing,
+  setPreviewOffset,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,

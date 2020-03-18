@@ -4,7 +4,7 @@ import clip from 'liang-barsky';
 /**
  * Factory function to create a grid
  * @param {object} canvas - The canvas instance
- * @param {number} itemSize - The maximum length of either side of an item
+ * @param {number} cellSize - The size of the cell
  * @param {number} columns - The number of column
  * @param {number} rowHeight - The height of row
  * @param {number} cellAspectRatio - The ratio of cell height and width
@@ -13,7 +13,7 @@ import clip from 'liang-barsky';
 const createGrid = (
   { width, height, orderer },
   {
-    itemSize = null,
+    cellSize = null,
     columns = 10,
     rowHeight = null,
     cellAspectRatio = 1,
@@ -23,7 +23,7 @@ const createGrid = (
 ) => {
   let numColumns = columns;
 
-  if (!+itemSize && !+columns) {
+  if (!+cellSize && !+columns) {
     numColumns = 10;
   }
 
@@ -31,10 +31,10 @@ const createGrid = (
   let cellWidth = columnWidth - cellPadding * 2;
   let cellHeight = null;
 
-  if (+itemSize) {
-    columnWidth = itemSize + cellPadding * 2;
+  if (+cellSize) {
+    columnWidth = cellSize + cellPadding * 2;
     numColumns = Math.floor(width / columnWidth);
-    cellWidth = itemSize;
+    cellWidth = cellSize;
   }
 
   if (!+rowHeight) {
@@ -381,7 +381,6 @@ const createGrid = (
     set numRows(newNumRows) {
       if (!Number.isNaN(+newNumRows)) numRows = newNumRows;
     },
-    itemSize,
     numColumns,
     columnWidth,
     rowHeight,

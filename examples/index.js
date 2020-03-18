@@ -106,6 +106,8 @@ const pilingEls = {
 const createPiles = async example => {
   let additionalOptions;
 
+  const darkMode = window.mode === 'dark-mode';
+
   switch (example) {
     case 'photos':
       if (piling) piling.destroy();
@@ -113,7 +115,7 @@ const createPiles = async example => {
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createPhotoPiles(photosEl);
+      [piling, additionalOptions] = await createPhotoPiles(photosEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -124,7 +126,10 @@ const createPiles = async example => {
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createMatrixPiles(matricesEl);
+      [piling, additionalOptions] = await createMatrixPiles(
+        matricesEl,
+        darkMode
+      );
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -135,7 +140,7 @@ const createPiles = async example => {
       svgEl.style.display = 'block';
       svgCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createSvgLinesPiles(svgEl);
+      [piling, additionalOptions] = await createSvgLinesPiles(svgEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -146,7 +151,10 @@ const createPiles = async example => {
       drawingsEl.style.display = 'block';
       drawingsCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createDrawingPiles(drawingsEl);
+      [piling, additionalOptions] = await createDrawingPiles(
+        drawingsEl,
+        darkMode
+      );
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -157,7 +165,7 @@ const createPiles = async example => {
       joyplotEl.style.display = 'block';
       joyplotCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createJoyPlotPiles(joyplotEl);
+      piling = await createJoyPlotPiles(joyplotEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -168,7 +176,7 @@ const createPiles = async example => {
       vitessceEl.style.display = 'block';
       vitessceCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createVitessce(vitessceEl);
+      [piling, additionalOptions] = await createVitessce(vitessceEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -179,7 +187,7 @@ const createPiles = async example => {
       scatterplotsEl.style.display = 'block';
       scatterplotsCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createScatterplotPiles(scatterplotsEl);
+      piling = await createScatterplotPiles(scatterplotsEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -190,7 +198,10 @@ const createPiles = async example => {
       timeseriesEl.style.display = 'block';
       timeseriesCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createTimeSeriesPiles(timeseriesEl);
+      [piling, additionalOptions] = await createTimeSeriesPiles(
+        timeseriesEl,
+        darkMode
+      );
       history = [];
       piling.subscribe('update', updateHandler);
       break;
@@ -363,6 +374,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       fields: [
         {
           name: 'itemSize',
+          dtype: 'int',
+          min: 16,
+          max: 320,
+          numSteps: 16,
+          nullifiable: true
+        },
+        {
+          name: 'cellSize',
           dtype: 'int',
           min: 16,
           max: 320,

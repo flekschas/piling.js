@@ -27,7 +27,7 @@ const ZARR_CHANNELS = {
 //   nuclei: [0, 3790]
 // };
 
-const createVitessce = async element => {
+const createVitessce = async (element, darkMode) => {
   const response = await fetch(METADATA_URL);
   const metadata = await response.json();
 
@@ -115,6 +115,7 @@ const createVitessce = async element => {
   };
 
   const vitessceRenderer = createVitessceRenderer(getData, {
+    darkMode,
     colors: Object.values(colors),
     domains: null // Auto-scale channels
   });
@@ -141,7 +142,7 @@ const createVitessce = async element => {
 
   const representativeRenderer = createRepresentativeRenderer(
     vitessceRenderer.renderer,
-    { backgroundColor: 0xffffff }
+    { backgroundColor: darkMode ? 0xffffff : 0x000000 }
   );
 
   const representativeAggregator = createRepresentativeAggregator(4, {
@@ -149,14 +150,17 @@ const createVitessce = async element => {
   });
 
   const piling = createPilingJs(element, {
-    darkMode: true,
+    darkMode,
     dimensionalityReducer: umap,
     renderer: vitessceRenderer.renderer,
     coverAggregator: representativeAggregator,
     coverRenderer: representativeRenderer,
     items,
     itemSize,
+    cellSize: 64,
     cellPadding: 8,
+    pileBorderSize: 1,
+    pileBorderColor: darkMode ? 0x333333 : 0xcccccc,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
     pileVisibilityItems: pile => pile.items.length === 1,
