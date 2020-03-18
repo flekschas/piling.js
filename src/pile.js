@@ -393,6 +393,13 @@ const createPile = (
       x -= rootGraphics.draggingMouseOffset[0];
       y -= rootGraphics.draggingMouseOffset[1];
 
+      const size = getBorderSize();
+
+      if (size % 2 === 1) {
+        x = Math.floor(x) + 0.5;
+        y = Math.floor(y) + 0.5;
+      }
+
       if (isMoving) {
         moveToTweener.updateEndValue([x, y]);
       } else {
