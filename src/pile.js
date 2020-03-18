@@ -84,8 +84,8 @@ const createPile = (
   let hoverItemEndSubscriber;
 
   const destroy = () => {
-    rootGraphics.destroy();
     if (previousSizeBadge) previousSizeBadge.destroy();
+    rootGraphics.destroy();
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -193,6 +193,7 @@ const createPile = (
     rootGraphics.addChild(sizeBadge.displayObject);
 
     previousSizeBadge = sizeBadge;
+    previousSize = size;
 
     render();
   };
