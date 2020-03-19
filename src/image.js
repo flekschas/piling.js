@@ -6,22 +6,25 @@ import withDestroy from './with-destroy';
 import withScale from './with-scale';
 import withSize from './with-size';
 
-const createImage = (texture, { anchor = [0.5, 0.5] } = {}) => {
+import { toDisplayObject } from './utils';
+
+const createImage = (source, { anchor = [0.5, 0.5] } = {}) => {
+  const displayObject = toDisplayObject(source);
   let sprite;
 
-  if (texture instanceof PIXI.Texture) {
-    sprite = new PIXI.Sprite(texture);
+  if (displayObject instanceof PIXI.Texture) {
+    sprite = new PIXI.Sprite(displayObject);
     sprite.anchor.set(...anchor);
   } else {
-    sprite = texture;
+    sprite = displayObject;
   }
 
   return pipe(
     withStaticProperty('displayObject', sprite),
     withStaticProperty('sprite', sprite),
     withColorFilters(sprite),
-    withScale(sprite, texture.width, texture.height),
-    withSize(sprite, texture.width, texture.height),
+    withScale(sprite, displayObject.width, displayObject.height),
+    withSize(sprite, displayObject.width, displayObject.height),
     withDestroy(sprite),
     withConstructor(createImage)
   )({});

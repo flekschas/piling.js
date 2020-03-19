@@ -1,5 +1,3 @@
-import * as PIXI from 'pixi.js';
-
 /**
  * Promised-based image loading
  * @param   {string}  src  Remote image source, i.e., a URL
@@ -18,13 +16,11 @@ export const loadImage = (src, isCrossOrigin = false) =>
     image.src = src;
   });
 
-const renderImage = image => PIXI.Texture.from(image);
-
 const createImageRenderer = () => sources =>
   Promise.all(
     sources.map(src => {
       const isCrossOrigin = true;
-      return loadImage(src, isCrossOrigin).then(image => renderImage(image));
+      return loadImage(src, isCrossOrigin);
     })
   );
 
