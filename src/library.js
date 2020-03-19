@@ -870,10 +870,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
       pileInstances.forEach(pile => {
-        const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(
-          pile.bBox.cX,
-          pile.bBox.cY
-        );
+        const pos = oldLayout.getPilePosByCellAlignment(pile);
+        const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(pos[0], pos[1]);
 
         pile.updateOffset();
         updatePileBounds(pile.id);

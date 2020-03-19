@@ -136,11 +136,7 @@ const createGrid = (
    */
   const uvToXy = (u, v) => [u * width, v * height];
 
-  const align = piles => {
-    const cells = [];
-    const conflicts = [];
-    const pilePositions = new Map();
-
+  const getPilePosByCellAlignment = pile => {
     let refX = 'minX';
     let refY = 'minY';
 
@@ -168,12 +164,21 @@ const createGrid = (
         break;
     }
 
+    return [pile.anchorBox[refX], pile.anchorBox[refY]];
+  };
+
+  const align = piles => {
+    const cells = [];
+    const conflicts = [];
+    const pilePositions = new Map();
+
     piles.forEach(pile => {
+      const [x, y] = getPilePosByCellAlignment(pile);
       pilePositions.set(pile.id, {
         id: pile.id,
         ...pile.anchorBox,
-        x: pile.anchorBox[refX],
-        y: pile.anchorBox[refY],
+        x,
+        y,
         offset: pile.offset
       });
     });
@@ -392,6 +397,7 @@ const createGrid = (
     height,
     // Methods
     align,
+    getPilePosByCellAlignment,
     ijToXy,
     ijToIdx,
     idxToIj,
