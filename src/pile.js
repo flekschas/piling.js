@@ -29,6 +29,32 @@ modeToString.set(MODE_HOVER, 'Hover');
 modeToString.set(MODE_FOCUS, 'Focus');
 modeToString.set(MODE_ACTIVE, 'Active');
 
+const alignToXMod = align => {
+  switch (align) {
+    case 'left':
+      return -1;
+
+    case 'right':
+      return 1;
+
+    default:
+      return 0;
+  }
+};
+
+const alignToYMod = align => {
+  switch (align) {
+    case 'top':
+      return -1;
+
+    case 'bottom':
+      return 1;
+
+    default:
+      return 0;
+  }
+};
+
 /**
  * Factory function to create a pile
  * @param {object}   options - The options
@@ -171,7 +197,13 @@ const createPile = (
   let previousSize;
   let previousSizeBadge;
   const drawSizeBadge = () => {
-    // const { pileSizeBadgeAlign } = store.state;
+    const { piles, pileSizeBadgeAlign } = store.state;
+    const [yAlign, xAlign] = isFunction(pileSizeBadgeAlign)
+      ? pileSizeBadgeAlign(piles[id])
+      : pileSizeBadgeAlign;
+    const xMod = alignToXMod(xAlign);
+    const yMod = alignToYMod(yAlign);
+
     const size = allItems.length;
     const newBadge = size !== previousSize;
 
@@ -196,8 +228,8 @@ const createPile = (
       // The bounds are off during positioning
       const borderBounds = contentGraphics.getBounds();
 
-      sizeBadge.displayObject.x = borderBounds.width / 2;
-      sizeBadge.displayObject.y = -borderBounds.height / 2;
+      sizeBadge.displayObject.x = (borderBounds.width / 2) * xMod;
+      sizeBadge.displayObject.y = (borderBounds.height / 2) * yMod;
     }
 
     if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);

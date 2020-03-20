@@ -306,7 +306,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileSizeBadge: true,
     pileSizeBadgeAlign: {
       set: alignment => [
-        createAction.setPreviewBackgroundColor(toAlignment(alignment))
+        createAction.setPileSizeBadgeAlign(
+          isFunction(alignment) ? alignment : toAlignment(alignment)
+        )
       ]
     },
     pileVisibilityItems: true,
