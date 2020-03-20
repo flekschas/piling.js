@@ -1,35 +1,61 @@
-# Documentation
+<h1 id="home" align="center">
+  The Piling.js Docs
+</h1>
 
-- [Get started](#get-started)
-  - [Examples](#examples)
-    - [Image](#image)
-    - [Matrix](#matrix)
-  - [Data](#data)
-- [Library](#library)
-  - [Constructor](#constructor)
-  - [Methods](#methods)
-  - [Events](#events)
-  - [State](#state)
-- [Renderers](#renderers)
-  - [Predefined renderers](#predefined-renderers)
-    - [Image renderer](#image-renderer)
-    - [Matrix renderer](#matrix-renderer)
-  - [Define your own renderer](#define-your-own-renderer)
-  - [Add renderers to piling.js library](#add-renderers-to-pilingjs-library)
-- [Aggregators](#aggregators)
-  - [Predefined aggregators](#predefined-aggregators)
-    - [Matrix cover aggregator](#matrix-cover-aggregator)
-    - [Matrix preview aggregator](#matrix-preview-aggregator)
-  - [Define your own aggregator](#define-your-own-aggregator)
-  - [Add aggregators to piling.js library](#add-aggregators-to-pilingjs-library)
-- [Dimensionality Reducers](#dimensionality-reducers)
-  - [Predefined dimensionality reducers](#predefined-dimensionality-reducers)
-    - [UMAP dimensionality reducer](#umap-dimensionality-reducer)
-  - [Define your own dimensionality reducer](#define-your-own-dimensionality-reducer)
-  - [Add dimensionality reducers to piling.js library](#add-dimensionality-reducers-to-pilingjs-library)
-- [Interactions](#interactions)
+<div align="center">
+  
+  [![NPM Version](https://img.shields.io/npm/v/piling.js.svg?style=flat-square&color=7f99ff)](https://npmjs.org/package/piling.js)
+  [![Build Status](https://img.shields.io/travis/flekschas/piling.js?color=a17fff&style=flat-square)](https://travis-ci.org/flekschas/piling.js/)
+  [![File Size](http://img.badgesize.io/https://unpkg.com/piling.js/dist/piling.min.js?compression=gzip&style=flat-square&color=e17fff)](https://unpkg.com/piling.min.js)
+  [![Code Style Prettier](https://img.shields.io/badge/code%20style-prettier-ff7fe1.svg?style=flat-square)](https://github.com/prettier/prettier#readme)
+  [![Demo](https://img.shields.io/badge/demo-👍-ff7fa5.svg?style=flat-square)](https://piling.js.org)
+  
+</div>
 
-# Get started
+<div id="teaser-matrices" align="center">
+  
+  ![Preview](https://user-images.githubusercontent.com/932103/65613151-8107e980-df83-11e9-86bf-72be591fe284.gif)
+  
+</div>
+
+# Getting Started
+
+## Install
+
+```bash
+npm install piling.js
+```
+
+## Quick Start
+
+The bare minimum you need to define to get started with piling.js are the following two thing:
+
+1. A list of objects with a `src` property
+2. A renderer that understands how to render `src` into an image
+
+```javascript
+// import the piling.js library
+import createPilingJs from 'piling.js';
+// import the predefined image renderer
+import { createImageRenderer } from 'piling.js';
+
+// define your dataset
+const data = [{ src: 'http://example.com/my-fancy-photo.png' }, ...];
+
+// instantiate and configure the piling.js library
+// 'demo' is the dom element which piling.js will be rendered in
+const piling = createPilingJs(
+  document.getElementById('demo'),    // dom element in which piling.js will be rendered
+  {
+    renderer: createImageRenderer(),  // use the image renderer for rendering
+    items: data,                      // add the images
+  }
+);
+```
+
+Et voilà 🎉
+
+![teaser-natural-images](https://user-images.githubusercontent.com/932103/65775958-24d1d080-e10f-11e9-8d12-5aaf6f760228.gif)
 
 ## Examples
 
@@ -151,12 +177,220 @@ An array of objects with one required property `src` and other optional user-def
 
 **Arguments:**
 
-- `property`: Either a string defining the property to be set or an object defining key-value pairs to set multiple properties at once.
+- `property`: Either a string defining the [property](#properties) to be set or an object defining key-value pairs to set multiple [properties](#properties) at once.
 - `value`: If `property` is a string, `value` is the corresponding value. Otherwise, `value` is ignored.
 
-The list of all understood properties is given below.
+#### `piling.arrangeBy(type, objective, options)`
 
-**Properties:**
+Position piles with user-specified arrangement method.
+
+`type`, `objective`, and `options` can be one of the following combinations:
+
+| Type      | Objective                                                          | Options  |
+| --------- | ------------------------------------------------------------------ | -------- |
+| `null`    | `undefined` _(manual positioning)_                                 | `object` |
+| `'index'` | a `string`, `object`, or `function`                                | `object` |
+| `'ij'`    | a `string`, `object`, or `function`                                | `object` |
+| `'xy'`    | a `string`, `object`, or `function`                                | `object` |
+| `'uv'`    | a `string`, `object`, or `function`                                | `object` |
+| `'data'`  | a `string`, `object`, `function`, or `array` of the previous types | `object` |
+
+The following options are available for all types:
+
+- `options.onPile` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
+
+**Notes and examples:**
+
+- The signature of the callback function for types `index`, `ij`, `xy` and `uv` should be as follows:
+
+  ```javascript
+  function (pileState, pileId) {
+    // Based on the `type` return the index, or the ij, xy, or uv coordinate
+    return pilePosition;
+  }
+  ```
+
+  Alternatively, one can specify a data property holding the pile position as follows:
+
+  ```javascript
+  piling.arrangeBy('index', 'myIndex');
+  piling.arrangeBy('index', { property: 'myIndex', aggregator: 'median' });
+  ```
+
+  The `property` must correspond to a property of the item. The `aggregator` can be `min`, `max`, `mean`, `median`, `sum`, or a custom function with the following signature:
+
+  ```javascript
+  function (data) {
+    // Do something with `data`
+    // Based on the `type` the value must be a scalar or a tuple
+    return aSingleValue;
+  }
+  ```
+
+- When `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
+
+  - The `objective` object can contain the following properties:
+
+    - `property` [type: `string` or `function`]: A function that retrieves that returns a numerical value for an pile's item.
+
+      The signature of the callback function looks as follows and must return a numerical value:
+
+      ```javascript
+      function (itemState, itemId, itemIndex) {
+        // Do something
+        return aNumericalValue;
+      }
+      ```
+
+      For convenience, we can automatically access item properties by their name. E.g., the following objective are identical:
+
+      ```javascript
+      piling.arrangeBy('data', 'a');
+      piling.arrangeBy('data', itemState => itemState.a);
+      ```
+
+    - `propertyIsVector` [type: `boolean` default: `false`]: If `true` we assume that `property()` is returning a numerical vector instead of a scalar.
+
+    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the property values of the piles' items.
+
+      For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
+
+    - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
+
+    - `inverse` [type `boolean` default: `false`]: If `true`, the scale will be inverted
+
+  - For convenience the following examples are all equivalent:
+
+    ```javascript
+    // Define the property via a simple string
+    piling.arrangeBy('data', 'a');
+    // Define the property callback function
+    piling.arrangeBy('data', itemState => itemState.a); // callback function
+    // Define the property callback function as part of the `objective` object
+    piling.arrangeBy('data', { property: itemState => itemState.a });
+    // Explicitly define
+    piling.arrangeBy('data', ['a']);
+    ```
+
+  - 1D orderings, 2D scatter plots, or multi-dimensional cluster plots are defined by the number passed to `arrangeBy('data', objectives)`:
+
+    ```javascript
+      // 1D / linear ordering
+      piling.arrangeBy('data', ['a']);
+      // 2D scatter plot
+      piling.arrangeBy('data', ['a', 'b']);
+      // Multi dimensional cluster plot
+      piling.arrangeBy('data', ['a', 'b', 'c', ...]);
+    ```
+
+- When `type === 'data'`, it is possible to further customize the behavior with the following `options`:
+
+  - `forceDimReduction` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is always applied.
+
+    ```javascript
+    // This can be useful when the property itself is multidimensional. E.g.:
+    const items = [
+      {
+        src: [0, 1, 1, 13.37, 9, ...]
+      },
+      ...
+    ]
+    piling.set('items', items);
+    piling.arrangeBy('data', 'src', { forceDimReduction: true });
+    ```
+
+  - `runDimReductionOnPiles` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is run on the current grouping status and updated everytime a pile changes.
+
+    By default this is deactivated because dimensionality reduction transformations are often not deterministic and feeding even the same data to the algorithm can lead to vastly different layout. Therefore, by default we run the dimensionality reduction on the individual items and given that learned model position the piles. This allows us to keep the layout stable even as the piles change. If you want more fine-grain control over transformation updates we suggest running a [`dimensionalityReducer`]() separately and using it's transform function in combination with `piling.arrangeBy('uv')` and [`piling.halt()`]()/[`piling.resume()`]().
+
+    ```javascript
+    // Turning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
+    piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
+    ```
+
+#### `piling.pileBy(type, objective, options)`
+
+Programmatically group items and piles based on the layout, spatial proximity, or data together.
+
+`type`, `objective`, and `options` can be one of the following combinations:
+
+| Type       | Objective                                                                               | Options  |
+| ---------- | --------------------------------------------------------------------------------------- | -------- |
+| `row`      | `left`, `center` (default), or `right`                                                  |          |
+| `column`   | `top`, `center` (default), or `bottom`                                                  |          |
+| `grid`     | `null` (default) or `{ columns, cellAspectRatio}`                                       |          |
+| `overlap`  | Overlap threshold in square pixels. Default is `0`.                                     |          |
+| `distance` | Distance threshold in pixels. Default is `0`.                                           |          |
+| `category` | A `string`, `object`, `function`, or `array` of the previous types. See examples below. |          |
+| `cluster`  | A `string`, `object`, `function`, or `array` of the previous types. See examples below. | `object` |
+
+**Notes and examples:**
+
+```javascript
+piling.pileBy('row', 'left'); // Pile by row and align pile to the left most item/pile.
+
+piling.pileBy('column', 'top'); // Pile by column and align pile to the top most item/pile.
+
+piling.pileBy('grid'); // Pile by grid using the current layout
+piling.pileBy('grid', { columns: 10, cellAspectRatio: 1.5 }); // Pile by grid using a grid of 10 columns with a cell aspect ratio of 1.5 (= width/height)
+
+piling.pileBy('overlap'); // Pile all overlapping items/piles
+piling.pileBy('overlap', 64); // Pile all items/piles that overlap by 64 or more square pixels
+
+piling.pileBy('distance'); // Pile all items/piles that touch each other
+piling.pileBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
+
+piling.pileBy('category', 'country'); // Pile all items/piles that have the same country value
+piling.pileBy('category', item => item.country); // Same as before
+piling.pileBy('category', {
+  property: 'country',
+  aggregator: countries => countries[0]
+}); // Same as before but with a custom aggregator that simply picks the first country to define the category
+
+piling.pileBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
+piling.pileBy('cluster', item => item.x); // Same as above
+piling.pileBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
+piling.pileBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
+piling.pileBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
+```
+
+#### `piling.destroy()`
+
+Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
+
+#### `piling.halt({ text, spinner = true })`
+
+This will display a popup across the entire piling.js element to temporarily block all interactions. This is useful if you are doing some asynchronous job outside piling and want to prevent user interactions.
+
+#### `piling.render()`
+
+Render the root PIXI container.
+
+#### `piling.resume()`
+
+This will the halting popup.
+
+#### `piling.splitAll()`
+
+Scatter all the piles at the same time.
+
+#### `piling.subscribe(eventName, eventHandler)`
+
+Subscribe to an event.
+`eventName` needs to be one of these [events](#events).
+`eventHandler` is a callback function which looks like this:
+
+```javascript
+const eventHandler = eventData => {
+  // handle event here
+};
+```
+
+#### `piling.unsubscribe(eventName, eventHandler)`
+
+Unsubscribe from an event. See [events](#events) for all the events.
+
+## Properties
 
 | Name                        | Type                              | Default      | Constraints                                                                                     | Unsettable |
 | --------------------------- | --------------------------------- | ------------ | ----------------------------------------------------------------------------------------------- | ---------- |
@@ -492,216 +726,6 @@ The list of all understood properties is given below.
     return [xScaling, yScaling];
   });
   ```
-
-#### `piling.arrangeBy(type, objective, options)`
-
-Position piles with user-specified arrangement method.
-
-`type`, `objective`, and `options` can be one of the following combinations:
-
-| Type      | Objective                                                          | Options  |
-| --------- | ------------------------------------------------------------------ | -------- |
-| `null`    | `undefined` _(manual positioning)_                                 | `object` |
-| `'index'` | a `string`, `object`, or `function`                                | `object` |
-| `'ij'`    | a `string`, `object`, or `function`                                | `object` |
-| `'xy'`    | a `string`, `object`, or `function`                                | `object` |
-| `'uv'`    | a `string`, `object`, or `function`                                | `object` |
-| `'data'`  | a `string`, `object`, `function`, or `array` of the previous types | `object` |
-
-The following options are available for all types:
-
-- `options.onPile` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
-
-**Notes and examples:**
-
-- The signature of the callback function for types `index`, `ij`, `xy` and `uv` should be as follows:
-
-  ```javascript
-  function (pileState, pileId) {
-    // Based on the `type` return the index, or the ij, xy, or uv coordinate
-    return pilePosition;
-  }
-  ```
-
-  Alternatively, one can specify a data property holding the pile position as follows:
-
-  ```javascript
-  piling.arrangeBy('index', 'myIndex');
-  piling.arrangeBy('index', { property: 'myIndex', aggregator: 'median' });
-  ```
-
-  The `property` must correspond to a property of the item. The `aggregator` can be `min`, `max`, `mean`, `median`, `sum`, or a custom function with the following signature:
-
-  ```javascript
-  function (data) {
-    // Do something with `data`
-    // Based on the `type` the value must be a scalar or a tuple
-    return aSingleValue;
-  }
-  ```
-
-- When `type === 'data'`, `objective` can either be a `string`, `object`, `function`, or an array of the previous types to produce a 1D ordering, 2D scatter plot, or multi-dimensional cluster plot.
-
-  - The `objective` object can contain the following properties:
-
-    - `property` [type: `string` or `function`]: A function that retrieves that returns a numerical value for an pile's item.
-
-      The signature of the callback function looks as follows and must return a numerical value:
-
-      ```javascript
-      function (itemState, itemId, itemIndex) {
-        // Do something
-        return aNumericalValue;
-      }
-      ```
-
-      For convenience, we can automatically access item properties by their name. E.g., the following objective are identical:
-
-      ```javascript
-      piling.arrangeBy('data', 'a');
-      piling.arrangeBy('data', itemState => itemState.a);
-      ```
-
-    - `propertyIsVector` [type: `boolean` default: `false`]: If `true` we assume that `property()` is returning a numerical vector instead of a scalar.
-
-    - `aggregator` [type: `string` or `function` default: `mean`]: A function for aggregating the property values of the piles' items.
-
-      For convenience, we provide the following pre-defined aggregators: `min`, `max`, `mean` and `sum`.
-
-    - `scale` [type: `function` default: `d3.scaleLinear`]: A D3 scale function
-
-    - `inverse` [type `boolean` default: `false`]: If `true`, the scale will be inverted
-
-  - For convenience the following examples are all equivalent:
-
-    ```javascript
-    // Define the property via a simple string
-    piling.arrangeBy('data', 'a');
-    // Define the property callback function
-    piling.arrangeBy('data', itemState => itemState.a); // callback function
-    // Define the property callback function as part of the `objective` object
-    piling.arrangeBy('data', { property: itemState => itemState.a });
-    // Explicitly define
-    piling.arrangeBy('data', ['a']);
-    ```
-
-  - 1D orderings, 2D scatter plots, or multi-dimensional cluster plots are defined by the number passed to `arrangeBy('data', objectives)`:
-
-    ```javascript
-      // 1D / linear ordering
-      piling.arrangeBy('data', ['a']);
-      // 2D scatter plot
-      piling.arrangeBy('data', ['a', 'b']);
-      // Multi dimensional cluster plot
-      piling.arrangeBy('data', ['a', 'b', 'c', ...]);
-    ```
-
-- When `type === 'data'`, it is possible to further customize the behavior with the following `options`:
-
-  - `forceDimReduction` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is always applied.
-
-    ```javascript
-    // This can be useful when the property itself is multidimensional. E.g.:
-    const items = [
-      {
-        src: [0, 1, 1, 13.37, 9, ...]
-      },
-      ...
-    ]
-    piling.set('items', items);
-    piling.arrangeBy('data', 'src', { forceDimReduction: true });
-    ```
-
-  - `runDimReductionOnPiles` [type: `boolean` default: `false`]: If `true`, dimensionality reduction is run on the current grouping status and updated everytime a pile changes.
-
-    By default this is deactivated because dimensionality reduction transformations are often not deterministic and feeding even the same data to the algorithm can lead to vastly different layout. Therefore, by default we run the dimensionality reduction on the individual items and given that learned model position the piles. This allows us to keep the layout stable even as the piles change. If you want more fine-grain control over transformation updates we suggest running a [`dimensionalityReducer`]() separately and using it's transform function in combination with `piling.arrangeBy('uv')` and [`piling.halt()`]()/[`piling.resume()`]().
-
-    ```javascript
-    // Turning `runDimReductionOnPiles` on will cause a recalculation of the transformation everytime you change piles!
-    piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
-    ```
-
-#### `piling.pileBy(type, objective, options)`
-
-Programmatically group items and piles based on the layout, spatial proximity, or data together.
-
-`type`, `objective`, and `options` can be one of the following combinations:
-
-| Type       | Objective                                                                               | Options  |
-| ---------- | --------------------------------------------------------------------------------------- | -------- |
-| `row`      | `left`, `center` (default), or `right`                                                  |          |
-| `column`   | `top`, `center` (default), or `bottom`                                                  |          |
-| `grid`     | `null` (default) or `{ columns, cellAspectRatio}`                                       |          |
-| `overlap`  | Overlap threshold in square pixels. Default is `0`.                                     |          |
-| `distance` | Distance threshold in pixels. Default is `0`.                                           |          |
-| `category` | A `string`, `object`, `function`, or `array` of the previous types. See examples below. |          |
-| `cluster`  | A `string`, `object`, `function`, or `array` of the previous types. See examples below. | `object` |
-
-**Notes and examples:**
-
-```javascript
-piling.pileBy('row', 'left'); // Pile by row and align pile to the left most item/pile.
-
-piling.pileBy('column', 'top'); // Pile by column and align pile to the top most item/pile.
-
-piling.pileBy('grid'); // Pile by grid using the current layout
-piling.pileBy('grid', { columns: 10, cellAspectRatio: 1.5 }); // Pile by grid using a grid of 10 columns with a cell aspect ratio of 1.5 (= width/height)
-
-piling.pileBy('overlap'); // Pile all overlapping items/piles
-piling.pileBy('overlap', 64); // Pile all items/piles that overlap by 64 or more square pixels
-
-piling.pileBy('distance'); // Pile all items/piles that touch each other
-piling.pileBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
-
-piling.pileBy('category', 'country'); // Pile all items/piles that have the same country value
-piling.pileBy('category', item => item.country); // Same as before
-piling.pileBy('category', {
-  property: 'country',
-  aggregator: countries => countries[0]
-}); // Same as before but with a custom aggregator that simply picks the first country to define the category
-
-piling.pileBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
-piling.pileBy('cluster', item => item.x); // Same as above
-piling.pileBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
-piling.pileBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
-piling.pileBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
-```
-
-#### `piling.destroy()`
-
-Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
-
-#### `piling.halt({ text, spinner = true })`
-
-This will display a popup across the entire piling.js element to temporarily block all interactions. This is useful if you are doing some asynchronous job outside piling and want to prevent user interactions.
-
-#### `piling.render()`
-
-Render the root PIXI container.
-
-#### `piling.resume()`
-
-This will the halting popup.
-
-#### `piling.splitAll()`
-
-Scatter all the piles at the same time.
-
-#### `piling.subscribe(eventName, eventHandler)`
-
-Subscribe to an event.
-`eventName` needs to be one of these [events](#events).
-`eventHandler` is a callback function which looks like this:
-
-```javascript
-const eventHandler = eventData => {
-  // handle event here
-};
-```
-
-#### `piling.unsubscribe(eventName, eventHandler)`
-
-Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
@@ -1115,6 +1139,8 @@ Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 ```javascript
 piling.set('dimensionalityReducer', umap);
 ```
+
+# Clusterers
 
 # Interactions
 
