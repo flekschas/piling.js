@@ -7,9 +7,11 @@ const toAlignment = alignment => {
   const xAlign = isArray(alignment) ? alignment[1] : alignment;
   const yAlign = isArray(alignment) ? alignment[0] : alignment;
 
-  if (ALIGNMENTS_Y.indexOf(yAlign)) {
+  if (ALIGNMENTS_Y.indexOf(yAlign) >= 0) {
     validAlignment[0] = yAlign;
-  } else if (ALIGNMENTS_X.indexOf(xAlign)) {
+  }
+
+  if (ALIGNMENTS_X.indexOf(xAlign) >= 0) {
     validAlignment[1] = xAlign;
   }
 
