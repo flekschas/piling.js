@@ -214,6 +214,7 @@ const createPile = (
     if (isShowSizeBadge) {
       drawSizeBadge();
     } else if (previousSizeBadge) {
+      rootGraphics.removeChild(previousSizeBadge.displayObject);
       previousSizeBadge.destroy();
     }
   };
