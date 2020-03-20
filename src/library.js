@@ -836,11 +836,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     pileInstances.forEach(pile => {
-      if (pile.cover()) {
-        pile.cover().then(coverImage => {
-          const scaleFactor = getImageScaleFactor(coverImage);
-          coverImage.scale(scaleFactor);
-        });
+      const coverImage = pile.cover();
+      if (coverImage) {
+        const scaleFactor = getImageScaleFactor(coverImage);
+        coverImage.scale(scaleFactor);
       }
       pile.updateOffset();
     });
