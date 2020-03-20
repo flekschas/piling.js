@@ -2241,8 +2241,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const groupByOverlap = async (
-    sqrtPixels,
+  const groupByPosition = (bBoxifier, absComparator, relComparator) => async (
+    requirement,
     { conditions = [], centerAggregator = meanVector } = {}
   ) => {
     const { piles } = store.state;
@@ -2250,7 +2250,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const newPiles = {};
     const newPilesBBox = {};
 
-    const addPile = (target, hit, overlap) => {
+    const addPile = (target, hit, value) => {
       if (!newPiles[target.id]) {
         newPiles[target.id] = { [target.id]: true };
         alreadyPiledPiles.set(target.id, [target.id, 1]);
@@ -2267,10 +2267,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       newPiles[target.id][hit.id] = true;
 
-      const relOverlap =
-        overlap / ((target.maxX - target.minX) * (target.maxY - target.minY));
-
-      alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
+      alreadyPiledPiles.set(hit.id, [
+        target.id,
+        relComparator(value, target)[0]
+      ]);
 
       const w = hit.maxX - hit.minX;
       const h = hit.maxY - hit.minY;
@@ -2282,7 +2282,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     const search = currentTarget => {
-      const hits = spatialIndex.search(currentTarget);
+      const hits = spatialIndex.search(bBoxifier(currentTarget, requirement));
 
       let numGroupings = 0;
 
@@ -2291,40 +2291,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       hits.forEach(hit => {
         if (hit.id === currentTarget.id) return;
 
-        const minX = Math.max(currentTarget.minX, hit.minX);
-        const minY = Math.max(currentTarget.minY, hit.minY);
-        const maxX = Math.min(currentTarget.maxX, hit.maxX);
-        const maxY = Math.min(currentTarget.maxY, hit.maxY);
-        const overlap = (maxX - minX) * (maxY - minY);
+        const [value, vOkay] = absComparator(currentTarget, hit, requirement);
 
-        const okay = conditions.every(condition =>
-          condition(piles[currentTarget.id], piles[hit.id])
-        );
+        const okay =
+          vOkay &&
+          conditions.every(condition =>
+            condition(piles[currentTarget.id], piles[hit.id])
+          );
 
-        if (overlap >= sqrtPixels && okay) {
+        if (okay) {
           if (
             alreadyPiledPiles.has(hit.id) &&
             !(newPiles[currentTarget.id] && newPiles[currentTarget.id][hit.id])
           ) {
-            const [prevTargetId, preTargetRelOverlap] = alreadyPiledPiles.get(
+            const [prevTargetId, prevTargetValue] = alreadyPiledPiles.get(
               hit.id
             );
 
-            const relOverlap =
-              overlap /
-              ((currentTarget.maxX - currentTarget.minX) *
-                (currentTarget.maxY - currentTarget.minY));
-
-            if (preTargetRelOverlap > relOverlap) {
-              // Hit overlaps more with the previous target so we do nothing
+            if (!relComparator(value, currentTarget, prevTargetValue)[1])
               return;
-            }
 
-            // Hit overlaps more with the new target so we move the hit
+            // New target is closer to overlaps more so we remove the hit
+            // from the old pile
             delete newPiles[prevTargetId][hit.id];
           }
 
-          numGroupings += addPile(currentTarget, hit, overlap);
+          numGroupings += addPile(currentTarget, hit, value);
         }
       });
 
@@ -2362,63 +2354,49 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles).map(Object.keys);
   };
 
-  const groupByDistance = async (pixels, { conditions = [] } = {}) => {
-    const { piles } = store.state;
-    const alreadyPiledPiles = new Map();
-    const newPiles = {};
+  const groupByOverlapAbsComparator = (target, hit, sqrtPixels) => {
+    const minX = Math.max(target.minX, hit.minX);
+    const minY = Math.max(target.minY, hit.minY);
+    const maxX = Math.min(target.maxX, hit.maxX);
+    const maxY = Math.min(target.maxY, hit.maxY);
+    const overlap = (maxX - minX) * (maxY - minY);
 
-    const addPile = (target, hit, distance) => {
-      if (!newPiles[target.id]) {
-        newPiles[target.id] = [target.id];
-        alreadyPiledPiles.set(target.id, [target.id, 1]);
-      }
-      newPiles[target.id].push(hit.id);
-      alreadyPiledPiles.set(hit.id, [target.id, distance]);
-    };
-
-    spatialIndex.all().forEach(currentTarget => {
-      if (alreadyPiledPiles.has(currentTarget.id)) return;
-
-      const searchBBox = {
-        minX: currentTarget.minX - pixels,
-        minY: currentTarget.minY - pixels,
-        maxX: currentTarget.maxX + pixels,
-        maxY: currentTarget.maxY + pixels
-      };
-
-      const hits = spatialIndex.search(searchBBox);
-
-      if (hits.length === 1) return;
-
-      hits.forEach(hit => {
-        if (hit.id === currentTarget.id) return;
-
-        const distance = l2RectDist(currentTarget, hit);
-
-        const okay = conditions.every(condition =>
-          condition(piles[currentTarget.id], piles[hit.id])
-        );
-
-        if (distance <= pixels && okay) {
-          if (alreadyPiledPiles.has(hit.id)) {
-            const [targetId, targetDistance] = alreadyPiledPiles.get(hit.id);
-
-            if (targetDistance < distance) {
-              // Hit is closer to the previous target so we do nothing
-              return;
-            }
-
-            // Hit is closer to the new target so we move the hit
-            newPiles[targetId].splice(newPiles[targetId].indexOf(hit.id), 1);
-          }
-
-          addPile(currentTarget, hit, distance);
-        }
-      });
-    });
-
-    return Object.values(newPiles);
+    return [overlap, overlap >= sqrtPixels];
   };
+  const groupByOverlapRelComparator = (overlap, target, prevRelOverlap) => {
+    const newRelOverlap =
+      overlap / ((target.maxX - target.minX) * (target.maxY - target.minY));
+
+    return [
+      newRelOverlap,
+      prevRelOverlap !== undefined && newRelOverlap > prevRelOverlap
+    ];
+  };
+  const groupByOverlap = groupByPosition(
+    identity,
+    groupByOverlapAbsComparator,
+    groupByOverlapRelComparator
+  );
+
+  const groupByDistanceBBoxifier = (target, distance) => ({
+    minX: target.minX - distance,
+    minY: target.minY - distance,
+    maxX: target.maxX + distance,
+    maxY: target.maxY + distance
+  });
+  const groupByDistanceAbsComparator = (target, hit, pixels) => {
+    const d = l2RectDist(target, hit);
+    return [d, d < pixels];
+  };
+  const groupByDistanceRelComparator = (distance, target, prevDistance) => [
+    distance,
+    prevDistance === undefined && distance < prevDistance
+  ];
+  const groupByDistance = groupByPosition(
+    groupByDistanceBBoxifier,
+    groupByDistanceAbsComparator,
+    groupByDistanceRelComparator
+  );
 
   const groupByGrid = async objective => {
     const { orderer, piles } = store.state;
