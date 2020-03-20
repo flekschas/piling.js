@@ -2241,7 +2241,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const pileByOverlap = async (sqrtPixels, { conditions = [] } = {}) => {
+  const groupByOverlap = async (sqrtPixels, { conditions = [] } = {}) => {
     const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
@@ -2308,7 +2308,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByDistance = async (pixels, { conditions = [] } = {}) => {
+  const groupByDistance = async (pixels, { conditions = [] } = {}) => {
     const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
@@ -2366,7 +2366,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return Object.values(newPiles);
   };
 
-  const pileByGrid = async objective => {
+  const groupByGrid = async objective => {
     const { orderer, piles } = store.state;
 
     const { width, height } = canvas.getBoundingClientRect();
@@ -2384,7 +2384,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }, []);
   };
 
-  const pileByColumn = async () =>
+  const groupByColumn = async () =>
     Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
       if (pileState.items.length) {
         const ij = layout.xyToIj(pileState.x, pileState.y);
@@ -2394,7 +2394,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return groups;
     }, []);
 
-  const pileByRow = async () =>
+  const groupByRow = async () =>
     Object.entries(store.state.piles).reduce((groups, [pileId, pileState]) => {
       if (pileState.items.length) {
         const ij = layout.xyToIj(pileState.x, pileState.y);
@@ -2404,7 +2404,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return groups;
     }, []);
 
-  const pileByCategory = async objective =>
+  const groupByCategory = async objective =>
     Object.values(
       Object.entries(store.state.piles).reduce(
         (groups, [pileId, pileState]) => {
@@ -2434,7 +2434,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       )
     );
 
-  const pileByCluster = async (objective, options = {}) => {
+  const groupByCluster = async (objective, options = {}) => {
     const points = Object.entries(store.state.piles).reduce(
       (data, [pileId, pileState]) => {
         if (!pileState.items.length) return data;
@@ -2486,7 +2486,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const pileBy = (type, objective = null, options = {}) => {
+  const groupBy = (type, objective = null, options = {}) => {
     const expandedObjective = expandPilingObjective(type, objective);
 
     let piledPiles = [];
@@ -2494,33 +2494,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     switch (type) {
       case 'overlap':
-        piledPiles = pileByOverlap(expandedObjective, options);
+        piledPiles = groupByOverlap(expandedObjective, options);
         break;
 
       case 'distance':
-        piledPiles = pileByDistance(expandedObjective, options);
+        piledPiles = groupByDistance(expandedObjective, options);
         break;
 
       case 'grid':
-        piledPiles = pileByGrid(expandedObjective);
+        piledPiles = groupByGrid(expandedObjective);
         break;
 
       case 'column':
         mergeCenter = expandedObjective;
-        piledPiles = pileByColumn(expandedObjective);
+        piledPiles = groupByColumn(expandedObjective);
         break;
 
       case 'row':
         mergeCenter = expandedObjective;
-        piledPiles = pileByRow(expandedObjective);
+        piledPiles = groupByRow(expandedObjective);
         break;
 
       case 'category':
-        piledPiles = pileByCategory(expandedObjective);
+        piledPiles = groupByCategory(expandedObjective);
         break;
 
       case 'cluster':
-        piledPiles = pileByCluster(expandedObjective, options);
+        piledPiles = groupByCluster(expandedObjective, options);
         break;
 
       // no default
@@ -4285,7 +4285,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     destroy,
     exportState,
     get,
-    pileBy,
+    groupBy,
     halt,
     importState,
     render: renderRaf,

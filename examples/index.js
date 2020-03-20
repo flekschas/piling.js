@@ -303,24 +303,24 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       firstItem[prop].length === 2
   );
 
-  const pileByGrid = document.body.querySelector('#group-by-grid');
-  const pileByGridCanvas = pileByGrid.querySelector('canvas');
-  const pileByGridCtx = pileByGridCanvas.getContext('2d');
-  let pileByGridColumns = null;
-  let pileByGridActive = false;
+  const groupByGrid = document.body.querySelector('#group-by-grid');
+  const groupByGridCanvas = groupByGrid.querySelector('canvas');
+  const groupByGridCtx = groupByGridCanvas.getContext('2d');
+  let groupByGridColumns = null;
+  let groupByGridActive = false;
 
   const pilingScrollEl = pilingEls[exampleEl.value].querySelector('div');
 
-  const clearPileByGrid = () => {
-    pileByGridCtx.clearRect(0, 0, pileByGridCtx.width, pileByGridCtx.height);
+  const cleargroupByGrid = () => {
+    groupByGridCtx.clearRect(0, 0, groupByGridCtx.width, groupByGridCtx.height);
   };
 
-  const drawPileByGrid = columns => {
-    pileByGrid.style.zIndex = 1;
-    const { width, height } = pileByGridCanvas.getBoundingClientRect();
+  const drawgroupByGrid = columns => {
+    groupByGrid.style.zIndex = 1;
+    const { width, height } = groupByGridCanvas.getBoundingClientRect();
     const res = window.devicePixelRatio;
-    pileByGridCanvas.width = width * res;
-    pileByGridCanvas.height = height * res;
+    groupByGridCanvas.width = width * res;
+    groupByGridCanvas.height = height * res;
 
     let {
       cellAspectRatio,
@@ -340,32 +340,32 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
     const offsetY = pilingScrollEl.scrollTop % rowHeight;
 
-    clearPileByGrid();
+    cleargroupByGrid();
 
-    pileByGridCtx.strokeStyle = '#ff7ff6';
-    pileByGridCtx.beginPath();
+    groupByGridCtx.strokeStyle = '#ff7ff6';
+    groupByGridCtx.beginPath();
 
     for (let i = 1; i < numRows; i++) {
-      pileByGridCtx.moveTo(0, i * rowHeight * res - offsetY * res);
-      pileByGridCtx.lineTo(width * res, i * rowHeight * res - offsetY * res);
+      groupByGridCtx.moveTo(0, i * rowHeight * res - offsetY * res);
+      groupByGridCtx.lineTo(width * res, i * rowHeight * res - offsetY * res);
     }
 
     for (let j = 1; j < numColumns; j++) {
-      pileByGridCtx.moveTo(j * columnWidth * res, 0);
-      pileByGridCtx.lineTo(j * columnWidth * res, height * res);
+      groupByGridCtx.moveTo(j * columnWidth * res, 0);
+      groupByGridCtx.lineTo(j * columnWidth * res, height * res);
     }
 
-    pileByGridCtx.stroke();
+    groupByGridCtx.stroke();
   };
 
   let arrangeByType = 'uv';
   let arrangeByProp = spatialProps[0];
 
-  let pileByRow = 'center';
-  let pileByColumn = 'top';
-  let pileByOverlapSqPx = 1;
-  let pileByDistancePx = 1;
-  let pileByCategory = categoricalProps[0];
+  let groupByRow = 'center';
+  let groupByColumn = 'top';
+  let groupByOverlapSqPx = 1;
+  let groupByDistancePx = 1;
+  let groupByCategory = categoricalProps[0];
 
   const options = [
     {
@@ -478,22 +478,22 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       ]
     },
     {
-      id: 'piling',
-      title: 'Pile By...',
+      id: 'grouping',
+      title: 'Group By',
       fields: [
         {
           name: 'Row',
           width: '4rem',
           action: () => {
-            pilingLib.pileBy('row', pileByRow);
+            pilingLib.groupBy('row', groupByRow);
           },
           subInputs: [
             {
               dtype: 'string',
               values: ['left', 'center', 'right'],
-              defaultValue: pileByRow,
+              defaultValue: groupByRow,
               setter: direction => {
-                pileByRow = direction;
+                groupByRow = direction;
               }
             }
           ]
@@ -502,15 +502,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'Column',
           width: '4rem',
           action: () => {
-            pilingLib.pileBy('column', pileByColumn);
+            pilingLib.groupBy('column', groupByColumn);
           },
           subInputs: [
             {
               dtype: 'string',
               values: ['top', 'center', 'bottom'],
-              defaultValue: pileByColumn,
+              defaultValue: groupByColumn,
               setter: direction => {
-                pileByColumn = direction;
+                groupByColumn = direction;
               }
             }
           ]
@@ -520,28 +520,28 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           width: '4rem',
           action: () => {
             const objective =
-              pileByGridColumns !== null
-                ? { columns: pileByGridColumns }
+              groupByGridColumns !== null
+                ? { columns: groupByGridColumns }
                 : undefined;
-            pilingLib.pileBy('grid', objective);
+            pilingLib.groupBy('grid', objective);
           },
           onMouseenter: () => {
-            drawPileByGrid(pileByGridColumns);
+            drawgroupByGrid(groupByGridColumns);
           },
           onMousedown: () => {
-            pileByGridActive = true;
-            if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+            groupByGridActive = true;
+            if (groupByGridColumns) drawgroupByGrid(groupByGridColumns);
           },
           onMouseleave: function onMouseup() {
-            if (!pileByGridActive) {
-              clearPileByGrid();
-              pileByGrid.style.zIndex = -1;
+            if (!groupByGridActive) {
+              cleargroupByGrid();
+              groupByGrid.style.zIndex = -1;
             }
           },
           onMouseup: function onMouseup() {
-            pileByGridActive = false;
-            clearPileByGrid();
-            pileByGrid.style.zIndex = -1;
+            groupByGridActive = false;
+            cleargroupByGrid();
+            groupByGrid.style.zIndex = -1;
           },
           subInputs: [
             {
@@ -550,32 +550,32 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               max: 20,
               onInput: true,
               setter: columns => {
-                pileByGridColumns = columns;
-                if (pileByGridActive && columns !== null) {
-                  drawPileByGrid(columns);
+                groupByGridColumns = columns;
+                if (groupByGridActive && columns !== null) {
+                  drawgroupByGrid(columns);
                 } else {
-                  clearPileByGrid();
-                  pileByGrid.style.zIndex = -1;
+                  cleargroupByGrid();
+                  groupByGrid.style.zIndex = -1;
                 }
               },
               nullifiable: true,
               onMouseenter: () => {
-                if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+                if (groupByGridColumns) drawgroupByGrid(groupByGridColumns);
               },
               onMousedown: () => {
-                pileByGridActive = true;
-                if (pileByGridColumns) drawPileByGrid(pileByGridColumns);
+                groupByGridActive = true;
+                if (groupByGridColumns) drawgroupByGrid(groupByGridColumns);
               },
               onMouseleave: function onMouseup() {
-                if (!pileByGridActive) {
-                  clearPileByGrid();
-                  pileByGrid.style.zIndex = -1;
+                if (!groupByGridActive) {
+                  cleargroupByGrid();
+                  groupByGrid.style.zIndex = -1;
                 }
               },
               onMouseup: function onMouseup() {
-                pileByGridActive = false;
-                clearPileByGrid();
-                pileByGrid.style.zIndex = -1;
+                groupByGridActive = false;
+                cleargroupByGrid();
+                groupByGrid.style.zIndex = -1;
               }
             }
           ]
@@ -584,7 +584,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'Overlap',
           width: '4rem',
           action: () => {
-            pilingLib.pileBy('overlap', pileByOverlapSqPx);
+            pilingLib.groupBy('overlap', groupByOverlapSqPx);
           },
           subInputs: [
             {
@@ -594,7 +594,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               defaultValue: 1,
               onInput: true,
               setter: sqPx => {
-                pileByOverlapSqPx = sqPx;
+                groupByOverlapSqPx = sqPx;
               }
             }
           ]
@@ -603,7 +603,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'Distance',
           width: '4rem',
           action: () => {
-            pilingLib.pileBy('distance', pileByDistancePx);
+            pilingLib.groupBy('distance', groupByDistancePx);
           },
           subInputs: [
             {
@@ -613,7 +613,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               defaultValue: 1,
               onInput: true,
               setter: px => {
-                pileByDistancePx = px;
+                groupByDistancePx = px;
               }
             }
           ]
@@ -623,15 +623,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           hide: categoricalProps.length === 0,
           width: '4rem',
           action: () => {
-            pilingLib.pileBy('category', pileByCategory);
+            pilingLib.groupBy('category', groupByCategory);
           },
           subInputs: [
             {
               dtype: 'string',
               values: categoricalProps,
-              defaultValue: pileByCategory,
+              defaultValue: groupByCategory,
               setter: category => {
-                pileByCategory = category;
+                groupByCategory = category;
               }
             }
           ]
