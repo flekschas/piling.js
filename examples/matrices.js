@@ -151,7 +151,10 @@ const createMatrixPiles = async (element, darkMode) => {
       });
       return itemIdsMap;
     },
-    previewScaling: pile => [1, Math.max(0, 1 - (pile.items.length - 2) / 10)],
+    previewScaling: pile => [
+      1,
+      Math.max(0.1, 1 - (pile.items.length - 2) / 10)
+    ],
     previewOffset: 1,
     previewPadding: 2,
     previewSpacing: pile => Math.max(0, 2 - (pile.items.length - 2) / 10)
