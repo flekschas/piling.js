@@ -173,10 +173,14 @@ const createPile = (
   const drawSizeBadge = () => {
     // const { pileSizeBadgeAlign } = store.state;
     const size = allItems.length;
+    const newBadge = size !== previousSize;
 
     let sizeBadge = previousSizeBadge;
 
-    if (size !== previousSize) {
+    const prevX = sizeBadge ? sizeBadge.displayObject.x : 0;
+    const prevY = sizeBadge ? sizeBadge.displayObject.y : 0;
+
+    if (newBadge) {
       sizeBadge = badgeFactory.create(size);
 
       if (previousSize !== undefined) {
@@ -185,12 +189,18 @@ const createPile = (
       }
     }
 
-    const borderBounds = contentGraphics.getBounds();
+    if (isPositioning) {
+      sizeBadge.displayObject.x = prevX;
+      sizeBadge.displayObject.y = prevY;
+    } else {
+      // The bounds are off during positioning
+      const borderBounds = contentGraphics.getBounds();
 
-    sizeBadge.displayObject.x = borderBounds.width / 2;
-    sizeBadge.displayObject.y = -borderBounds.height / 2;
+      sizeBadge.displayObject.x = borderBounds.width / 2;
+      sizeBadge.displayObject.y = -borderBounds.height / 2;
+    }
 
-    rootGraphics.addChild(sizeBadge.displayObject);
+    if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
 
     previousSizeBadge = sizeBadge;
     previousSize = size;
