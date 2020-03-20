@@ -2241,7 +2241,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const groupByOverlap = async (sqrtPixels, { conditions = [] } = {}) => {
+  const groupByOverlap = async (
+    sqrtPixels,
+    { conditions = [], centerAggregator = meanVector } = {}
+  ) => {
     const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
@@ -2340,7 +2343,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numNewGroupings = Object.keys(newPiles).reduce(
         (numGroupings, id) => {
           const { w, h, c } = newPilesBBox[id];
-          const [cX, cY] = meanVector(c);
+          const [cX, cY] = centerAggregator(c);
           const query = {
             id,
             minX: cX - w / 2,
@@ -2586,6 +2589,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         mergeCenter
       );
     });
+
+    if ((type === 'distance' || type === 'overlap') && options.onZoom) {
+      delete options.onZoom;
+
+      store.dispatch(
+        batchActions([
+          ...set('groupingOnPile', true, true),
+          ...set('groupingOptions', options, true),
+          ...set('groupingObjective', expandedObjective, true),
+          ...set('groupingType', 'distance', true)
+        ])
+      );
+    }
   };
 
   const updateNavigationMode = () => {
