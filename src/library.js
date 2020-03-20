@@ -2864,7 +2864,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // Destroy existing labels to avoid memory leaks
     uniqueLabels.forEach(label => {
-      label.pixiText.destroy();
+      if (label.pixiText) label.pixiText.destroy();
     });
 
     uniqueLabels.clear();
