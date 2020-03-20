@@ -892,7 +892,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileInstances.forEach(pile => {
         if (pile.cover()) {
-          positionItems(pile.id);
+          positionNewItems(pile.id);
         }
       });
 
@@ -1283,13 +1283,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
-  const positionItems = pileId => {
-    const {
-      items,
-      pileItemOffset,
-      pileItemRotation,
-      pileItemOrder
-    } = store.state;
+  const positionNewItems = pileId => {
+    const { items, pileItemOrder } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
 
@@ -1298,7 +1293,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstance.setItemOrder(pileItemOrder(itemStates));
     }
 
-    pileInstance.positionItems(pileItemOffset, pileItemRotation, animator);
+    pileInstance.positionItems(animator);
+  };
+
+  const repositionAllItems = pileId => {
+    const { items, pileItemOrder } = store.state;
+
+    const pileInstance = pileInstances.get(pileId);
+
+    if (isFunction(pileItemOrder)) {
+      const itemStates = pileInstance.items.map(item => items[item.id]);
+      pileInstance.setItemOrder(pileItemOrder(itemStates));
+    }
+
+    pileInstance.repositionAllItems(animator);
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
@@ -1419,7 +1427,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileState.items.length === 1) {
       pileInstance.cover(null);
-      positionItems(pileInstance.id);
+      positionNewItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
       const itemsOnPile = [];
@@ -1462,7 +1470,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       coverImage.then(() => {
         renderRaf();
-        positionItems(pileInstance.id);
+        positionNewItems(pileInstance.id);
         updatePileBounds(pileInstance.id);
       });
     }
@@ -1494,7 +1502,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           updatePreviewAndCover(pileState, pileInstance);
         } else {
           pileInstance.setItems(itemInstances);
-          positionItems(id);
+          positionNewItems(id);
         }
 
         if (itemInstances.length === 1 && isDimReducerInUse()) {
@@ -2220,7 +2228,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       updatePreviewAndCover(pileState, newPile);
     } else {
       newPile.setItems(items);
-      positionItems(pileId);
+      positionNewItems(pileId);
     }
 
     normalPiles.addChild(newPile.graphics);
@@ -3133,15 +3141,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.pileItemOffset !== newState.pileItemOffset) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
     }
 
-    if (state.previewItemOffset !== newState.previewItemOffset) {
-      stateUpdates.add('layout');
-    }
+    // if (state.previewItemOffset !== newState.previewItemOffset) {
+    //   stateUpdates.add('positionItems');
+    // }
 
     if (state.pileItemRotation !== newState.pileItemRotation) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
+    }
+
+    if (
+      state.previewPadding !== newState.previewPadding ||
+      state.previewSpacing !== newState.previewSpacing ||
+      state.previewScaling !== newState.previewScaling ||
+      state.previewOffset !== newState.previewOffset ||
+      state.previewItemOffset !== newState.previewItemOffset
+    ) {
+      stateUpdates.add('positionItems');
     }
 
     if (state.tempDepileDirection !== newState.tempDepileDirection) {
@@ -3231,9 +3249,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
     }
 
-    if (state.previewSpacing !== newState.previewSpacing) {
-      stateUpdates.add('layout');
-    }
+    // if (state.previewSpacing !== newState.previewSpacing) {
+    //   stateUpdates.add('layout');
+    // }
 
     if (state.showGrid !== newState.showGrid) {
       if (newState.showGrid) drawGrid();
@@ -3333,6 +3351,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (stateUpdates.has('navigation')) {
       updateNavigationMode();
+    }
+
+    if (stateUpdates.has('positionItems')) {
+      // eslint-disable-next-line no-console
+      console.log('111');
+      Object.values(state.piles).forEach(pile => {
+        if (pile.items.length > 1) repositionAllItems(pile.id);
+      });
     }
 
     awaitItemUpdates(currentItemUpdates);
