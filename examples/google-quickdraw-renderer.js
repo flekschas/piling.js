@@ -1,5 +1,3 @@
-import * as PIXI from 'pixi.js';
-
 const renderStroke = (strokes, size = 64) => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -17,7 +15,7 @@ const renderStroke = (strokes, size = 64) => {
     ctx.stroke();
   }
 
-  return PIXI.Texture.from(canvas);
+  return canvas;
 };
 
 const createGoogleQuickDrawRenderer = size => sources =>

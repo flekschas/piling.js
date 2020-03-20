@@ -186,7 +186,7 @@ body.dark-mode {
 }
 
 body.permanent-options .container {
-  right: 16rem;
+  right: 17rem;
 }
 
 .credits {
@@ -310,7 +310,7 @@ header #description {
 }
 
 body.permanent-options #group-by-grid {
-  right: 16rem;
+  right: 17rem;
 }
 
 #options {
@@ -319,11 +319,11 @@ body.permanent-options #group-by-grid {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 15rem;
+  width: 16rem;
   background: $white;
   border-left: 1px solid $gray-lighter;
   color: $black;
-  transform: translate(15rem, 0);
+  transform: translate(16rem, 0);
   transition: transform $normal $ease;
 
   &.open {
@@ -393,6 +393,7 @@ body.permanent-options #group-by-grid {
   .label-wrapper .label-title {
     display: block;
     font-size: 0.8rem;
+    white-space: nowrap;
   }
 
   .checkbox,

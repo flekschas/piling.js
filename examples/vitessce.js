@@ -145,7 +145,7 @@ const createVitessce = async (element, darkMode) => {
     { backgroundColor: darkMode ? 0xffffff : 0x000000 }
   );
 
-  const representativeAggregator = createRepresentativeAggregator(4, {
+  const representativeAggregator = createRepresentativeAggregator(9, {
     valueGetter: item => Object.values(item.genes)
   });
 
@@ -203,6 +203,7 @@ const createVitessce = async (element, darkMode) => {
       fields: [
         {
           name: 'poly-T hue',
+          labelMinWidth: '4rem',
           id: 'polyt-hue',
           dtype: 'float',
           min: 0,
@@ -217,6 +218,7 @@ const createVitessce = async (element, darkMode) => {
         },
         {
           name: 'nuclei',
+          labelMinWidth: '4rem',
           id: 'nuclei-hue',
           dtype: 'float',
           min: 0,

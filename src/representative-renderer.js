@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 
+import { toDisplayObject } from './utils';
+
 /**
  * [description]
  * @param {number} n - Number of items
@@ -66,10 +68,10 @@ const renderRepresentative = async (
   const cellHeight = maxSize * (relHeight / rows);
 
   renderedItems.forEach((renderedItem, i) => {
-    const isTexture = renderedItem instanceof PIXI.Texture;
-    const displayObject = isTexture
-      ? new PIXI.Sprite(renderedItem)
-      : renderedItem;
+    let displayObject = toDisplayObject(renderedItem);
+
+    const isTexture = displayObject instanceof PIXI.Texture;
+    if (isTexture) displayObject = new PIXI.Sprite(displayObject);
 
     const row = Math.floor(i / cols);
     const col = i % cols;

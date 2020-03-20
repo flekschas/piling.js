@@ -10,6 +10,7 @@ import withColorFilters from './with-color-filters';
 import withDestroy from './with-destroy';
 import withScale from './with-scale';
 import withSize from './with-size';
+import { toDisplayObject } from './utils';
 
 const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
 const DEFAULT_BACKGROUND_OPACITY = 0.2;
@@ -58,7 +59,7 @@ const withPadding = initialPadding => self => {
 };
 
 const createImageWithBackground = (
-  texture,
+  source,
   {
     anchor = [0.5, 0.5],
     backgroundColor = DEFAULT_BACKGROUND_COLOR,
@@ -67,13 +68,15 @@ const createImageWithBackground = (
   } = {}
 ) => {
   const backgroundGraphics = new PIXI.Graphics();
+  const displayObject = toDisplayObject(source);
 
   let sprite;
-  if (texture instanceof PIXI.Texture) {
-    sprite = new PIXI.Sprite(texture);
+
+  if (displayObject instanceof PIXI.Texture) {
+    sprite = new PIXI.Sprite(displayObject);
     sprite.anchor.set(...anchor);
   } else {
-    sprite = texture;
+    sprite = displayObject;
   }
 
   const init = self => {
@@ -87,8 +90,8 @@ const createImageWithBackground = (
       withStaticProperty('displayObject', backgroundGraphics),
       withStaticProperty('sprite', sprite),
       withColorFilters(sprite),
-      withScale(sprite, texture.width, texture.height),
-      withSize(sprite, texture.width, texture.height),
+      withScale(sprite, displayObject.width, displayObject.height),
+      withSize(sprite, displayObject.width, displayObject.height),
       withPadding(padding),
       withBackground({
         backgroundColor,
