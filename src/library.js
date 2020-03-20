@@ -1383,7 +1383,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
     );
 
-    pileInstance.showSizeBadge(pileSizeBadge);
+    pileInstance.showSizeBadge(
+      isFunction(pileSizeBadge) ? pileSizeBadge(pile) : pileSizeBadge
+    );
 
     pileInstance.setVisibilityItems(
       isFunction(pileVisibilityItems)
