@@ -466,7 +466,7 @@ The list of all understood properties is given below.
     }
   ```
 
-- `pileSizeBadge` and `pileSizeBadgeAlign` allow to show the pile size as badge. Both can be defined dynamically using a pile-specific callback function.
+- `pileSizeBadge` and `pileSizeBadgeAlign` allow to show the pile size as badge. Both can be defined dynamically using a pile-specific callback function. `pileSizeBadgeAlign` accepts an tuple of `[yAlign, xAlign]` where `yAlign` can be one of `top`, `center`, `bottom`, and `xAlign` can be one of `left`, `center`, `right`.
 
 - `previewPadding` defines how much larger the preview items' background is sized. For example, a padding of `2` means that the background of a preview item is 1 pixel larger in eath direction (top, right, bottom, left).
 
