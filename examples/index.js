@@ -367,10 +367,13 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   let pileByDistancePx = 1;
   let pileByCategory = categoricalProps[0];
 
+  let pileItemOffsetX = 5;
+  let pileItemOffsetY = 5;
+
   const options = [
     {
-      id: 'layout',
-      title: 'Layout',
+      id: 'pile-item',
+      title: 'Pile/Item',
       fields: [
         {
           name: 'itemSize',
@@ -381,6 +384,61 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           numSteps: 38,
           nullifiable: true
         },
+        {
+          name: 'pileItemOffset',
+          width: '4rem',
+          action: () => {
+            pilingLib.set('pileItemOffset', [pileItemOffsetX, pileItemOffsetY]);
+          },
+          subInputs: [
+            {
+              name: 'x',
+              dtype: 'float',
+              defaultValue: pileItemOffsetX,
+              setter: x => {
+                pileItemOffsetX = x;
+              }
+            },
+            {
+              name: 'y',
+              dtype: 'float',
+              defaultValue: pileItemOffsetY,
+              setter: y => {
+                pileItemOffsetY = y;
+              }
+            }
+          ]
+        },
+        {
+          name: 'previewPadding',
+          labelMinWidth: '4rem',
+          dtype: 'int',
+          min: 0,
+          max: 10,
+          nullifiable: true
+        },
+        {
+          name: 'previewSpacing',
+          labelMinWidth: '4rem',
+          dtype: 'int',
+          min: 0,
+          max: 10,
+          nullifiable: true
+        },
+        {
+          name: 'previewOffset',
+          labelMinWidth: '4rem',
+          dtype: 'int',
+          min: 0,
+          max: 10,
+          nullifiable: true
+        }
+      ]
+    },
+    {
+      id: 'layout',
+      title: 'Layout',
+      fields: [
         {
           name: 'cellSize',
           labelMinWidth: '4rem',
@@ -635,6 +693,61 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      id: 'label',
+      title: 'Label',
+      fields: [
+        {
+          name: 'pileLabel',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'string',
+          values: categoricalProps,
+          multiple: true,
+          nullifiable: true
+        },
+        {
+          name: 'pileLabelText',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'boolean'
+        },
+        {
+          name: 'pileLabelAlign',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6.25rem',
+          dtype: 'string',
+          values: ['top', 'bottom'],
+          defaultValue: 'bottom'
+        },
+        {
+          name: 'pileLabelStackAlign',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6.25rem',
+          dtype: 'string',
+          values: ['horizontal', 'vertical'],
+          defaultValue: 'horizontal'
+        },
+        {
+          name: 'pileLabelFontSize',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'int',
+          min: 0,
+          max: 15,
+          nullifiable: true
+        },
+        {
+          name: 'pileLabelHeight',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'int',
+          min: 0,
+          max: 15,
+          nullifiable: true
         }
       ]
     },
