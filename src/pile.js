@@ -267,7 +267,7 @@ const createPile = (
       return;
     }
 
-    if (isPositioning || isScaling) {
+    if (isPositioning) {
       const currentMode = mode;
       postPilePositionAnimation.set('drawBorder', () => {
         drawBorder(size, currentMode);
@@ -810,6 +810,7 @@ const createPile = (
       getter: getScale,
       setter: v => {
         setScale(v, { isMagnification });
+        drawBorder();
       },
       onDone: () => {
         isScaling = false;
