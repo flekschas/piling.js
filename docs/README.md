@@ -14,7 +14,7 @@
 
 <div id="teaser-matrices" align="center">
   
-  ![Preview](https://user-images.githubusercontent.com/932103/65613151-8107e980-df83-11e9-86bf-72be591fe284.gif)
+  ![Preview](https://user-images.githubusercontent.com/932103/77213358-eecf4100-6ae0-11ea-803f-bf8368cd81d8.gif)
   
 </div>
 
