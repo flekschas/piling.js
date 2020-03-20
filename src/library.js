@@ -2245,24 +2245,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { piles } = store.state;
     const alreadyPiledPiles = new Map();
     const newPiles = {};
+    const newPilesBBox = {};
 
     const addPile = (target, hit, overlap) => {
       if (!newPiles[target.id]) {
-        newPiles[target.id] = [target.id];
+        newPiles[target.id] = { [target.id]: true };
         alreadyPiledPiles.set(target.id, [target.id, 1]);
+        const w = target.maxX - target.minX;
+        const h = target.maxY - target.minY;
+        newPilesBBox[target.id] = {
+          w,
+          h,
+          c: [[target.minX + w / 2, target.minY + h / 2]]
+        };
       }
-      newPiles[target.id].push(hit.id);
+
+      if (newPiles[target.id][hit.id]) return false;
+
+      newPiles[target.id][hit.id] = true;
+
       const relOverlap =
         overlap / ((target.maxX - target.minX) * (target.maxY - target.minY));
+
       alreadyPiledPiles.set(hit.id, [target.id, relOverlap]);
+
+      const w = hit.maxX - hit.minX;
+      const h = hit.maxY - hit.minY;
+      newPilesBBox[target.id].w = Math.max(newPilesBBox[target.id].w, w);
+      newPilesBBox[target.id].h = Math.max(newPilesBBox[target.id].h, h);
+      newPilesBBox[target.id].c.push([hit.minX + w / 2, hit.minY + h / 2]);
+
+      return true;
     };
 
-    spatialIndex.all().forEach(currentTarget => {
-      if (alreadyPiledPiles.has(currentTarget.id)) return;
-
+    const search = currentTarget => {
       const hits = spatialIndex.search(currentTarget);
 
-      if (hits.length === 1) return;
+      let numGroupings = 0;
+
+      if (hits.length === 1) return numGroupings;
 
       hits.forEach(hit => {
         if (hit.id === currentTarget.id) return;
@@ -2278,7 +2299,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         );
 
         if (overlap >= sqrtPixels && okay) {
-          if (alreadyPiledPiles.has(hit.id)) {
+          if (
+            alreadyPiledPiles.has(hit.id) &&
+            !(newPiles[currentTarget.id] && newPiles[currentTarget.id][hit.id])
+          ) {
             const [prevTargetId, preTargetRelOverlap] = alreadyPiledPiles.get(
               hit.id
             );
@@ -2294,18 +2318,45 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             }
 
             // Hit overlaps more with the new target so we move the hit
-            newPiles[prevTargetId].splice(
-              newPiles[prevTargetId].indexOf(hit.id),
-              1
-            );
+            delete newPiles[prevTargetId][hit.id];
           }
 
-          addPile(currentTarget, hit, overlap);
+          numGroupings += addPile(currentTarget, hit, overlap);
         }
       });
+
+      return numGroupings;
+    };
+
+    spatialIndex.all().forEach(currentTarget => {
+      if (alreadyPiledPiles.has(currentTarget.id)) return;
+
+      search(currentTarget);
     });
 
-    return Object.values(newPiles);
+    // Resolve subsequent overlaps
+    let resolved = false;
+    while (!resolved) {
+      const numNewGroupings = Object.keys(newPiles).reduce(
+        (numGroupings, id) => {
+          const { w, h, c } = newPilesBBox[id];
+          const [cX, cY] = meanVector(c);
+          const query = {
+            id,
+            minX: cX - w / 2,
+            maxX: cX + w / 2,
+            minY: cY - h / 2,
+            maxY: cY + h / 2
+          };
+          return numGroupings + search(query);
+        },
+        0
+      );
+
+      resolved = numNewGroupings === 0;
+    }
+
+    return Object.values(newPiles).map(Object.keys);
   };
 
   const groupByDistance = async (pixels, { conditions = [] } = {}) => {
