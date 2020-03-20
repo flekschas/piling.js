@@ -13,6 +13,7 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
     sizeUsage[text] = Math.max(0, sizeUsage[text] - 1);
     if (sizeUsage[text] === 0) {
       sizeTexCache.get(text).image.destroy();
+      sizeTexCache.delete(text);
       delete sizeUsage[text];
     }
   };
