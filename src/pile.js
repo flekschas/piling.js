@@ -576,7 +576,7 @@ const createPile = (
     allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
   };
 
-  const positionItems = (pileItemOffset, pileItemRotation, animator) => {
+  const positionPreviews = animator => {
     const {
       piles,
       previewItemOffset,
@@ -585,58 +585,65 @@ const createPile = (
     } = store.state;
     const pileState = piles[id];
 
-    if (getCover() && previewItemContainer.children.length) {
-      getCover().then(coverImage => {
-        const spacing = isFunction(previewSpacing)
-          ? previewSpacing(pileState)
-          : previewSpacing;
+    getCover().then(coverImage => {
+      const spacing = isFunction(previewSpacing)
+        ? previewSpacing(pileState)
+        : previewSpacing;
 
-        let offset = isFunction(previewOffset)
-          ? previewOffset(pileState)
-          : previewOffset;
+      let offset = isFunction(previewOffset)
+        ? previewOffset(pileState)
+        : previewOffset;
 
-        offset = offset !== null ? offset : spacing / 2;
+      offset = offset !== null ? offset : spacing / 2;
 
-        const halfSpacing = spacing / 2;
-        const halfWidth = coverImage.width / 2;
-        const halfHeight = coverImage.height / 2;
+      const halfSpacing = spacing / 2;
+      const halfWidth = coverImage.width / 2;
+      const halfHeight = coverImage.height / 2;
 
-        isPositioning = previewItemContainer.children > 0;
+      isPositioning = previewItemContainer.children > 0;
 
-        previewItemContainer.children.forEach((previewItem, index) => {
-          // eslint-disable-next-line no-underscore-dangle
-          const item = previewItem.__pilingjs__item;
+      previewItemContainer.children.forEach((previewItem, index) => {
+        // eslint-disable-next-line no-underscore-dangle
+        const item = previewItem.__pilingjs__item;
 
-          const itemState = store.state.items[item.id];
+        const itemState = store.state.items[item.id];
 
-          let itemOffset;
+        let itemOffset;
 
-          if (isFunction(previewItemOffset)) {
-            itemOffset = previewItemOffset(itemState, index, pileState);
-            itemOffset[0] = itemOffset[0] * coverImage.scaleFactor - halfWidth;
-            itemOffset[1] = itemOffset[1] * coverImage.scaleFactor - halfHeight;
-          } else {
-            itemOffset = [
-              0,
-              -halfHeight -
-                item.preview.height * (index + 0.5) -
-                halfSpacing * index -
-                offset
-            ];
-          }
-
-          item.preview.clearBackground();
-
-          animatePositionItems(
-            previewItem,
-            itemOffset[0],
-            itemOffset[1],
+        if (isFunction(previewItemOffset)) {
+          itemOffset = previewItemOffset(itemState, index, pileState);
+          itemOffset[0] = itemOffset[0] * coverImage.scaleFactor - halfWidth;
+          itemOffset[1] = itemOffset[1] * coverImage.scaleFactor - halfHeight;
+        } else {
+          itemOffset = [
             0,
-            animator,
-            index === previewItemContainer.children.length - 1
-          );
-        });
+            -halfHeight -
+              item.preview.height * (index + 0.5) -
+              halfSpacing * index -
+              offset
+          ];
+        }
+
+        item.preview.clearBackground();
+
+        animatePositionItems(
+          previewItem,
+          itemOffset[0],
+          itemOffset[1],
+          0,
+          animator,
+          index === previewItemContainer.children.length - 1
+        );
       });
+    });
+  };
+
+  const positionItems = animator => {
+    const { piles, pileItemOffset, pileItemRotation } = store.state;
+    const pileState = piles[id];
+
+    if (getCover() && previewItemContainer.children.length) {
+      positionPreviews(animator);
     } else if (normalItemContainer.children.length > 1 && newItems.size) {
       isPositioning = true;
 
@@ -694,6 +701,43 @@ const createPile = (
       // Cover without previews
     } else if (isPlaceholderDrawn) removePlaceholder();
     newItems.clear();
+  };
+
+  const repositionAllItems = animator => {
+    const { piles, pileItemOffset, pileItemRotation } = store.state;
+    const pileState = piles[id];
+
+    if (getCover() && previewItemContainer.children.length) {
+      positionPreviews(animator);
+    } else if (normalItemContainer.children.length > 1) {
+      isPositioning = true;
+
+      normalItemContainer.children.forEach((normalItem, index) => {
+        // eslint-disable-next-line no-underscore-dangle
+        const item = normalItem.__pilingjs__item;
+        const pileItem = normalItemIndex.get(item.id);
+
+        const itemState = store.state.items[item.id];
+        const itemIndex = allItems.indexOf(pileItem);
+
+        const itemOffset = isFunction(pileItemOffset)
+          ? pileItemOffset(itemState, itemIndex, pileState)
+          : pileItemOffset.map(_offset => _offset * itemIndex);
+
+        const itemRotation = isFunction(pileItemRotation)
+          ? pileItemRotation(itemState, itemIndex, pileState)
+          : pileItemRotation;
+
+        animatePositionItems(
+          normalItem,
+          itemOffset[0],
+          itemOffset[1],
+          itemRotation,
+          animator,
+          index === normalItemContainer.children.length - 1
+        );
+      });
+    }
   };
 
   const getScale = () => contentGraphics.scale.x;
@@ -1362,6 +1406,7 @@ const createPile = (
     positionItems,
     removeAllItems,
     removePlaceholder,
+    repositionAllItems,
     setBorderSize,
     setItems,
     drawLabel,
