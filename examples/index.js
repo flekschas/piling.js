@@ -721,6 +721,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '6.25rem',
           dtype: 'string',
           values: ['top', 'bottom'],
+          dropDown: true,
           defaultValue: 'bottom'
         },
         {
@@ -729,6 +730,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '6.25rem',
           dtype: 'string',
           values: ['horizontal', 'vertical'],
+          dropDown: true,
           defaultValue: 'horizontal'
         },
         {
@@ -824,7 +826,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         return checkboxes;
       }
 
-      if (field.values.length > 3 || isSub) {
+      if (field.values.length > 3 || isSub || field.dropDown) {
         const select = document.createElement('select');
 
         field.values.forEach((value, i) => {
@@ -1053,7 +1055,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         const inputs = document.createElement('div');
         inputs.className = 'inputs';
 
-        if (!field.multiple && (!field.values || field.values.length > 3)) {
+        if (
+          !field.multiple &&
+          (!field.values || field.values.length > 3 || field.dropDown)
+        ) {
           if (field.labelMinWidth) {
             labelTitle.style.minWidth = field.labelMinWidth;
           }
