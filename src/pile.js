@@ -63,7 +63,8 @@ const createPile = (
   let bBox = createPileBBox();
   let anchorBox = createPileBBox();
 
-  let coverItem;
+  let coverImage; // the actual cover
+  let coverItem; // the cover promise
 
   let isFocus = false;
   let isTempDepiled = false;
@@ -92,7 +93,7 @@ const createPile = (
 
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
-    if (coverItem) {
+    if (coverImage) {
       clonedSprite.x = coverItemContainer.x;
       clonedSprite.y = coverItemContainer.y;
     } else {
@@ -174,14 +175,14 @@ const createPile = (
 
     drawBorder();
 
-    // if (coverItem) {
-    //   // Wait until the cover is rendered
-    //   coverItem.then(() => {
-    //     drawBorder();
-    //   });
-    // } else {
-    //   drawBorder();
-    // }
+    if (coverItem) {
+      // Wait until the cover is rendered
+      coverItem.then(() => {
+        drawBorder();
+      });
+    } else {
+      drawBorder();
+    }
   };
 
   const getBorderSize = () => {
@@ -588,54 +589,56 @@ const createPile = (
     const pileState = piles[id];
 
     if (coverItem && previewItemContainer.children.length) {
-      const spacing = isFunction(previewSpacing)
-        ? previewSpacing(pileState)
-        : previewSpacing;
+      coverItem.then(cover => {
+        const spacing = isFunction(previewSpacing)
+          ? previewSpacing(pileState)
+          : previewSpacing;
 
-      let offset = isFunction(previewOffset)
-        ? previewOffset(pileState)
-        : previewOffset;
+        let offset = isFunction(previewOffset)
+          ? previewOffset(pileState)
+          : previewOffset;
 
-      offset = offset !== null ? offset : spacing / 2;
+        offset = offset !== null ? offset : spacing / 2;
 
-      const halfSpacing = spacing / 2;
-      const halfWidth = coverItem.width / 2;
-      const halfHeight = coverItem.height / 2;
+        const halfSpacing = spacing / 2;
+        const halfWidth = cover.width / 2;
+        const halfHeight = cover.height / 2;
 
-      isPositioning = previewItemContainer.children > 0;
+        isPositioning = previewItemContainer.children > 0;
 
-      previewItemContainer.children.forEach((previewItem, index) => {
-        // eslint-disable-next-line no-underscore-dangle
-        const item = previewItem.__pilingjs__item;
+        previewItemContainer.children.forEach((previewItem, index) => {
+          // eslint-disable-next-line no-underscore-dangle
+          const item = previewItem.__pilingjs__item;
 
-        const itemState = store.state.items[item.id];
+          const itemState = store.state.items[item.id];
 
-        let itemOffset;
+          let itemOffset;
 
-        if (isFunction(previewItemOffset)) {
-          itemOffset = previewItemOffset(itemState, index, pileState);
-          itemOffset[0] = itemOffset[0] * coverItem.scaleFactor - halfWidth;
-          itemOffset[1] = itemOffset[1] * coverItem.scaleFactor - halfHeight;
-        } else {
-          itemOffset = [
+          if (isFunction(previewItemOffset)) {
+            itemOffset = previewItemOffset(itemState, index, pileState);
+            itemOffset[0] = itemOffset[0] * cover.scaleFactor - halfWidth;
+            itemOffset[1] = itemOffset[1] * cover.scaleFactor - halfHeight;
+          } else {
+            itemOffset = [
+              0,
+              -halfHeight -
+                item.preview.height * (index + 0.5) -
+                halfSpacing * index -
+                offset
+            ];
+          }
+
+          item.preview.clearBackground();
+
+          animatePositionItems(
+            previewItem,
+            itemOffset[0],
+            itemOffset[1],
             0,
-            -halfHeight -
-              item.preview.height * (index + 0.5) -
-              halfSpacing * index -
-              offset
-          ];
-        }
-
-        item.preview.clearBackground();
-
-        animatePositionItems(
-          previewItem,
-          itemOffset[0],
-          itemOffset[1],
-          0,
-          animator,
-          index === previewItemContainer.children.length - 1
-        );
+            animator,
+            index === previewItemContainer.children.length - 1
+          );
+        });
       });
     } else if (normalItemContainer.children.length > 1 && newItems.size) {
       isPositioning = true;
@@ -1051,29 +1054,30 @@ const createPile = (
     });
   };
 
-  const getCover = () => coverItem;
+  const getCover = () => coverImage;
 
   const setCover = newCover => {
-    newCover.then(coverImage => {
-      coverItemContainer.addChild(coverImage.displayObject);
+    coverItem = newCover;
+    coverItem.then(cover => {
+      coverItemContainer.addChild(cover.displayObject);
       while (coverItemContainer.children.length > 1) {
         coverItemContainer.removeChildAt(0);
       }
       pubSub.publish('updatePileBounds', id);
-      coverItem = coverImage;
+      coverImage = cover;
       drawBorder();
     });
   };
 
   const removeCover = () => {
-    if (!coverItem) return;
+    if (!coverImage) return;
 
     const coverItemIdx = coverItemContainer.getChildIndex(
-      coverItem.displayObject
+      coverImage.displayObject
     );
     if (coverItemIdx >= 0) coverItemContainer.removeChildAt(coverItemIdx);
 
-    coverItem = undefined;
+    coverImage = undefined;
   };
 
   // eslint-disable-next-line consistent-return
