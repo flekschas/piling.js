@@ -369,34 +369,38 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
   const options = [
     {
-      id: 'grid',
-      title: 'Grid',
+      id: 'layout',
+      title: 'Layout',
       fields: [
         {
           name: 'itemSize',
+          labelMinWidth: '4rem',
           dtype: 'int',
           min: 16,
           max: 320,
-          numSteps: 16,
+          numSteps: 38,
           nullifiable: true
         },
         {
           name: 'cellSize',
+          labelMinWidth: '4rem',
           dtype: 'int',
           min: 16,
           max: 320,
-          numSteps: 16,
+          numSteps: 38,
           nullifiable: true
         },
         {
           name: 'cellPadding',
+          labelMinWidth: '4rem',
           dtype: 'int',
           min: 0,
           max: 64,
-          numSteps: 8
+          numSteps: 32
         },
         {
           name: 'columns',
+          labelMinWidth: '4rem',
           dtype: 'int',
           min: 1,
           max: 20,
@@ -404,19 +408,22 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'rowHeight',
+          labelMinWidth: '4rem',
           dtype: 'int',
           min: 16,
           max: 320,
-          numSteps: 16,
+          numSteps: 38,
           nullifiable: true
         },
         {
           name: 'cellAspectRatio',
+          labelMinWidth: '6.25rem',
           dtype: 'float',
           nullifiable: true
         },
         {
           name: 'pileCellAlignment',
+          labelMinWidth: '6.25rem',
           dtype: 'string',
           values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
         }
@@ -919,7 +926,6 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         title.setAttribute('class', 'title');
         title.textContent = field.name;
         labelTitle.appendChild(title);
-        label.appendChild(labelTitle);
 
         const valueEl = document.createElement('span');
         valueEl.setAttribute('class', 'value');
@@ -930,6 +936,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         }`;
         const inputs = document.createElement('div');
         inputs.className = 'inputs';
+
+        if (!field.multiple && (!field.values || field.values.length > 3)) {
+          if (field.labelMinWidth) {
+            labelTitle.style.minWidth = field.labelMinWidth;
+          }
+          inputs.appendChild(labelTitle);
+        } else {
+          label.appendChild(labelTitle);
+        }
 
         const input = createInput(field);
         const subInputs = field.subInputs
