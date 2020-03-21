@@ -1891,7 +1891,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const animateTempDepileItems = (item, x, y, { onDone = identity } = {}) => {
+  const animateTempDepileItem = (item, x, y, { onDone = identity } = {}) => {
     const tweener = createTweener({
       interpolator: interpolateVector,
       endValue: [x, y],
@@ -1942,7 +1942,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             ? { onDone }
             : undefined;
 
-        animateTempDepileItems(
+        animateTempDepileItem(
           item,
           -pile.tempDepileContainer.x,
           -pile.tempDepileContainer.y,
@@ -1978,7 +1978,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const options = createOptions(index === items.length - 1);
 
-        animateTempDepileItems(clonedSprite, index * 5 + widths, 0, options);
+        animateTempDepileItem(clonedSprite, index * 5 + widths, 0, options);
 
         widths += clonedSprite.width;
       });
@@ -1997,7 +1997,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const options = createOptions(index === items.length - 1);
 
-        animateTempDepileItems(clonedSprite, 0, index * 5 + heights, options);
+        animateTempDepileItem(clonedSprite, 0, index * 5 + heights, options);
 
         heights += clonedSprite.height;
       });
@@ -2029,7 +2029,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const options = createOptions(index === items.length - 1);
 
-      animateTempDepileItems(clonedSprite, x, y, options);
+      animateTempDepileItem(clonedSprite, x, y, options);
     });
   };
 
