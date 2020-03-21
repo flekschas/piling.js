@@ -197,6 +197,8 @@ const createPile = (
   let previousSize;
   let previousSizeBadge;
   const drawSizeBadge = () => {
+    if (isPositioning) return;
+
     const { piles, pileSizeBadgeAlign } = store.state;
     const [yAlign, xAlign] = isFunction(pileSizeBadgeAlign)
       ? pileSizeBadgeAlign(piles[id])
@@ -209,9 +211,6 @@ const createPile = (
 
     let sizeBadge = previousSizeBadge;
 
-    const prevX = sizeBadge ? sizeBadge.displayObject.x : 0;
-    const prevY = sizeBadge ? sizeBadge.displayObject.y : 0;
-
     if (newBadge) {
       sizeBadge = badgeFactory.create(size);
 
@@ -221,16 +220,11 @@ const createPile = (
       }
     }
 
-    if (isPositioning) {
-      sizeBadge.displayObject.x = prevX;
-      sizeBadge.displayObject.y = prevY;
-    } else {
-      // The bounds are off during positioning
-      const borderBounds = contentGraphics.getBounds();
+    // The bounds are off during positioning
+    const borderBounds = contentGraphics.getBounds();
 
-      sizeBadge.displayObject.x = (borderBounds.width / 2) * xMod;
-      sizeBadge.displayObject.y = (borderBounds.height / 2) * yMod;
-    }
+    sizeBadge.displayObject.x = (borderBounds.width / 2) * xMod;
+    sizeBadge.displayObject.y = (borderBounds.height / 2) * yMod;
 
     if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
 
