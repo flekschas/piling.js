@@ -77,6 +77,7 @@ const createPile = (
   const rootGraphics = new PIXI.Graphics();
   const borderGraphics = new PIXI.Graphics();
   const contentGraphics = new PIXI.Graphics();
+  const borderedContentContainer = new PIXI.Container();
   const normalItemContainer = new PIXI.Container();
   const previewItemContainer = new PIXI.Container();
   const coverItemContainer = new PIXI.Container();
@@ -220,11 +221,18 @@ const createPile = (
       }
     }
 
-    // The bounds are off during positioning
-    const borderBounds = contentGraphics.getBounds();
+    let bounds;
 
-    sizeBadge.displayObject.x = (borderBounds.width / 2) * xMod;
-    sizeBadge.displayObject.y = (borderBounds.height / 2) * yMod;
+    if (normalItemContainer.children.length) {
+      bounds = normalItemContainer.getBounds();
+    } else if (coverItemContainer.children.length) {
+      bounds = normalItemContainer.getBounds();
+    } else {
+      return;
+    }
+
+    sizeBadge.displayObject.x = (bounds.width / 2 + borderSizeBase) * xMod;
+    sizeBadge.displayObject.y = (bounds.height / 2 + borderSizeBase) * yMod;
 
     if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
 
@@ -536,7 +544,7 @@ const createPile = (
    * @return  {object}  Pile bounding box
    */
   const calcBBox = (xOffset = 0, yOffset = 0) => {
-    const bounds = rootGraphics.getBounds();
+    const bounds = borderedContentContainer.getBounds();
 
     return createPileBBox({
       minX: bounds.x - xOffset,
@@ -1317,8 +1325,10 @@ const createPile = (
   };
 
   const init = () => {
-    rootGraphics.addChild(borderGraphics);
-    rootGraphics.addChild(contentGraphics);
+    rootGraphics.addChild(borderedContentContainer);
+
+    borderedContentContainer.addChild(borderGraphics);
+    borderedContentContainer.addChild(contentGraphics);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
@@ -1368,7 +1378,7 @@ const createPile = (
       return contentGraphics;
     },
     get height() {
-      return rootGraphics.height;
+      return borderedContentContainer.height;
     },
     get isFocus() {
       return isFocus;
@@ -1410,7 +1420,7 @@ const createPile = (
       return tempDepileContainer;
     },
     get width() {
-      return rootGraphics.width;
+      return borderedContentContainer.width;
     },
     get x() {
       return rootGraphics.x;
