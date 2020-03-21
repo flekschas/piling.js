@@ -998,6 +998,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         if (field.dtype === 'int' && (field.min || field.max)) {
           valueEl.textContent = value;
         }
+      } else if (field.nullifiable) {
+        if (field.setter) {
+          field.setter(null);
+        } else {
+          pilingLib.set(field.name, null);
+        }
       }
     });
 
