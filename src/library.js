@@ -1892,21 +1892,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateTempDepileItem = (item, x, y, { onDone = identity } = {}) => {
-    const tweener = createTweener({
-      interpolator: interpolateVector,
-      endValue: [x, y],
-      getter: () => {
-        return [item.x, item.y];
-      },
-      setter: newValue => {
-        item.x = newValue[0];
-        item.y = newValue[1];
-      },
-      onDone: () => {
-        onDone();
-      }
-    });
-    animator.add(tweener);
+    animator.add(
+      createTweener({
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => {
+          return [item.x, item.y];
+        },
+        setter: newValue => {
+          item.x = newValue[0];
+          item.y = newValue[1];
+        },
+        onDone: () => {
+          onDone();
+        }
+      })
+    );
   };
 
   const animateAlpha = (graphics, endValue) => {
