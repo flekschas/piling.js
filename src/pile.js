@@ -53,7 +53,7 @@ const createPile = (
   const contentGraphics = new PIXI.Graphics();
   const normalItemContainer = new PIXI.Container();
   const previewItemContainer = new PIXI.Container();
-  const coverItemContainer = new PIXI.Container();
+  const coverContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
   const tempDepileContainer = new PIXI.Container();
   const hoverPreviewContainer = new PIXI.Container();
@@ -63,8 +63,8 @@ const createPile = (
   let bBox = createPileBBox();
   let anchorBox = createPileBBox();
 
-  let coverImage; // the actual cover
-  let coverItem; // the cover promise
+  let cover;
+  let whenCover;
 
   let isFocus = false;
   let isTempDepiled = false;
@@ -93,9 +93,9 @@ const createPile = (
 
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
-    if (coverImage) {
-      clonedSprite.x = coverItemContainer.x;
-      clonedSprite.y = coverItemContainer.y;
+    if (cover) {
+      clonedSprite.x = coverContainer.x;
+      clonedSprite.y = coverContainer.y;
     } else {
       clonedSprite.x = pileItem.displayObject.x;
       clonedSprite.y = pileItem.displayObject.y;
@@ -111,7 +111,7 @@ const createPile = (
       if (!rootGraphics.isDragging) {
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
-        coverItemContainer.visible = false;
+        coverContainer.visible = false;
         if (hasPreviewItem(item)) {
           const { previewBorderColor, previewBorderOpacity } = store.state;
           getForegroundColor(previewBorderColor);
@@ -140,7 +140,7 @@ const createPile = (
 
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
-      coverItemContainer.visible = true;
+      coverContainer.visible = true;
       if (hoverItemContainer.children.length === 1) {
         hoverItemContainer.removeChildAt(0);
       }
@@ -175,9 +175,9 @@ const createPile = (
 
     drawBorder();
 
-    if (coverItem) {
+    if (whenCover) {
       // Wait until the cover is rendered
-      coverItem.then(() => {
+      whenCover.then(() => {
         drawBorder();
       });
     } else {
@@ -429,8 +429,8 @@ const createPile = (
     let localXOffset = 0;
     let localYOffset = 0;
 
-    if (coverItemContainer.children.length) {
-      bounds = coverItemContainer.getBounds();
+    if (coverContainer.children.length) {
+      bounds = coverContainer.getBounds();
     } else {
       bounds = normalItemContainer.getBounds();
       if (allItems.length > 1) {
@@ -588,8 +588,8 @@ const createPile = (
     } = store.state;
     const pileState = piles[id];
 
-    if (coverItem && previewItemContainer.children.length) {
-      coverItem.then(cover => {
+    if (whenCover && previewItemContainer.children.length) {
+      whenCover.then(_cover => {
         const spacing = isFunction(previewSpacing)
           ? previewSpacing(pileState)
           : previewSpacing;
@@ -601,8 +601,8 @@ const createPile = (
         offset = offset !== null ? offset : spacing / 2;
 
         const halfSpacing = spacing / 2;
-        const halfWidth = cover.width / 2;
-        const halfHeight = cover.height / 2;
+        const halfWidth = _cover.width / 2;
+        const halfHeight = _cover.height / 2;
 
         isPositioning = previewItemContainer.children > 0;
 
@@ -616,8 +616,8 @@ const createPile = (
 
           if (isFunction(previewItemOffset)) {
             itemOffset = previewItemOffset(itemState, index, pileState);
-            itemOffset[0] = itemOffset[0] * cover.scaleFactor - halfWidth;
-            itemOffset[1] = itemOffset[1] * cover.scaleFactor - halfHeight;
+            itemOffset[0] = itemOffset[0] * _cover.scaleFactor - halfWidth;
+            itemOffset[1] = itemOffset[1] * _cover.scaleFactor - halfHeight;
           } else {
             itemOffset = [
               0,
@@ -1054,37 +1054,31 @@ const createPile = (
     });
   };
 
-  const getCover = () => coverImage;
-
-  const setCover = newCover => {
-    coverItem = newCover;
-    coverItem.then(cover => {
-      coverItemContainer.addChild(cover.displayObject);
-      while (coverItemContainer.children.length > 1) {
-        coverItemContainer.removeChildAt(0);
-      }
-      pubSub.publish('updatePileBounds', id);
-      coverImage = cover;
-      drawBorder();
-    });
+  const setCover = newWhenCover => {
+    if (!newWhenCover) {
+      removeCover();
+    } else {
+      whenCover = newWhenCover;
+      whenCover.then(newCover => {
+        cover = newCover;
+        coverContainer.addChild(cover.displayObject);
+        while (coverContainer.children.length > 1) {
+          coverContainer.removeChildAt(0);
+        }
+        pubSub.publish('updatePileBounds', id);
+        drawBorder();
+      });
+    }
   };
 
   const removeCover = () => {
-    if (!coverImage) return;
+    if (!cover) return;
 
-    const coverItemIdx = coverItemContainer.getChildIndex(
-      coverImage.displayObject
-    );
-    if (coverItemIdx >= 0) coverItemContainer.removeChildAt(coverItemIdx);
+    const coverIdx = coverContainer.getChildIndex(cover.displayObject);
+    if (coverIdx >= 0) coverContainer.removeChildAt(coverIdx);
 
-    coverImage = undefined;
-  };
-
-  // eslint-disable-next-line consistent-return
-  const cover = newCover => {
-    if (typeof newCover === 'undefined') return getCover();
-    if (newCover === null) return removeCover();
-    setCover(newCover);
+    cover = undefined;
+    whenCover = undefined;
   };
 
   let labelGraphics;
@@ -1131,7 +1125,7 @@ const createPile = (
 
     const firstItem = normalItemContainer.children.length
       ? normalItemContainer.getChildAt(0)
-      : coverItemContainer.getChildAt(0);
+      : coverContainer.getChildAt(0);
 
     const scaleFactor = baseScale * magnification;
 
@@ -1243,7 +1237,7 @@ const createPile = (
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
-    contentGraphics.addChild(coverItemContainer);
+    contentGraphics.addChild(coverContainer);
     contentGraphics.addChild(hoverItemContainer);
     contentGraphics.addChild(tempDepileContainer);
     contentGraphics.addChild(hoverPreviewContainer);
@@ -1281,6 +1275,9 @@ const createPile = (
     },
     get bBox() {
       return bBox;
+    },
+    get cover() {
+      return cover;
     },
     get graphics() {
       return rootGraphics;
@@ -1346,7 +1343,6 @@ const createPile = (
     animateOpacity,
     animateScale,
     blur,
-    cover,
     hover,
     focus,
     active,
@@ -1367,6 +1363,7 @@ const createPile = (
     setBorderSize,
     setItems,
     drawLabel,
+    setCover,
     setScale,
     setOpacity,
     setVisibilityItems,
