@@ -836,11 +836,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     pileInstances.forEach(pile => {
-      if (pile.cover()) {
-        pile.cover().then(coverImage => {
-          const scaleFactor = getImageScaleFactor(coverImage);
-          coverImage.scale(scaleFactor);
-        });
+      if (pile.cover) {
+        const scaleFactor = getImageScaleFactor(pile.cover);
+        pile.cover.scale(scaleFactor);
       }
       pile.updateOffset();
     });
@@ -870,10 +868,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       layout.numRows = Math.ceil(renderedItems.size / layout.numColumns);
       pileInstances.forEach(pile => {
-        const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(
-          pile.bBox.cX,
-          pile.bBox.cY
-        );
+        const pos = oldLayout.getPilePosByCellAlignment(pile);
+        const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(pos[0], pos[1]);
 
         pile.updateOffset();
         updatePileBounds(pile.id);
@@ -891,7 +887,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       pileInstances.forEach(pile => {
-        if (pile.cover()) {
+        if (pile.cover) {
           positionItems(pile.id);
         }
       });
@@ -1418,7 +1414,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     } = store.state;
 
     if (pileState.items.length === 1) {
-      pileInstance.cover(null);
+      pileInstance.setCover(null);
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
@@ -1458,7 +1454,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           return scaledImage;
         });
 
-      pileInstance.cover(coverImage);
+      pileInstance.setCover(coverImage);
 
       coverImage.then(() => {
         renderRaf();
