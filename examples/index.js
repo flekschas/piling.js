@@ -962,7 +962,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         isSet.disabled = true;
       }
 
-      if (!(field.values && (field.multiple || !field.nullifiable))) {
+      if (
+        !(field.values && (field.multiple || !field.nullifiable)) &&
+        field.dtype !== 'boolean'
+      ) {
         outElements.push(isSet);
       }
     }
