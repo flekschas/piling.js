@@ -31,8 +31,6 @@ const createBadge = (
 
   const image = createImage(texture);
 
-  if (darkMode) image.invert(true);
-
   let background;
   if (backgroundFactory) {
     background = backgroundFactory.create();
@@ -54,8 +52,10 @@ const createBadge = (
 
   const setDarkMode = newDarkMode => {
     image.invert(newDarkMode);
-    background.setColor(newDarkMode ? [0, 0, 0, 1] : [1, 1, 1, 1]);
+    backgroundFactory.setColor(newDarkMode ? [1, 1, 1, 1] : [0, 0, 0, 1]);
   };
+
+  setDarkMode(darkMode);
 
   return pipe(
     withConstructor(createBadge),

@@ -214,7 +214,7 @@ const createPile = (
     let sizeBadge = previousSizeBadge;
 
     if (newBadge) {
-      sizeBadge = badgeFactory.create(size);
+      sizeBadge = badgeFactory.create(size, { darkMode: store.state.darkMode });
 
       if (previousSize !== undefined) {
         rootGraphics.removeChild(previousSizeBadge.displayObject);
