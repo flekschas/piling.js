@@ -201,7 +201,7 @@ const createPile = (
   const drawSizeBadge = () => {
     if (isPositioning) return;
 
-    const { piles, pileSizeBadgeAlign } = store.state;
+    const { darkMode, piles, pileSizeBadgeAlign } = store.state;
     const [yAlign, xAlign] = isFunction(pileSizeBadgeAlign)
       ? pileSizeBadgeAlign(piles[id])
       : pileSizeBadgeAlign;
@@ -214,7 +214,7 @@ const createPile = (
     let sizeBadge = previousSizeBadge;
 
     if (newBadge) {
-      sizeBadge = badgeFactory.create(size, { darkMode: store.state.darkMode });
+      sizeBadge = badgeFactory.create(size, { darkMode });
 
       if (previousSize !== undefined) {
         rootGraphics.removeChild(previousSizeBadge.displayObject);
@@ -251,6 +251,7 @@ const createPile = (
     } else if (previousSizeBadge) {
       rootGraphics.removeChild(previousSizeBadge.displayObject);
       previousSizeBadge.destroy();
+      previousSize = undefined;
     }
   };
 
