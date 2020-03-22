@@ -5,6 +5,7 @@ export { default as ifNotNull } from './if-not-null';
 export { default as isNdarray } from './is-ndarray';
 export { default as getBBox } from './get-bbox';
 export { default as scaleLinear } from './scale-linear';
+export { default as toAlignment } from './to-alignment';
 export { default as toDisplayObject } from './to-display-object';
 export { default as toHomogeneous } from './to-homogeneous';
 export { default as uniqueStr } from './unique-str';

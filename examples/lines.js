@@ -47,6 +47,8 @@ const createSvgLinesPiles = (element, darkMode) => {
     pileItemOpacity: (item, i, pile) =>
       (1 / pile.items.length) * (2 / 3) + 1 / 3,
     pileItemOffset: [0, 0],
+    pileBackgroundColor: 'rgba(255, 255, 255, 0.85)',
+    pileSizeBadge: pile => pile.items.length > 1,
     pileContextMenuItems: [
       {
         label: 'Redraw',
