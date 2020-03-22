@@ -3122,7 +3122,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       (state.pileOpacity !== newState.pileOpacity ||
         state.pileBorderSize !== newState.pileBorderSize ||
         state.pileScale !== newState.pileScale ||
-        state.pileSizeBadge !== newState.pileSizeBadge)
+        state.pileSizeBadge !== newState.pileSizeBadge ||
+        state.pileSizeBadgeAlign !== newState.pileSizeBadgeAlign)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);
