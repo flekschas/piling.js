@@ -3338,8 +3338,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (stateUpdates.has('positionItems')) {
-      // eslint-disable-next-line no-console
-      console.log('111');
       Object.values(state.piles).forEach(pile => {
         if (pile.items.length > 1) positionItems(pile.id, { all: true });
       });
