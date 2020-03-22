@@ -308,7 +308,7 @@ The following options are available for all types:
     piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
     ```
 
-#### `piling.pileBy(type, objective, options)`
+#### `piling.groupBy(type, objective, options)`
 
 Programmatically group items and piles based on the layout, spatial proximity, or data together.
 
@@ -327,31 +327,31 @@ Programmatically group items and piles based on the layout, spatial proximity, o
 **Notes and examples:**
 
 ```javascript
-piling.pileBy('row', 'left'); // Pile by row and align pile to the left most item/pile.
+piling.groupBy('row', 'left'); // Pile by row and align pile to the left most item/pile.
 
-piling.pileBy('column', 'top'); // Pile by column and align pile to the top most item/pile.
+piling.groupBy('column', 'top'); // Pile by column and align pile to the top most item/pile.
 
-piling.pileBy('grid'); // Pile by grid using the current layout
-piling.pileBy('grid', { columns: 10, cellAspectRatio: 1.5 }); // Pile by grid using a grid of 10 columns with a cell aspect ratio of 1.5 (= width/height)
+piling.groupBy('grid'); // Pile by grid using the current layout
+piling.groupBy('grid', { columns: 10, cellAspectRatio: 1.5 }); // Pile by grid using a grid of 10 columns with a cell aspect ratio of 1.5 (= width/height)
 
-piling.pileBy('overlap'); // Pile all overlapping items/piles
-piling.pileBy('overlap', 64); // Pile all items/piles that overlap by 64 or more square pixels
+piling.groupBy('overlap'); // Pile all overlapping items/piles
+piling.groupBy('overlap', 64); // Pile all items/piles that overlap by 64 or more square pixels
 
-piling.pileBy('distance'); // Pile all items/piles that touch each other
-piling.pileBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
+piling.groupBy('distance'); // Pile all items/piles that touch each other
+piling.groupBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
 
-piling.pileBy('category', 'country'); // Pile all items/piles that have the same country value
-piling.pileBy('category', item => item.country); // Same as before
-piling.pileBy('category', {
+piling.groupBy('category', 'country'); // Pile all items/piles that have the same country value
+piling.groupBy('category', item => item.country); // Same as before
+piling.groupBy('category', {
   property: 'country',
   aggregator: countries => countries[0]
 }); // Same as before but with a custom aggregator that simply picks the first country to define the category
 
-piling.pileBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
-piling.pileBy('cluster', item => item.x); // Same as above
-piling.pileBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
-piling.pileBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
-piling.pileBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
+piling.groupBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
+piling.groupBy('cluster', item => item.x); // Same as above
+piling.groupBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
+piling.groupBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
+piling.groupBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
 ```
 
 #### `piling.destroy()`
