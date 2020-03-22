@@ -29,6 +29,32 @@ modeToString.set(MODE_HOVER, 'Hover');
 modeToString.set(MODE_FOCUS, 'Focus');
 modeToString.set(MODE_ACTIVE, 'Active');
 
+const alignToXMod = align => {
+  switch (align) {
+    case 'left':
+      return -1;
+
+    case 'right':
+      return 1;
+
+    default:
+      return 0;
+  }
+};
+
+const alignToYMod = align => {
+  switch (align) {
+    case 'top':
+      return -1;
+
+    case 'bottom':
+      return 1;
+
+    default:
+      return 0;
+  }
+};
+
 /**
  * Factory function to create a pile
  * @param {object}   options - The options
@@ -39,7 +65,7 @@ modeToString.set(MODE_ACTIVE, 'Active');
  * @param {object}   options.store - Redux store
  */
 const createPile = (
-  { render, id, pubSub, store },
+  { render, id, pubSub, store, badgeFactory },
   { x: initialX = 0, y: initialY = 0 } = {}
 ) => {
   const allItems = [];
@@ -51,6 +77,7 @@ const createPile = (
   const rootGraphics = new PIXI.Graphics();
   const borderGraphics = new PIXI.Graphics();
   const contentGraphics = new PIXI.Graphics();
+  const borderedContentContainer = new PIXI.Container();
   const normalItemContainer = new PIXI.Container();
   const previewItemContainer = new PIXI.Container();
   const coverContainer = new PIXI.Container();
@@ -85,6 +112,7 @@ const createPile = (
   let hoverItemEndSubscriber;
 
   const destroy = () => {
+    if (previousSizeBadge) previousSizeBadge.destroy();
     rootGraphics.destroy();
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
@@ -168,6 +196,64 @@ const createPile = (
     }
   };
 
+  let previousSize;
+  let previousSizeBadge;
+  const drawSizeBadge = () => {
+    if (isPositioning) return;
+
+    const { piles, pileSizeBadgeAlign } = store.state;
+    const [yAlign, xAlign] = isFunction(pileSizeBadgeAlign)
+      ? pileSizeBadgeAlign(piles[id])
+      : pileSizeBadgeAlign;
+    const xMod = alignToXMod(xAlign);
+    const yMod = alignToYMod(yAlign);
+
+    const size = allItems.length;
+    const newBadge = size !== previousSize;
+
+    let sizeBadge = previousSizeBadge;
+
+    if (newBadge) {
+      sizeBadge = badgeFactory.create(size);
+
+      if (previousSize !== undefined) {
+        rootGraphics.removeChild(previousSizeBadge.displayObject);
+        previousSizeBadge.destroy();
+      }
+    }
+
+    let bounds;
+
+    if (normalItemContainer.children.length) {
+      bounds = normalItemContainer.getBounds();
+    } else if (coverItemContainer.children.length) {
+      bounds = normalItemContainer.getBounds();
+    } else {
+      return;
+    }
+
+    sizeBadge.displayObject.x = (bounds.width / 2 + borderSizeBase) * xMod;
+    sizeBadge.displayObject.y = (bounds.height / 2 + borderSizeBase) * yMod;
+
+    if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
+
+    previousSizeBadge = sizeBadge;
+    previousSize = size;
+
+    render();
+  };
+
+  let isShowSizeBadge = false;
+  const showSizeBadge = show => {
+    isShowSizeBadge = show;
+    if (isShowSizeBadge) {
+      drawSizeBadge();
+    } else if (previousSizeBadge) {
+      rootGraphics.removeChild(previousSizeBadge.displayObject);
+      previousSizeBadge.destroy();
+    }
+  };
+
   let borderSizeBase = 0;
 
   const setBorderSize = newBorderSize => {
@@ -219,7 +305,7 @@ const createPile = (
       return;
     }
 
-    if (isPositioning || isScaling) {
+    if (isPositioning) {
       const currentMode = mode;
       postPilePositionAnimation.set('drawBorder', () => {
         drawBorder(size, currentMode);
@@ -268,6 +354,8 @@ const createPile = (
       contentBounds.width + 2 * borderOffset,
       contentBounds.height + 2 * borderOffset
     );
+
+    if (isShowSizeBadge) drawSizeBadge();
 
     render();
   };
@@ -459,7 +547,7 @@ const createPile = (
    * @return  {object}  Pile bounding box
    */
   const calcBBox = (xOffset = 0, yOffset = 0) => {
-    const bounds = rootGraphics.getBounds();
+    const bounds = borderedContentContainer.getBounds();
 
     return createPileBBox({
       minX: bounds.x - xOffset,
@@ -760,6 +848,7 @@ const createPile = (
       getter: getScale,
       setter: v => {
         setScale(v, { isMagnification });
+        drawBorder();
       },
       onDone: () => {
         isScaling = false;
@@ -1232,8 +1321,10 @@ const createPile = (
   };
 
   const init = () => {
-    rootGraphics.addChild(borderGraphics);
-    rootGraphics.addChild(contentGraphics);
+    rootGraphics.addChild(borderedContentContainer);
+
+    borderedContentContainer.addChild(borderGraphics);
+    borderedContentContainer.addChild(contentGraphics);
 
     contentGraphics.addChild(normalItemContainer);
     contentGraphics.addChild(previewItemContainer);
@@ -1286,7 +1377,7 @@ const createPile = (
       return contentGraphics;
     },
     get height() {
-      return rootGraphics.height;
+      return borderedContentContainer.height;
     },
     get isFocus() {
       return isFocus;
@@ -1328,7 +1419,7 @@ const createPile = (
       return tempDepileContainer;
     },
     get width() {
-      return rootGraphics.width;
+      return borderedContentContainer.width;
     },
     get x() {
       return rootGraphics.x;
@@ -1352,6 +1443,7 @@ const createPile = (
     destroy,
     drawBorder,
     drawPlaceholder,
+    drawSizeBadge,
     getItemById,
     hasItem,
     magnifyByWheel,
@@ -1368,6 +1460,7 @@ const createPile = (
     setOpacity,
     setVisibilityItems,
     setItemOrder,
+    showSizeBadge,
     updateBounds,
     updateOffset: updateBaseOffset,
     replaceItemsImage,

@@ -26,6 +26,7 @@ import {
   DEFAULT_PILE_COVER_SCALE,
   DEFAULT_PILE_ITEM_BRIGHTNESS,
   DEFAULT_PILE_ITEM_TINT,
+  DEFAULT_PILE_SIZE_BADGE_ALIGN,
   DEFAULT_POPUP_BACKGROUND_OPACITY,
   DEFAULT_PREVIEW_BACKGROUND_COLOR,
   DEFAULT_PREVIEW_BACKGROUND_OPACITY,
@@ -351,6 +352,13 @@ const [pileContextMenuItems, setPileContextMenuItems] = setter(
   []
 );
 
+const [pileSizeBadge, setPileSizeBadge] = setter('pileSizeBadge', false);
+
+const [pileSizeBadgeAlign, setPileSizeBadgeAlign] = setter(
+  'pileSizeBadgeAlign',
+  DEFAULT_PILE_SIZE_BADGE_ALIGN
+);
+
 const [pileVisibilityItems, setPileVisibilityItems] = setter(
   'pileVisibilityItems',
   true
@@ -624,6 +632,8 @@ const createStore = () => {
     pileOpacity,
     piles,
     pileScale,
+    pileSizeBadge,
+    pileSizeBadgeAlign,
     pileVisibilityItems,
     previewAggregator,
     previewBackgroundColor,
@@ -782,6 +792,8 @@ export const createAction = {
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
+  setPileSizeBadge,
+  setPileSizeBadgeAlign,
   setPreviewAggregator,
   setPreviewBackgroundColor,
   setPreviewBackgroundOpacity,
