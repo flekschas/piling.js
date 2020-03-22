@@ -226,7 +226,7 @@ const createPile = (
 
     if (normalItemContainer.children.length) {
       bounds = normalItemContainer.getBounds();
-    } else if (coverItemContainer.children.length) {
+    } else if (coverContainer.children.length) {
       bounds = normalItemContainer.getBounds();
     } else {
       return;
@@ -667,7 +667,7 @@ const createPile = (
     allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
   };
 
-  const positionItems = (pileItemOffset, pileItemRotation, animator) => {
+  const positionPreviews = animator => {
     const {
       piles,
       previewItemOffset,
@@ -676,112 +676,147 @@ const createPile = (
     } = store.state;
     const pileState = piles[id];
 
-    if (whenCover && previewItemContainer.children.length) {
-      whenCover.then(_cover => {
-        const spacing = isFunction(previewSpacing)
-          ? previewSpacing(pileState)
-          : previewSpacing;
+    whenCover.then(_cover => {
+      const spacing = isFunction(previewSpacing)
+        ? previewSpacing(pileState)
+        : previewSpacing;
 
-        let offset = isFunction(previewOffset)
-          ? previewOffset(pileState)
-          : previewOffset;
+      let offset = isFunction(previewOffset)
+        ? previewOffset(pileState)
+        : previewOffset;
 
-        offset = offset !== null ? offset : spacing / 2;
+      offset = offset !== null ? offset : spacing / 2;
 
-        const halfSpacing = spacing / 2;
-        const halfWidth = _cover.width / 2;
-        const halfHeight = _cover.height / 2;
+      const halfSpacing = spacing / 2;
+      const halfWidth = _cover.width / 2;
+      const halfHeight = _cover.height / 2;
 
-        isPositioning = previewItemContainer.children > 0;
+      isPositioning = previewItemContainer.children > 0;
 
-        previewItemContainer.children.forEach((previewItem, index) => {
-          // eslint-disable-next-line no-underscore-dangle
-          const item = previewItem.__pilingjs__item;
-
-          const itemState = store.state.items[item.id];
-
-          let itemOffset;
-
-          if (isFunction(previewItemOffset)) {
-            itemOffset = previewItemOffset(itemState, index, pileState);
-            itemOffset[0] = itemOffset[0] * _cover.scaleFactor - halfWidth;
-            itemOffset[1] = itemOffset[1] * _cover.scaleFactor - halfHeight;
-          } else {
-            itemOffset = [
-              0,
-              -halfHeight -
-                item.preview.height * (index + 0.5) -
-                halfSpacing * index -
-                offset
-            ];
-          }
-
-          item.preview.clearBackground();
-
-          animatePositionItems(
-            previewItem,
-            itemOffset[0],
-            itemOffset[1],
-            0,
-            animator,
-            index === previewItemContainer.children.length - 1
-          );
-        });
-      });
-    } else if (normalItemContainer.children.length > 1 && newItems.size) {
-      isPositioning = true;
-
-      // newItems is a set, there is no index, so we're using a counter
-      let count = 0;
-
-      newItems.forEach(pileItem => {
-        count++;
-
-        const item = pileItem.item;
-        const displayObject = pileItem.displayObject;
-
-        // eslint-disable-next-line no-use-before-define
-        const currentScale = getScale();
-
-        // When the scale of the source and target pile were different, we need
-        // to equalize the scale.
-        displayObject.tmpTargetScale = displayObject.scale.x;
-        if (!Number.isNaN(+item.tmpRelScale)) {
-          const relItemScale = item.tmpRelScale / currentScale;
-          displayObject.scale.x *= relItemScale;
-          displayObject.scale.y = displayObject.scale.x;
-          delete item.tmpRelScale;
-        }
-
-        if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
-          pileItem.moveTo(
-            (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-            (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
-          );
-          delete item.tmpAbsX;
-          delete item.tmpAbsY;
-        }
-
+      previewItemContainer.children.forEach((previewItem, index) => {
+        // eslint-disable-next-line no-underscore-dangle
+        const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
-        const itemIndex = allItems.indexOf(pileItem);
 
-        const itemOffset = isFunction(pileItemOffset)
-          ? pileItemOffset(itemState, itemIndex, pileState)
-          : pileItemOffset.map(_offset => _offset * itemIndex);
+        let itemOffset;
 
-        const itemRotation = isFunction(pileItemRotation)
-          ? pileItemRotation(itemState, itemIndex, pileState)
-          : pileItemRotation;
+        if (isFunction(previewItemOffset)) {
+          itemOffset = previewItemOffset(itemState, index, pileState);
+          itemOffset[0] = itemOffset[0] * _cover.scaleFactor - halfWidth;
+          itemOffset[1] = itemOffset[1] * _cover.scaleFactor - halfHeight;
+        } else {
+          itemOffset = [
+            0,
+            -halfHeight -
+              item.preview.height * (index + 0.5) -
+              halfSpacing * index -
+              offset
+          ];
+        }
+
+        item.preview.clearBackground();
 
         animatePositionItems(
-          displayObject,
+          previewItem,
           itemOffset[0],
           itemOffset[1],
-          itemRotation,
+          0,
           animator,
-          count === newItems.size
+          index === previewItemContainer.children.length - 1
         );
       });
+    });
+  };
+
+  const positionItems = (animator, { all = false }) => {
+    const { piles, pileItemOffset, pileItemRotation } = store.state;
+    const pileState = piles[id];
+
+    if (whenCover && previewItemContainer.children.length) {
+      positionPreviews(animator);
+    } else if (normalItemContainer.children.length > 1) {
+      isPositioning = true;
+      if (!all) {
+        if (newItems.size) {
+          // newItems is a set, there is no index, so we're using a counter
+          let count = 0;
+
+          newItems.forEach(pileItem => {
+            count++;
+
+            const item = pileItem.item;
+            const displayObject = pileItem.displayObject;
+
+            // eslint-disable-next-line no-use-before-define
+            const currentScale = getScale();
+
+            // When the scale of the source and target pile were different, we need
+            // to equalize the scale.
+            displayObject.tmpTargetScale = displayObject.scale.x;
+            if (!Number.isNaN(+item.tmpRelScale)) {
+              const relItemScale = item.tmpRelScale / currentScale;
+              displayObject.scale.x *= relItemScale;
+              displayObject.scale.y = displayObject.scale.x;
+              delete item.tmpRelScale;
+            }
+
+            if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
+              pileItem.moveTo(
+                (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
+                (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
+              );
+              delete item.tmpAbsX;
+              delete item.tmpAbsY;
+            }
+
+            const itemState = store.state.items[item.id];
+            const itemIndex = allItems.indexOf(pileItem);
+
+            const itemOffset = isFunction(pileItemOffset)
+              ? pileItemOffset(itemState, itemIndex, pileState)
+              : pileItemOffset.map(_offset => _offset * itemIndex);
+
+            const itemRotation = isFunction(pileItemRotation)
+              ? pileItemRotation(itemState, itemIndex, pileState)
+              : pileItemRotation;
+
+            animatePositionItems(
+              displayObject,
+              itemOffset[0],
+              itemOffset[1],
+              itemRotation,
+              animator,
+              count === newItems.size
+            );
+          });
+        }
+      } else {
+        normalItemContainer.children.forEach((normalItem, index) => {
+          // eslint-disable-next-line no-underscore-dangle
+          const item = normalItem.__pilingjs__item;
+          const pileItem = normalItemIndex.get(item.id);
+
+          const itemState = store.state.items[item.id];
+          const itemIndex = allItems.indexOf(pileItem);
+
+          const itemOffset = isFunction(pileItemOffset)
+            ? pileItemOffset(itemState, itemIndex, pileState)
+            : pileItemOffset.map(_offset => _offset * itemIndex);
+
+          const itemRotation = isFunction(pileItemRotation)
+            ? pileItemRotation(itemState, itemIndex, pileState)
+            : pileItemRotation;
+
+          animatePositionItems(
+            normalItem,
+            itemOffset[0],
+            itemOffset[1],
+            itemRotation,
+            animator,
+            index === normalItemContainer.children.length - 1
+          );
+        });
+      }
       // Cover without previews
     } else if (isPlaceholderDrawn) removePlaceholder();
     newItems.clear();
@@ -1182,8 +1217,12 @@ const createPile = (
   ) => {
     if (!labels.length) {
       if (labelGraphics) {
+        pileLabels = [];
+        labelColors = [];
+        labelTextures = [];
         labelGraphics.clear();
         labelGraphics.removeChildren();
+        render();
       }
       return;
     }

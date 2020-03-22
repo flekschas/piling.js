@@ -1,3 +1,4 @@
+import { isFunction } from '@flekschas/utils';
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
@@ -367,10 +368,19 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   let pileByDistancePx = 1;
   let pileByCategory = categoricalProps[0];
 
+  let pileItemOffsetX;
+  let pileItemOffsetY;
+  const pileItemOffsetDisable = isFunction(piling.get('pileItemOffset'));
+  if (!pileItemOffsetDisable) {
+    const [x, y] = piling.get('pileItemOffset');
+    pileItemOffsetX = x;
+    pileItemOffsetY = y;
+  }
+
   const options = [
     {
-      id: 'layout',
-      title: 'Layout',
+      id: 'pile-item',
+      title: 'Pile/Item',
       fields: [
         {
           name: 'itemSize',
@@ -381,6 +391,73 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           numSteps: 38,
           nullifiable: true
         },
+        {
+          name: 'pileItemOffset',
+          width: '6rem',
+          dtype: null,
+          hide: pileItemOffsetDisable || piling.get('previewRenderer'),
+          subInputs: [
+            {
+              name: 'x',
+              dtype: 'float',
+              defaultValue: pileItemOffsetX,
+              setter: x => {
+                pileItemOffsetX = x;
+                piling.set('pileItemOffset', [
+                  pileItemOffsetX,
+                  pileItemOffsetY
+                ]);
+              }
+            },
+            {
+              name: 'y',
+              dtype: 'float',
+              defaultValue: pileItemOffsetY,
+              setter: y => {
+                pileItemOffsetY = y;
+                piling.set('pileItemOffset', [
+                  pileItemOffsetX,
+                  pileItemOffsetY
+                ]);
+              }
+            }
+          ]
+        },
+        // Can't be adjusted dynamically at the moment
+        // {
+        //   name: 'previewPadding',
+        //   hide: isFunction(pilingLib.get('previewPadding')),
+        //   labelMinWidth: '5rem',
+        //   dtype: 'int',
+        //   min: 0,
+        //   max: 10
+        // },
+        {
+          name: 'previewSpacing',
+          hide:
+            isFunction(pilingLib.get('previewSpacing')) ||
+            !piling.get('previewRenderer'),
+          labelMinWidth: '5rem',
+          dtype: 'int',
+          min: 0,
+          max: 10
+        },
+        {
+          name: 'previewOffset',
+          hide:
+            isFunction(pilingLib.get('previewOffset')) ||
+            !piling.get('previewRenderer'),
+          labelMinWidth: '5rem',
+          dtype: 'int',
+          min: 0,
+          max: 10
+        }
+      ]
+    },
+    {
+      id: 'layout',
+      title: 'Layout',
+      fields: [
         {
           name: 'cellSize',
           labelMinWidth: '4rem',
@@ -638,6 +715,62 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         }
       ]
     },
+    {
+      id: 'label',
+      title: 'Label',
+      fields: [
+        {
+          name: 'pileLabel',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'string',
+          values: categoricalProps,
+          multiple: true,
+          nullifiable: true
+        },
+        {
+          name: 'pileLabelText',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '4rem',
+          dtype: 'boolean',
+          nullifiable: true
+        },
+        {
+          name: 'pileLabelAlign',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6.25rem',
+          dtype: 'string',
+          values: ['top', 'bottom'],
+          dropDown: true,
+          defaultValue: 'bottom'
+        },
+        {
+          name: 'pileLabelStackAlign',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6.25rem',
+          dtype: 'string',
+          values: ['horizontal', 'vertical'],
+          dropDown: true,
+          defaultValue: 'horizontal'
+        },
+        {
+          name: 'pileLabelFontSize',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6rem',
+          dtype: 'int',
+          min: 0,
+          max: 15
+        },
+        {
+          name: 'pileLabelHeight',
+          hide: categoricalProps.length === 0,
+          labelMinWidth: '6rem',
+          dtype: 'int',
+          min: 0,
+          max: 15
+        }
+      ]
+    },
     ...additionalOptions
   ];
 
@@ -711,7 +844,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         return checkboxes;
       }
 
-      if (field.values.length > 3 || isSub) {
+      if (field.values.length > 3 || isSub || field.dropDown) {
         const select = document.createElement('select');
 
         field.values.forEach((value, i) => {
@@ -849,7 +982,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         isSet.disabled = true;
       }
 
-      if (!(field.values && (field.multiple || !field.nullifiable))) {
+      if (
+        !(field.values && (field.multiple || !field.nullifiable)) &&
+        field.dtype !== 'boolean'
+      ) {
         outElements.push(isSet);
       }
     }
@@ -866,7 +1002,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         isSet.checked = value.length;
       }
 
-      if (isSet && isSet.checked) {
+      if (field.dtype === 'boolean') {
+        value = event.target.checked;
+        if (field.setter) {
+          field.setter(value);
+        } else {
+          pilingLib.set(field.name, value);
+        }
+      } else if (isSet && isSet.checked) {
         value = field.dtype && parseDtype[field.dtype](value);
 
         if (field.setter) {
@@ -879,6 +1022,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
         if (field.dtype === 'int' && (field.min || field.max)) {
           valueEl.textContent = value;
+        }
+      } else if (field.nullifiable) {
+        if (field.setter) {
+          field.setter(null);
+        } else {
+          pilingLib.set(field.name, null);
         }
       }
     });
@@ -937,7 +1086,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         const inputs = document.createElement('div');
         inputs.className = 'inputs';
 
-        if (!field.multiple && (!field.values || field.values.length > 3)) {
+        if (
+          !field.multiple &&
+          (!field.values || field.values.length > 3 || field.dropDown)
+        ) {
           if (field.labelMinWidth) {
             labelTitle.style.minWidth = field.labelMinWidth;
           }
@@ -951,16 +1103,19 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           ? field.subInputs.map(subInput => createInput(subInput, true))
           : [];
 
-        let newElements = addListeners(input, field, valueEl);
+        let newElements;
 
-        newElements.forEach(el => inputs.appendChild(el));
-        inputs.appendChild(input);
-        if (field.dtype === 'int' && (field.min || field.max)) {
-          inputs.appendChild(valueEl);
-          valueEl.textContent =
-            field.defaultValue !== undefined
-              ? field.defaultValue
-              : pilingLib.get(field.name);
+        if (field.dtype !== null) {
+          newElements = addListeners(input, field, valueEl);
+          newElements.forEach(el => inputs.appendChild(el));
+          inputs.appendChild(input);
+          if (field.dtype === 'int' && (field.min || field.max)) {
+            inputs.appendChild(valueEl);
+            valueEl.textContent =
+              field.defaultValue !== undefined
+                ? field.defaultValue
+                : pilingLib.get(field.name);
+          }
         }
 
         subInputs.forEach((subInput, i) => {

@@ -258,7 +258,7 @@ const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
-const [previewOffset, setPreviewOffset] = setter('previewOffset');
+const [previewOffset, setPreviewOffset] = setter('previewOffset', 2);
 
 const [previewBackgroundColor, setPreviewBackgroundColor] = setter(
   'previewBackgroundColor',

@@ -1290,13 +1290,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
-  const positionItems = pileId => {
-    const {
-      items,
-      pileItemOffset,
-      pileItemRotation,
-      pileItemOrder
-    } = store.state;
+  const positionItems = (pileId, { all = false } = {}) => {
+    const { items, pileItemOrder } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
 
@@ -1305,7 +1300,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstance.setItemOrder(pileItemOrder(itemStates));
     }
 
-    pileInstance.positionItems(pileItemOffset, pileItemRotation, animator);
+    pileInstance.positionItems(animator, { all });
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
@@ -2870,7 +2865,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // Destroy existing labels to avoid memory leaks
     uniqueLabels.forEach(label => {
-      label.pixiText.destroy();
+      if (label.pixiText) label.pixiText.destroy();
     });
 
     uniqueLabels.clear();
@@ -2927,7 +2922,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
-    if (!store.state.pileLabel || !pileInstance) return;
+    if (!pileInstance) return;
+
+    if (!store.state.pileLabel) {
+      pileInstance.drawLabel([]);
+      return;
+    }
 
     const { pileLabel, items } = store.state;
 
@@ -2935,7 +2935,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const labels = unique(
       pileState.items.flatMap(itemId =>
-        pileLabel.map(objective => objective(items[itemId]))
+        pileLabel.map(objective => objective(items[itemId])).join('-')
       )
     );
 
@@ -3148,15 +3148,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.pileItemOffset !== newState.pileItemOffset) {
-      stateUpdates.add('layout');
-    }
-
-    if (state.previewItemOffset !== newState.previewItemOffset) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
     }
 
     if (state.pileItemRotation !== newState.pileItemRotation) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
+    }
+
+    if (
+      state.previewPadding !== newState.previewPadding ||
+      state.previewSpacing !== newState.previewSpacing ||
+      state.previewScaling !== newState.previewScaling ||
+      state.previewOffset !== newState.previewOffset ||
+      state.previewItemOffset !== newState.previewItemOffset
+    ) {
+      stateUpdates.add('positionItems');
     }
 
     if (state.tempDepileDirection !== newState.tempDepileDirection) {
@@ -3244,10 +3250,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.depiledPile !== newState.depiledPile) {
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
-    }
-
-    if (state.previewSpacing !== newState.previewSpacing) {
-      stateUpdates.add('layout');
     }
 
     if (state.showGrid !== newState.showGrid) {
@@ -3348,6 +3350,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (stateUpdates.has('navigation')) {
       updateNavigationMode();
+    }
+
+    if (stateUpdates.has('positionItems')) {
+      Object.values(state.piles).forEach(pile => {
+        if (pile.items.length > 1) positionItems(pile.id, { all: true });
+      });
     }
 
     awaitItemUpdates(currentItemUpdates);
@@ -3571,6 +3579,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const expandLabelObjective = objective => {
+    if (objective === null) return null;
+
     const objectives = Array.isArray(objective) ? objective : [objective];
     return objectives.map(_objective => expandProperty(_objective));
   };
