@@ -175,6 +175,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       set: createColorOpacityActions('setGridColor', 'setGridOpacity')
     },
     gridOpacity: true,
+    groupingObjective: true,
+    groupingOnZoom: true,
+    groupingOptions: true,
+    groupingType: true,
     items: {
       get: () => Object.values(state.items),
       set: newItems => [
@@ -516,6 +520,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (updatePilePosition) positionPilesDb();
     pubSub.publish('zoom', camera);
   };
+
+  const zoomHandler = () => {
+    if (store.state.groupingOnZoom) {
+      groupBy(
+        store.state.groupingType,
+        store.state.groupingObjective,
+        store.state.groupingOptions
+      );
+    }
+  };
+
+  const zoomHandlerDb = debounce(zoomHandler, 250);
 
   const panZoomEndHandler = () => {
     if (!isPanZoomed) return;
@@ -2569,10 +2585,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       store.dispatch(
         batchActions([
-          ...set('groupingOnPile', true, true),
-          ...set('groupingOptions', options, true),
           ...set('groupingObjective', expandedObjective, true),
-          ...set('groupingType', 'distance', true)
+          ...set('groupingOnZoom', true, true),
+          ...set('groupingOptions', options, true),
+          ...set('groupingType', type, true)
         ])
       );
     }
@@ -3952,6 +3968,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       }
     } else if (isPanZoom) {
       panZoomHandler();
+      zoomHandlerDb();
     }
   };
 
