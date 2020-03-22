@@ -2908,7 +2908,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
-    if (!store.state.pileLabel || !pileInstance) return;
+    if (!pileInstance) return;
+
+    if (!store.state.pileLabel) {
+      pileInstance.drawLabel([]);
+      return;
+    }
 
     const { pileLabel, items } = store.state;
 
@@ -2916,7 +2921,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const labels = unique(
       pileState.items.flatMap(itemId =>
-        pileLabel.map(objective => objective(items[itemId]))
+        pileLabel.map(objective => objective(items[itemId])).join('-')
       )
     );
 
@@ -3561,6 +3566,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const expandLabelObjective = objective => {
+    if (objective === null) return null;
+
     const objectives = Array.isArray(objective) ? objective : [objective];
     return objectives.map(_objective => expandProperty(_objective));
   };

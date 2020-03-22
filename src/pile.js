@@ -1133,8 +1133,12 @@ const createPile = (
   ) => {
     if (!labels.length) {
       if (labelGraphics) {
+        pileLabels = [];
+        labelColors = [];
+        labelTextures = [];
         labelGraphics.clear();
         labelGraphics.removeChildren();
+        render();
       }
       return;
     }
