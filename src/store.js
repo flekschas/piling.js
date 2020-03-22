@@ -126,6 +126,14 @@ const [arrangementOptions, setArrangementOptions] = setter(
   {}
 );
 
+const [groupingType, setGroupingType] = setter('groupingType');
+
+const [groupingObjective, setGroupingObjective] = setter('groupingObjective');
+
+const [groupingOnZoom, setGroupingOnZoom] = setter('groupingOnZoom', false);
+
+const [groupingOptions, setGroupingOptions] = setter('groupingOptions', {});
+
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
   0x000000
@@ -578,6 +586,10 @@ const createStore = () => {
     focusedPiles,
     gridColor,
     gridOpacity,
+    groupingObjective,
+    groupingOnZoom,
+    groupingOptions,
+    groupingType,
     darkMode,
     popupBackgroundOpacity,
     itemRenderer,
@@ -738,6 +750,10 @@ export const createAction = {
   setFocusedPiles,
   setGridColor,
   setGridOpacity,
+  setGroupingObjective,
+  setGroupingOnZoom,
+  setGroupingOptions,
+  setGroupingType,
   setDarkMode,
   setPopupBackgroundOpacity,
   setItemRenderer,
