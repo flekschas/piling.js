@@ -3,7 +3,7 @@ import createRoundedRectangleFactory from './rounded-rectangle-factory';
 
 const createBadgeFactory = ({ fontSize = 8 } = {}) => {
   const sizeTexCache = new Map();
-  const sizeUsage = {};
+  let sizeUsage = {};
 
   const roundedRectangleFactory = createRoundedRectangleFactory({
     size: fontSize * window.devicePixelRatio * 1.5
@@ -37,13 +37,16 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
     return badge;
   };
 
-  const destroy = () => {
+  const clear = () => {
     sizeTexCache.forEach(badge => badge.destroy());
+    sizeTexCache.clear();
+    sizeUsage = {};
   };
 
   return {
+    clear,
     create,
-    destroy
+    destroy: clear
   };
 };
 
