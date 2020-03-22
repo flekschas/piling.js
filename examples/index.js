@@ -1,4 +1,4 @@
-import { isFunction } from '@tensorflow/tfjs-core/dist/util';
+import { isFunction } from '@flekschas/utils';
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
@@ -368,8 +368,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   let pileByDistancePx = 1;
   let pileByCategory = categoricalProps[0];
 
-  let pileItemOffsetX = 5;
-  let pileItemOffsetY = 5;
+  let pileItemOffsetX;
+  let pileItemOffsetY;
+  const pileItemOffsetDisable = isFunction(piling.get('pileItemOffset'));
+  if (!pileItemOffsetDisable) {
+    const [x, y] = piling.get('pileItemOffset');
+    pileItemOffsetX = x;
+    pileItemOffsetY = y;
+  }
 
   const options = [
     {
@@ -388,9 +394,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         {
           name: 'pileItemOffset',
           width: '6rem',
-          action: () => {
-            pilingLib.set('pileItemOffset', [pileItemOffsetX, pileItemOffsetY]);
-          },
+          dtype: null,
+          hide: pileItemOffsetDisable,
           subInputs: [
             {
               name: 'x',
@@ -398,6 +403,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               defaultValue: pileItemOffsetX,
               setter: x => {
                 pileItemOffsetX = x;
+                piling.set('pileItemOffset', [
+                  pileItemOffsetX,
+                  pileItemOffsetY
+                ]);
               }
             },
             {
@@ -406,6 +415,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               defaultValue: pileItemOffsetY,
               setter: y => {
                 pileItemOffsetY = y;
+                piling.set('pileItemOffset', [
+                  pileItemOffsetX,
+                  pileItemOffsetY
+                ]);
               }
             }
           ]
@@ -1085,16 +1098,19 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           ? field.subInputs.map(subInput => createInput(subInput, true))
           : [];
 
-        let newElements = addListeners(input, field, valueEl);
+        let newElements;
 
-        newElements.forEach(el => inputs.appendChild(el));
-        inputs.appendChild(input);
-        if (field.dtype === 'int' && (field.min || field.max)) {
-          inputs.appendChild(valueEl);
-          valueEl.textContent =
-            field.defaultValue !== undefined
-              ? field.defaultValue
-              : pilingLib.get(field.name);
+        if (field.dtype !== null) {
+          newElements = addListeners(input, field, valueEl);
+          newElements.forEach(el => inputs.appendChild(el));
+          inputs.appendChild(input);
+          if (field.dtype === 'int' && (field.min || field.max)) {
+            inputs.appendChild(valueEl);
+            valueEl.textContent =
+              field.defaultValue !== undefined
+                ? field.defaultValue
+                : pilingLib.get(field.name);
+          }
         }
 
         subInputs.forEach((subInput, i) => {
