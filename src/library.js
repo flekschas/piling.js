@@ -2420,6 +2420,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : layout;
 
     return Object.entries(piles).reduce((groups, [pileId, pileState]) => {
+      if (!pileState.items.length) return groups;
       const ij = grid.xyToIj(pileState.x, pileState.y);
       const idx = grid.ijToIdx(...ij);
       if (!groups[idx]) groups[idx] = [];
@@ -2533,49 +2534,49 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const groupBy = (type, objective = null, options = {}) => {
     const expandedObjective = expandPilingObjective(type, objective);
 
-    let piledPiles = [];
+    let whenGroupings;
     let mergeCenter = 'mean';
 
     switch (type) {
       case 'overlap':
-        piledPiles = groupByOverlap(expandedObjective, options);
+        whenGroupings = groupByOverlap(expandedObjective, options);
         break;
 
       case 'distance':
-        piledPiles = groupByDistance(expandedObjective, options);
+        whenGroupings = groupByDistance(expandedObjective, options);
         break;
 
       case 'grid':
-        piledPiles = groupByGrid(expandedObjective);
+        whenGroupings = groupByGrid(expandedObjective);
         break;
 
       case 'column':
         mergeCenter = expandedObjective;
-        piledPiles = groupByColumn(expandedObjective);
+        whenGroupings = groupByColumn(expandedObjective);
         break;
 
       case 'row':
         mergeCenter = expandedObjective;
-        piledPiles = groupByRow(expandedObjective);
+        whenGroupings = groupByRow(expandedObjective);
         break;
 
       case 'category':
-        piledPiles = groupByCategory(expandedObjective);
+        whenGroupings = groupByCategory(expandedObjective);
         break;
 
       case 'cluster':
-        piledPiles = groupByCluster(expandedObjective, options);
+        whenGroupings = groupByCluster(expandedObjective, options);
         break;
 
       // no default
     }
 
-    piledPiles.then(_piledPiles => {
+    whenGroupings.then(groupedPiles => {
       store.dispatch(createAction.setFocusedPiles([]));
 
       // If there's only one pile on a pile we can ignore it
       animateMerge(
-        _piledPiles.filter(pileIds => pileIds.length > 1),
+        groupedPiles.filter(pileIds => pileIds.length > 1),
         mergeCenter
       );
     });
