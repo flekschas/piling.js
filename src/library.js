@@ -36,6 +36,7 @@ import {
 } from '@flekschas/utils';
 
 import createAnimator from './animator';
+import createBadgeFactory from './badge-factory';
 import createLevels from './levels';
 import createKmeans from './kmeans';
 import createStore, { createAction } from './store';
@@ -62,6 +63,7 @@ import {
   colorToDecAlpha,
   getBBox,
   scaleLinear,
+  toAlignment,
   toHomogeneous,
   uniqueStr
 } from './utils';
@@ -94,6 +96,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const pubSub = createPubSub();
   const store = createStore();
+  const badgeFactory = createBadgeFactory();
 
   let state = store.state;
 
@@ -304,6 +307,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileContextMenuItems: true,
     pileOpacity: true,
     pileScale: true,
+    pileSizeBadge: true,
+    pileSizeBadgeAlign: {
+      set: alignment => [
+        createAction.setPileSizeBadgeAlign(
+          isFunction(alignment) ? alignment : toAlignment(alignment)
+        )
+      ]
+    },
     pileVisibilityItems: true,
     popupBackgroundOpacity: true,
     previewAggregator: true,
@@ -1295,13 +1306,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
-  const positionItems = pileId => {
-    const {
-      items,
-      pileItemOffset,
-      pileItemRotation,
-      pileItemOrder
-    } = store.state;
+  const positionItems = (pileId, { all = false } = {}) => {
+    const { items, pileItemOrder } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
 
@@ -1310,7 +1316,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstance.setItemOrder(pileItemOrder(itemStates));
     }
 
-    pileInstance.positionItems(pileItemOffset, pileItemRotation, animator);
+    pileInstance.positionItems(animator, { all });
   };
 
   const updatePileItemStyle = (pileState, pileId) => {
@@ -1370,6 +1376,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileOpacity,
       pileBorderSize,
       pileScale,
+      pileSizeBadge,
       pileVisibilityItems
     } = store.state;
 
@@ -1383,6 +1390,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     pileInstance.setBorderSize(
       isFunction(pileBorderSize) ? pileBorderSize(pile) : pileBorderSize
+    );
+
+    pileInstance.showSizeBadge(
+      isFunction(pileSizeBadge) ? pileSizeBadge(pile) : pileSizeBadge
     );
 
     pileInstance.setVisibilityItems(
@@ -1887,22 +1898,23 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const animateTempDepileItems = (item, x, y, { onDone = identity } = {}) => {
-    const tweener = createTweener({
-      interpolator: interpolateVector,
-      endValue: [x, y],
-      getter: () => {
-        return [item.x, item.y];
-      },
-      setter: newValue => {
-        item.x = newValue[0];
-        item.y = newValue[1];
-      },
-      onDone: () => {
-        onDone();
-      }
-    });
-    animator.add(tweener);
+  const animateTempDepileItem = (item, x, y, { onDone = identity } = {}) => {
+    animator.add(
+      createTweener({
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => {
+          return [item.x, item.y];
+        },
+        setter: newValue => {
+          item.x = newValue[0];
+          item.y = newValue[1];
+        },
+        onDone: () => {
+          onDone();
+        }
+      })
+    );
   };
 
   const animateAlpha = (graphics, endValue) => {
@@ -1938,7 +1950,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             ? { onDone }
             : undefined;
 
-        animateTempDepileItems(
+        animateTempDepileItem(
           item,
           -pile.tempDepileContainer.x,
           -pile.tempDepileContainer.y,
@@ -1974,7 +1986,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const options = createOptions(index === items.length - 1);
 
-        animateTempDepileItems(clonedSprite, index * 5 + widths, 0, options);
+        animateTempDepileItem(clonedSprite, index * 5 + widths, 0, options);
 
         widths += clonedSprite.width;
       });
@@ -1993,7 +2005,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const options = createOptions(index === items.length - 1);
 
-        animateTempDepileItems(clonedSprite, 0, index * 5 + heights, options);
+        animateTempDepileItem(clonedSprite, 0, index * 5 + heights, options);
 
         heights += clonedSprite.height;
       });
@@ -2025,7 +2037,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const options = createOptions(index === items.length - 1);
 
-      animateTempDepileItems(clonedSprite, x, y, options);
+      animateTempDepileItem(clonedSprite, x, y, options);
     });
   };
 
@@ -2221,7 +2233,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         render: renderRaf,
         id: pileId,
         pubSub,
-        store
+        store,
+        badgeFactory
       },
       { x, y }
     );
@@ -2914,7 +2927,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     // Destroy existing labels to avoid memory leaks
     uniqueLabels.forEach(label => {
-      label.pixiText.destroy();
+      if (label.pixiText) label.pixiText.destroy();
     });
 
     uniqueLabels.clear();
@@ -2971,7 +2984,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
-    if (!store.state.pileLabel || !pileInstance) return;
+    if (!pileInstance) return;
+
+    if (!store.state.pileLabel) {
+      pileInstance.drawLabel([]);
+      return;
+    }
 
     const { pileLabel, items } = store.state;
 
@@ -2979,7 +2997,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const labels = unique(
       pileState.items.flatMap(itemId =>
-        pileLabel.map(objective => objective(items[itemId]))
+        pileLabel.map(objective => objective(items[itemId])).join('-')
       )
     );
 
@@ -3165,7 +3183,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileInstances.size &&
       (state.pileOpacity !== newState.pileOpacity ||
         state.pileBorderSize !== newState.pileBorderSize ||
-        state.pileScale !== newState.pileScale)
+        state.pileScale !== newState.pileScale ||
+        state.pileSizeBadge !== newState.pileSizeBadge)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);
@@ -3191,15 +3210,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.pileItemOffset !== newState.pileItemOffset) {
-      stateUpdates.add('layout');
-    }
-
-    if (state.previewItemOffset !== newState.previewItemOffset) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
     }
 
     if (state.pileItemRotation !== newState.pileItemRotation) {
-      stateUpdates.add('layout');
+      stateUpdates.add('positionItems');
+    }
+
+    if (
+      state.previewPadding !== newState.previewPadding ||
+      state.previewSpacing !== newState.previewSpacing ||
+      state.previewScaling !== newState.previewScaling ||
+      state.previewOffset !== newState.previewOffset ||
+      state.previewItemOffset !== newState.previewItemOffset
+    ) {
+      stateUpdates.add('positionItems');
     }
 
     if (state.tempDepileDirection !== newState.tempDepileDirection) {
@@ -3287,10 +3312,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (state.depiledPile !== newState.depiledPile) {
       if (newState.depiledPile.length !== 0) depile(newState.depiledPile[0]);
-    }
-
-    if (state.previewSpacing !== newState.previewSpacing) {
-      stateUpdates.add('layout');
     }
 
     if (state.showGrid !== newState.showGrid) {
@@ -3391,6 +3412,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (stateUpdates.has('navigation')) {
       updateNavigationMode();
+    }
+
+    if (stateUpdates.has('positionItems')) {
+      Object.values(state.piles).forEach(pile => {
+        if (pile.items.length > 1) positionItems(pile.id, { all: true });
+      });
     }
 
     awaitItemUpdates(currentItemUpdates);
@@ -3614,6 +3641,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const expandLabelObjective = objective => {
+    if (objective === null) return null;
+
     const objectives = Array.isArray(objective) ? objective : [objective];
     return objectives.map(_objective => expandProperty(_objective));
   };
