@@ -984,7 +984,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         isSet.checked = value.length;
       }
 
-      if (isSet && isSet.checked) {
+      if (field.dtype === 'boolean') {
+        value = event.target.checked;
+        if (field.setter) {
+          field.setter(value);
+        } else {
+          pilingLib.set(field.name, value);
+        }
+      } else if (isSet && isSet.checked) {
         value = field.dtype && parseDtype[field.dtype](value);
 
         if (field.setter) {
