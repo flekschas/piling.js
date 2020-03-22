@@ -395,7 +395,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'pileItemOffset',
           width: '6rem',
           dtype: null,
-          hide: pileItemOffsetDisable,
+          hide: pileItemOffsetDisable || piling.get('previewRenderer'),
           subInputs: [
             {
               name: 'x',
@@ -423,17 +423,20 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             }
           ]
         },
-        {
-          name: 'previewPadding',
-          hide: isFunction(pilingLib.get('previewPadding')),
-          labelMinWidth: '5rem',
-          dtype: 'int',
-          min: 0,
-          max: 10
-        },
+        // Can't be adjusted dynamically at the moment
+        // {
+        //   name: 'previewPadding',
+        //   hide: isFunction(pilingLib.get('previewPadding')),
+        //   labelMinWidth: '5rem',
+        //   dtype: 'int',
+        //   min: 0,
+        //   max: 10
+        // },
         {
           name: 'previewSpacing',
-          hide: isFunction(pilingLib.get('previewSpacing')),
+          hide:
+            isFunction(pilingLib.get('previewSpacing')) ||
+            !piling.get('previewRenderer'),
           labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
@@ -441,7 +444,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'previewOffset',
-          hide: isFunction(pilingLib.get('previewOffset')),
+          hide:
+            isFunction(pilingLib.get('previewOffset')) ||
+            !piling.get('previewRenderer'),
           labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
