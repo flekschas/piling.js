@@ -1385,6 +1385,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ? pileVisibilityItems(pile)
         : pileVisibilityItems
     );
+
+    renderRaf();
   };
 
   const createScaledImage = texture => {
@@ -3128,6 +3130,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);
       });
+      if (newState.pileSizeBadge === false) {
+        badgeFactory.clear();
+      }
     }
 
     if (state.orderer !== newState.orderer) {
@@ -4288,6 +4293,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.reset();
     renderer.destroy(true);
     lasso.destroy();
+    badgeFactory.destroy();
 
     if (storeUnsubscribor) {
       storeUnsubscribor();
