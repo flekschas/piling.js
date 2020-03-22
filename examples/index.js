@@ -1,3 +1,4 @@
+import { isFunction } from '@tensorflow/tfjs-core/dist/util';
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
 import createSvgLinesPiles from './lines';
@@ -386,7 +387,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'pileItemOffset',
-          width: '4rem',
+          width: '6rem',
           action: () => {
             pilingLib.set('pileItemOffset', [pileItemOffsetX, pileItemOffsetY]);
           },
@@ -411,27 +412,27 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'previewPadding',
-          labelMinWidth: '4rem',
+          hide: isFunction(pilingLib.get('previewPadding')),
+          labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
-          max: 10,
-          nullifiable: true
+          max: 10
         },
         {
           name: 'previewSpacing',
-          labelMinWidth: '4rem',
+          hide: isFunction(pilingLib.get('previewSpacing')),
+          labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
-          max: 10,
-          nullifiable: true
+          max: 10
         },
         {
           name: 'previewOffset',
-          labelMinWidth: '4rem',
+          hide: isFunction(pilingLib.get('previewOffset')),
+          labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
-          max: 10,
-          nullifiable: true
+          max: 10
         }
       ]
     },
@@ -713,7 +714,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'pileLabelText',
           hide: categoricalProps.length === 0,
           labelMinWidth: '4rem',
-          dtype: 'boolean'
+          dtype: 'boolean',
+          nullifiable: true
         },
         {
           name: 'pileLabelAlign',
@@ -736,20 +738,18 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         {
           name: 'pileLabelFontSize',
           hide: categoricalProps.length === 0,
-          labelMinWidth: '4rem',
+          labelMinWidth: '6rem',
           dtype: 'int',
           min: 0,
-          max: 15,
-          nullifiable: true
+          max: 15
         },
         {
           name: 'pileLabelHeight',
           hide: categoricalProps.length === 0,
-          labelMinWidth: '4rem',
+          labelMinWidth: '6rem',
           dtype: 'int',
           min: 0,
-          max: 15,
-          nullifiable: true
+          max: 15
         }
       ]
     },
