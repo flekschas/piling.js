@@ -377,6 +377,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     pileItemOffsetY = y;
   }
 
+  let [pileSizeBadgeAlignY, pileSizeBadgeAlignX] = piling.get(
+    'pileSizeBadgeAlign'
+  );
+
   const options = [
     {
       id: 'pile-item',
@@ -768,6 +772,44 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 0,
           max: 15
+        },
+        {
+          name: 'pileSizeBadge',
+          hide: isFunction(piling.get('pileSizeBadge')),
+          labelMinWidth: '6rem',
+          dtype: 'boolean'
+        },
+        {
+          name: 'pileSizeBadgeAlign',
+          hide: isFunction(piling.get('pileSizeBadgeAlign')),
+          width: '6rem',
+          dtype: null,
+          subInputs: [
+            {
+              dtype: 'string',
+              values: ['top', 'center', 'bottom'],
+              defaultValue: pileSizeBadgeAlignY,
+              setter: yAlign => {
+                pileSizeBadgeAlignY = yAlign;
+                piling.set('pileSizeBadgeAlign', [
+                  pileSizeBadgeAlignY,
+                  pileSizeBadgeAlignX
+                ]);
+              }
+            },
+            {
+              dtype: 'string',
+              values: ['left', 'center', 'right'],
+              defaultValue: pileSizeBadgeAlignX,
+              setter: xAlign => {
+                pileSizeBadgeAlignX = xAlign;
+                piling.set('pileSizeBadgeAlign', [
+                  pileSizeBadgeAlignY,
+                  pileSizeBadgeAlignX
+                ]);
+              }
+            }
+          ]
         }
       ]
     },
