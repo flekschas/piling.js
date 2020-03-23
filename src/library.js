@@ -2613,7 +2613,57 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       {}
     );
 
-  const splitByCluster = async () => {};
+  const splitByCluster = async (objective, options = {}) => {
+    const itemIdToIdx = new Map();
+    const points = Object.entries(store.state.items).map(
+      ([itemId, itemState], index) => {
+        itemIdToIdx.set(itemId, index);
+        return {
+          id: itemId,
+          data: objective.flatMap(o =>
+            o.property(itemState, itemId, 0, renderedItems.get(itemId))
+          )
+        };
+      }
+    );
+
+    let clusterer = options.clusterer;
+
+    if (!clusterer) {
+      const clustererOptions = options.clustererOptions || {};
+      let k = clustererOptions.k;
+      clustererOptions.valueGetter = x => x.data;
+
+      if (!k) k = Math.max(2, Math.ceil(Math.sqrt(points.length / 2)));
+
+      clusterer = createKmeans(k, clustererOptions);
+    }
+
+    const { labels } = await clusterer(points);
+
+    return Object.entries(store.state.piles).reduce(
+      (splittedPiles, [pileId, pileState]) => {
+        if (!pileState.items.length) return splittedPiles;
+
+        // eslint-disable-next-line no-shadow
+        const splits = pileState.items.reduce((splits, itemId) => {
+          const label = labels[itemIdToIdx.get(itemId)];
+
+          if (!splits[label]) splits[label] = [itemId];
+          else splits[label].push(itemId);
+
+          return splits;
+        }, {});
+
+        if (Object.keys(splits).length > 1) {
+          splittedPiles[pileId] = Object.values(splits);
+        }
+
+        return splittedPiles;
+      },
+      {}
+    );
+  };
 
   const splitBy = (type, objective = null, options = {}) => {
     const expandedObjective = expandGroupingObjective(type, objective);
@@ -2649,7 +2699,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
 
       Object.entries(splittedPiles).forEach(([pileId, splits]) => {
-        const targets = splits.map(min);
+        const targets = splits.map(s => Math.min.apply(null, s).toString());
         animateDepile(pileId, targets);
       });
     });
