@@ -726,6 +726,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               }
             }
           ]
+        },
+        {
+          name: 'Split All',
+          action: () => {
+            pilingLib.splitAll();
+          }
         }
       ]
     },
