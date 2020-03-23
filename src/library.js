@@ -2232,7 +2232,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     // position can come in handy when we depile the pile again
   };
 
-  const groupByPosition = (bBoxifier, absComparator, relComparator) => async (
+  const groupSpatially = ({
+    bBoxifier,
+    absComparator,
+    relComparator
+  }) => async (
     requirement,
     { conditions = [], centerAggregator = meanVector } = {}
   ) => {
@@ -2363,11 +2367,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       prevRelOverlap !== undefined && newRelOverlap > prevRelOverlap
     ];
   };
-  const groupByOverlap = groupByPosition(
-    identity,
-    groupByOverlapAbsComparator,
-    groupByOverlapRelComparator
-  );
+  const groupByOverlap = groupSpatially({
+    bBoxifier: identity,
+    absComparator: groupByOverlapAbsComparator,
+    relComparator: groupByOverlapRelComparator
+  });
 
   const groupByDistanceBBoxifier = (target, distance) => ({
     minX: target.minX - distance,
@@ -2383,11 +2387,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     distance,
     prevDistance === undefined && distance < prevDistance
   ];
-  const groupByDistance = groupByPosition(
-    groupByDistanceBBoxifier,
-    groupByDistanceAbsComparator,
-    groupByDistanceRelComparator
-  );
+  const groupByDistance = groupSpatially({
+    bBoxifier: groupByDistanceBBoxifier,
+    absComparator: groupByDistanceAbsComparator,
+    relComparator: groupByDistanceRelComparator
+  });
 
   const groupByGrid = async objective => {
     const { orderer, piles } = store.state;
@@ -2574,11 +2578,186 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const splitByPosition = async () => {};
+  let splitSpatialIndex;
+  const createSplitSpatialIndex = (items, coordType) => {
+    if (splitSpatialIndex) return splitSpatialIndex;
 
-  const splitByOverlap = async () => splitByPosition;
+    const { width, height } = canvas.getBoundingClientRect();
 
-  const splitByDistance = async () => splitByPosition;
+    const toX = coordType === 'uv' ? x => x * width : identity;
+
+    const toY = coordType === 'uv' ? y => y * height : identity;
+
+    splitSpatialIndex = new RBush();
+
+    const idToBBox = new Map();
+
+    const bBoxes = items.map(item => {
+      const bBox = {
+        id: item.id,
+        minX: toX(item.cX) - item.width / 2,
+        maxX: toX(item.cX) + item.width / 2,
+        minY: toY(item.cY) - item.height / 2,
+        maxY: toY(item.cY) + item.height / 2
+      };
+      idToBBox.set(item.id, bBox);
+      return bBox;
+    });
+
+    splitSpatialIndex.load(bBoxes);
+
+    return [splitSpatialIndex, idToBBox];
+  };
+
+  const splitSpatially = (
+    { toBBox, compare },
+    { coordType = 'uv' } = {}
+  ) => async (objective, { conditions = [] } = {}) => {
+    const { piles } = store.state;
+    const [tree, idToBBox] = createSplitSpatialIndex(
+      objective.basedOn,
+      coordType
+    );
+    const splittedPiles = {};
+
+    const findClosestCentroid = (groups, hit, threshold) => {
+      let closest = -1;
+      let minDist = Infinity;
+
+      groups.forEach((group, i) => {
+        const bBox = {
+          minX: group.centroid[0] - group.width / 2,
+          maxX: group.centroid[0] + group.width / 2,
+          minY: group.centroid[1] - group.height / 2,
+          maxY: group.centroid[1] + group.height / 2
+        };
+        const [ok, d] = compare(bBox, hit, threshold);
+        if (ok && d < minDist) {
+          minDist = d;
+          closest = i;
+        }
+      });
+
+      return closest;
+    };
+
+    const keepItem = (target, hit) => {
+      if (!splittedPiles[target.id]) {
+        splittedPiles[target.id] = { keep: [], split: [] };
+      }
+      splittedPiles[target.id].keep.push(hit.id);
+    };
+
+    const splitItem = (target, hit) => {
+      if (!splittedPiles[target.id]) {
+        splittedPiles[target.id] = { keep: [], split: [] };
+      }
+
+      const width = hit.maxX - hit.minX;
+      const height = hit.maxY - hit.minY;
+      const center = [hit.minX + width / 2, hit.minY + height / 2];
+
+      if (!splittedPiles[target.id].split.length) {
+        splittedPiles[target.id].split.push({
+          centroid: center,
+          width,
+          height,
+          items: [hit.id]
+        });
+      } else {
+        const closest = findClosestCentroid(
+          splittedPiles[target.id].split,
+          hit,
+          objective.threshold
+        );
+
+        if (closest === -1) {
+          // New sub group
+          splittedPiles[target.id].split.push({
+            centroid: center,
+            width,
+            height,
+            items: [hit.id]
+          });
+        } else {
+          const g = splittedPiles[target.id].split[closest];
+          const oldLen = g.items.length;
+          const newLen = oldLen + 1;
+          const newCentroid = [
+            (g.centroid[0] * oldLen) / newLen + center[0] / newLen,
+            (g.centroid[1] * oldLen) / newLen + center[1] / newLen
+          ];
+          g.centroid = newCentroid;
+          g.items.push(hit.id);
+        }
+      }
+    };
+
+    const search = currentTarget => {
+      const hits = tree.search(toBBox(currentTarget, objective.threshold));
+
+      const assessedItems = new Set();
+
+      hits.forEach(hit => {
+        if (hit.id === currentTarget.id) keepItem(currentTarget, hit);
+
+        const okay =
+          compare(currentTarget, hit, objective.threshold)[0] &&
+          conditions.every(c => c(piles[currentTarget.id], piles[hit.id]));
+
+        if (okay) keepItem(currentTarget, hit);
+        else splitItem(currentTarget, hit);
+
+        assessedItems.add(hit.id);
+      });
+
+      piles[currentTarget.id].items.forEach(itemId => {
+        if (!assessedItems.has(itemId)) {
+          splitItem(currentTarget, idToBBox.get(itemId));
+        }
+      });
+    };
+
+    spatialIndex.all().forEach(search);
+
+    Object.keys(splittedPiles).forEach(pileId => {
+      splittedPiles[pileId] = [
+        splittedPiles[pileId].keep,
+        ...splittedPiles[pileId].split.map(g => g.items)
+      ];
+    });
+
+    return splittedPiles;
+  };
+
+  const splitByOverlapComparator = (target, hit, sqrtPixels) => {
+    const minX = Math.max(target.minX, hit.minX);
+    const minY = Math.max(target.minY, hit.minY);
+    const maxX = Math.min(target.maxX, hit.maxX);
+    const maxY = Math.min(target.maxY, hit.maxY);
+    const overlap = (maxX - minX) * (maxY - minY);
+
+    return [overlap >= sqrtPixels, overlap];
+  };
+  const splitByOverlap = splitSpatially({
+    toBBox: identity,
+    compare: splitByOverlapComparator
+  });
+
+  const splitByDistanceBBoxifier = (target, distance) => ({
+    minX: target.minX - distance,
+    minY: target.minY - distance,
+    maxX: target.maxX + distance,
+    maxY: target.maxY + distance
+  });
+  const splitByDistanceComparator = (target, hit, pixels) => {
+    const d = l2RectDist(target, hit);
+    return [l2RectDist(target, hit) < pixels, d];
+  };
+  const splitByDistance = splitSpatially({
+    toBBox: splitByDistanceBBoxifier,
+    compare: splitByDistanceComparator
+  });
 
   const splitByCategory = async objective =>
     Object.entries(store.state.piles).reduce(
@@ -2666,7 +2845,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const splitBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandGroupingObjective(type, objective);
+    const expandedObjective = expandSplittingObjective(type, objective);
 
     let whenSplittings;
 
@@ -3658,10 +3837,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const expandGroupingObjectiveOverlap = objective =>
-    objective && objective.length === 1
-      ? [objective[0], objective[0]]
-      : objective || 1;
+  const expandGroupingObjectiveDistance = objective => objective || 1;
+
+  const expandGroupingObjectiveOverlap = objective => objective || 1;
 
   const expandGroupingObjectiveGrid = objective => {
     let expandedObjective = null;
@@ -3677,9 +3855,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     return expandedObjective;
   };
-
-  const expandGroupingObjectiveDistance = objective =>
-    objective.length === 1 ? [objective[0], objective[0]] : objective;
 
   const expandGroupingObjectiveCategory = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
@@ -3737,6 +3912,98 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       case 'cluster':
         return expandGroupingObjectiveCluster(objective);
+
+      default:
+        return objective;
+    }
+  };
+
+  const itemizeSpatialIndex = () => {
+    const { piles } = store.state;
+
+    const bBoxes = spatialIndex.data.reduce((b, d) => {
+      b[d.id] = { ...d };
+      return b;
+    }, {});
+
+    Object.entries(piles).forEach(([pileId, pileState]) => {
+      pileState.items.forEach(itemId => {
+        if (!bBoxes[itemId]) {
+          bBoxes[itemId] = {
+            ...bBoxes[pileId],
+            id: itemId
+          };
+        }
+      });
+    });
+
+    return bBoxes;
+  };
+
+  const expandSplittingObjectivePosition = objective => {
+    const expandedObjective = {};
+
+    if (isObject(objective)) {
+      expandedObjective.threshold = objective.threshold;
+      if (objective.basedOn)
+        expandedObjective.basedOn = expandProperty(objective.basedOn);
+    } else if (Array.isArray(objective)) {
+      expandedObjective.threshold = objective[0];
+      if (objective.length > 1)
+        expandedObjective.basedOn = expandProperty(objective[1]);
+    } else {
+      expandedObjective.threshold = objective;
+    }
+
+    if (expandedObjective.basedOn) {
+      const { items, piles } = store.state;
+
+      expandedObjective.basedOn = Object.values(piles).flatMap(pileState =>
+        pileState.items.map((itemId, index) => {
+          const item = renderedItems.get(itemId);
+
+          const [cX, cY] = expandedObjective.basedOn(
+            items[itemId],
+            itemId,
+            index,
+            item
+          );
+
+          return {
+            id: itemId,
+            cX,
+            cY,
+            width: item.image.width,
+            height: item.image.height
+          };
+        })
+      );
+    } else {
+      // Use the current layout
+      expandedObjective.basedOn = itemizeSpatialIndex();
+    }
+
+    return expandedObjective;
+  };
+
+  const expandSplittingObjectiveData = objective => {
+    const objectives = Array.isArray(objective) ? objective : [objective];
+    return objectives.map(o => expandProperty(o));
+  };
+
+  const expandSplittingObjective = (type, objective) => {
+    switch (type) {
+      case 'overlap':
+        return expandSplittingObjectivePosition(objective);
+
+      case 'distance':
+        return expandSplittingObjectivePosition(objective);
+
+      case 'category':
+        return expandSplittingObjectiveData(objective);
+
+      case 'cluster':
+        return expandSplittingObjectiveData(objective);
 
       default:
         return objective;
