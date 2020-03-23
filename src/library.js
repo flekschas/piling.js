@@ -2511,7 +2511,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const groupBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandPilingObjective(type, objective);
+    const expandedObjective = expandGroupingObjective(type, objective);
 
     let whenGroupings;
     let mergeCenter = 'mean';
@@ -2616,7 +2616,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const splitByCluster = async () => {};
 
   const splitBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandPilingObjective(type, objective);
+    const expandedObjective = expandGroupingObjective(type, objective);
 
     let whenSplittings;
 
@@ -3608,12 +3608,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const expandPilingObjectiveOverlap = objective =>
+  const expandGroupingObjectiveOverlap = objective =>
     objective && objective.length === 1
       ? [objective[0], objective[0]]
       : objective || 1;
 
-  const expandPilingObjectiveGrid = objective => {
+  const expandGroupingObjectiveGrid = objective => {
     let expandedObjective = null;
 
     if (isObject(objective)) {
@@ -3628,10 +3628,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return expandedObjective;
   };
 
-  const expandPilingObjectiveDistance = objective =>
+  const expandGroupingObjectiveDistance = objective =>
     objective.length === 1 ? [objective[0], objective[0]] : objective;
 
-  const expandPilingObjectiveCategory = objective => {
+  const expandGroupingObjectiveCategory = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
 
     return objectives.map(_objective => {
@@ -3651,7 +3651,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const expandPilingObjectiveCluster = objective => {
+  const expandGroupingObjectiveCluster = objective => {
     const objectives = Array.isArray(objective) ? objective : [objective];
 
     return objectives.map(_objective => {
@@ -3671,22 +3671,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const expandPilingObjective = (type, objective) => {
+  const expandGroupingObjective = (type, objective) => {
     switch (type) {
       case 'overlap':
-        return expandPilingObjectiveOverlap(objective);
+        return expandGroupingObjectiveOverlap(objective);
 
       case 'grid':
-        return expandPilingObjectiveGrid(objective);
+        return expandGroupingObjectiveGrid(objective);
 
       case 'distance':
-        return expandPilingObjectiveDistance(objective);
+        return expandGroupingObjectiveDistance(objective);
 
       case 'category':
-        return expandPilingObjectiveCategory(objective);
+        return expandGroupingObjectiveCategory(objective);
 
       case 'cluster':
-        return expandPilingObjectiveCluster(objective);
+        return expandGroupingObjectiveCluster(objective);
 
       default:
         return objective;
