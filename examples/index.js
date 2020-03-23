@@ -703,10 +703,20 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'Category',
           hide: categoricalProps.length === 0,
           width: '4rem',
-          action: () => {
-            pilingLib.groupBy('category', groupByCategory);
-          },
+          dtype: null,
           subInputs: [
+            {
+              name: 'Group',
+              action: () => {
+                pilingLib.groupBy('category', groupByCategory);
+              }
+            },
+            {
+              name: 'Split',
+              action: () => {
+                pilingLib.splitBy('category', groupByCategory);
+              }
+            },
             {
               dtype: 'string',
               values: categoricalProps,

@@ -1864,42 +1864,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const splitAll = () => {
-    const { piles } = store.state;
-
-    const scatteredPiles = [];
-    const movingPiles = [];
-
-    Object.entries(piles).forEach(([id, pile]) => {
-      const items = [...pile.items];
-      if (items.length > 1) {
-        scatteredPiles.push({
-          items,
-          x: pile.x,
-          y: pile.y
-        });
-      } else if (items.length === 1) {
-        const pos = renderedItems.get(items[0]).originalPosition;
-        movingPiles.push({
-          id,
-          x: pos[0],
-          y: pos[1]
-        });
-      }
-    });
-
-    store.dispatch(
-      batchActions([
-        createAction.scatterPiles(scatteredPiles),
-        createAction.movePiles(movingPiles)
-      ])
-    );
-
-    scatteredPiles.forEach(pile => {
-      animateDepile(pile.items[0], pile.items);
-    });
-  };
-
   const animateTempDepileItem = (item, x, y, { onDone = identity } = {}) => {
     animator.add(
       createTweener({
@@ -2608,6 +2572,123 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ])
       );
     }
+  };
+
+  const splitAll = () => {
+    const { piles } = store.state;
+
+    const scatteredPiles = [];
+    const movingPiles = [];
+
+    Object.entries(piles).forEach(([id, pile]) => {
+      const items = [...pile.items];
+      if (items.length > 1) {
+        scatteredPiles.push({
+          items,
+          x: pile.x,
+          y: pile.y
+        });
+      } else if (items.length === 1) {
+        const pos = renderedItems.get(items[0]).originalPosition;
+        movingPiles.push({
+          id,
+          x: pos[0],
+          y: pos[1]
+        });
+      }
+    });
+
+    store.dispatch(
+      batchActions([
+        createAction.scatterPiles(scatteredPiles),
+        createAction.movePiles(movingPiles)
+      ])
+    );
+
+    scatteredPiles.forEach(pile => {
+      animateDepile(pile.items[0], pile.items);
+    });
+  };
+
+  const splitByPosition = async () => {};
+
+  const splitByOverlap = async () => splitByPosition;
+
+  const splitByDistance = async () => splitByPosition;
+
+  const splitByCategory = async objective =>
+    Object.entries(store.state.piles).reduce(
+      (splittedPiles, [pileId, pileState]) => {
+        if (!pileState.items.length) return splittedPiles;
+
+        // eslint-disable-next-line no-shadow
+        const splits = pileState.items.reduce((splits, itemId, index) => {
+          const cat = objective
+            .map(o =>
+              o.property(
+                store.state.items[itemId],
+                itemId,
+                index,
+                renderedItems.get(itemId)
+              )
+            )
+            .join('|');
+
+          if (!splits[cat]) splits[cat] = [itemId];
+          else splits[cat].push(itemId);
+
+          return splits;
+        }, {});
+
+        if (Object.keys(splits).length > 1) {
+          splittedPiles[pileId] = Object.values(splits);
+        }
+
+        return splittedPiles;
+      },
+      {}
+    );
+
+  const splitByCluster = async () => {};
+
+  const splitBy = (type, objective = null, options = {}) => {
+    const expandedObjective = expandPilingObjective(type, objective);
+
+    let whenSplittings;
+
+    switch (type) {
+      case 'overlap':
+        whenSplittings = splitByOverlap(expandedObjective, options);
+        break;
+
+      case 'distance':
+        whenSplittings = splitByDistance(expandedObjective, options);
+        break;
+
+      case 'category':
+        whenSplittings = splitByCategory(expandedObjective);
+        break;
+
+      case 'cluster':
+        whenSplittings = splitByCluster(expandedObjective, options);
+        break;
+
+      // no default
+    }
+
+    whenSplittings.then(splittedPiles => {
+      store.dispatch(
+        batchActions([
+          createAction.setFocusedPiles([]),
+          createAction.splitPiles(splittedPiles)
+        ])
+      );
+
+      Object.entries(splittedPiles).forEach(([pileId, splits]) => {
+        const targets = splits.map(min);
+        animateDepile(pileId, targets);
+      });
+    });
   };
 
   const updateNavigationMode = () => {
@@ -4388,6 +4469,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resume,
     set: setPublic,
     splitAll,
+    splitBy,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };

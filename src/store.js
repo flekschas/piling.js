@@ -533,6 +533,25 @@ const piles = (previousState = {}, action) => {
       return newState;
     }
 
+    case 'SPLIT_PILES': {
+      if (!Object.values(action.payload.piles).length) return previousState;
+
+      const newState = { ...previousState };
+
+      Object.entries(action.payload.piles).forEach(([source, splits]) => {
+        if (splits <= 1) return;
+
+        splits.forEach(itemIds => {
+          const target = Math.min.apply([], itemIds);
+          newState[target] = {
+            ...newState[source],
+            items: itemIds
+          };
+        });
+      });
+      return newState;
+    }
+
     default:
       return previousState;
   }
@@ -557,6 +576,11 @@ const movePiles = movingPiles => ({
 const scatterPiles = pilesToBeScattered => ({
   type: 'SCATTER_PILES',
   payload: { piles: pilesToBeScattered }
+});
+
+const splitPiles = pilesToBeSplit => ({
+  type: 'SPLIT_PILES',
+  payload: { piles: pilesToBeSplit }
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -728,10 +752,10 @@ const createStore = () => {
 export default createStore;
 
 export const createAction = {
-  scatterPiles,
   initPiles,
   mergePiles,
   movePiles,
+  scatterPiles,
   setCoverRenderer,
   setArrangementObjective,
   setArrangementOnPile,
@@ -826,5 +850,6 @@ export const createAction = {
   setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
-  setTemporaryDepiledPiles
+  setTemporaryDepiledPiles,
+  splitPiles
 };
