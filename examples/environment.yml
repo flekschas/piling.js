@@ -5,14 +5,18 @@ channels:
 dependencies:
   - python=3.7
   - imageio
+  - keras
   - matplotlib
   - numba
   - pip
   - scikit-image
   - scikit-learn
+  - tqdm
   - umap-learn
   - jupyterlab
   - pip:
       - apricot-select
+      - keras-tqdm
+      - ipywidgets
       - ndjson
       - pycountry
