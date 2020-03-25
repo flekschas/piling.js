@@ -21,7 +21,7 @@ def create():
     # 7x7x8 (392)
     x = Conv2D(8, (3, 3), strides=2, activation='relu', padding='same', name='conv2')(x)
     # 4x4x8 (128)
-    encoded = Conv2D(8, (3, 3), strides=2, activation='relu', padding='same', name='conv3')(x)
+    x = Conv2D(8, (3, 3), strides=2, activation='relu', padding='same', name='conv3')(x)
     # 128
     x = Flatten(name="flatten")(x)
     # 32
@@ -31,7 +31,7 @@ def create():
     encoded = Dense(16, activation='relu', name='dense2')(x)
 
     x = Dense(32, activation='relu', name='undense1')(encoded)
-    x = Dense(128, activation='relu', name='undense2')(encoded)
+    x = Dense(128, activation='relu', name='undense2')(x)
     x = Reshape((4, 4, 8), name='unflatten')(x)
     x = Conv2D(8, (3, 3), activation='relu', padding='same', name='deconv1')(x)
     x = UpSampling2D((2, 2), name='destride1')(x)
