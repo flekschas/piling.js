@@ -1254,7 +1254,7 @@ const createPile = (
 
     if (!labelGraphics) {
       labelGraphics = new PIXI.Graphics();
-      contentGraphics.addChild(labelGraphics);
+      rootGraphics.addChild(labelGraphics);
     } else {
       labelGraphics.clear();
       labelGraphics.removeChildren();
@@ -1268,23 +1268,17 @@ const createPile = (
       pileLabelText
     } = store.state;
 
-    const { width } = contentGraphics.getBounds();
+    const bounds = getContentBounds();
 
-    const firstItem = normalItemContainer.children.length
-      ? normalItemContainer.getChildAt(0)
-      : coverContainer.getChildAt(0);
-
-    const scaleFactor = baseScale * magnification;
-
-    let labelWidth = width / labels.length / scaleFactor;
+    let labelWidth = bounds.width / labels.length;
     const labelHeight = labelTextures.length
       ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
       : pileLabelHeight;
 
     const y =
       pileLabelAlign === 'top'
-        ? -firstItem.height / 2 - labelHeight
-        : firstItem.height / 2;
+        ? bounds.y - labelHeight
+        : bounds.y + bounds.height;
 
     const toTop = 1 + (y < 0) * -2;
 
@@ -1293,14 +1287,14 @@ const createPile = (
       let labelY = y + toTop;
       switch (pileLabelStackAlign) {
         case 'vertical':
-          labelWidth = width / scaleFactor;
-          labelX = -width / 2 / scaleFactor;
+          labelWidth = bounds.width;
+          labelX = -bounds.width / 2;
           labelY += (labelHeight + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
-          labelX = labelWidth * index - width / 2 / scaleFactor;
+          labelX = labelWidth * index - bounds.width / 2;
           break;
       }
       const color = colors[index];
@@ -1310,20 +1304,20 @@ const createPile = (
     });
 
     if (labelTextures.length) {
-      let textWidth = width / labelTextures.length / scaleFactor;
+      let textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
         let textX;
         let textY = y + toTop;
         switch (pileLabelStackAlign) {
           case 'vertical':
-            textWidth = width / scaleFactor;
-            textX = -width / 2 / scaleFactor + textWidth / 2;
+            textWidth = bounds.width;
+            textX = -bounds.width / 2 + textWidth / 2;
             textY += (labelHeight + 1) * index * toTop;
             break;
 
           case 'horizontal':
           default:
-            textX = textWidth * index - width / 2 / scaleFactor + textWidth / 2;
+            textX = textWidth * index - bounds.width / 2 + textWidth / 2;
             break;
         }
         const labelText = new PIXI.Sprite(texture);
