@@ -13,8 +13,11 @@ from keras.models import Model
 
 sys.stderr = stderr
 
-def create():
-    input_img = Input(shape=(28, 28, 1), name='input')
+def create(drawings=True):
+    p = 'valid' if drawings else 'same'
+    d = 1 if drawings else 3
+    s = 28 if drawings else 32
+    input_img = Input(shape=(s, s, d), name='input')
 
     # 14x14x16 (3136)
     x = Conv2D(16, (3, 3), strides=2, activation='relu', padding='same', name='conv1')(input_img)
@@ -37,9 +40,9 @@ def create():
     x = UpSampling2D((2, 2), name='destride1')(x)
     x = Conv2D(8, (3, 3), activation='relu', padding='same', name='deconv2')(x)
     x = UpSampling2D((2, 2), name='destride2')(x)
-    x = Conv2D(16, (3, 3), activation='relu', name='deconv3')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding=p, name='deconv3')(x)
     x = UpSampling2D((2, 2), name='destride3')(x)
-    decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same', name='output')(x)
+    decoded = Conv2D(d, (3, 3), activation='sigmoid', padding='same', name='output')(x)
 
     autoencoder = Model(input_img, decoded)
     autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
