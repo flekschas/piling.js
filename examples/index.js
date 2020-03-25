@@ -381,6 +381,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     'pileSizeBadgeAlign'
   );
 
+  const pileLabelTextDisable =
+    isFunction(piling.get('pileLabelText')) ||
+    Array.isArray(piling.get('pileLabelText'));
+
   const options = [
     {
       id: 'pile-item',
@@ -734,7 +738,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'pileLabelText',
-          hide: categoricalProps.length === 0,
+          hide: categoricalProps.length === 0 || pileLabelTextDisable,
           labelMinWidth: '4rem',
           dtype: 'boolean',
           nullifiable: true
@@ -746,7 +750,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['top', 'bottom'],
           dropDown: true,
-          defaultValue: 'bottom'
+          defaultValue: piling.get('pileLabelAlign')
         },
         {
           name: 'pileLabelStackAlign',
@@ -755,7 +759,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['horizontal', 'vertical'],
           dropDown: true,
-          defaultValue: 'horizontal'
+          defaultValue: piling.get('pileLabelStackAlign')
         },
         {
           name: 'pileLabelFontSize',
