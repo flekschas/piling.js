@@ -394,9 +394,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'itemSize',
           labelMinWidth: '4rem',
           dtype: 'int',
-          min: 16,
+          min: 4,
           max: 320,
-          numSteps: 38,
+          numSteps: 79,
           nullifiable: true
         },
         {
@@ -767,15 +767,16 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '6rem',
           dtype: 'int',
           min: 0,
-          max: 15
+          max: 16
         },
         {
           name: 'pileLabelHeight',
           hide: categoricalProps.length === 0,
           labelMinWidth: '6rem',
           dtype: 'int',
-          min: 0,
-          max: 15
+          min: 0.1,
+          max: 16,
+          numSteps: 159
         },
         {
           name: 'pileSizeBadge',
