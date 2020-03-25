@@ -32,26 +32,26 @@ modeToString.set(MODE_ACTIVE, 'Active');
 const alignToXMod = align => {
   switch (align) {
     case 'left':
-      return -1;
+      return 0;
 
     case 'right':
       return 1;
 
     default:
-      return 0;
+      return 0.5;
   }
 };
 
 const alignToYMod = align => {
   switch (align) {
     case 'top':
-      return -1;
+      return 0;
 
     case 'bottom':
       return 1;
 
     default:
-      return 0;
+      return 0.5;
   }
 };
 
@@ -196,6 +196,25 @@ const createPile = (
     }
   };
 
+  let pileBounds = { drawCall: -1 };
+  let borderDrawCall = 0;
+  const getContentBounds = () => {
+    if (pileBounds.drawCall === borderDrawCall) return pileBounds;
+
+    const borderBounds = borderGraphics.getBounds();
+    const contentBounds = contentGraphics.getBounds();
+
+    pileBounds = {
+      drawCall: borderDrawCall,
+      x: contentBounds.x - borderBounds.x,
+      y: contentBounds.y - borderBounds.y,
+      width: contentBounds.width,
+      height: contentBounds.height
+    };
+
+    return pileBounds;
+  };
+
   let previousSize;
   let previousSizeBadge;
   const drawSizeBadge = () => {
@@ -222,18 +241,19 @@ const createPile = (
       }
     }
 
-    let bounds;
-
-    if (normalItemContainer.children.length) {
-      bounds = normalItemContainer.getBounds();
-    } else if (coverContainer.children.length) {
-      bounds = normalItemContainer.getBounds();
-    } else {
+    if (
+      !normalItemContainer.children.length &&
+      !coverContainer.children.length
+    ) {
       return;
     }
 
-    sizeBadge.displayObject.x = (bounds.width / 2 + borderSizeBase) * xMod;
-    sizeBadge.displayObject.y = (bounds.height / 2 + borderSizeBase) * yMod;
+    const bounds = getContentBounds();
+
+    sizeBadge.displayObject.x =
+      bounds.x - borderSizeBase + (bounds.width + 2 * borderSizeBase) * xMod;
+    sizeBadge.displayObject.y =
+      bounds.y - borderSizeBase + (bounds.height + 2 * borderSizeBase) * yMod;
 
     if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
 
@@ -298,6 +318,7 @@ const createPile = (
   };
 
   const drawBorder = () => {
+    ++borderDrawCall;
     const size = getBorderSize();
     const backgroundOpacity = getBackgroundOpacity();
 
@@ -316,13 +337,10 @@ const createPile = (
 
     borderGraphics.clear();
 
-    const borderBounds = borderGraphics.getBounds();
-    const contentBounds = contentGraphics.getBounds();
+    const bounds = getContentBounds();
 
     const state = store.state;
 
-    const x = contentBounds.x - borderBounds.x;
-    const y = contentBounds.y - borderBounds.y;
     const borderOffset = Math.ceil(size / 2);
     const backgroundColor =
       state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
@@ -331,10 +349,10 @@ const createPile = (
     // draw black background
     borderGraphics.beginFill(backgroundColor, backgroundOpacity);
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      bounds.x - borderOffset,
+      bounds.y - borderOffset,
+      bounds.width + 2 * borderOffset,
+      bounds.height + 2 * borderOffset
     );
     borderGraphics.endFill();
 
@@ -350,10 +368,10 @@ const createPile = (
     // draw border
     borderGraphics.lineStyle(size, color, opacity);
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      bounds.x - borderOffset,
+      bounds.y - borderOffset,
+      bounds.width + 2 * borderOffset,
+      bounds.height + 2 * borderOffset
     );
 
     if (isShowSizeBadge) drawSizeBadge();
@@ -1467,7 +1485,6 @@ const createPile = (
     get y() {
       return rootGraphics.y;
     },
-    borderGraphics,
     id,
     // Methods
     animateMoveTo,
