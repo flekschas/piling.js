@@ -33,7 +33,7 @@ const regionToColor = region => {
 };
 
 const createDrawingPiles = async (element, darkMode) => {
-  const response = await fetch('data/apple.json');
+  const response = await fetch('data/teapot.json');
   const items = await response.json();
 
   const coverOptions = { size: 128, lineWidth: 3 };
