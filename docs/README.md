@@ -689,8 +689,10 @@ Unsubscribe from an event. See [events](#events) for all the events.
   // The following 2 examples are equivalent
   piling.set('pileLabelSizeAggregator', 'histogram');
   piling.set('pileLabelSizeAggregator', histogram => {
-    const maxValue = Math.max(...histogram);
-    return histogram.map(x => x / maxValue);
+    // Histogram is a label-count dictionary
+    const counts = Object.values(histogram);
+    const maxCount = Math.max(...counts);
+    return counts.map(x => x / maxCount);
   });
   ```
 

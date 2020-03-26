@@ -2993,18 +2993,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const getPileLabelSizeScale = (labels, allLabels) => {
     const { pileLabelSizeAggregator } = store.state;
 
-    if (!pileLabelSizeAggregator) return new Array(labels.length).fill(1);
-
-    const histogramObj = labels.reduce((obj, label) => {
-      obj[label] = 0;
-      return obj;
+    const histogram = labels.reduce((hist, label) => {
+      // If `pileLabelSizeAggregator` is falsy this will turn to `1` and
+      // otherwise to `0`
+      hist[label] = +!pileLabelSizeAggregator;
+      return hist;
     }, {});
 
-    allLabels.forEach(label => {
-      histogramObj[label]++;
-    });
+    if (!pileLabelSizeAggregator) return histogram;
 
-    const histogram = Object.values(histogramObj);
+    allLabels.forEach(label => {
+      histogram[label]++;
+    });
 
     return pileLabelSizeAggregator(histogram);
   };
@@ -3029,7 +3029,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const labels = unique(allLabels);
 
-    const scaleFactors = getPileLabelSizeScale(labels, allLabels);
+    const scaleFactors =
+      labels.length > 1 ? getPileLabelSizeScale(labels, allLabels) : [1];
 
     const args = labels.reduce(
       (_args, labelText) => {
@@ -3687,8 +3688,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (labelSizeAggregator) {
       case 'histogram':
         return histogram => {
-          const maxValue = Math.max(...histogram);
-          return histogram.map(x => x / maxValue);
+          const values = Object.values(histogram);
+          const maxValue = max(values);
+          return values.map(x => x / maxValue);
         };
 
       default:
