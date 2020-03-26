@@ -1,7 +1,7 @@
 import { isFunction } from '@flekschas/utils';
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
-import createSvgLinesPiles from './lines';
+import createSvgLinesPiles from './covid-19';
 import createScatterplotPiles from './scatterplots';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
