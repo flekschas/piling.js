@@ -457,7 +457,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelFontSize           | int                               | 8                  |                                                                                                 | `true`     |
 | pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
 | pileLabelStackAlign         | string                            | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
-| pileLabelSizeAggregator     | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
@@ -683,14 +683,13 @@ Unsubscribe from an event. See [events](#events) for all the events.
     }
   ```
 
-- `pileLabelSizeAggregator` is used to get a relative distribution of categories across a pile. It can be set to `'histogram'` or a callback function. E.g.,
+- `pileLabelSizeTransform` is used to get a relative distribution of categories across a pile. It can be set to `'histogram'` or a callback function. E.g.,
 
   ```javascript
   // The following 2 examples are equivalent
-  piling.set('pileLabelSizeAggregator', 'histogram');
-  piling.set('pileLabelSizeAggregator', histogram => {
-    // Histogram is a label-count dictionary
-    const counts = Object.values(histogram);
+  piling.set('pileLabelSizeTransform', 'histogram');
+  piling.set('pileLabelSizeTransform', (counts, labels) => {
+    // This function normalizes the counts to be in [0,1]
     const maxCount = Math.max(...counts);
     return counts.map(x => x / maxCount);
   });

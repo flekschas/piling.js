@@ -88,17 +88,16 @@ const createDrawingPiles = async (element, darkMode) => {
     pileLabelColor: regionToColor,
     pileLabelStackAlign: 'horizontal',
     pileLabelHeight: pile => (pile.items.length > 1 ? 12 : 2),
-    pileLabelSizeAggregator: histogram => {
-      const values = Object.values(histogram);
-      const sumValue = sum(values);
-      let maxValue = 0;
-      const normValues = Object.entries(histogram).map(([region, value]) => {
+    pileLabelSizeTransform: (counts, labels) => {
+      const totalCounts = sum(counts);
+      let max = 0;
+      const normValues = counts.map((c, i) => {
         const observedOverExpected =
-          value / (sumValue * (regionHistogram[region] || 1));
-        maxValue = Math.max(maxValue, observedOverExpected);
+          c / (totalCounts * (regionHistogram[labels[i]] || 1));
+        max = Math.max(max, observedOverExpected);
         return observedOverExpected;
       });
-      return normValues.map(x => x / maxValue);
+      return normValues.map(x => x / max);
     }
   });
 

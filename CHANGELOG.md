@@ -1,6 +1,6 @@
 ### Next
 
-- Add `pileLabelSizeAggregator` for visualizing the distribution of categories
+- Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile
 - Add some pile/item properties and label properties to sidebar
 - Add the following properties to give more control to the pile background color: (#151)
   - `pileBackgroundColorActive`

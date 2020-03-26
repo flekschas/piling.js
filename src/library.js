@@ -245,10 +245,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileLabelFontSize: true,
     pileLabelHeight: true,
     pileLabelStackAlign: true,
-    pileLabelSizeAggregator: {
+    pileLabelSizeTransform: {
       set: value => {
         const aggregator = expandLabelSizeAggregator(value);
-        const actions = [createAction.setPileLabelSizeAggregator(aggregator)];
+        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
         return actions;
       }
     },
@@ -2991,22 +2991,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPileLabelSizeScale = (labels, allLabels) => {
-    const { pileLabelSizeAggregator } = store.state;
+    const { pileLabelSizeTransform } = store.state;
 
     const histogram = labels.reduce((hist, label) => {
-      // If `pileLabelSizeAggregator` is falsy this will turn to `1` and
+      // If `pileLabelSizeTransform` is falsy this will turn to `1` and
       // otherwise to `0`
-      hist[label] = +!pileLabelSizeAggregator;
+      hist[label] = +!pileLabelSizeTransform;
       return hist;
     }, {});
 
-    if (!pileLabelSizeAggregator) return histogram;
+    if (!pileLabelSizeTransform) return histogram;
 
     allLabels.forEach(label => {
       histogram[label]++;
     });
 
-    return pileLabelSizeAggregator(histogram);
+    return pileLabelSizeTransform(
+      Object.values(histogram),
+      Object.keys(histogram)
+    );
   };
 
   const setPileLabel = (pileState, pileId, reset = false) => {

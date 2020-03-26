@@ -390,8 +390,8 @@ const [pileLabelFontSize, setPileLabelFontSize] = setter(
   7
 );
 const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
-const [pileLabelSizeAggregator, setPileLabelSizeAggregator] = setter(
-  'pileLabelSizeAggregator'
+const [pileLabelSizeTransform, setPileLabelSizeTransform] = setter(
+  'pileLabelSizeTransform'
 );
 
 const items = (previousState = {}, action) => {
@@ -643,7 +643,7 @@ const createStore = () => {
     pileLabelFontSize,
     pileLabelHeight,
     pileLabelStackAlign,
-    pileLabelSizeAggregator,
+    pileLabelSizeTransform,
     pileLabelText,
     pileOpacity,
     piles,
@@ -808,7 +808,7 @@ export const createAction = {
   setPileLabelFontSize,
   setPileLabelHeight,
   setPileLabelStackAlign,
-  setPileLabelSizeAggregator,
+  setPileLabelSizeTransform,
   setPileLabelText,
   setPileVisibilityItems,
   setPileOpacity,
