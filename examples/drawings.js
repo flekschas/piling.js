@@ -1,4 +1,4 @@
-import { unique } from '@flekschas/utils';
+import { sum, unique } from '@flekschas/utils';
 import createPilingJs from '../src/library';
 import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
@@ -52,6 +52,18 @@ const createDrawingPiles = async (element, darkMode) => {
     return regionsA.every((region, i) => region === regionsB[i]);
   };
 
+  let total = 0;
+  const regionHistogram = items.reduce((hist, item) => {
+    if (!hist[item.region]) hist[item.region] = 1;
+    else ++hist[item.region];
+    ++total;
+    return hist;
+  }, {});
+
+  Object.keys(regionHistogram).forEach(region => {
+    regionHistogram[region] /= total;
+  });
+
   const piling = createPilingJs(element, {
     darkMode,
     renderer: quickDrawRenderer,
@@ -74,7 +86,19 @@ const createDrawingPiles = async (element, darkMode) => {
     lassoStrokeColor: '#000000',
     pileLabel: 'region',
     pileLabelColor: regionToColor,
-    pileLabelStackAlign: 'vertical'
+    pileLabelStackAlign: 'horizontal',
+    pileLabelHeight: pile => (pile.items.length > 1 ? 12 : 2),
+    pileLabelSizeTransform: (counts, labels) => {
+      const totalCounts = sum(counts);
+      let max = 0;
+      const normValues = counts.map((c, i) => {
+        const observedOverExpected =
+          c / (totalCounts * (regionHistogram[labels[i]] || 1));
+        max = Math.max(max, observedOverExpected);
+        return observedOverExpected;
+      });
+      return normValues.map(x => x / max);
+    }
   });
 
   piling.subscribe('itemUpdate', () => {
