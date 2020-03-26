@@ -1268,15 +1268,20 @@ const createPile = (
       pileLabelAlign,
       pileLabelFontSize,
       pileLabelStackAlign,
-      pileLabelText
+      pileLabelText,
+      piles
     } = store.state;
 
     const bounds = getContentBounds();
 
+    const height = isFunction(pileLabelHeight)
+      ? pileLabelHeight(piles[id])
+      : pileLabelHeight;
+
     let labelWidth = bounds.width / labels.length;
     const labelHeightMax = labelTextures.length
-      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
-      : pileLabelHeight;
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), height)
+      : height;
 
     const y =
       pileLabelAlign === 'top'

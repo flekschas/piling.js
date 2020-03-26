@@ -455,9 +455,9 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelAlign              | String                            | `bottom`           | `bottom` or `top`                                                                               | `true`     |
 | pileLabelColor              | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelFontSize           | int                               | 8                  |                                                                                                 | `true`     |
-| pileLabelHeight             | float                             | 8                  |                                                                                                 | `true`     |
-| pileLabelStackAlign         | String                            | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
-| pileLabelSizeAggregator     | `histogram` or function           |                |  see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
+| pileLabelStackAlign         | string                            | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
+| pileLabelSizeAggregator     | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
