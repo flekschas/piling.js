@@ -74,7 +74,8 @@ const createDrawingPiles = async (element, darkMode) => {
     lassoStrokeColor: '#000000',
     pileLabel: 'region',
     pileLabelColor: regionToColor,
-    pileLabelStackAlign: 'vertical'
+    pileLabelStackAlign: 'vertical',
+    pileLabelSizeAggregator: 'histogram'
   });
 
   piling.subscribe('itemUpdate', () => {
