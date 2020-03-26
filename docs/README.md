@@ -457,6 +457,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelFontSize           | int                               | 8                  |                                                                                                 | `true`     |
 | pileLabelHeight             | float                             | 8                  |                                                                                                 | `true`     |
 | pileLabelStackAlign         | String                            | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
+| pileLabelSizeAggregator     | `histogram` or function           |                |  see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
@@ -680,6 +681,26 @@ Unsubscribe from an event. See [events](#events) for all the events.
       // Pick the color for the `label`
       return color;
     }
+  ```
+
+- `pileLabelSizeAggregator` is used to get a relative distribution of categories across a pile. It can be set to `'histogram'` or a callback function. E.g.,
+
+  ```javascript
+  // The following 2 examples are equivalent
+  piling.set('pileLabelSizeAggregator', 'histogram');
+  piling.set('pileLabelSizeAggregator', histogram => {
+    const maxValue = Math.max(...histogram);
+    return histogram.map(x => x / maxValue);
+  });
+  ```
+
+  The callback function should receive an array of the sum of each label and return an array of scale factors that ranges in `[0, 1]`. The signature is as follows:
+
+  ```javascript
+    function (histogram) => {
+      // Do stuff
+      return arrayofScaleFactors;
+    };
   ```
 
 - `pileLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,

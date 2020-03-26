@@ -1,5 +1,6 @@
 ### Next
 
+- Add `pileLabelSizeAggregator` for visualizing the distribution of categories
 - Add some pile/item properties and label properties to sidebar
 - Add the following properties to give more control to the pile background color: (#151)
   - `pileBackgroundColorActive`
