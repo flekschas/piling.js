@@ -539,7 +539,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           subInputs: [
             {
               dtype: 'string',
-              values: ['uv', 'ij', 'xy'],
+              values: ['uv', 'ij', 'xy', 'custom'],
               defaultValue: arrangeByType,
               setter: type => {
                 arrangeByType = type;

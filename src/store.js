@@ -391,6 +391,8 @@ const [pileLabelFontSize, setPileLabelFontSize] = setter(
 );
 const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
 
+const [projector, setProjector] = setter('projector');
+
 const items = (previousState = {}, action) => {
   switch (action.type) {
     case 'SET_ITEMS': {
@@ -658,6 +660,7 @@ const createStore = () => {
     previewScaling,
     previewSpacing,
     previewOffset,
+    projector,
     rowHeight,
     showGrid,
     showSpatialIndex,
@@ -821,6 +824,7 @@ export const createAction = {
   setPreviewScaling,
   setPreviewSpacing,
   setPreviewOffset,
+  setProjector,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,

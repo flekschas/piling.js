@@ -165,6 +165,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     cellSize: true,
+    center: {
+      get: () => camera.target,
+      set: point => {
+        camera.lookAt(point, camera.scaling, camera.rotation);
+      },
+      noAction: true
+    },
     columns: true,
     coverAggregator: true,
     coverRenderer: true,
@@ -338,11 +345,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     previewRenderer: true,
     previewScaling: true,
     previewSpacing: true,
+    projector: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
     },
     rowHeight: true,
+    scale: {
+      get: () => camera.scaling,
+      set: scale => {
+        camera.scale(scale, [renderer.width / 2, renderer.height / 2]);
+      },
+      noAction: true
+    },
     showGrid: true,
     showSpatialIndex: true,
     tempDepileDirection: true,
@@ -361,13 +376,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const set = (property, value, noDispatch = false) => {
+    const config = properties[property];
     let actions = [];
 
-    if (properties[property]) {
+    if (config) {
       const defaultSetter = v => [
         createAction[`set${capitalize(property)}`](v)
       ];
-      const setter = properties[property].set || defaultSetter;
+      const setter = config.set || defaultSetter;
       if (setter) {
         actions = setter(value);
       } else {
@@ -377,7 +393,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       console.warn(`Unknown property "${property}"`);
     }
 
-    if (!noDispatch) {
+    if (!noDispatch && !config.noAction) {
       actions.forEach(action => store.dispatch(action));
     }
 
@@ -1159,7 +1175,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePosition = async (pileId, init) => {
-    const { arrangementType, arrangementObjective, piles } = store.state;
+    const {
+      arrangementType,
+      arrangementObjective,
+      piles,
+      projector
+    } = store.state;
 
     const pile = pileInstances.get(pileId);
     const pileState = piles[pileId];
@@ -1196,6 +1217,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'uv':
         return layout.uvToXy(...pos);
 
+      case 'custom':
+        if (projector) return projector(pos);
+
+      // eslint-disable-next-line no-fallthrough
       default:
         return Promise.resolve([pileState.x, pileState.y]);
     }
@@ -3538,6 +3563,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'xy':
       case 'ij':
       case 'uv':
+      case 'custom':
         expandedObjective = expandArrangementObjectiveCoords(objective, true);
         break;
 
@@ -3862,14 +3888,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseUpHandler = () => {
-    if (isMouseDown) {
-      if (isLasso) {
-        lassoEndHandler();
-      } else if (isPanZoom) {
-        panZoomEndHandler();
-      }
-    }
+    if (!isMouseDown) return;
+
     isMouseDown = false;
+    if (isLasso) {
+      lassoEndHandler();
+    } else if (isPanZoom) {
+      panZoomEndHandler();
+    }
   };
 
   const mouseMoveHandler = event => {
