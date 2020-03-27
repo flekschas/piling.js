@@ -667,9 +667,10 @@ Unsubscribe from an event. See [events](#events) for all the events.
   });
   ```
 
-- `pileLabelColor` can be set to an `array` of HEX, RGB string or hexadecimal value, or a callback function. E.g.,
+- `pileLabelColor` can be set to a HEX, RGB string or hexadecimal value, an `array` of the previous types, or a callback function. E.g.,
 
   ```javascript
+  piling.set('pileLabelColor', '#e05aa9');
   piling.set('pileLabelColor', ['#e05aa9', '#e0722b', '#e0a638']);
   piling.set('pileLabelColor', (label, allLabels) => myOwnFancyColorMap[label]);
   ```
