@@ -2958,10 +2958,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     uniqueLabels.forEach(label => {
       let color;
 
-      if (isFunction(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
-      } else if (Array.isArray(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor[label.index])[0];
+      if (pileLabelColor !== null) {
+        if (isFunction(pileLabelColor)) {
+          color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+        } else {
+          let colorArray = pileLabelColor;
+          if (!Array.isArray(pileLabelColor)) {
+            colorArray = [pileLabelColor];
+          }
+          const n = colorArray.length;
+          color = colorToDecAlpha(colorArray[label.index % n])[0];
+        }
       } else {
         const n = DEFAULT_COLOR_MAP.length;
         color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
