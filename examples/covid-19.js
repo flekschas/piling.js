@@ -1,3 +1,4 @@
+import SphericalMercator from '@mapbox/sphericalmercator';
 import * as d3 from 'd3';
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
@@ -37,11 +38,16 @@ const createMapbox = element => () => {
     container: mapEl,
     style: 'mapbox://styles/mapbox/dark-v10',
     zoom: 0,
-    center: [4.899, 52.372]
+    center: [0, 0],
+    minZoom: 0,
+    maxZoom: 22,
+    interactive: false
   });
 
   return map;
 };
+
+const mercator = new SphericalMercator({ size: 1 });
 
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
@@ -55,13 +61,20 @@ const create = async (element, darkMode) => {
   let response = await fetch('data/covid-19.json');
   response = await response.json();
 
-  loadMapbox().then(createMapbox(element));
-
-  const { width } = element.getBoundingClientRect();
-
   const data = response.data;
   // const startDate = response.startDate;
   // const endDate = response.endDate;
+
+  let regions = await fetch('data/covid-19-regions.json');
+  regions = await regions.json();
+
+  const map = await loadMapbox().then(createMapbox(element));
+  map.setCenter([0, 0]);
+  map.setZoom(0);
+  const minZoom = map.getZoom();
+
+  const { width, height } = element.getBoundingClientRect();
+
   const countries = Object.keys(data);
   const numDays = data[countries[0]].cases.length;
 
@@ -114,8 +127,8 @@ const create = async (element, darkMode) => {
 
   const createLine = d3
     .line()
-    .x((_, i) => halfStepSize + stepSize * i)
-    .y(d => absHeight - absHeight * yScale(d + 1));
+    .x(d => halfStepSize + stepSize * d[0])
+    .y(d => absHeight - absHeight * yScale(d[1] + 1));
 
   const createPath = y => {
     const path = createLine(y);
@@ -126,20 +139,31 @@ const create = async (element, darkMode) => {
     ? ['#808080', '#d96921']
     : ['#333333', '#663413'];
 
+  const toXy = ys =>
+    ys.reduce((xys, y, i) => {
+      if (y !== null) xys.push([i, y]);
+      return xys;
+    }, []);
+
   // prettier-ignore
   const createLinePlot = (y) => [
     createSvgStart(),
     createGradient('linear-stroke', ...strokeColorRange),
-    createPath(y),
+    createPath(toXy(y)),
     createSvgEnd()
   ].join('');
 
-  const items = countries.map(country => ({
-    src: createLinePlot(data[country].cases),
-    country,
-    long: 0,
-    lat: 0
-  }));
+  const items = countries.map(country => {
+    // const r = regions[country];
+    // if (!r) console.log('Not found:', country);
+    return {
+      src: createLinePlot(data[country].cases),
+      country,
+      lonLat: regions[country]
+        ? [regions[country].long, regions[country].lat]
+        : [0, 0]
+    };
+  });
 
   const piling = createPilingJs(pilingEl, {
     darkMode,
@@ -149,10 +173,50 @@ const create = async (element, darkMode) => {
     renderer: svgRenderer,
     items,
     columns: 12,
+    navigationMode: 'panZoom',
+    pileBackgroundColor: 'rgba(33, 33, 33, 0.8)',
     pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1)
+    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
+    pileLabel: 'country',
+    pileLabelText: true,
+    pileLabelColor: () => '#666666',
+    projector: ll => {
+      const { x, y } = map.project(ll);
+      return [x, y];
+    }
+  });
+
+  piling.arrangeBy('custom', 'lonLat');
+
+  const scaleZoom = scale => Math.log(scale) / Math.LN2;
+
+  const viewCenter = [width / 2, height / 2];
+
+  // const lonLat = mercator.ll(
+  //   [viewCenter[0] / width, viewCenter[1] / height],
+  //   0
+  // );
+
+  // console.log(viewCenter, lonLat, map.getCenter());
+
+  piling.subscribe('zoom', camera => {
+    const zoom = minZoom + scaleZoom(camera.scaling);
+    const ll = mercator.ll(
+      [
+        (viewCenter[0] - camera.translation[0] / camera.scaling) / width,
+        (viewCenter[1] - camera.translation[1] / camera.scaling) / height
+      ],
+      0
+    );
+    // console.log(
+    //   camera.translation[0],
+    //   camera.translation[0] / camera.scaling,
+    //   camera.scaling
+    // );
+    map.panTo(ll, { animate: false });
+    map.setZoom(zoom);
   });
 
   return [piling];
