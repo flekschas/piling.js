@@ -108,12 +108,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let transformPointFromScreen;
   let translatePointFromScreen;
   let camera;
+
   const scratch = new Float32Array(16);
+
   const lastPilePosition = new Map();
 
+  let {
+    width: containerWidth,
+    height: containerHeight
+  } = rootElement.getBoundingClientRect();
+
   const renderer = new PIXI.Renderer({
-    width: rootElement.getBoundingClientRect().width,
-    height: rootElement.getBoundingClientRect().height,
+    width: containerWidth,
+    height: containerHeight,
     view: canvas,
     antialias: true,
     transparent: true,
@@ -650,9 +657,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseDown: mouseDownHandler,
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
-      onWheel: wheelHandler
+      onWheel: wheelHandler,
+      viewCenter: [containerWidth / 2, containerHeight / 2]
     });
-    camera.set(mat4.clone(CAMERA_VIEW));
+    camera.setView(mat4.clone(CAMERA_VIEW));
 
     return true;
   };
@@ -4097,11 +4105,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const resizeHandler = () => {
     const { width, height } = rootElement.getBoundingClientRect();
 
-    renderer.resize(width, height);
+    containerWidth = width;
+    containerHeight = height;
+
+    renderer.resize(containerWidth, containerHeight);
+
+    if (camera) camera.setViewCenter([containerWidth / 2, containerHeight / 2]);
 
     mask
       .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
+      .drawRect(0, 0, containerWidth, containerHeight)
       .endFill();
 
     updateGrid();
