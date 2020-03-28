@@ -33,15 +33,7 @@ const regionToColor = region => {
 };
 
 const selectedCategory = 'teapot';
-const categories = [
-  'flower',
-  'piano',
-  'power outlet',
-  'teapot',
-  'The Mona Lisa',
-  'The Great Wall of China',
-  'snowman'
-];
+const categories = ['flower', 'piano', 'power-outlet', 'teapot', 'snowman'];
 
 const createItems = async category => {
   const response = await fetch(`data/${category}.json`);
