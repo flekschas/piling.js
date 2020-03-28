@@ -252,6 +252,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileLabelFontSize: true,
     pileLabelHeight: true,
     pileLabelStackAlign: true,
+    pileLabelSizeTransform: {
+      set: value => {
+        const aggregator = expandLabelSizeAggregator(value);
+        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
+        return actions;
+      }
+    },
     pileLabelText: true,
     pileBorderColor: {
       set: createColorOpacityActions(
@@ -2976,10 +2983,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     uniqueLabels.forEach(label => {
       let color;
 
-      if (isFunction(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
-      } else if (Array.isArray(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor[label.index])[0];
+      if (pileLabelColor !== null) {
+        if (isFunction(pileLabelColor)) {
+          color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+        } else {
+          let colorArray = pileLabelColor;
+          if (!Array.isArray(pileLabelColor)) {
+            colorArray = [pileLabelColor];
+          }
+          const n = colorArray.length;
+          color = colorToDecAlpha(colorArray[label.index % n])[0];
+        }
       } else {
         const n = DEFAULT_COLOR_MAP.length;
         color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
@@ -3008,6 +3022,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const getPileLabelSizeScale = (labels, allLabels) => {
+    const { pileLabelSizeTransform } = store.state;
+
+    const histogram = labels.reduce((hist, label) => {
+      // If `pileLabelSizeTransform` is falsy this will turn to `1` and
+      // otherwise to `0`
+      hist[label] = +!pileLabelSizeTransform;
+      return hist;
+    }, {});
+
+    if (!pileLabelSizeTransform) return histogram;
+
+    allLabels.forEach(label => {
+      histogram[label]++;
+    });
+
+    return pileLabelSizeTransform(
+      Object.values(histogram),
+      Object.keys(histogram)
+    );
+  };
+
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
@@ -3022,11 +3058,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!idToLabel.size || reset) createUniquePileLabels();
 
-    const labels = unique(
-      pileState.items.flatMap(itemId =>
-        pileLabel.map(objective => objective(items[itemId])).join('-')
-      )
+    const allLabels = pileState.items.flatMap(itemId =>
+      pileLabel.map(objective => objective(items[itemId])).join('-')
     );
+
+    const labels = unique(allLabels);
+
+    const scaleFactors =
+      labels.length > 1 ? getPileLabelSizeScale(labels, allLabels) : [1];
 
     const args = labels.reduce(
       (_args, labelText) => {
@@ -3042,7 +3081,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       [[], [], []]
     );
 
-    pileInstance.drawLabel(...args);
+    pileInstance.drawLabel(...args, scaleFactors);
   };
 
   const itemUpdates = [];
@@ -3677,6 +3716,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const objectives = Array.isArray(objective) ? objective : [objective];
     return objectives.map(_objective => expandProperty(_objective));
+  };
+
+  const expandLabelSizeAggregator = labelSizeAggregator => {
+    if (isFunction(labelSizeAggregator)) return labelSizeAggregator;
+
+    switch (labelSizeAggregator) {
+      case 'histogram':
+        return histogram => {
+          const values = Object.values(histogram);
+          const maxValue = max(values);
+          return values.map(x => x / maxValue);
+        };
+
+      default:
+        return histogram => histogram.map(() => 1);
+    }
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {

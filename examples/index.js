@@ -771,7 +771,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'pileLabelHeight',
-          hide: categoricalProps.length === 0,
+          hide:
+            categoricalProps.length === 0 ||
+            isFunction(piling.get('pileLabelHeight')),
           labelMinWidth: '6rem',
           dtype: 'int',
           min: 0.1,

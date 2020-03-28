@@ -1228,11 +1228,13 @@ const createPile = (
   let pileLabels = [];
   let labelColors = [];
   let labelTextures = [];
+  let labelScaleFactors = [];
 
   const drawLabel = (
     labels = pileLabels,
     colors = labelColors,
-    textures = labelTextures
+    textures = labelTextures,
+    scaleFactors = labelScaleFactors
   ) => {
     if (!labels.length) {
       if (labelGraphics) {
@@ -1249,6 +1251,7 @@ const createPile = (
     pileLabels = labels;
     labelColors = colors;
     labelTextures = textures;
+    labelScaleFactors = scaleFactors;
 
     if (isPositioning || isScaling) return;
 
@@ -1265,19 +1268,24 @@ const createPile = (
       pileLabelAlign,
       pileLabelFontSize,
       pileLabelStackAlign,
-      pileLabelText
+      pileLabelText,
+      piles
     } = store.state;
 
     const bounds = getContentBounds();
 
-    let labelWidth = bounds.width / labels.length;
-    const labelHeight = labelTextures.length
-      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
+    const height = isFunction(pileLabelHeight)
+      ? pileLabelHeight(piles[id])
       : pileLabelHeight;
+
+    let labelWidth = bounds.width / labels.length;
+    const labelHeightMax = labelTextures.length
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), height)
+      : height;
 
     const y =
       pileLabelAlign === 'top'
-        ? bounds.y - labelHeight
+        ? bounds.y - labelHeightMax
         : bounds.y + bounds.height;
 
     const toTop = 1 + (y < 0) * -2;
@@ -1285,9 +1293,10 @@ const createPile = (
     labels.forEach((label, index) => {
       let labelX;
       let labelY = y + toTop;
+      let labelHeight = labelHeightMax;
       switch (pileLabelStackAlign) {
         case 'vertical':
-          labelWidth = bounds.width;
+          labelWidth = bounds.width * scaleFactors[index];
           labelX = -bounds.width / 2;
           labelY += (labelHeight + 1) * index * toTop;
           break;
@@ -1295,6 +1304,8 @@ const createPile = (
         case 'horizontal':
         default:
           labelX = labelWidth * index - bounds.width / 2;
+          labelHeight = labelHeightMax * scaleFactors[index];
+          if (pileLabelAlign === 'top') labelY += labelHeightMax - labelHeight;
           break;
       }
       const color = colors[index];
@@ -1312,7 +1323,7 @@ const createPile = (
           case 'vertical':
             textWidth = bounds.width;
             textX = -bounds.width / 2 + textWidth / 2;
-            textY += (labelHeight + 1) * index * toTop;
+            textY += (labelHeightMax + 1) * index * toTop;
             break;
 
           case 'horizontal':
