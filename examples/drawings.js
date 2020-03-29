@@ -32,9 +32,26 @@ const regionToColor = region => {
   }
 };
 
+const selectedCategory = 'teapot';
+const categories = ['flower', 'piano', 'power-outlet', 'teapot', 'snowman'];
+
+const createItems = async category => {
+  const response = await fetch(`data/${category}.json`);
+  const items = await response.json();
+
+  items.forEach((item, index) => {
+    item.id = `${category}${index}`;
+  });
+  return items;
+};
+
 const createDrawingPiles = async (element, darkMode) => {
   const response = await fetch('data/teapot.json');
   const items = await response.json();
+
+  items.forEach((item, index) => {
+    item.id = `teapot${index}`;
+  });
 
   const coverOptions = { size: 128, lineWidth: 3 };
 
@@ -114,8 +131,26 @@ const createDrawingPiles = async (element, darkMode) => {
           name: 'Group by and region',
           dtype: 'string',
           action: () => {
-            piling.pileBy('overlap', 0, {
+            piling.groupBy('overlap', 0, {
               conditions: [sameRegion]
+            });
+          }
+        }
+      ]
+    },
+    {
+      id: 'drawing-category',
+      title: 'Drawing Categories',
+      fields: [
+        {
+          name: 'categories',
+          dtype: 'string',
+          defaultValue: selectedCategory,
+          values: categories,
+          setter: category => {
+            const newItems = createItems(category);
+            newItems.then(_item => {
+              piling.set('items', _item);
             });
           }
         }

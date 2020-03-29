@@ -1026,13 +1026,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return [renderImages, renderPreviews];
   };
 
-  const updateItemTexture = (updatedItems = null) => {
+  const updateItemTexture = async (updatedItems = null) => {
     const { items, piles } = store.state;
 
     if (!updatedItems) {
       // eslint-disable-next-line no-param-reassign
       updatedItems = items;
     }
+
+    await halt();
 
     return Promise.all(createImagesAndPreviews(updatedItems)).then(
       ([renderedImages, renderedPreviews]) => {
@@ -1068,6 +1070,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
         scaleItems();
         renderRaf();
+        resume();
       }
     );
   };
