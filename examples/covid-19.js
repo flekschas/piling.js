@@ -1,7 +1,8 @@
-import SphericalMercator from '@mapbox/sphericalmercator';
 import * as d3 from 'd3';
+
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
+import { createBoundedMercator } from '../src/projectors';
 
 const loadMapbox = () =>
   Promise.all([
@@ -36,7 +37,7 @@ const createMapbox = element => () => {
 
   const map = new window.mapboxgl.Map({
     container: mapEl,
-    style: 'mapbox://styles/mapbox/dark-v10',
+    style: 'mapbox://styles/flekschas/cjx3bh1701w8i1dn33wx6iugc',
     zoom: 0,
     center: [0, 0],
     minZoom: 0,
@@ -46,8 +47,6 @@ const createMapbox = element => () => {
 
   return map;
 };
-
-const mercator = new SphericalMercator({ size: 1 });
 
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
@@ -165,6 +164,8 @@ const create = async (element, darkMode) => {
     };
   });
 
+  const boundedMercator = createBoundedMercator(width, height);
+
   const piling = createPilingJs(pilingEl, {
     darkMode,
     cellAspectRatio: aspectRatio,
@@ -182,41 +183,16 @@ const create = async (element, darkMode) => {
     pileLabel: 'country',
     pileLabelText: true,
     pileLabelColor: () => '#666666',
-    projector: ll => {
-      const { x, y } = map.project(ll);
-      return [x, y];
-    }
+    projector: ll => boundedMercator.toPx(ll)
   });
 
   piling.arrangeBy('custom', 'lonLat');
 
   const scaleZoom = scale => Math.log(scale) / Math.LN2;
 
-  const viewCenter = [width / 2, height / 2];
-
-  // const lonLat = mercator.ll(
-  //   [viewCenter[0] / width, viewCenter[1] / height],
-  //   0
-  // );
-
-  // console.log(viewCenter, lonLat, map.getCenter());
-
   piling.subscribe('zoom', camera => {
-    const zoom = minZoom + scaleZoom(camera.scaling);
-    const ll = mercator.ll(
-      [
-        (viewCenter[0] - camera.translation[0] / camera.scaling) / width,
-        (viewCenter[1] - camera.translation[1] / camera.scaling) / height
-      ],
-      0
-    );
-    // console.log(
-    //   camera.translation[0],
-    //   camera.translation[0] / camera.scaling,
-    //   camera.scaling
-    // );
-    map.panTo(ll, { animate: false });
-    map.setZoom(zoom);
+    map.panTo(boundedMercator.toLl(camera.target), { animate: false });
+    map.setZoom(minZoom + scaleZoom(camera.scaling));
   });
 
   return [piling];
