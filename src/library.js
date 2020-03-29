@@ -62,6 +62,7 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getBBox,
+  getItemProp,
   getPileProp,
   scaleLinear,
   toAlignment,
@@ -977,19 +978,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemList.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
-    const previewOptions = {
-      backgroundColor:
-        previewBackgroundColor === INHERIT
-          ? pileBackgroundColor
-          : previewBackgroundColor,
-      backgroundOpacity:
-        previewBackgroundOpacity === INHERIT
-          ? pileBackgroundOpacity
-          : previewBackgroundOpacity,
-      padding: previewPadding
+    const createPreview = (texture, index) => {
+      const previewOptions = {
+        backgroundColor:
+          previewBackgroundColor === INHERIT
+            ? pileBackgroundColor
+            : getItemProp(previewBackgroundColor, itemList[index]),
+        backgroundOpacity:
+          previewBackgroundOpacity === INHERIT
+            ? pileBackgroundOpacity
+            : getItemProp(previewBackgroundOpacity, itemList[index]),
+        padding: getItemProp(previewPadding, itemList[index])
+      };
+      return createImageWithBackground(texture, previewOptions);
     };
-    const createPreview = texture =>
-      createImageWithBackground(texture, previewOptions);
 
     const renderPreviews = previewAggregator
       ? previewAggregator(itemList)

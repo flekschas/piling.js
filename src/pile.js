@@ -13,7 +13,12 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite, colorToDecAlpha, getPileProp } from './utils';
+import {
+  cloneSprite,
+  colorToDecAlpha,
+  getItemProp,
+  getPileProp
+} from './utils';
 
 import { BLACK, INHERIT, WHITE } from './defaults';
 
@@ -141,7 +146,15 @@ const createPile = (
         hoverItemContainer.addChild(clonedSprite);
         coverContainer.visible = false;
         if (hasPreviewItem(item)) {
-          const { previewBorderColor, previewBorderOpacity } = store.state;
+          const previewBorderColor = getItemProp(
+            store.state.previewBorderColor,
+            store.state.items[item.id]
+          );
+          const previewBorderOpacity = getItemProp(
+            store.state.previewBorderOpacity,
+            store.state.items[item.id]
+          );
+
           getForegroundColor(previewBorderColor);
           item.image.drawBackground(
             getForegroundColor(previewBorderColor),
@@ -184,11 +197,17 @@ const createPile = (
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
-            : previewBackgroundColor;
+            : getItemProp(
+                store.state.previewBackgroundColor,
+                store.state.items[item.id]
+              );
         const backgroundOpacity =
           previewBackgroundOpacity === INHERIT
             ? pileBackgroundOpacity
-            : previewBackgroundOpacity;
+            : getItemProp(
+                store.state.previewBackgroundOpacity,
+                store.state.items[item.id]
+              );
         item.image.drawBackground(backgroundColor, backgroundOpacity);
         previewItemContainer.addChild(item.displayObject);
       }
