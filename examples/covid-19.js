@@ -183,16 +183,17 @@ const create = async (element, darkMode) => {
     pileLabel: 'country',
     pileLabelText: true,
     pileLabelColor: () => '#666666',
-    projector: ll => boundedMercator.toPx(ll)
+    projector: ll => boundedMercator.toPx(ll),
+    zoomBounds: [0, 5]
   });
 
   piling.arrangeBy('custom', 'lonLat');
 
-  const scaleZoom = scale => Math.log(scale) / Math.LN2;
+  const scaleToZoom = scale => Math.log(scale) / Math.LN2;
 
   piling.subscribe('zoom', camera => {
     map.panTo(boundedMercator.toLl(camera.target), { animate: false });
-    map.setZoom(minZoom + scaleZoom(camera.scaling));
+    map.setZoom(minZoom + scaleToZoom(camera.scaling));
   });
 
   return [piling];
