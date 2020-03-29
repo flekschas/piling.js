@@ -62,6 +62,7 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getBBox,
+  getPileProp,
   scaleLinear,
   toAlignment,
   toHomogeneous,
@@ -953,8 +954,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
+    const bgColor = getPileProp(store.state.pileBackgroundColor);
+    if (bgColor !== null) return bgColor;
     return backgroundColor;
   };
 

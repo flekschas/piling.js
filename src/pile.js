@@ -13,7 +13,7 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite, colorToDecAlpha } from './utils';
+import { cloneSprite, colorToDecAlpha, getPileProp } from './utils';
 
 import { BLACK, INHERIT, WHITE } from './defaults';
 
@@ -156,8 +156,8 @@ const createPile = (
   };
 
   const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
+    const backgroundColor = getPileProp(store.state.pileBackgroundColor);
+    if (backgroundColor !== null) return backgroundColor;
     return store.state.darkMode ? BLACK : WHITE;
   };
 
@@ -308,11 +308,14 @@ const createPile = (
   };
 
   const getBackgroundOpacity = () => {
-    let backgroundOpacity =
-      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
+    let backgroundOpacity = getPileProp(
+      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`],
+      store.state.piles[id]
+    );
+    // store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
 
     if (backgroundOpacity === null)
-      backgroundOpacity = store.state.pileBackgroundOpacityHover;
+      backgroundOpacity = getPileProp(store.state.pileBackgroundOpacityHover);
 
     return backgroundOpacity;
   };
@@ -343,7 +346,11 @@ const createPile = (
 
     const borderOffset = Math.ceil(size / 2);
     const backgroundColor =
-      state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
+      getPileProp(
+        state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
+        state.piles[id]
+      ) ||
+      // state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
       getBackgroundColor();
 
     // draw black background
@@ -357,13 +364,16 @@ const createPile = (
     borderGraphics.endFill();
 
     let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
-    let opacity = state[`pileBorderOpacity${modeToString.get(mode) || ''}`];
+    const opacity = getPileProp(
+      state[`pileBorderOpacity${modeToString.get(mode) || ''}`],
+      state.piles[id]
+    );
 
     color = isFunction(color)
       ? colorToDecAlpha(color(state.piles[id]))[0]
       : color;
 
-    opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
+    // opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
 
     // draw border
     borderGraphics.lineStyle(size, color, opacity);
@@ -1263,25 +1273,25 @@ const createPile = (
       labelGraphics.removeChildren();
     }
 
-    const {
-      pileLabelHeight,
-      pileLabelAlign,
-      pileLabelFontSize,
-      pileLabelStackAlign,
-      pileLabelText,
-      piles
-    } = store.state;
+    const { pileLabelText, piles } = store.state;
+
+    const pileLabelAlign = getPileProp(store.state.pileLabelAlign, piles[id]);
+    const pileLabelFontSize = getPileProp(
+      store.state.pileLabelFontSize,
+      piles[id]
+    );
+    const pileLabelStackAlign = getPileProp(
+      store.state.pileLabelStackAlign,
+      piles[id]
+    );
+    const pileLabelHeight = getPileProp(store.state.pileLabelHeight, piles[id]);
 
     const bounds = getContentBounds();
 
-    const height = isFunction(pileLabelHeight)
-      ? pileLabelHeight(piles[id])
-      : pileLabelHeight;
-
     let labelWidth = bounds.width / labels.length;
     const labelHeightMax = labelTextures.length
-      ? Math.max(pileLabelText * (pileLabelFontSize + 1), height)
-      : height;
+      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
+      : pileLabelHeight;
 
     const y =
       pileLabelAlign === 'top'
