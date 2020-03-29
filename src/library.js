@@ -65,7 +65,8 @@ import {
   scaleLinear,
   toAlignment,
   toHomogeneous,
-  uniqueStr
+  uniqueStr,
+  zoomToScale
 } from './utils';
 
 import createImage from './image';
@@ -376,7 +377,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     showSpatialIndex: true,
     tempDepileDirection: true,
     tempDepileOneDNum: true,
-    temporaryDepiledPiles: true
+    temporaryDepiledPiles: true,
+    zoomBounds: true
   };
 
   const get = property => {
@@ -658,7 +660,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
       onWheel: wheelHandler,
-      viewCenter: [containerWidth / 2, containerHeight / 2]
+      viewCenter: [containerWidth / 2, containerHeight / 2],
+      scaleBounds: store.state.zoomBounds.map(zoomToScale)
     });
     camera.setView(mat4.clone(CAMERA_VIEW));
 

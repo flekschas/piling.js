@@ -10,3 +10,4 @@ export { default as toDisplayObject } from './to-display-object';
 export { default as toHomogeneous } from './to-homogeneous';
 export { default as uniqueStr } from './unique-str';
 export { default as whichTransitionEvent } from './which-transition-event';
+export { default as zoomToScale } from './zoom-to-scale';

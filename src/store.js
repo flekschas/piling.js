@@ -396,6 +396,8 @@ const [pileLabelSizeTransform, setPileLabelSizeTransform] = setter(
 
 const [projector, setProjector] = setter('projector');
 
+const [zoomBounds, setZoomBounds] = setter('zoomBounds', [-Infinity, Infinity]);
+
 const items = (previousState = {}, action) => {
   switch (action.type) {
     case 'SET_ITEMS': {
@@ -670,7 +672,8 @@ const createStore = () => {
     showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
-    temporaryDepiledPiles
+    temporaryDepiledPiles,
+    zoomBounds
   });
 
   const rootReducer = (state, action) => {
@@ -835,5 +838,6 @@ export const createAction = {
   setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
-  setTemporaryDepiledPiles
+  setTemporaryDepiledPiles,
+  setZoomBounds
 };
