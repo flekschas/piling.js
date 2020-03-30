@@ -33,6 +33,7 @@
 - Show spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`.
+- Ensure pile covers update as items update (#175)
 
 _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
 
