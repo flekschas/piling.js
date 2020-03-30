@@ -1,7 +1,7 @@
 ### Next
 
-- Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile
-- Add some pile/item properties and label properties to sidebar
+- Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile (#167)
+- Add some pile/item properties and label properties to sidebar (#158)
 - Add the following properties to give more control to the pile background color: (#151)
   - `pileBackgroundColorActive`
   - `pileBackgroundColorFocus`
@@ -17,23 +17,27 @@
   - `pileLabelHeight`
   - `pileLabelStackAlign`
   - `pileLabelText`
-- Add `pileSizeBadge` and `pileSizeBadgeAlign` to display a badge showing the pile size
+- Add `pileSizeBadge` and `pileSizeBadgeAlign` to display a badge showing the pile size (#138)
 - Add `cellSize` to define the size of the cell (#136)
 - Add `splitAll()` to scatter all piles (#144)
-- Add `pileBy()` for layout-, location-, and data-driven piling (#129)
+- Add `groupBy()` for layout-, location-, and data-driven piling (#129, #141, #142, #161)
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position previews with a per-item callback function (#113)
 - Add `previewOffset` and `previewPadding` and adjust `previewSpacing` to position previews with a per-pile callback function (#148)
 - Add `previewScaling` to adjust the x and y scaling factor of previews with a per-pile callback function (#148)
-- Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
+- Add representative [aggregator](https://piling.js.org/docs/#/README?id=representative-renderer) and [renderer](https://piling.js.org/docs/#/README?id=representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size
-- Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/)
-- Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
-- Show spinner during the initial item rendering
+- Add placeholder image to cover items during their computation (#132)
+- Add spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)
+- Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/) (#130)
+- Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer) (#109)
+- Update and expand the Google Quickdraw examples (#172)
+- [Docsify the docs](https://piling.js.org/docs)
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`.
 - Ensure pile covers update as items update (#175)
+- Ensure layout is updated properly (#155, #156)
 
 _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
 
@@ -57,7 +61,7 @@ _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...
 - Add support for specifying the `width` and `height` of the SVG image
 - Rename `itemOpacity` to `pileItemOpacity` for consistency
 - Change pile border to be scale invariant
-- Change lasso from <kbd>alt</kbd> to <kbd>shift<kbd> + mouse-down + mouse-move
+- Change lasso from <kbd>alt</kbd> to <kbd>shift</kbd> + mouse-down + mouse-move
 - Unmagnify magnified piles on drag start
 - Fix pile scaling
 - Fix grid drawing to update dynamically upon changes to the grid
