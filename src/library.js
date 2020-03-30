@@ -3110,7 +3110,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const deletedItems = { ...state.items };
       const newItems = {};
       const updatedItems = {};
-      const updatedPiles = {};
+      const affectedPiles = {};
 
       Object.entries(newState.items).forEach(([id, item]) => {
         if (state.items[id]) {
@@ -3120,7 +3120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             Object.values(newState.piles).forEach(pileState => {
               if (pileState.items.length > 1) {
                 if (pileState.items.includes(id)) {
-                  updatedPiles[pileState.id] = pileState;
+                  affectedPiles[pileState.id] = pileState;
                 }
               }
             });
@@ -3134,7 +3134,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numNewItems = Object.keys(newItems).length;
       const numUpdatedItems = Object.keys(updatedItems).length;
       const numDeletedItems = Object.keys(deletedItems).length;
-      const numUpdatedPiles = Object.keys(updatedPiles).length;
+      const numAffectedPiles = Object.keys(affectedPiles).length;
 
       if (numNewItems) {
         currentItemUpdates.push(createItemsAndPiles(newItems));
@@ -3148,9 +3148,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
       }
 
-      if (numUpdatedPiles) {
+      if (numAffectedPiles) {
         currentItemUpdates.push(
-          Object.entries(updatedPiles).forEach(([id, pile]) => {
+          Object.entries(affectedPiles).forEach(([id, pile]) => {
             const pileInstance = pileInstances.get(id);
             if (pileInstance.cover) updateCover(pile, pileInstance);
             setPileLabel(pile, id);
