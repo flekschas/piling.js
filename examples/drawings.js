@@ -155,8 +155,7 @@ const createDrawingPiles = async (element, darkMode) => {
           defaultValue: selectedCategory,
           values: categories,
           setter: category => {
-            const newItems = createItems(category);
-            newItems.then(_item => {
+            createItems(category).then(_item => {
               piling.set('items', _item);
             });
           }

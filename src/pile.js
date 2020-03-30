@@ -808,7 +808,7 @@ const createPile = (
               count === newItems.size
             );
           });
-        }
+        } else if (isPlaceholderDrawn) removePlaceholder();
       } else {
         normalItemContainer.children.forEach((normalItem, index) => {
           // eslint-disable-next-line no-underscore-dangle
