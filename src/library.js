@@ -1442,7 +1442,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updatePreviewAndCover = (pileState, pileInstance) => {
+  const updateCover = (pileState, pileInstance) => {
     const {
       items,
       coverRenderer,
@@ -1452,54 +1452,58 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       previewAggregator
     } = store.state;
 
+    const itemsOnPile = [];
+    const itemInstances = [];
+
+    pileState.items.forEach(itemId => {
+      itemsOnPile.push(items[itemId]);
+      itemInstances.push(renderedItems.get(itemId));
+    });
+
+    updatePreviewStyle(pileState);
+
+    pileInstance.setItems(
+      itemInstances,
+      { asPreview: !!previewAggregator },
+      true
+    );
+
+    const coverImage = coverAggregator(itemsOnPile)
+      .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
+      .then(([coverTexture]) => {
+        const scaledImage = createScaledImage(coverTexture);
+
+        scaledImage.invert(
+          isFunction(pileCoverInvert)
+            ? pileCoverInvert(pileState)
+            : pileCoverInvert
+        );
+
+        const extraScale = isFunction(pileCoverScale)
+          ? pileCoverScale(pileState)
+          : pileCoverScale;
+
+        scaledImage.scale(scaledImage.scaleFactor * extraScale);
+
+        return scaledImage;
+      });
+
+    pileInstance.setCover(coverImage);
+
+    coverImage.then(() => {
+      positionItems(pileInstance.id);
+      updatePileBounds(pileInstance.id);
+      renderRaf();
+    });
+  };
+
+  const updatePreviewAndCover = (pileState, pileInstance) => {
     if (pileState.items.length === 1) {
       pileInstance.setCover(null);
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
-      const itemsOnPile = [];
-      const itemInstances = [];
-
-      pileState.items.forEach(itemId => {
-        itemsOnPile.push(items[itemId]);
-        itemInstances.push(renderedItems.get(itemId));
-      });
-
-      updatePreviewStyle(pileState);
-
-      pileInstance.setItems(
-        itemInstances,
-        { asPreview: !!previewAggregator },
-        true
-      );
-
-      const coverImage = coverAggregator(itemsOnPile)
-        .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => {
-          const scaledImage = createScaledImage(coverTexture);
-
-          scaledImage.invert(
-            isFunction(pileCoverInvert)
-              ? pileCoverInvert(pileState)
-              : pileCoverInvert
-          );
-
-          const extraScale = isFunction(pileCoverScale)
-            ? pileCoverScale(pileState)
-            : pileCoverScale;
-
-          scaledImage.scale(scaledImage.scaleFactor * extraScale);
-
-          return scaledImage;
-        });
-
-      pileInstance.setCover(coverImage);
-
-      coverImage.then(() => {
-        renderRaf();
-        positionItems(pileInstance.id);
-        updatePileBounds(pileInstance.id);
-      });
+      updateCover(pileState, pileInstance);
     }
   };
 
@@ -3106,11 +3110,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const deletedItems = { ...state.items };
       const newItems = {};
       const updatedItems = {};
+      const updatedPiles = {};
 
       Object.entries(newState.items).forEach(([id, item]) => {
         if (state.items[id]) {
           if (item.src !== state.items[id].src) {
             updatedItems[id] = item;
+            // Check if the item is part of a pile
+            Object.values(newState.piles).forEach(pileState => {
+              if (pileState.items.length > 1) {
+                if (pileState.items.includes(id)) {
+                  updatedPiles[pileState.id] = pileState;
+                }
+              }
+            });
           }
         } else {
           newItems[id] = item;
@@ -3121,6 +3134,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numNewItems = Object.keys(newItems).length;
       const numUpdatedItems = Object.keys(updatedItems).length;
       const numDeletedItems = Object.keys(deletedItems).length;
+      const numUpdatedPiles = Object.keys(updatedPiles).length;
 
       if (numNewItems) {
         currentItemUpdates.push(createItemsAndPiles(newItems));
@@ -3132,6 +3146,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (numDeletedItems) {
         currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
+      }
+
+      if (numUpdatedPiles) {
+        currentItemUpdates.push(
+          Object.entries(updatedPiles).forEach(([id, pile]) => {
+            const pileInstance = pileInstances.get(id);
+            if (pileInstance.cover) updateCover(pile, pileInstance);
+            setPileLabel(pile, id);
+          })
+        );
       }
 
       if (numNewItems || numDeletedItems) {
