@@ -48,6 +48,21 @@ const createMapbox = element => () => {
   return map;
 };
 
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+];
+
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
   pilingEl.style.position = 'absolute';
@@ -61,8 +76,8 @@ const create = async (element, darkMode) => {
   response = await response.json();
 
   const data = response.data;
-  // const startDate = response.startDate;
-  // const endDate = response.endDate;
+  const startDate = response.startDate;
+  const endDate = response.endDate;
 
   let regions = await fetch('data/covid-19-regions.json');
   regions = await regions.json();
@@ -81,14 +96,22 @@ const create = async (element, darkMode) => {
   const relHeight = 1.0;
   const absWidth = 100;
   const absHeight = absWidth * relHeight;
-  const tickHeight = 3;
+  const xAxisHeight = 12;
+  const finalHeight = absHeight + xAxisHeight;
+  const previewHeight = 10;
   const aspectRatio = 1 / relHeight;
   const itemWidth = (width / columns) * 3;
-  const itemHeight = itemWidth * relHeight;
+  const itemHeight = itemWidth * (finalHeight / absWidth);
 
   const svgRenderer = createSvgRenderer({
-    width: itemWidth,
-    height: itemHeight,
+    width: itemWidth * 3,
+    height: itemHeight * 3,
+    color: darkMode ? '#333' : '#ccc'
+  });
+
+  const svgRendererSmall = createSvgRenderer({
+    width: itemWidth * 3,
+    height: previewHeight * 3,
     color: darkMode ? '#333' : '#ccc'
   });
 
@@ -100,10 +123,10 @@ const create = async (element, darkMode) => {
     0
   );
 
-  // const xScale = d3
-  //   .scaleTime()
-  //   .domain([new Date(startDate), new Date(endDate)])
-  //   .nice();
+  const xScale = d3
+    .scaleTime()
+    .domain([new Date(startDate), new Date(endDate)])
+    .nice();
 
   const yScale = d3
     .scaleLog()
@@ -111,9 +134,8 @@ const create = async (element, darkMode) => {
     .range([0, 1])
     .clamp(true);
 
-  const createSvgStart = () =>
-    `<svg viewBox="0 0 100 ${absHeight +
-      tickHeight}" xmlns="http://www.w3.org/2000/svg">`;
+  const createSvgStart = h =>
+    `<svg viewBox="0 0 100 ${h}" xmlns="http://www.w3.org/2000/svg">`;
 
   const createGradient = (name, startColor, endColor) => `<defs>
   <linearGradient id="${name}" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -131,8 +153,88 @@ const create = async (element, darkMode) => {
 
   const createPath = y => {
     const path = createLine(y);
-    return `<path d="${path}" stroke="url(#linear-stroke)" stroke-size="1" fill="none"/>`;
+    return [
+      `<defs><mask id="path"><path d="${path}" stroke="white" stroke-width="3" fill="none"/></mask></defs>`,
+      `<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path)" />`
+    ];
   };
+
+  const createSmallLine = d3
+    .line()
+    .x(d => halfStepSize + stepSize * d[0])
+    .y(d => previewHeight - previewHeight * yScale(d[1] + 1));
+
+  const createArea = y => {
+    const path = createSmallLine(y);
+    return `<path d="M 0 ${previewHeight} ${path} L 100 ${previewHeight}" stroke="none" fill="url(#linear-stroke)"/>`;
+  };
+
+  const createStackedArea = ys => {
+    const n = ys.length;
+    const commonX = {};
+    ys.forEach(y =>
+      y.forEach(d => {
+        commonX[d[0]] = commonX[d[0]] ? commonX[d[0]] + 1 : 1;
+      })
+    );
+
+    const cumYs = {};
+
+    const paths = ys.map(y => {
+      const cumXy = y.reduce((_cumXy, [x, _y]) => {
+        if (commonX[x] !== n) return _cumXy;
+        if (!cumYs[x]) cumYs[x] = _y;
+        else cumYs[x] += _y;
+        _cumXy.push([x, cumYs[x]]);
+        return _cumXy;
+      }, []);
+      return createLine(cumXy).slice(1);
+    });
+
+    return [
+      '<defs>',
+      paths.map(
+        (path, i) =>
+          `<mask id="path${i}"><path d="M0,100L${path}L100,100" stroke="none" fill="white"/></mask>`
+      ),
+      '</defs>',
+      ys
+        .map(
+          (y, i) =>
+            `<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path${i})" />`
+        )
+        .reverse(),
+      paths
+        .map(
+          path =>
+            `<path d="M0,100L${path}L100,100" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
+        )
+        .reverse()
+    ];
+  };
+
+  const createYAxis = ticks =>
+    ticks.flatMap(tick => {
+      const label = d3.format('~s')(tick);
+      const y = 100 - yScale(tick) * 100;
+      const y2 = y + 10;
+      return [
+        `<text x="0" y="${y2}" fill="#fff" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
+        `<path d="M 0 ${y} L 100 ${y}" stroke="#fff" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
+      ];
+    });
+
+  const createXAxis = ticks => [
+    `<line x1="0" y1="100" x2="100" y2="100" stroke="#fff" stroke-opacity="0.33" stroke-width="1" />`,
+    ...ticks.flatMap(tick => {
+      const label = monthNames[tick.getMonth()];
+      const x = xScale(tick) * 100;
+      return [
+        `<text x="${x}" y="112" fill="#fff" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
+        `<path d="M ${x} 100 L ${x} 103" stroke="#fff" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
+      ];
+    })
+  ];
 
   const strokeColorRange = darkMode
     ? ['#808080', '#d96921']
@@ -144,25 +246,63 @@ const create = async (element, darkMode) => {
       return xys;
     }, []);
 
-  // prettier-ignore
-  const createLinePlot = (y) => [
-    createSvgStart(),
-    createGradient('linear-stroke', ...strokeColorRange),
-    createPath(toXy(y)),
-    createSvgEnd()
-  ].join('');
+  const createLineChart = y =>
+    [
+      createSvgStart(finalHeight),
+      createGradient('linear-stroke', ...strokeColorRange),
+      createYAxis([10, 100, 1000, 10000, 100000]),
+      createXAxis([
+        new Date('2020-02-01 00:00'),
+        new Date('2020-03-01 00:00'),
+        new Date('2020-04-01 00:00')
+      ]),
+      createPath(toXy(y)),
+      createSvgEnd()
+    ].join('');
+
+  const renderer = sources => svgRenderer(sources.map(createLineChart));
+
+  const createSmallAreaChart = y =>
+    [
+      createSvgStart(previewHeight),
+      createGradient('linear-stroke', ...strokeColorRange),
+      createArea(toXy(y)),
+      createSvgEnd()
+    ].join('');
+
+  const previewRenderer = sources =>
+    svgRendererSmall(sources.map(createSmallAreaChart));
+
+  const createStackedAreaChart = ys =>
+    [
+      createSvgStart(finalHeight),
+      createGradient('linear-stroke', ...strokeColorRange),
+      createYAxis([10, 100, 1000, 10000, 100000]),
+      createXAxis([
+        new Date('2020-02-01 00:00'),
+        new Date('2020-03-01 00:00'),
+        new Date('2020-04-01 00:00')
+      ]),
+      createStackedArea(ys.map(toXy)),
+      createSvgEnd()
+    ].join('');
+
+  const coverRenderer = sources =>
+    svgRenderer(sources.map(createStackedAreaChart));
 
   const items = countries.map(country => {
     // const r = regions[country];
     // if (!r) console.log('Not found:', country);
     return {
-      src: createLinePlot(data[country].cases),
+      src: data[country].cases,
       country,
       lonLat: regions[country]
         ? [regions[country].long, regions[country].lat]
         : [0, 0]
     };
   });
+
+  const coverAggregator = _items => Promise.resolve(_items.map(i => i.src));
 
   const boundedMercator = createBoundedMercator(width, height);
 
@@ -171,18 +311,28 @@ const create = async (element, darkMode) => {
     cellAspectRatio: aspectRatio,
     pileCellAlignment: 'center',
     cellPadding: 4,
-    renderer: svgRenderer,
+    coverAggregator,
+    renderer,
+    previewRenderer,
+    coverRenderer,
     items,
     columns: 12,
     navigationMode: 'panZoom',
-    pileBackgroundColor: 'rgba(33, 33, 33, 0.8)',
-    pileItemOffset: [0, 8],
+    pileBackgroundColor: 'rgba(0, 0, 0, 0.85)',
+    pileBorderSize: 1,
+    pileBorderColor: 'rgba(255, 255, 255, 0.1)',
+    pileItemOffset: [0, 0],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
     pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
     pileLabel: 'country',
+    pileLabelAlign: 'top',
+    pileLabelStackAlign: 'vertical',
     pileLabelText: true,
-    pileLabelColor: () => '#666666',
+    pileLabelColor: () => 'rgba(0, 0, 0, 0.0)',
+    pileLabelTextColor: 'rgba(255, 255, 255, 1)',
+    previewOffset: 1,
+    previewPadding: 2,
     projector: ll => boundedMercator.toPx(ll),
     zoomBounds: [0, 5]
   });

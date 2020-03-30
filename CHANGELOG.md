@@ -29,6 +29,7 @@
 - Add representative [aggregator](DOCS.md#representative-aggregator) and [renderer](DOCS.md#representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size
+- Add a spatial example using COVID-19 data from John Hopkins University
 - Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer)
 - Show spinner during the initial item rendering
