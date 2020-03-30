@@ -46,9 +46,9 @@ const createItems = async category => {
   const response = await fetch(`data/${category}.json`);
   const items = await response.json();
 
-  // items.forEach((item, index) => {
-  //   item.id = `${category}${index}`;
-  // });
+  items.forEach((item, index) => {
+    item.id = `${category}${index}`;
+  });
   return items;
 };
 
@@ -56,9 +56,9 @@ const createDrawingPiles = async (element, darkMode) => {
   const response = await fetch('data/teapot.json');
   const items = await response.json();
 
-  // items.forEach((item, index) => {
-  //   item.id = `teapot${index}`;
-  // });
+  items.forEach((item, index) => {
+    item.id = `teapot${index}`;
+  });
 
   const coverOptions = { size: 128, lineWidth: 3 };
 
@@ -155,8 +155,7 @@ const createDrawingPiles = async (element, darkMode) => {
           defaultValue: selectedCategory,
           values: categories,
           setter: category => {
-            const newItems = createItems(category);
-            newItems.then(_item => {
+            createItems(category).then(_item => {
               piling.set('items', _item);
             });
           }
