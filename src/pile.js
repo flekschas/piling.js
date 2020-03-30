@@ -1269,6 +1269,7 @@ const createPile = (
       pileLabelFontSize,
       pileLabelStackAlign,
       pileLabelText,
+      pileLabelTextOpacity,
       piles
     } = store.state;
 
@@ -1309,7 +1310,7 @@ const createPile = (
           break;
       }
       const color = colors[index];
-      labelGraphics.beginFill(color, 1);
+      labelGraphics.beginFill(...color);
       labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
       labelGraphics.endFill();
     });
@@ -1337,6 +1338,7 @@ const createPile = (
         labelText.y = textY;
         labelText.width /= 2 * window.devicePixelRatio;
         labelText.height /= 2 * window.devicePixelRatio;
+        labelText.alpha = pileLabelTextOpacity;
         labelGraphics.addChild(labelText);
       });
     }

@@ -248,26 +248,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
-    pileLabel: {
-      set: value => {
-        const objective = expandLabelObjective(value);
-        const actions = [createAction.setPileLabel(objective)];
-        return actions;
-      }
-    },
-    pileLabelAlign: true,
-    pileLabelColor: true,
-    pileLabelFontSize: true,
-    pileLabelHeight: true,
-    pileLabelStackAlign: true,
-    pileLabelSizeTransform: {
-      set: value => {
-        const aggregator = expandLabelSizeAggregator(value);
-        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
-        return actions;
-      }
-    },
-    pileLabelText: true,
     pileBorderColor: {
       set: createColorOpacityActions(
         'setPileBorderColor',
@@ -327,6 +307,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBackgroundOpacityActive: true,
     pileCellAlignment: true,
     pileContextMenuItems: true,
+    pileLabel: {
+      set: value => {
+        const objective = expandLabelObjective(value);
+        const actions = [createAction.setPileLabel(objective)];
+        return actions;
+      }
+    },
+    pileLabelAlign: true,
+    pileLabelColor: true,
+    pileLabelFontSize: true,
+    pileLabelHeight: true,
+    pileLabelStackAlign: true,
+    pileLabelSizeTransform: {
+      set: value => {
+        const aggregator = expandLabelSizeAggregator(value);
+        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
+        return actions;
+      }
+    },
+    pileLabelText: true,
+    pileLabelTextColor: {
+      set: createColorOpacityActions(
+        'setPileLabelTextColor',
+        'setPileLabelTextOpacity'
+      )
+    },
+    pileLabelTextOpacity: true,
     pileOpacity: true,
     pileScale: true,
     pileSizeBadge: true,
@@ -1017,8 +1024,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const createPreview = texture =>
       createImageWithBackground(texture, previewOptions);
 
-    const renderPreviews = previewAggregator
-      ? previewAggregator(itemList)
+    const asyncIdentity = async x => x.map(y => y.src);
+    const aggregator = previewRenderer
+      ? previewAggregator || asyncIdentity
+      : null;
+
+    const renderPreviews = aggregator
+      ? aggregator(itemList)
           .then(previewRenderer)
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
@@ -1485,7 +1497,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       coverAggregator,
       pileCoverInvert,
       pileCoverScale,
-      previewAggregator
+      previewRenderer
     } = store.state;
 
     if (pileState.items.length === 1) {
@@ -1505,7 +1517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       pileInstance.setItems(
         itemInstances,
-        { asPreview: !!previewAggregator },
+        { asPreview: !!previewRenderer },
         true
       );
 
@@ -2970,6 +2982,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileLabel,
       pileLabelColor,
       pileLabelText,
+      pileLabelTextColor,
       pileLabelFontSize
     } = store.state;
 
@@ -2995,25 +3008,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     uniqueLabels.forEach(label => {
-      let color;
+      let colorAlpha;
 
       if (pileLabelColor !== null) {
         if (isFunction(pileLabelColor)) {
-          color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+          colorAlpha = colorToDecAlpha(
+            pileLabelColor(label.text, uniqueLabels)
+          );
         } else {
           let colorArray = pileLabelColor;
           if (!Array.isArray(pileLabelColor)) {
             colorArray = [pileLabelColor];
           }
           const n = colorArray.length;
-          color = colorToDecAlpha(colorArray[label.index % n])[0];
+          colorAlpha = colorToDecAlpha(colorArray[label.index % n]);
         }
       } else {
         const n = DEFAULT_COLOR_MAP.length;
-        color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
+        colorAlpha = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n]);
       }
 
-      label.color = color;
+      label.color = colorAlpha;
 
       if (pileLabelText) {
         let labelText = label.text;
@@ -3026,6 +3041,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
 
         const pixiText = new PIXI.Text(labelText, {
+          fill: pileLabelTextColor,
           fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
           align: 'center'
         });
