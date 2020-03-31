@@ -1,4 +1,4 @@
-import { isFunction } from '@tensorflow/tfjs-core/dist/util';
+import { isFunction } from '@flekschas/utils';
 
 const getItemProp = (property, itemState, itemIndex = 0) =>
   isFunction(property)

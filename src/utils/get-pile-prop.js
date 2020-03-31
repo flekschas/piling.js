@@ -1,4 +1,4 @@
-import { isFunction } from '@tensorflow/tfjs-core/dist/util';
+import { isFunction } from '@flekschas/utils';
 
 const getPileProp = (property, pileState) =>
   isFunction(property) ? property(pileState) : property;
