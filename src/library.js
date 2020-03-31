@@ -62,6 +62,8 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getBBox,
+  getItemProp,
+  getPileProp,
   scaleLinear,
   toAlignment,
   toHomogeneous,
@@ -986,9 +988,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
+  const getBackgroundColor = pileState => {
+    const bgColor = getPileProp(store.state.pileBackgroundColor, pileState);
+    if (bgColor !== null) return bgColor;
     return backgroundColor;
   };
 
@@ -1000,29 +1002,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileBackgroundOpacity,
       previewAggregator,
       previewRenderer,
-      previewPadding
+      previewPadding,
+      piles
     } = store.state;
 
     const itemList = Object.values(items);
-    const pileBackgroundColor = getBackgroundColor();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
-    const previewOptions = {
-      backgroundColor:
-        previewBackgroundColor === INHERIT
-          ? pileBackgroundColor
-          : previewBackgroundColor,
-      backgroundOpacity:
-        previewBackgroundOpacity === INHERIT
-          ? pileBackgroundOpacity
-          : previewBackgroundOpacity,
-      padding: previewPadding
+    const createPreview = (texture, index) => {
+      const itemState = itemList[index];
+      const pileState = piles[itemState.id];
+      const pileBackgroundColor = getBackgroundColor(pileState);
+      const previewOptions = {
+        backgroundColor:
+          previewBackgroundColor === INHERIT
+            ? pileBackgroundColor
+            : getItemProp(previewBackgroundColor, itemState),
+        backgroundOpacity:
+          previewBackgroundOpacity === INHERIT
+            ? getPileProp(pileBackgroundOpacity, pileState)
+            : getItemProp(previewBackgroundOpacity, itemState),
+        padding: getItemProp(previewPadding, itemState)
+      };
+      return createImageWithBackground(texture, previewOptions);
     };
-    const createPreview = texture =>
-      createImageWithBackground(texture, previewOptions);
 
     const asyncIdentity = async x => x.map(y => y.src);
     const aggregator = previewRenderer
@@ -1490,64 +1496,68 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updatePreviewAndCover = (pileState, pileInstance) => {
+  const updateCover = (pileState, pileInstance) => {
     const {
       items,
       coverRenderer,
       coverAggregator,
       pileCoverInvert,
       pileCoverScale,
-      previewRenderer
+      previewAggregator
     } = store.state;
 
+    const itemsOnPile = [];
+    const itemInstances = [];
+
+    pileState.items.forEach(itemId => {
+      itemsOnPile.push(items[itemId]);
+      itemInstances.push(renderedItems.get(itemId));
+    });
+
+    updatePreviewStyle(pileState);
+
+    pileInstance.setItems(
+      itemInstances,
+      { asPreview: !!previewAggregator },
+      true
+    );
+
+    const coverImage = coverAggregator(itemsOnPile)
+      .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
+      .then(([coverTexture]) => {
+        const scaledImage = createScaledImage(coverTexture);
+
+        scaledImage.invert(
+          isFunction(pileCoverInvert)
+            ? pileCoverInvert(pileState)
+            : pileCoverInvert
+        );
+
+        const extraScale = isFunction(pileCoverScale)
+          ? pileCoverScale(pileState)
+          : pileCoverScale;
+
+        scaledImage.scale(scaledImage.scaleFactor * extraScale);
+
+        return scaledImage;
+      });
+
+    pileInstance.setCover(coverImage);
+
+    coverImage.then(() => {
+      positionItems(pileInstance.id);
+      updatePileBounds(pileInstance.id);
+      renderRaf();
+    });
+  };
+
+  const updatePreviewAndCover = (pileState, pileInstance) => {
     if (pileState.items.length === 1) {
       pileInstance.setCover(null);
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
-      const itemsOnPile = [];
-      const itemInstances = [];
-
-      pileState.items.forEach(itemId => {
-        itemsOnPile.push(items[itemId]);
-        itemInstances.push(renderedItems.get(itemId));
-      });
-
-      updatePreviewStyle(pileState);
-
-      pileInstance.setItems(
-        itemInstances,
-        { asPreview: !!previewRenderer },
-        true
-      );
-
-      const coverImage = coverAggregator(itemsOnPile)
-        .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => {
-          const scaledImage = createScaledImage(coverTexture);
-
-          scaledImage.invert(
-            isFunction(pileCoverInvert)
-              ? pileCoverInvert(pileState)
-              : pileCoverInvert
-          );
-
-          const extraScale = isFunction(pileCoverScale)
-            ? pileCoverScale(pileState)
-            : pileCoverScale;
-
-          scaledImage.scale(scaledImage.scaleFactor * extraScale);
-
-          return scaledImage;
-        });
-
-      pileInstance.setCover(coverImage);
-
-      coverImage.then(() => {
-        renderRaf();
-        positionItems(pileInstance.id);
-        updatePileBounds(pileInstance.id);
-      });
+      updateCover(pileState, pileInstance);
     }
   };
 
@@ -3158,11 +3168,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const deletedItems = { ...state.items };
       const newItems = {};
       const updatedItems = {};
+      const affectedPiles = {};
 
       Object.entries(newState.items).forEach(([id, item]) => {
         if (state.items[id]) {
           if (item.src !== state.items[id].src) {
             updatedItems[id] = item;
+            // Check if the item is part of a pile
+            Object.values(newState.piles).forEach(pileState => {
+              if (pileState.items.length > 1) {
+                if (pileState.items.includes(id)) {
+                  affectedPiles[pileState.id] = pileState;
+                }
+              }
+            });
           }
         } else {
           newItems[id] = item;
@@ -3173,6 +3192,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numNewItems = Object.keys(newItems).length;
       const numUpdatedItems = Object.keys(updatedItems).length;
       const numDeletedItems = Object.keys(deletedItems).length;
+      const numAffectedPiles = Object.keys(affectedPiles).length;
 
       if (numNewItems) {
         currentItemUpdates.push(createItemsAndPiles(newItems));
@@ -3184,6 +3204,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (numDeletedItems) {
         currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
+      }
+
+      if (numAffectedPiles) {
+        currentItemUpdates.push(
+          Object.entries(affectedPiles).forEach(([id, pile]) => {
+            const pileInstance = pileInstances.get(id);
+            if (pileInstance.cover) updateCover(pile, pileInstance);
+            setPileLabel(pile, id);
+          })
+        );
       }
 
       if (numNewItems || numDeletedItems) {

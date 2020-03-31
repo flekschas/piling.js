@@ -423,22 +423,22 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | orderer                     | function                          | row-major          | see [`notes`](#notes)                                                                           | `true`     |
 | magnifiedPiles              | array                             | `[]`               | the id of current magnified pile                                                                | `true`     |
 | navigationMode              | string                            | auto               | Can be one of auto, panZoom, or scroll                                                          | `false`    |
-| pileBackgroundColor         | string or int                     |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBackgroundOpacity       | float                             | `0`                | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBackgroundColorHover    | string or int                     |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBackgroundOpacityHover  | float                             | `0.85`             | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBackgroundColorFocus    | string or int                     |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBackgroundOpacityFocus  | float                             |                    | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBackgroundColorActive   | string or int                     |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBackgroundOpacityActive | float                             |                    | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBorderColor             | string or int                     | `0x808080`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBorderOpacity           | float                             | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBorderColorHover        | string or int                     | `0x808080`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBorderOpacityHover      | float                             | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBorderColorFocus        | string or int                     | `0xeee462`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBorderOpacityFocus      | float                             | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
-| pileBorderColorActive       | string or int                     | `0xffa5da`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| pileBorderOpacityActive     | float                             | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColor         | string, int or function           |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacity       | float or function                 | `0`                | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorHover    | string, int or function           |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityHover  | float or function                 | `0.85`             | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorFocus    | string, int or function           |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityFocus  | float or function                 |                    | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBackgroundColorActive   | string, int or function           |                    | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBackgroundOpacityActive | float or function                 |                    | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBorderColor             | string, int or function           | `0x808080`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBorderOpacity           | float or function                 | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBorderColorHover        | string, int or function           | `0x808080`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBorderOpacityHover      | float or function                 | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBorderColorFocus        | string, int or function           | `0xeee462`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBorderOpacityFocus      | float or function                 | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
+| pileBorderColorActive       | string, int or function           | `0xffa5da`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| pileBorderOpacityActive     | float or function                 | `1.0`              | must be in [`0`,`1`]                                                                            | `false`    |
 | pileBorderSize              | float or function                 | `0`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileCellAlignment           | string                            | topLeft            | `topLeft`, `topRight`, `bottomLeft`, `bottomRight` or `center`                                  | `true`     |
 | pileContextMenuItems        | array                             | `[]`               | see _examples_ below                                                                            | `true`     |
@@ -452,11 +452,11 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileItemRotation            | float or function                 | `0`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemTint                | string, int or function           | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `true`     |
 | pileLabel                   | string, array, function or object |                    | see [`notes`](#notes)                                                                           | `true`     |
-| pileLabelAlign              | String                            | `bottom`           | `bottom` or `top`                                                                               | `true`     |
+| pileLabelAlign              | string or function                | `bottom`           | `bottom` or `top`                                                                               | `true`     |
 | pileLabelColor              | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
-| pileLabelFontSize           | int                               | 8                  |                                                                                                 | `true`     |
+| pileLabelFontSize           | int or function                   | 8                  |                                                                                                 | `true`     |
 | pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
-| pileLabelStackAlign         | string                            | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
+| pileLabelStackAlign         | string or function                | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
 | pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelTextColor          | string or int                     | `0x000000`         | see [`notes`](#notes)                                                                           | `true`     |
@@ -467,13 +467,13 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileSizeBadgeAlign          | array or function                 | `['top', 'right']` | if `true` show the pile size as a badge                                                         | `true`     |
 | popupBackgroundOpacity      | float                             | `0.85`             | must be in [`0`,`1`]                                                                            | `false`    |
 | previewAggregator           | function                          |                    | see [`aggregators`](#aggregators)                                                               | `true`     |
-| previewBackgroundColor      | string, int                       | `'inherit'`        | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| previewBackgroundOpacity    | float                             | `'inherit'`        | must be in [`0`,`1`]                                                                            | `false`    |
-| previewBorderColor          | string or int                     | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
-| previewBorderOpacity        | float                             | `0.85`             | must be in [`0`,`1`]                                                                            | `false`    |
+| previewBackgroundColor      | string, int or function           | `'inherit'`        | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| previewBackgroundOpacity    | float or function                 | `'inherit'`        | must be in [`0`,`1`]                                                                            | `false`    |
+| previewBorderColor          | string, int or function           | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `false`    |
+| previewBorderOpacity        | float or function                 | `0.85`             | must be in [`0`,`1`]                                                                            | `false`    |
 | previewItemOffset           | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | previewOffset               | number or function                | `2`                | see [`notes`](#notes)                                                                           | `false`    |
-| previewPadding              | number                            | `2`                | see [`notes`](#notes)                                                                           | `false`    |
+| previewPadding              | number or function                | `2`                | see [`notes`](#notes)                                                                           | `false`    |
 | previewRenderer             | function                          |                    | see [`renderers`](#renderers)                                                                   | `true`     |
 | previewScaling              | array or function                 | `[1,1]`            | the spacing between 1D previews                                                                 | `false`    |
 | previewSpacing              | number or function                | `2`                | the spacing between 1D previews                                                                 | `true`     |

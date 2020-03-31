@@ -4,6 +4,8 @@ export { default as CustomBufferResource } from './custom-buffer-resource';
 export { default as ifNotNull } from './if-not-null';
 export { default as isNdarray } from './is-ndarray';
 export { default as getBBox } from './get-bbox';
+export { default as getItemProp } from './get-item-prop';
+export { default as getPileProp } from './get-pile-prop';
 export { default as scaleLinear } from './scale-linear';
 export { default as toAlignment } from './to-alignment';
 export { default as toDisplayObject } from './to-display-object';

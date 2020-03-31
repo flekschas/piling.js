@@ -33,7 +33,14 @@ const regionToColor = region => {
 };
 
 const selectedCategory = 'teapot';
-const categories = ['flower', 'piano', 'power-outlet', 'teapot', 'snowman'];
+const categories = [
+  'flower',
+  'piano',
+  'power-outlet',
+  'teapot',
+  'smiley-face',
+  'snowman'
+];
 
 const createItems = async category => {
   const response = await fetch(`data/${category}.json`);
@@ -148,8 +155,7 @@ const createDrawingPiles = async (element, darkMode) => {
           defaultValue: selectedCategory,
           values: categories,
           setter: category => {
-            const newItems = createItems(category);
-            newItems.then(_item => {
+            createItems(category).then(_item => {
               piling.set('items', _item);
             });
           }
