@@ -1,5 +1,7 @@
 ### Next
 
+- Add `pileLabelTextColor` and `pileLabelTextOpacity`
+- Add some pile/item properties and label properties to sidebar
 - Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile (#167)
 - Add some pile/item properties and label properties to sidebar (#158)
 - Add the following properties to give more control to the pile background color: (#151)
@@ -28,9 +30,10 @@
 - Add representative [aggregator](https://piling.js.org/docs/#/README?id=representative-renderer) and [renderer](https://piling.js.org/docs/#/README?id=representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size
+- Show spinner during the initial item rendering
 - Add placeholder image to cover items during their computation (#132)
-- Add spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)
+- Add a spatial example using COVID-19 data from John Hopkins University
 - Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/) (#130)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer) (#109)
 - Update and expand the Google Quickdraw examples (#172)

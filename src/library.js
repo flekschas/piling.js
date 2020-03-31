@@ -67,7 +67,8 @@ import {
   scaleLinear,
   toAlignment,
   toHomogeneous,
-  uniqueStr
+  uniqueStr,
+  zoomToScale
 } from './utils';
 
 import createImage from './image';
@@ -110,12 +111,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let transformPointFromScreen;
   let translatePointFromScreen;
   let camera;
+
   const scratch = new Float32Array(16);
+
   const lastPilePosition = new Map();
 
+  let {
+    width: containerWidth,
+    height: containerHeight
+  } = rootElement.getBoundingClientRect();
+
   const renderer = new PIXI.Renderer({
-    width: rootElement.getBoundingClientRect().width,
-    height: rootElement.getBoundingClientRect().height,
+    width: containerWidth,
+    height: containerHeight,
     view: canvas,
     antialias: true,
     transparent: true,
@@ -167,6 +175,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     cellAspectRatio: true,
     cellPadding: true,
     cellSize: true,
+    center: {
+      get: () => camera.target,
+      set: point => {
+        camera.lookAt(point, camera.scaling, camera.rotation);
+      },
+      noAction: true
+    },
     columns: true,
     coverAggregator: true,
     coverRenderer: true,
@@ -235,26 +250,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileItemOrder: true,
     pileItemRotation: true,
     pileItemTint: true,
-    pileLabel: {
-      set: value => {
-        const objective = expandLabelObjective(value);
-        const actions = [createAction.setPileLabel(objective)];
-        return actions;
-      }
-    },
-    pileLabelAlign: true,
-    pileLabelColor: true,
-    pileLabelFontSize: true,
-    pileLabelHeight: true,
-    pileLabelStackAlign: true,
-    pileLabelSizeTransform: {
-      set: value => {
-        const aggregator = expandLabelSizeAggregator(value);
-        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
-        return actions;
-      }
-    },
-    pileLabelText: true,
     pileBorderColor: {
       set: createColorOpacityActions(
         'setPileBorderColor',
@@ -314,6 +309,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileBackgroundOpacityActive: true,
     pileCellAlignment: true,
     pileContextMenuItems: true,
+    pileLabel: {
+      set: value => {
+        const objective = expandLabelObjective(value);
+        const actions = [createAction.setPileLabel(objective)];
+        return actions;
+      }
+    },
+    pileLabelAlign: true,
+    pileLabelColor: true,
+    pileLabelFontSize: true,
+    pileLabelHeight: true,
+    pileLabelStackAlign: true,
+    pileLabelSizeTransform: {
+      set: value => {
+        const aggregator = expandLabelSizeAggregator(value);
+        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
+        return actions;
+      }
+    },
+    pileLabelText: true,
+    pileLabelTextColor: {
+      set: createColorOpacityActions(
+        'setPileLabelTextColor',
+        'setPileLabelTextOpacity'
+      )
+    },
+    pileLabelTextOpacity: true,
     pileOpacity: true,
     pileScale: true,
     pileSizeBadge: true,
@@ -347,16 +369,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     previewRenderer: true,
     previewScaling: true,
     previewSpacing: true,
+    projector: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
     },
     rowHeight: true,
+    scale: {
+      get: () => camera.scaling,
+      set: scale => {
+        camera.scale(scale, [renderer.width / 2, renderer.height / 2]);
+      },
+      noAction: true
+    },
     showGrid: true,
     showSpatialIndex: true,
     tempDepileDirection: true,
     tempDepileOneDNum: true,
-    temporaryDepiledPiles: true
+    temporaryDepiledPiles: true,
+    zoomBounds: true
   };
 
   const get = property => {
@@ -370,13 +401,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const set = (property, value, noDispatch = false) => {
+    const config = properties[property];
     let actions = [];
 
-    if (properties[property]) {
+    if (config) {
       const defaultSetter = v => [
         createAction[`set${capitalize(property)}`](v)
       ];
-      const setter = properties[property].set || defaultSetter;
+      const setter = config.set || defaultSetter;
       if (setter) {
         actions = setter(value);
       } else {
@@ -386,7 +418,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       console.warn(`Unknown property "${property}"`);
     }
 
-    if (!noDispatch) {
+    if (!noDispatch && !config.noAction) {
       actions.forEach(action => store.dispatch(action));
     }
 
@@ -636,9 +668,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       onMouseDown: mouseDownHandler,
       onMouseUp: mouseUpHandler,
       onMouseMove: mouseMoveHandler,
-      onWheel: wheelHandler
+      onWheel: wheelHandler,
+      viewCenter: [containerWidth / 2, containerHeight / 2],
+      scaleBounds: store.state.zoomBounds.map(zoomToScale)
     });
-    camera.set(mat4.clone(CAMERA_VIEW));
+    camera.setView(mat4.clone(CAMERA_VIEW));
 
     return true;
   };
@@ -996,8 +1030,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return createImageWithBackground(texture, previewOptions);
     };
 
-    const renderPreviews = previewAggregator
-      ? previewAggregator(itemList)
+    const asyncIdentity = async x => x.map(y => y.src);
+    const aggregator = previewRenderer
+      ? previewAggregator || asyncIdentity
+      : null;
+
+    const renderPreviews = aggregator
+      ? aggregator(itemList)
           .then(previewRenderer)
           .then(textures => textures.map(createPreview))
       : Promise.resolve([]);
@@ -1175,7 +1214,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const getPilePosition = async (pileId, init) => {
-    const { arrangementType, arrangementObjective, piles } = store.state;
+    const {
+      arrangementType,
+      arrangementObjective,
+      piles,
+      projector
+    } = store.state;
 
     const pile = pileInstances.get(pileId);
     const pileState = piles[pileId];
@@ -1212,6 +1256,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'uv':
         return layout.uvToXy(...pos);
 
+      case 'custom':
+        if (projector) return projector(pos);
+
+      // eslint-disable-next-line no-fallthrough
       default:
         return Promise.resolve([pileState.x, pileState.y]);
     }
@@ -3220,6 +3268,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileLabel,
       pileLabelColor,
       pileLabelText,
+      pileLabelTextColor,
       pileLabelFontSize
     } = store.state;
 
@@ -3245,25 +3294,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     uniqueLabels.forEach(label => {
-      let color;
+      let colorAlpha;
 
       if (pileLabelColor !== null) {
         if (isFunction(pileLabelColor)) {
-          color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+          colorAlpha = colorToDecAlpha(
+            pileLabelColor(label.text, uniqueLabels)
+          );
         } else {
           let colorArray = pileLabelColor;
           if (!Array.isArray(pileLabelColor)) {
             colorArray = [pileLabelColor];
           }
           const n = colorArray.length;
-          color = colorToDecAlpha(colorArray[label.index % n])[0];
+          colorAlpha = colorToDecAlpha(colorArray[label.index % n]);
         }
       } else {
         const n = DEFAULT_COLOR_MAP.length;
-        color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
+        colorAlpha = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n]);
       }
 
-      label.color = color;
+      label.color = colorAlpha;
 
       if (pileLabelText) {
         let labelText = label.text;
@@ -3276,6 +3327,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
 
         const pixiText = new PIXI.Text(labelText, {
+          fill: pileLabelTextColor,
           fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
           align: 'center'
         });
@@ -3886,6 +3938,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       case 'xy':
       case 'ij':
       case 'uv':
+      case 'custom':
         expandedObjective = expandArrangementObjectiveCoords(objective, true);
         break;
 
@@ -4314,14 +4367,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const mouseUpHandler = () => {
-    if (isMouseDown) {
-      if (isLasso) {
-        lassoEndHandler();
-      } else if (isPanZoom) {
-        panZoomEndHandler();
-      }
-    }
+    if (!isMouseDown) return;
+
     isMouseDown = false;
+    if (isLasso) {
+      lassoEndHandler();
+    } else if (isPanZoom) {
+      panZoomEndHandler();
+    }
   };
 
   const mouseMoveHandler = event => {
@@ -4468,11 +4521,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const resizeHandler = () => {
     const { width, height } = rootElement.getBoundingClientRect();
 
-    renderer.resize(width, height);
+    containerWidth = width;
+    containerHeight = height;
+
+    renderer.resize(containerWidth, containerHeight);
+
+    if (camera) camera.setViewCenter([containerWidth / 2, containerHeight / 2]);
 
     mask
       .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
+      .drawRect(0, 0, containerWidth, containerHeight)
       .endFill();
 
     updateGrid();

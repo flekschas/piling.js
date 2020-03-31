@@ -380,6 +380,14 @@ const [pileScale, setPileScale] = setter('pileScale', 1.0);
 const [pileLabel, setPileLabel] = setter('pileLabel');
 const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
 const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelTextColor, setPileLabelTextColor] = setter(
+  'pileLabelTextColor',
+  0x000000
+);
+const [pileLabelTextOpacity, setPileLabelTextOpacity] = setter(
+  'pileLabelTextOpacity',
+  1
+);
 const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
 const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
   'pileLabelStackAlign',
@@ -393,6 +401,10 @@ const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
 const [pileLabelSizeTransform, setPileLabelSizeTransform] = setter(
   'pileLabelSizeTransform'
 );
+
+const [projector, setProjector] = setter('projector');
+
+const [zoomBounds, setZoomBounds] = setter('zoomBounds', [-Infinity, Infinity]);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -678,6 +690,8 @@ const createStore = () => {
     pileLabelStackAlign,
     pileLabelSizeTransform,
     pileLabelText,
+    pileLabelTextColor,
+    pileLabelTextOpacity,
     pileOpacity,
     piles,
     pileScale,
@@ -695,12 +709,14 @@ const createStore = () => {
     previewScaling,
     previewSpacing,
     previewOffset,
+    projector,
     rowHeight,
     showGrid,
     showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
-    temporaryDepiledPiles
+    temporaryDepiledPiles,
+    zoomBounds
   });
 
   const rootReducer = (state, action) => {
@@ -843,6 +859,8 @@ export const createAction = {
   setPileLabelStackAlign,
   setPileLabelSizeTransform,
   setPileLabelText,
+  setPileLabelTextColor,
+  setPileLabelTextOpacity,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
@@ -859,11 +877,13 @@ export const createAction = {
   setPreviewScaling,
   setPreviewSpacing,
   setPreviewOffset,
+  setProjector,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setTemporaryDepiledPiles,
+  setZoomBounds,
   splitPiles
 };

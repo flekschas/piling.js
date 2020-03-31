@@ -1301,6 +1301,7 @@ const createPile = (
       pileLabelFontSize,
       pileLabelStackAlign,
       pileLabelText,
+      pileLabelTextOpacity,
       piles
     } = store.state;
 
@@ -1326,24 +1327,24 @@ const createPile = (
     labels.forEach((label, index) => {
       let labelX;
       let labelY = y + toTop;
-      let labelHeightTmp = labelHeightMax;
+      let finalLabelHeight = labelHeightMax;
       switch (labelStackAlign) {
         case 'vertical':
           labelWidth = bounds.width * scaleFactors[index];
           labelX = -bounds.width / 2;
-          labelY += (labelHeightTmp + 1) * index * toTop;
+          labelY += (finalLabelHeight + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
           labelX = labelWidth * index - bounds.width / 2;
-          labelHeightTmp = labelHeightMax * scaleFactors[index];
-          if (labelAlign === 'top') labelY += labelHeightMax - labelHeightTmp;
+          finalLabelHeight = labelHeightMax * scaleFactors[index];
+          if (labelAlign === 'top') labelY += labelHeightMax - finalLabelHeight;
           break;
       }
       const color = colors[index];
-      labelGraphics.beginFill(color, 1);
-      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeightTmp);
+      labelGraphics.beginFill(...color);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, finalLabelHeight);
       labelGraphics.endFill();
     });
 
@@ -1370,6 +1371,7 @@ const createPile = (
         labelText.y = textY;
         labelText.width /= 2 * window.devicePixelRatio;
         labelText.height /= 2 * window.devicePixelRatio;
+        labelText.alpha = pileLabelTextOpacity;
         labelGraphics.addChild(labelText);
       });
     }
