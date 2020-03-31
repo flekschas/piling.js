@@ -13,7 +13,12 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite, colorToDecAlpha } from './utils';
+import {
+  cloneSprite,
+  colorToDecAlpha,
+  getItemProp,
+  getPileProp
+} from './utils';
 
 import { BLACK, INHERIT, WHITE } from './defaults';
 
@@ -141,11 +146,27 @@ const createPile = (
         hoverItemContainer.addChild(clonedSprite);
         coverContainer.visible = false;
         if (hasPreviewItem(item)) {
-          const { previewBorderColor, previewBorderOpacity } = store.state;
-          getForegroundColor(previewBorderColor);
-          item.image.drawBackground(
-            getForegroundColor(previewBorderColor),
+          const {
+            previewBorderColor,
             previewBorderOpacity,
+            items
+          } = store.state;
+          const index = allItems.indexOf(item);
+          const borderColor = getItemProp(
+            previewBorderColor,
+            items[item.id],
+            index
+          );
+          const borderOpacity = getItemProp(
+            previewBorderOpacity,
+            items[item.id],
+            index
+          );
+
+          getForegroundColor(borderColor);
+          item.image.drawBackground(
+            getForegroundColor(borderColor),
+            borderOpacity,
             true
           );
           hoverPreviewContainer.addChild(item.displayObject);
@@ -156,9 +177,10 @@ const createPile = (
   };
 
   const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
-    return store.state.darkMode ? BLACK : WHITE;
+    const { pileBackgroundColor, piles, darkMode } = store.state;
+    const backgroundColor = getPileProp(pileBackgroundColor, piles[id]);
+    if (backgroundColor !== null) return backgroundColor;
+    return darkMode ? BLACK : WHITE;
   };
 
   const getForegroundColor = color => {
@@ -176,19 +198,22 @@ const createPile = (
         const {
           previewBackgroundColor,
           previewBackgroundOpacity,
-          pileBackgroundOpacity
+          pileBackgroundOpacity,
+          items,
+          piles
         } = store.state;
+        const index = allItems.indexOf(item);
 
         const pileBackgroundColor = getBackgroundColor();
 
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
-            : previewBackgroundColor;
+            : getItemProp(previewBackgroundColor, items[item.id], index);
         const backgroundOpacity =
           previewBackgroundOpacity === INHERIT
-            ? pileBackgroundOpacity
-            : previewBackgroundOpacity;
+            ? getPileProp(pileBackgroundOpacity, piles[id])
+            : getItemProp(previewBackgroundOpacity, items[item.id], index);
         item.image.drawBackground(backgroundColor, backgroundOpacity);
         previewItemContainer.addChild(item.displayObject);
       }
@@ -308,11 +333,15 @@ const createPile = (
   };
 
   const getBackgroundOpacity = () => {
-    let backgroundOpacity =
-      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
+    const { pileBackgroundOpacityHover, piles } = store.state;
+
+    let backgroundOpacity = getPileProp(
+      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`],
+      piles[id]
+    );
 
     if (backgroundOpacity === null)
-      backgroundOpacity = store.state.pileBackgroundOpacityHover;
+      backgroundOpacity = getPileProp(pileBackgroundOpacityHover, piles[id]);
 
     return backgroundOpacity;
   };
@@ -343,8 +372,10 @@ const createPile = (
 
     const borderOffset = Math.ceil(size / 2);
     const backgroundColor =
-      state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
-      getBackgroundColor();
+      getPileProp(
+        state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
+        state.piles[id]
+      ) || getBackgroundColor();
 
     // draw black background
     borderGraphics.beginFill(backgroundColor, backgroundOpacity);
@@ -357,13 +388,14 @@ const createPile = (
     borderGraphics.endFill();
 
     let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
-    let opacity = state[`pileBorderOpacity${modeToString.get(mode) || ''}`];
+    const opacity = getPileProp(
+      state[`pileBorderOpacity${modeToString.get(mode) || ''}`],
+      state.piles[id]
+    );
 
     color = isFunction(color)
       ? colorToDecAlpha(color(state.piles[id]))[0]
       : color;
-
-    opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
 
     // draw border
     borderGraphics.lineStyle(size, color, opacity);
@@ -1272,19 +1304,20 @@ const createPile = (
       piles
     } = store.state;
 
-    const bounds = getContentBounds();
+    const labelAlign = getPileProp(pileLabelAlign, piles[id]);
+    const labelFontSize = getPileProp(pileLabelFontSize, piles[id]);
+    const labelStackAlign = getPileProp(pileLabelStackAlign, piles[id]);
+    const labelHeight = getPileProp(pileLabelHeight, piles[id]);
 
-    const height = isFunction(pileLabelHeight)
-      ? pileLabelHeight(piles[id])
-      : pileLabelHeight;
+    const bounds = getContentBounds();
 
     let labelWidth = bounds.width / labels.length;
     const labelHeightMax = labelTextures.length
-      ? Math.max(pileLabelText * (pileLabelFontSize + 1), height)
-      : height;
+      ? Math.max(pileLabelText * (labelFontSize + 1), labelHeight)
+      : labelHeight;
 
     const y =
-      pileLabelAlign === 'top'
+      labelAlign === 'top'
         ? bounds.y - labelHeightMax
         : bounds.y + bounds.height;
 
@@ -1293,24 +1326,24 @@ const createPile = (
     labels.forEach((label, index) => {
       let labelX;
       let labelY = y + toTop;
-      let labelHeight = labelHeightMax;
-      switch (pileLabelStackAlign) {
+      let labelHeightTmp = labelHeightMax;
+      switch (labelStackAlign) {
         case 'vertical':
           labelWidth = bounds.width * scaleFactors[index];
           labelX = -bounds.width / 2;
-          labelY += (labelHeight + 1) * index * toTop;
+          labelY += (labelHeightTmp + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
           labelX = labelWidth * index - bounds.width / 2;
-          labelHeight = labelHeightMax * scaleFactors[index];
-          if (pileLabelAlign === 'top') labelY += labelHeightMax - labelHeight;
+          labelHeightTmp = labelHeightMax * scaleFactors[index];
+          if (labelAlign === 'top') labelY += labelHeightMax - labelHeightTmp;
           break;
       }
       const color = colors[index];
       labelGraphics.beginFill(color, 1);
-      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeightTmp);
       labelGraphics.endFill();
     });
 
@@ -1319,7 +1352,7 @@ const createPile = (
       labelTextures.forEach((texture, index) => {
         let textX;
         let textY = y + toTop;
-        switch (pileLabelStackAlign) {
+        switch (labelStackAlign) {
           case 'vertical':
             textWidth = bounds.width;
             textX = -bounds.width / 2 + textWidth / 2;

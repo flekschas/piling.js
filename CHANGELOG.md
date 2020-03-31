@@ -38,6 +38,7 @@
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`.
 - Ensure pile covers update as items update (#175)
 - Ensure layout is updated properly (#155, #156)
+- Ensure item/preview and pile properties can be functional properties (#174)
 
 _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
 
