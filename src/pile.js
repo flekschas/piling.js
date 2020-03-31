@@ -13,7 +13,12 @@ import * as PIXI from 'pixi.js';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
-import { cloneSprite, colorToDecAlpha } from './utils';
+import {
+  cloneSprite,
+  colorToDecAlpha,
+  getItemProp,
+  getPileProp
+} from './utils';
 
 import { BLACK, INHERIT, WHITE } from './defaults';
 
@@ -32,26 +37,26 @@ modeToString.set(MODE_ACTIVE, 'Active');
 const alignToXMod = align => {
   switch (align) {
     case 'left':
-      return -1;
+      return 0;
 
     case 'right':
       return 1;
 
     default:
-      return 0;
+      return 0.5;
   }
 };
 
 const alignToYMod = align => {
   switch (align) {
     case 'top':
-      return -1;
+      return 0;
 
     case 'bottom':
       return 1;
 
     default:
-      return 0;
+      return 0.5;
   }
 };
 
@@ -141,11 +146,27 @@ const createPile = (
         hoverItemContainer.addChild(clonedSprite);
         coverContainer.visible = false;
         if (hasPreviewItem(item)) {
-          const { previewBorderColor, previewBorderOpacity } = store.state;
-          getForegroundColor(previewBorderColor);
-          item.image.drawBackground(
-            getForegroundColor(previewBorderColor),
+          const {
+            previewBorderColor,
             previewBorderOpacity,
+            items
+          } = store.state;
+          const index = allItems.indexOf(item);
+          const borderColor = getItemProp(
+            previewBorderColor,
+            items[item.id],
+            index
+          );
+          const borderOpacity = getItemProp(
+            previewBorderOpacity,
+            items[item.id],
+            index
+          );
+
+          getForegroundColor(borderColor);
+          item.image.drawBackground(
+            getForegroundColor(borderColor),
+            borderOpacity,
             true
           );
           hoverPreviewContainer.addChild(item.displayObject);
@@ -156,9 +177,10 @@ const createPile = (
   };
 
   const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
-    return store.state.darkMode ? BLACK : WHITE;
+    const { pileBackgroundColor, piles, darkMode } = store.state;
+    const backgroundColor = getPileProp(pileBackgroundColor, piles[id]);
+    if (backgroundColor !== null) return backgroundColor;
+    return darkMode ? BLACK : WHITE;
   };
 
   const getForegroundColor = color => {
@@ -176,24 +198,46 @@ const createPile = (
         const {
           previewBackgroundColor,
           previewBackgroundOpacity,
-          pileBackgroundOpacity
+          pileBackgroundOpacity,
+          items,
+          piles
         } = store.state;
+        const index = allItems.indexOf(item);
 
         const pileBackgroundColor = getBackgroundColor();
 
         const backgroundColor =
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
-            : previewBackgroundColor;
+            : getItemProp(previewBackgroundColor, items[item.id], index);
         const backgroundOpacity =
           previewBackgroundOpacity === INHERIT
-            ? pileBackgroundOpacity
-            : previewBackgroundOpacity;
+            ? getPileProp(pileBackgroundOpacity, piles[id])
+            : getItemProp(previewBackgroundOpacity, items[item.id], index);
         item.image.drawBackground(backgroundColor, backgroundOpacity);
         previewItemContainer.addChild(item.displayObject);
       }
       render();
     }
+  };
+
+  let pileBounds = { drawCall: -1 };
+  let borderDrawCall = 0;
+  const getContentBounds = () => {
+    if (pileBounds.drawCall === borderDrawCall) return pileBounds;
+
+    const borderBounds = borderGraphics.getBounds();
+    const contentBounds = contentGraphics.getBounds();
+
+    pileBounds = {
+      drawCall: borderDrawCall,
+      x: contentBounds.x - borderBounds.x,
+      y: contentBounds.y - borderBounds.y,
+      width: contentBounds.width,
+      height: contentBounds.height
+    };
+
+    return pileBounds;
   };
 
   let previousSize;
@@ -222,18 +266,19 @@ const createPile = (
       }
     }
 
-    let bounds;
-
-    if (normalItemContainer.children.length) {
-      bounds = normalItemContainer.getBounds();
-    } else if (coverContainer.children.length) {
-      bounds = normalItemContainer.getBounds();
-    } else {
+    if (
+      !normalItemContainer.children.length &&
+      !coverContainer.children.length
+    ) {
       return;
     }
 
-    sizeBadge.displayObject.x = (bounds.width / 2 + borderSizeBase) * xMod;
-    sizeBadge.displayObject.y = (bounds.height / 2 + borderSizeBase) * yMod;
+    const bounds = getContentBounds();
+
+    sizeBadge.displayObject.x =
+      bounds.x - borderSizeBase + (bounds.width + 2 * borderSizeBase) * xMod;
+    sizeBadge.displayObject.y =
+      bounds.y - borderSizeBase + (bounds.height + 2 * borderSizeBase) * yMod;
 
     if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
 
@@ -288,16 +333,21 @@ const createPile = (
   };
 
   const getBackgroundOpacity = () => {
-    let backgroundOpacity =
-      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`];
+    const { pileBackgroundOpacityHover, piles } = store.state;
+
+    let backgroundOpacity = getPileProp(
+      store.state[`pileBackgroundOpacity${modeToString.get(mode) || ''}`],
+      piles[id]
+    );
 
     if (backgroundOpacity === null)
-      backgroundOpacity = store.state.pileBackgroundOpacityHover;
+      backgroundOpacity = getPileProp(pileBackgroundOpacityHover, piles[id]);
 
     return backgroundOpacity;
   };
 
   const drawBorder = () => {
+    ++borderDrawCall;
     const size = getBorderSize();
     const backgroundOpacity = getBackgroundOpacity();
 
@@ -316,44 +366,44 @@ const createPile = (
 
     borderGraphics.clear();
 
-    const borderBounds = borderGraphics.getBounds();
-    const contentBounds = contentGraphics.getBounds();
+    const bounds = getContentBounds();
 
     const state = store.state;
 
-    const x = contentBounds.x - borderBounds.x;
-    const y = contentBounds.y - borderBounds.y;
     const borderOffset = Math.ceil(size / 2);
     const backgroundColor =
-      state[`pileBackgroundColor${modeToString.get(mode) || ''}`] ||
-      getBackgroundColor();
+      getPileProp(
+        state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
+        state.piles[id]
+      ) || getBackgroundColor();
 
     // draw black background
     borderGraphics.beginFill(backgroundColor, backgroundOpacity);
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      bounds.x - borderOffset,
+      bounds.y - borderOffset,
+      bounds.width + 2 * borderOffset,
+      bounds.height + 2 * borderOffset
     );
     borderGraphics.endFill();
 
     let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
-    let opacity = state[`pileBorderOpacity${modeToString.get(mode) || ''}`];
+    const opacity = getPileProp(
+      state[`pileBorderOpacity${modeToString.get(mode) || ''}`],
+      state.piles[id]
+    );
 
     color = isFunction(color)
       ? colorToDecAlpha(color(state.piles[id]))[0]
       : color;
 
-    opacity = isFunction(opacity) ? opacity(state.piles[id]) : opacity;
-
     // draw border
     borderGraphics.lineStyle(size, color, opacity);
     borderGraphics.drawRect(
-      x - borderOffset,
-      y - borderOffset,
-      contentBounds.width + 2 * borderOffset,
-      contentBounds.height + 2 * borderOffset
+      bounds.x - borderOffset,
+      bounds.y - borderOffset,
+      bounds.width + 2 * borderOffset,
+      bounds.height + 2 * borderOffset
     );
 
     if (isShowSizeBadge) drawSizeBadge();
@@ -790,7 +840,7 @@ const createPile = (
               count === newItems.size
             );
           });
-        }
+        } else if (isPlaceholderDrawn) removePlaceholder();
       } else {
         normalItemContainer.children.forEach((normalItem, index) => {
           // eslint-disable-next-line no-underscore-dangle
@@ -1210,11 +1260,13 @@ const createPile = (
   let pileLabels = [];
   let labelColors = [];
   let labelTextures = [];
+  let labelScaleFactors = [];
 
   const drawLabel = (
     labels = pileLabels,
     colors = labelColors,
-    textures = labelTextures
+    textures = labelTextures,
+    scaleFactors = labelScaleFactors
   ) => {
     if (!labels.length) {
       if (labelGraphics) {
@@ -1231,12 +1283,13 @@ const createPile = (
     pileLabels = labels;
     labelColors = colors;
     labelTextures = textures;
+    labelScaleFactors = scaleFactors;
 
     if (isPositioning || isScaling) return;
 
     if (!labelGraphics) {
       labelGraphics = new PIXI.Graphics();
-      contentGraphics.addChild(labelGraphics);
+      rootGraphics.addChild(labelGraphics);
     } else {
       labelGraphics.clear();
       labelGraphics.removeChildren();
@@ -1247,65 +1300,68 @@ const createPile = (
       pileLabelAlign,
       pileLabelFontSize,
       pileLabelStackAlign,
-      pileLabelText
+      pileLabelText,
+      piles
     } = store.state;
 
-    const { width } = contentGraphics.getBounds();
+    const labelAlign = getPileProp(pileLabelAlign, piles[id]);
+    const labelFontSize = getPileProp(pileLabelFontSize, piles[id]);
+    const labelStackAlign = getPileProp(pileLabelStackAlign, piles[id]);
+    const labelHeight = getPileProp(pileLabelHeight, piles[id]);
 
-    const firstItem = normalItemContainer.children.length
-      ? normalItemContainer.getChildAt(0)
-      : coverContainer.getChildAt(0);
+    const bounds = getContentBounds();
 
-    const scaleFactor = baseScale * magnification;
-
-    let labelWidth = width / labels.length / scaleFactor;
-    const labelHeight = labelTextures.length
-      ? Math.max(pileLabelText * (pileLabelFontSize + 1), pileLabelHeight)
-      : pileLabelHeight;
+    let labelWidth = bounds.width / labels.length;
+    const labelHeightMax = labelTextures.length
+      ? Math.max(pileLabelText * (labelFontSize + 1), labelHeight)
+      : labelHeight;
 
     const y =
-      pileLabelAlign === 'top'
-        ? -firstItem.height / 2 - labelHeight
-        : firstItem.height / 2;
+      labelAlign === 'top'
+        ? bounds.y - labelHeightMax
+        : bounds.y + bounds.height;
 
     const toTop = 1 + (y < 0) * -2;
 
     labels.forEach((label, index) => {
       let labelX;
       let labelY = y + toTop;
-      switch (pileLabelStackAlign) {
+      let labelHeightTmp = labelHeightMax;
+      switch (labelStackAlign) {
         case 'vertical':
-          labelWidth = width / scaleFactor;
-          labelX = -width / 2 / scaleFactor;
-          labelY += (labelHeight + 1) * index * toTop;
+          labelWidth = bounds.width * scaleFactors[index];
+          labelX = -bounds.width / 2;
+          labelY += (labelHeightTmp + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
-          labelX = labelWidth * index - width / 2 / scaleFactor;
+          labelX = labelWidth * index - bounds.width / 2;
+          labelHeightTmp = labelHeightMax * scaleFactors[index];
+          if (labelAlign === 'top') labelY += labelHeightMax - labelHeightTmp;
           break;
       }
       const color = colors[index];
       labelGraphics.beginFill(color, 1);
-      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeight);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeightTmp);
       labelGraphics.endFill();
     });
 
     if (labelTextures.length) {
-      let textWidth = width / labelTextures.length / scaleFactor;
+      let textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
         let textX;
         let textY = y + toTop;
-        switch (pileLabelStackAlign) {
+        switch (labelStackAlign) {
           case 'vertical':
-            textWidth = width / scaleFactor;
-            textX = -width / 2 / scaleFactor + textWidth / 2;
-            textY += (labelHeight + 1) * index * toTop;
+            textWidth = bounds.width;
+            textX = -bounds.width / 2 + textWidth / 2;
+            textY += (labelHeightMax + 1) * index * toTop;
             break;
 
           case 'horizontal':
           default:
-            textX = textWidth * index - width / 2 / scaleFactor + textWidth / 2;
+            textX = textWidth * index - bounds.width / 2 + textWidth / 2;
             break;
         }
         const labelText = new PIXI.Sprite(texture);
@@ -1467,7 +1523,6 @@ const createPile = (
     get y() {
       return rootGraphics.y;
     },
-    borderGraphics,
     id,
     // Methods
     animateMoveTo,

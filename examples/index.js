@@ -381,6 +381,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     'pileSizeBadgeAlign'
   );
 
+  const pileLabelTextDisable =
+    isFunction(piling.get('pileLabelText')) ||
+    Array.isArray(piling.get('pileLabelText'));
+
   const options = [
     {
       id: 'pile-item',
@@ -390,9 +394,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'itemSize',
           labelMinWidth: '4rem',
           dtype: 'int',
-          min: 16,
+          min: 4,
           max: 320,
-          numSteps: 38,
+          numSteps: 79,
           nullifiable: true
         },
         {
@@ -750,7 +754,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         },
         {
           name: 'pileLabelText',
-          hide: categoricalProps.length === 0,
+          hide: categoricalProps.length === 0 || pileLabelTextDisable,
           labelMinWidth: '4rem',
           dtype: 'boolean',
           nullifiable: true
@@ -762,7 +766,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['top', 'bottom'],
           dropDown: true,
-          defaultValue: 'bottom'
+          defaultValue: piling.get('pileLabelAlign')
         },
         {
           name: 'pileLabelStackAlign',
@@ -771,7 +775,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['horizontal', 'vertical'],
           dropDown: true,
-          defaultValue: 'horizontal'
+          defaultValue: piling.get('pileLabelStackAlign')
         },
         {
           name: 'pileLabelFontSize',
@@ -779,15 +783,18 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '6rem',
           dtype: 'int',
           min: 0,
-          max: 15
+          max: 16
         },
         {
           name: 'pileLabelHeight',
-          hide: categoricalProps.length === 0,
+          hide:
+            categoricalProps.length === 0 ||
+            isFunction(piling.get('pileLabelHeight')),
           labelMinWidth: '6rem',
           dtype: 'int',
-          min: 0,
-          max: 15
+          min: 0.1,
+          max: 16,
+          numSteps: 159
         },
         {
           name: 'pileSizeBadge',

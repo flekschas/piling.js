@@ -62,6 +62,8 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getBBox,
+  getItemProp,
+  getPileProp,
   scaleLinear,
   toAlignment,
   toHomogeneous,
@@ -245,6 +247,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileLabelFontSize: true,
     pileLabelHeight: true,
     pileLabelStackAlign: true,
+    pileLabelSizeTransform: {
+      set: value => {
+        const aggregator = expandLabelSizeAggregator(value);
+        const actions = [createAction.setPileLabelSizeTransform(aggregator)];
+        return actions;
+      }
+    },
     pileLabelText: true,
     pileBorderColor: {
       set: createColorOpacityActions(
@@ -945,9 +954,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const getBackgroundColor = () => {
-    if (store.state.pileBackgroundColor !== null)
-      return store.state.pileBackgroundColor;
+  const getBackgroundColor = pileState => {
+    const bgColor = getPileProp(store.state.pileBackgroundColor, pileState);
+    if (bgColor !== null) return bgColor;
     return backgroundColor;
   };
 
@@ -959,29 +968,33 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileBackgroundOpacity,
       previewAggregator,
       previewRenderer,
-      previewPadding
+      previewPadding,
+      piles
     } = store.state;
 
     const itemList = Object.values(items);
-    const pileBackgroundColor = getBackgroundColor();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
-    const previewOptions = {
-      backgroundColor:
-        previewBackgroundColor === INHERIT
-          ? pileBackgroundColor
-          : previewBackgroundColor,
-      backgroundOpacity:
-        previewBackgroundOpacity === INHERIT
-          ? pileBackgroundOpacity
-          : previewBackgroundOpacity,
-      padding: previewPadding
+    const createPreview = (texture, index) => {
+      const itemState = itemList[index];
+      const pileState = piles[itemState.id];
+      const pileBackgroundColor = getBackgroundColor(pileState);
+      const previewOptions = {
+        backgroundColor:
+          previewBackgroundColor === INHERIT
+            ? pileBackgroundColor
+            : getItemProp(previewBackgroundColor, itemState),
+        backgroundOpacity:
+          previewBackgroundOpacity === INHERIT
+            ? getPileProp(pileBackgroundOpacity, pileState)
+            : getItemProp(previewBackgroundOpacity, itemState),
+        padding: getItemProp(previewPadding, itemState)
+      };
+      return createImageWithBackground(texture, previewOptions);
     };
-    const createPreview = texture =>
-      createImageWithBackground(texture, previewOptions);
 
     const renderPreviews = previewAggregator
       ? previewAggregator(itemList)
@@ -992,13 +1005,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return [renderImages, renderPreviews];
   };
 
-  const updateItemTexture = (updatedItems = null) => {
+  const updateItemTexture = async (updatedItems = null) => {
     const { items, piles } = store.state;
 
     if (!updatedItems) {
       // eslint-disable-next-line no-param-reassign
       updatedItems = items;
     }
+
+    await halt();
 
     return Promise.all(createImagesAndPreviews(updatedItems)).then(
       ([renderedImages, renderedPreviews]) => {
@@ -1034,6 +1049,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
         scaleItems();
         renderRaf();
+        resume();
       }
     );
   };
@@ -1432,7 +1448,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const updatePreviewAndCover = (pileState, pileInstance) => {
+  const updateCover = (pileState, pileInstance) => {
     const {
       items,
       coverRenderer,
@@ -1442,54 +1458,58 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       previewAggregator
     } = store.state;
 
+    const itemsOnPile = [];
+    const itemInstances = [];
+
+    pileState.items.forEach(itemId => {
+      itemsOnPile.push(items[itemId]);
+      itemInstances.push(renderedItems.get(itemId));
+    });
+
+    updatePreviewStyle(pileState);
+
+    pileInstance.setItems(
+      itemInstances,
+      { asPreview: !!previewAggregator },
+      true
+    );
+
+    const coverImage = coverAggregator(itemsOnPile)
+      .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
+      .then(([coverTexture]) => {
+        const scaledImage = createScaledImage(coverTexture);
+
+        scaledImage.invert(
+          isFunction(pileCoverInvert)
+            ? pileCoverInvert(pileState)
+            : pileCoverInvert
+        );
+
+        const extraScale = isFunction(pileCoverScale)
+          ? pileCoverScale(pileState)
+          : pileCoverScale;
+
+        scaledImage.scale(scaledImage.scaleFactor * extraScale);
+
+        return scaledImage;
+      });
+
+    pileInstance.setCover(coverImage);
+
+    coverImage.then(() => {
+      positionItems(pileInstance.id);
+      updatePileBounds(pileInstance.id);
+      renderRaf();
+    });
+  };
+
+  const updatePreviewAndCover = (pileState, pileInstance) => {
     if (pileState.items.length === 1) {
       pileInstance.setCover(null);
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
-      const itemsOnPile = [];
-      const itemInstances = [];
-
-      pileState.items.forEach(itemId => {
-        itemsOnPile.push(items[itemId]);
-        itemInstances.push(renderedItems.get(itemId));
-      });
-
-      updatePreviewStyle(pileState);
-
-      pileInstance.setItems(
-        itemInstances,
-        { asPreview: !!previewAggregator },
-        true
-      );
-
-      const coverImage = coverAggregator(itemsOnPile)
-        .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
-        .then(([coverTexture]) => {
-          const scaledImage = createScaledImage(coverTexture);
-
-          scaledImage.invert(
-            isFunction(pileCoverInvert)
-              ? pileCoverInvert(pileState)
-              : pileCoverInvert
-          );
-
-          const extraScale = isFunction(pileCoverScale)
-            ? pileCoverScale(pileState)
-            : pileCoverScale;
-
-          scaledImage.scale(scaledImage.scaleFactor * extraScale);
-
-          return scaledImage;
-        });
-
-      pileInstance.setCover(coverImage);
-
-      coverImage.then(() => {
-        renderRaf();
-        positionItems(pileInstance.id);
-        updatePileBounds(pileInstance.id);
-      });
+      updateCover(pileState, pileInstance);
     }
   };
 
@@ -3227,10 +3247,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     uniqueLabels.forEach(label => {
       let color;
 
-      if (isFunction(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
-      } else if (Array.isArray(pileLabelColor)) {
-        color = colorToDecAlpha(pileLabelColor[label.index])[0];
+      if (pileLabelColor !== null) {
+        if (isFunction(pileLabelColor)) {
+          color = colorToDecAlpha(pileLabelColor(label.text, uniqueLabels))[0];
+        } else {
+          let colorArray = pileLabelColor;
+          if (!Array.isArray(pileLabelColor)) {
+            colorArray = [pileLabelColor];
+          }
+          const n = colorArray.length;
+          color = colorToDecAlpha(colorArray[label.index % n])[0];
+        }
       } else {
         const n = DEFAULT_COLOR_MAP.length;
         color = colorToDecAlpha(DEFAULT_COLOR_MAP[label.index % n])[0];
@@ -3259,6 +3286,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const getPileLabelSizeScale = (labels, allLabels) => {
+    const { pileLabelSizeTransform } = store.state;
+
+    const histogram = labels.reduce((hist, label) => {
+      // If `pileLabelSizeTransform` is falsy this will turn to `1` and
+      // otherwise to `0`
+      hist[label] = +!pileLabelSizeTransform;
+      return hist;
+    }, {});
+
+    if (!pileLabelSizeTransform) return histogram;
+
+    allLabels.forEach(label => {
+      histogram[label]++;
+    });
+
+    return pileLabelSizeTransform(
+      Object.values(histogram),
+      Object.keys(histogram)
+    );
+  };
+
   const setPileLabel = (pileState, pileId, reset = false) => {
     const pileInstance = pileInstances.get(pileId);
 
@@ -3273,11 +3322,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!idToLabel.size || reset) createUniquePileLabels();
 
-    const labels = unique(
-      pileState.items.flatMap(itemId =>
-        pileLabel.map(objective => objective(items[itemId])).join('-')
-      )
+    const allLabels = pileState.items.flatMap(itemId =>
+      pileLabel.map(objective => objective(items[itemId])).join('-')
     );
+
+    const labels = unique(allLabels);
+
+    const scaleFactors =
+      labels.length > 1 ? getPileLabelSizeScale(labels, allLabels) : [1];
 
     const args = labels.reduce(
       (_args, labelText) => {
@@ -3293,7 +3345,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       [[], [], []]
     );
 
-    pileInstance.drawLabel(...args);
+    pileInstance.drawLabel(...args, scaleFactors);
   };
 
   const itemUpdates = [];
@@ -3340,11 +3392,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const deletedItems = { ...state.items };
       const newItems = {};
       const updatedItems = {};
+      const affectedPiles = {};
 
       Object.entries(newState.items).forEach(([id, item]) => {
         if (state.items[id]) {
           if (item.src !== state.items[id].src) {
             updatedItems[id] = item;
+            // Check if the item is part of a pile
+            Object.values(newState.piles).forEach(pileState => {
+              if (pileState.items.length > 1) {
+                if (pileState.items.includes(id)) {
+                  affectedPiles[pileState.id] = pileState;
+                }
+              }
+            });
           }
         } else {
           newItems[id] = item;
@@ -3355,6 +3416,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const numNewItems = Object.keys(newItems).length;
       const numUpdatedItems = Object.keys(updatedItems).length;
       const numDeletedItems = Object.keys(deletedItems).length;
+      const numAffectedPiles = Object.keys(affectedPiles).length;
 
       if (numNewItems) {
         currentItemUpdates.push(createItemsAndPiles(newItems));
@@ -3366,6 +3428,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (numDeletedItems) {
         currentItemUpdates.push(deleteItemsAndPiles(deletedItems));
+      }
+
+      if (numAffectedPiles) {
+        currentItemUpdates.push(
+          Object.entries(affectedPiles).forEach(([id, pile]) => {
+            const pileInstance = pileInstances.get(id);
+            if (pileInstance.cover) updateCover(pile, pileInstance);
+            setPileLabel(pile, id);
+          })
+        );
       }
 
       if (numNewItems || numDeletedItems) {
@@ -4015,6 +4087,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const objectives = Array.isArray(objective) ? objective : [objective];
     return objectives.map(_objective => expandProperty(_objective));
+  };
+
+  const expandLabelSizeAggregator = labelSizeAggregator => {
+    if (isFunction(labelSizeAggregator)) return labelSizeAggregator;
+
+    switch (labelSizeAggregator) {
+      case 'histogram':
+        return histogram => {
+          const values = Object.values(histogram);
+          const maxValue = max(values);
+          return values.map(x => x / maxValue);
+        };
+
+      default:
+        return histogram => histogram.map(() => 1);
+    }
   };
 
   const animateDropMerge = (sourcePileId, targetPileId) => {

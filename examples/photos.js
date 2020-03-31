@@ -4,7 +4,7 @@ import { createImageRenderer } from '../src/renderer';
 const createPhotoPiles = async (element, darkMode) => {
   const imageRenderer = createImageRenderer();
 
-  const response = await fetch('data/photos.json');
+  const response = await fetch('data/pascal-voc-cars.json');
   const data = await response.json();
 
   const piling = createPilingJs(element);

@@ -390,6 +390,9 @@ const [pileLabelFontSize, setPileLabelFontSize] = setter(
   7
 );
 const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
+const [pileLabelSizeTransform, setPileLabelSizeTransform] = setter(
+  'pileLabelSizeTransform'
+);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -470,11 +473,20 @@ const piles = (previousState = {}, action) => {
     case 'MERGE_PILES': {
       const newState = { ...previousState };
 
-      const target =
-        action.payload.targetPileId !== undefined
-          ? action.payload.targetPileId
-          : Math.min.apply([], action.payload.pileIds).toString();
+      let target;
 
+      if (
+        action.payload.targetPileId === undefined &&
+        // eslint-disable-next-line no-restricted-globals
+        isNaN(action.payload.pileIds[0])
+      ) {
+        target = action.payload.pileIds[0];
+      } else {
+        target =
+          action.payload.targetPileId !== undefined
+            ? action.payload.targetPileId
+            : Math.min.apply([], action.payload.pileIds).toString();
+      }
       const sourcePileIds = action.payload.pileIds.filter(id => id !== target);
 
       const [x, y] = action.payload.targetPos;
@@ -664,6 +676,7 @@ const createStore = () => {
     pileLabelFontSize,
     pileLabelHeight,
     pileLabelStackAlign,
+    pileLabelSizeTransform,
     pileLabelText,
     pileOpacity,
     piles,
@@ -828,6 +841,7 @@ export const createAction = {
   setPileLabelFontSize,
   setPileLabelHeight,
   setPileLabelStackAlign,
+  setPileLabelSizeTransform,
   setPileLabelText,
   setPileVisibilityItems,
   setPileOpacity,
