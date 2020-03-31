@@ -196,7 +196,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     gridOpacity: true,
     groupingObjective: true,
-    groupingOnZoom: true,
     groupingOptions: true,
     groupingType: true,
     items: {
@@ -384,6 +383,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     },
     showGrid: true,
     showSpatialIndex: true,
+    splittingObjective: true,
+    splittingOptions: true,
+    splittingType: true,
     tempDepileDirection: true,
     tempDepileOneDNum: true,
     temporaryDepiledPiles: true,
@@ -573,14 +575,31 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.publish('zoom', camera);
   };
 
+  let prevScaling = 1;
   const zoomHandler = () => {
-    if (store.state.groupingOnZoom) {
-      groupBy(
-        store.state.groupingType,
-        store.state.groupingObjective,
-        store.state.groupingOptions
-      );
+    if (!camera) return;
+
+    const {
+      groupingType,
+      groupingObjective,
+      groupingOptions,
+      splittingType,
+      splittingObjective,
+      splittingOptions
+    } = store.state;
+
+    const currentScaling = camera.scaling;
+    const dScaling = currentScaling / prevScaling;
+
+    if (groupingType && dScaling < 1) {
+      groupBy(groupingType, groupingObjective, groupingOptions);
     }
+
+    if (splittingType && dScaling > 1) {
+      splitBy(splittingType, splittingObjective, splittingOptions);
+    }
+
+    prevScaling = currentScaling;
   };
 
   const zoomHandlerDb = debounce(zoomHandler, 250);
@@ -2583,40 +2602,38 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const groupBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandGroupingObjective(type, objective);
-
     let whenGroupings;
     let mergeCenter = 'mean';
 
     switch (type) {
       case 'overlap':
-        whenGroupings = groupByOverlap(expandedObjective, options);
+        whenGroupings = groupByOverlap(objective, options);
         break;
 
       case 'distance':
-        whenGroupings = groupByDistance(expandedObjective, options);
+        whenGroupings = groupByDistance(objective, options);
         break;
 
       case 'grid':
-        whenGroupings = groupByGrid(expandedObjective);
+        whenGroupings = groupByGrid(objective);
         break;
 
       case 'column':
-        mergeCenter = expandedObjective;
-        whenGroupings = groupByColumn(expandedObjective);
+        mergeCenter = objective;
+        whenGroupings = groupByColumn(objective);
         break;
 
       case 'row':
-        mergeCenter = expandedObjective;
-        whenGroupings = groupByRow(expandedObjective);
+        mergeCenter = objective;
+        whenGroupings = groupByRow(objective);
         break;
 
       case 'category':
-        whenGroupings = groupByCategory(expandedObjective);
+        whenGroupings = groupByCategory(objective);
         break;
 
       case 'cluster':
-        whenGroupings = groupByCluster(expandedObjective, options);
+        whenGroupings = groupByCluster(objective, options);
         break;
 
       // no default
@@ -2631,6 +2648,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         mergeCenter
       );
     });
+  };
+
+  const groupByPublic = (type, objective = null, options = {}) => {
+    const expandedObjective = expandGroupingObjective(type, objective);
+
+    groupBy(type, expandedObjective, options);
 
     if ((type === 'distance' || type === 'overlap') && options.onZoom) {
       delete options.onZoom;
@@ -2638,7 +2661,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       store.dispatch(
         batchActions([
           ...set('groupingObjective', expandedObjective, true),
-          ...set('groupingOnZoom', true, true),
           ...set('groupingOptions', options, true),
           ...set('groupingType', type, true)
         ])
@@ -2647,8 +2669,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   let splitSpatialIndex;
+  const idToBBox = new Map();
   const createSplitSpatialIndex = (items, coordType) => {
-    if (splitSpatialIndex) return splitSpatialIndex;
+    if (splitSpatialIndex) return [splitSpatialIndex, idToBBox];
 
     const { width, height } = canvas.getBoundingClientRect();
 
@@ -2658,16 +2681,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     splitSpatialIndex = new RBush();
 
-    const idToBBox = new Map();
+    idToBBox.clear();
 
     const bBoxes = items.map(item => {
-      const bBox = {
-        id: item.id,
-        minX: toX(item.cX) - item.width / 2,
-        maxX: toX(item.cX) + item.width / 2,
-        minY: toY(item.cY) - item.height / 2,
-        maxY: toY(item.cY) + item.height / 2
-      };
+      const bBox =
+        item.minX === undefined
+          ? {
+              id: item.id,
+              minX: toX(item.cX) - item.width / 2,
+              maxX: toX(item.cX) + item.width / 2,
+              minY: toY(item.cY) - item.height / 2,
+              maxY: toY(item.cY) + item.height / 2
+            }
+          : item;
       idToBBox.set(item.id, bBox);
       return bBox;
     });
@@ -2682,7 +2708,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     { coordType = 'uv' } = {}
   ) => async (objective, { conditions = [] } = {}) => {
     const { piles } = store.state;
-    const [tree, idToBBox] = createSplitSpatialIndex(
+    // eslint-disable-next-line no-shadow
+    const [splitSpatialIndex, idToBBox] = createSplitSpatialIndex(
       objective.basedOn,
       coordType
     );
@@ -2692,12 +2719,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       let closest = -1;
       let minDist = Infinity;
 
-      groups.forEach((group, i) => {
+      groups.forEach((g, i) => {
         const bBox = {
-          minX: group.centroid[0] - group.width / 2,
-          maxX: group.centroid[0] + group.width / 2,
-          minY: group.centroid[1] - group.height / 2,
-          maxY: group.centroid[1] + group.height / 2
+          minX: g.centroid[0] - g.width / 2,
+          maxX: g.centroid[0] + g.width / 2,
+          minY: g.centroid[1] - g.height / 2,
+          maxY: g.centroid[1] + g.height / 2
         };
         const [ok, d] = compare(bBox, hit, threshold);
         if (ok && d < minDist) {
@@ -2762,7 +2789,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     const search = currentTarget => {
-      const hits = tree.search(toBBox(currentTarget, objective.threshold));
+      const hits = splitSpatialIndex.search(
+        toBBox(currentTarget, objective.threshold)
+      );
 
       const assessedItems = new Set();
 
@@ -2789,10 +2818,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     spatialIndex.all().forEach(search);
 
     Object.keys(splittedPiles).forEach(pileId => {
-      splittedPiles[pileId] = [
-        splittedPiles[pileId].keep,
-        ...splittedPiles[pileId].split.map(g => g.items)
-      ];
+      const out = [];
+
+      if (splittedPiles[pileId].keep.length)
+        out.push(splittedPiles[pileId].keep);
+
+      if (splittedPiles[pileId].split.length)
+        out.push(...splittedPiles[pileId].split.map(g => g.items));
+
+      splittedPiles[pileId] = out;
     });
 
     return splittedPiles;
@@ -2912,26 +2946,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const splitBy = (type, objective = null, options = {}) => {
-    const expandedObjective = expandSplittingObjective(type, objective);
-
+  const splitBy = (type, objective, options = {}) => {
     let whenSplittings;
 
     switch (type) {
       case 'overlap':
-        whenSplittings = splitByOverlap(expandedObjective, options);
+        whenSplittings = splitByOverlap(objective, options);
         break;
 
       case 'distance':
-        whenSplittings = splitByDistance(expandedObjective, options);
+        whenSplittings = splitByDistance(objective, options);
         break;
 
       case 'category':
-        whenSplittings = splitByCategory(expandedObjective);
+        whenSplittings = splitByCategory(objective);
         break;
 
       case 'cluster':
-        whenSplittings = splitByCluster(expandedObjective, options);
+        whenSplittings = splitByCluster(objective, options);
         break;
 
       // no default
@@ -2950,6 +2982,24 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         animateDepile(pileId, targets);
       });
     });
+  };
+
+  const splitByPublic = (type, objective = null, options = {}) => {
+    const expandedObjective = expandSplittingObjective(type, objective);
+
+    splitBy(type, expandedObjective, options);
+
+    if ((type === 'distance' || type === 'overlap') && options.onZoom) {
+      delete options.onZoom;
+
+      store.dispatch(
+        batchActions([
+          ...set('splittingObjective', expandedObjective, true),
+          ...set('splittingOptions', options, true),
+          ...set('splittingType', type, true)
+        ])
+      );
+    }
   };
 
   const splitAll = () => splitBy('category', 'id');
@@ -4046,7 +4096,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const itemizeSpatialIndex = () => {
     const { piles } = store.state;
 
-    const bBoxes = spatialIndex.data.reduce((b, d) => {
+    const bBoxes = spatialIndex.all().reduce((b, d) => {
       b[d.id] = { ...d };
       return b;
     }, {});
@@ -4062,7 +4112,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     });
 
-    return bBoxes;
+    return Object.values(bBoxes);
   };
 
   const expandSplittingObjectivePosition = objective => {
@@ -4890,7 +4940,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     destroy,
     exportState,
     get,
-    groupBy,
+    groupBy: groupByPublic,
     halt,
     importState,
     render: renderRaf,
@@ -4898,7 +4948,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resume,
     set: setPublic,
     splitAll,
-    splitBy,
+    splitBy: splitByPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe
   };

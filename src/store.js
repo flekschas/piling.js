@@ -130,9 +130,15 @@ const [groupingType, setGroupingType] = setter('groupingType');
 
 const [groupingObjective, setGroupingObjective] = setter('groupingObjective');
 
-const [groupingOnZoom, setGroupingOnZoom] = setter('groupingOnZoom', false);
-
 const [groupingOptions, setGroupingOptions] = setter('groupingOptions', {});
+
+const [splittingType, setSplittingType] = setter('splittingType');
+
+const [splittingObjective, setSplittingObjective] = setter(
+  'splittingObjective'
+);
+
+const [splittingOptions, setSplittingOptions] = setter('splittingOptions', {});
 
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
@@ -635,7 +641,6 @@ const createStore = () => {
     gridColor,
     gridOpacity,
     groupingObjective,
-    groupingOnZoom,
     groupingOptions,
     groupingType,
     darkMode,
@@ -711,6 +716,9 @@ const createStore = () => {
     previewOffset,
     projector,
     rowHeight,
+    splittingObjective,
+    splittingOptions,
+    splittingType,
     showGrid,
     showSpatialIndex,
     tempDepileDirection,
@@ -804,7 +812,6 @@ export const createAction = {
   setGridColor,
   setGridOpacity,
   setGroupingObjective,
-  setGroupingOnZoom,
   setGroupingOptions,
   setGroupingType,
   setDarkMode,
@@ -879,6 +886,9 @@ export const createAction = {
   setPreviewOffset,
   setProjector,
   setRowHeight,
+  setSplittingObjective,
+  setSplittingOptions,
+  setSplittingType,
   setShowGrid,
   setShowSpatialIndex,
   setTempDepileDirection,
