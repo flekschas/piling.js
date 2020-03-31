@@ -954,8 +954,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
-  const getBackgroundColor = () => {
-    const bgColor = getPileProp(store.state.pileBackgroundColor);
+  const getBackgroundColor = pileState => {
+    const bgColor = getPileProp(store.state.pileBackgroundColor, pileState);
     if (bgColor !== null) return bgColor;
     return backgroundColor;
   };
@@ -968,27 +968,30 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileBackgroundOpacity,
       previewAggregator,
       previewRenderer,
-      previewPadding
+      previewPadding,
+      piles
     } = store.state;
 
     const itemList = Object.values(items);
-    const pileBackgroundColor = getBackgroundColor();
 
     const renderImages = itemRenderer(
       itemList.map(({ src }) => src)
     ).then(textures => textures.map(createImage));
 
     const createPreview = (texture, index) => {
+      const itemState = itemList[index];
+      const pileState = piles[itemState.id];
+      const pileBackgroundColor = getBackgroundColor(pileState);
       const previewOptions = {
         backgroundColor:
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
-            : getItemProp(previewBackgroundColor, itemList[index]),
+            : getItemProp(previewBackgroundColor, itemState),
         backgroundOpacity:
           previewBackgroundOpacity === INHERIT
-            ? pileBackgroundOpacity
-            : getItemProp(previewBackgroundOpacity, itemList[index]),
-        padding: getItemProp(previewPadding, itemList[index])
+            ? getPileProp(pileBackgroundOpacity, pileState)
+            : getItemProp(previewBackgroundOpacity, itemState),
+        padding: getItemProp(previewPadding, itemState)
       };
       return createImageWithBackground(texture, previewOptions);
     };
