@@ -1878,7 +1878,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     store.dispatch(createAction.scatterPiles([depiledPile]));
-    blurPrevHoveredPiles();
+    blurPrevDragOverPiles();
 
     if (!store.state.arrangementType) {
       animateDepile(pileId, items);
@@ -3517,7 +3517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const resetPileBorder = () => {
     pileInstances.forEach(pile => {
-      if (pile && !pile.isFocus) pile.blur();
+      if (pile) pile.blur();
     });
   };
 
@@ -3852,34 +3852,34 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let previouslyHoveredPiles = [];
+  let prevDragOverPiles = [];
 
-  const blurPrevHoveredPiles = () => {
-    previouslyHoveredPiles
+  const blurPrevDragOverPiles = () => {
+    prevDragOverPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(pile => pile && !pile.isFocus)
+      .filter(identity) // to filter out undefined piles
       .forEach(pile => {
         pile.blur();
       });
 
-    previouslyHoveredPiles = [];
+    prevDragOverPiles = [];
   };
 
-  const highlightHoveringPiles = pileId => {
+  const indicateDragOverPiles = pileId => {
     if (store.state.temporaryDepiledPiles.length) return;
 
-    const currentlyHoveredPiles = spatialIndex.search(calcPileBBox(pileId));
+    const currentDragOverPiles = spatialIndex.search(calcPileBBox(pileId));
 
-    blurPrevHoveredPiles();
+    blurPrevDragOverPiles();
 
-    currentlyHoveredPiles
+    currentDragOverPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(pile => pile && !pile.isFocus)
+      .filter(identity) // to filter out undefined piles
       .forEach(pile => {
         pile.hover();
       });
 
-    previouslyHoveredPiles = [...currentlyHoveredPiles];
+    prevDragOverPiles = [...currentDragOverPiles];
   };
 
   const pileDragStartHandler = ({ pileId, event }) => {
@@ -3900,11 +3900,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     store.dispatch(createAction.setMagnifiedPiles([]));
 
     moveToActivePileLayer(pileInstances.get(pileId).graphics);
-    highlightHoveringPiles(pileId);
   };
 
   const pileDragMoveHandler = ({ pileId }) => {
-    highlightHoveringPiles(pileId);
+    indicateDragOverPiles(pileId);
   };
 
   const hideContextMenu = contextMenuElement => {
