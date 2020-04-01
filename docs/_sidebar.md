@@ -1,39 +1,39 @@
-- [Home](README.md#home)
+- [Home](/docs/)
 
-- [**Getting Started**](README.md#getting-started)
+- [**Getting Started**](/docs/?id=getting-started)
 
-  - [Install](README.md#install)
-  - [Quick Start](README.md#quick-start)
-  - [Examples](README.md#examples)
-  - [Data](README.md#data)
+  - [Install](/docs/?id=install)
+  - [Quick Start](/docs/?id=quick-start)
+  - [Examples](/docs/?id=examples)
+  - [Data](/docs/?id=data)
 
-- [**Library**](README.md#library)
+- [**Library**](/docs/?id=library)
 
-  - [Constructor](README.md#constructor)
-  - [Methods](README.md#methods)
-  - [Properties](README.md#properties)
-  - [Events](README.md#events)
-  - [State](README.md#state)
+  - [Constructor](/docs/?id=constructor)
+  - [Methods](/docs/?id=methods)
+  - [Properties](/docs/?id=properties)
+  - [Events](/docs/?id=events)
+  - [State](/docs/?id=state)
 
-- [**Renderers**](README.md#renderers)
+- [**Renderers**](/docs/?id=renderers)
 
-  - [Types](README.md#renderer-types)
-  - [Predefined Renderers](README.md#predefined-renderers)
-  - [Define Your Own Renderer](README.md#define-your-own-renderer)
+  - [Types](/docs/?id=renderer-types)
+  - [Predefined Renderers](/docs/?id=predefined-renderers)
+  - [Define Your Own Renderer](/docs/?id=define-your-own-renderer)
 
-- [**Aggregators**](README.md#aggregators)
+- [**Aggregators**](/docs/?id=aggregators)
 
-  - [Types](README.md#aggregator-types)
-  - [Predefined Aggregators](README.md#predefined-aggregators)
-  - [Define Your Own Aggregator](README.md#define-your-own-aggregator)
+  - [Types](/docs/?id=aggregator-types)
+  - [Predefined Aggregators](/docs/?id=predefined-aggregators)
+  - [Define Your Own Aggregator](/docs/?id=define-your-own-aggregator)
 
-- [Dimensionality Reducers](README.md#dimensionality-reducers)
+- [Dimensionality Reducers](/docs/?id=dimensionality-reducers)
 
-- [Clusterers](README.md#clusterers)
+- [Clusterers](/docs/?id=clusterers)
 
-- [Interactions](README.md#interactions)
+- [Interactions](/docs/?id=interactions)
 
-- [Changelog](CHANGELOG.md)
+- [Changelog](/docs/changelog)
 
 <span id="external-links">
 
