@@ -417,14 +417,13 @@ const createPile = (
   };
 
   const hover = () => {
-    if (mode === MODE_HOVER || mode === MODE_FOCUS || mode === MODE_ACTIVE)
-      return;
+    if (mode === MODE_HOVER) return;
     mode = MODE_HOVER;
     drawBorder();
   };
 
   const focus = () => {
-    if (mode === MODE_FOCUS || mode === MODE_ACTIVE) return;
+    if (mode === MODE_FOCUS) return;
     mode = MODE_FOCUS;
     drawBorder();
   };

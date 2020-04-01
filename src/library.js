@@ -1962,8 +1962,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const onDone = () => {
         pile.tempDepileContainer.removeChildren();
         pile.isTempDepiled = false;
-        pile.hover();
-        store.dispatch(createAction.setFocusedPiles([]));
+        pile.focus();
+        store.dispatch(createAction.setFocusedPiles([pile.id]));
         updatePileBounds(pileId);
       };
 
