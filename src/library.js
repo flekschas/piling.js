@@ -3517,7 +3517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const resetPileBorder = () => {
     pileInstances.forEach(pile => {
-      if (!pile.isFocus) pile.blur();
+      if (pile && !pile.isFocus) pile.blur();
     });
   };
 
@@ -3857,7 +3857,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const blurPrevHoveredPiles = () => {
     previouslyHoveredPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(pile => !pile.isFocus)
+      .filter(pile => pile && !pile.isFocus)
       .forEach(pile => {
         pile.blur();
       });
@@ -3874,7 +3874,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     currentlyHoveredPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(pile => !pile.isFocus)
+      .filter(pile => pile && !pile.isFocus)
       .forEach(pile => {
         pile.hover();
       });
