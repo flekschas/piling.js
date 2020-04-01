@@ -452,7 +452,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileItemRotation            | float or function                 | `0`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemTint                | string, int or function           | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `true`     |
 | pileLabel                   | string, array, function or object |                    | see [`notes`](#notes)                                                                           | `true`     |
-| pileLabelAlign              | string  or function               | `bottom`           | `bottom` or `top`                                                                               | `true`     |
+| pileLabelAlign              | string or function                | `bottom`           | `bottom` or `top`                                                                               | `true`     |
 | pileLabelColor              | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelFontSize           | int or function                   | 8                  |                                                                                                 | `true`     |
 | pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
@@ -1171,9 +1171,61 @@ piling.set('dimensionalityReducer', umap);
 
 # Interactions
 
-- **Create a pile or merge piles:**
-  - Drag one item/pile and drop it on another with your mouse.
-  - Click on the background and drag your mouse to draw a lasso. All items/piles within the lasso will be merged into one pile.
+## Group items into piles
+
+### Drag and Drop
+
+1. Click and hold on a pile
+2. Move the mouse onto another single pile
+3. Release the mouse
+
+<details><summary>See demo</summary>
+<p>
+
+![Drag and drop grouping](https://user-images.githubusercontent.com/932103/78094083-aa298c80-73a1-11ea-95c8-f436e70b2c9d.gif)
+
+</p>
+</details>
+
+### Multiselect
+
+1. Hold down <kbd>SHIFT</kbd>
+2. Click on the piles you want to select
+3. Click on a previously selected pile to group all selected piles onto this _target_ pile
+
+   <details><summary>See demo</summary>
+   <p>
+
+   ![Multiselect grouping](https://user-images.githubusercontent.com/932103/78094274-27ed9800-73a2-11ea-9efe-3f9121337657.gif)
+
+   </p>
+   </details>
+
+4. Alternatively, double click on a new pile to group all selected piles onto this _target_ pile
+
+   <details><summary>See demo</summary>
+   <p>
+
+   ![Multiselect grouping with double-click](https://user-images.githubusercontent.com/932103/78094278-2a4ff200-73a2-11ea-846e-07ed69fc2625.gif)
+
+   </p>
+   </details>
+
+### Lasso select
+
+1. Click on the background. A translucent circle will appear
+2. Click and hold into the circle to activate the lasso.
+3. Drag the cursor around the pile you want to group.
+4. Release the mouse to trigger the grouping.
+
+<details><summary>See demo</summary>
+<p>
+
+![Multiselect grouping with lasso](https://user-images.githubusercontent.com/932103/78094424-84e94e00-73a2-11ea-8958-55ba0c032b65.gif)
+
+</p>
+</details>
+
 - **Browse a pile:**
   - Click on a pile to focus on this pile, then hover your mouse on one item's preview to see the item.
 - **Temporarily de-pile:**
