@@ -459,6 +459,8 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelStackAlign         | string or function                | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
 | pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextColor          | string or int                     | `0x000000`         | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextOpacity        | float                             | `1`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileSizeBadge               | boolean or function               | `false`            | if `true` show the pile size as a badge                                                         | `true`     |
