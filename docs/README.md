@@ -1171,9 +1171,9 @@ piling.set('dimensionalityReducer', umap);
 
 # Interactions
 
-## Group items into piles
+## Grouping
 
-### Drag and Drop
+### Drag and Drop Grouping
 
 1. Click and hold on a pile
 2. Move the mouse onto another single pile
@@ -1187,7 +1187,7 @@ piling.set('dimensionalityReducer', umap);
 </p>
 </details>
 
-### Multiselect
+### Multi-select Grouping
 
 1. Hold down <kbd>SHIFT</kbd>
 2. Click on the piles you want to select
@@ -1211,7 +1211,7 @@ piling.set('dimensionalityReducer', umap);
    </p>
    </details>
 
-### Lasso select
+### Lasso Grouping
 
 1. Click on the background. A translucent circle will appear
 2. Click and hold into the circle to activate the lasso.
@@ -1232,11 +1232,9 @@ piling.set('dimensionalityReducer', umap);
   - Double click on a pile to temporarily de-pile the pile. Then double click on the pile again or on the background to close temporarily de-pile.
   - Right click on a pile to open the context menu. Click on <kbd>temp depile</kbd> button to temporarily de-pile the pile. Then right click on the pile again and click on <kbd>close temp depile</kbd> button to close temporarily de-pile.
 - **De-pile:**
-  - While pressing <kbd>SHIFT</kbd>, click on a pile to de-pile it.
+  - While pressing <kbd>ALT</kbd>, click on a pile to de-pile it.
   - Right click on a pile to open the context menu. Click on <kbd>depile</kbd> button to de-pile.
 - **Magnify a pile:**
-  - While pressing <kbd>ALT</kbd>, click on a pile to automatically magnify it.
-  - While pressing <kbd>ALT</kbd>, click on a magnified pile to automatically unmagnify it.
   - While pressing <kbd>ALT</kbd>, hover on a pile and scroll to manually magnify it. Then click on the background to automatically unmagnify it.
   - Right click on a pile to open the context menu. Click on <kbd>magnify</kbd> button to automatically magnify the pile.
   - Right click on a magnified pile to open the context menu. Click on <kbd>unmagnify</kbd> button to automatically unmagnify the pile.
