@@ -4012,7 +4012,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     setTimeout(() => {
       isClicked = false;
-    }, 500);
+    }, 300);
 
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
