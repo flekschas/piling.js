@@ -64,6 +64,7 @@ import {
   getBBox,
   getItemProp,
   getPileProp,
+  matchArrayPair,
   scaleLinear,
   toAlignment,
   toHomogeneous,
@@ -3334,28 +3335,41 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.focusedPiles !== newState.focusedPiles) {
+      const [prevFocusedPiles, newlyFocusedPiles] = matchArrayPair(
+        state.focusedPiles,
+        newState.focusedPiles
+      );
+
       // Unset previously focused pile
-      if (pileInstances.has(state.focusedPiles[0])) {
-        const pile = pileInstances.get(state.focusedPiles[0]);
-        if (!pile.isTempDepiled) {
-          pile.blur();
-          pile.isFocus = false;
-        }
-      }
+      prevFocusedPiles
+        .filter(pileId => pileInstances.has(pileId))
+        .forEach(pileId => {
+          const pile = pileInstances.get(pileId);
+          if (!pile.isTempDepiled) {
+            pile.blur();
+            pile.isFocus = false;
+          }
+        });
 
       // Set newly focused pile if any
-      if (newState.focusedPiles.length !== 0) {
-        const pile = pileInstances.get(newState.focusedPiles[0]);
-        if (pile.isTempDepiled) {
-          pile.active();
-        } else {
-          pile.focus();
-        }
-        pile.isFocus = true;
-        pubSub.publish('pileFocus', { pile });
-      } else {
-        const pile = pileInstances.get(state.focusedPiles[0]);
-        pubSub.publish('pileBlur', { pile });
+      newlyFocusedPiles
+        .filter(pileId => pileInstances.has(pileId))
+        .forEach(pileId => {
+          const pile = pileInstances.get(pileId);
+          if (pile.isTempDepiled) {
+            pile.active();
+          } else {
+            pile.focus();
+          }
+          pile.isFocus = true;
+        });
+
+      if (newlyFocusedPiles.length) {
+        pubSub.publish('pileFocus', { piles: newlyFocusedPiles });
+      }
+
+      if (prevFocusedPiles.length) {
+        pubSub.publish('pileBlur', { piles: prevFocusedPiles });
       }
 
       renderRaf();
@@ -3503,9 +3517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const resetPileBorder = () => {
     pileInstances.forEach(pile => {
-      if (!pile.isFocus) {
-        pile.blur();
-      }
+      if (!pile.isFocus) pile.blur();
     });
   };
 
@@ -3741,22 +3753,40 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const animateDropMerge = (sourcePileId, targetPileId) => {
+  let isDropMerging = false;
+  const animateDropMerge = (targetPileId, otherPileIds) => {
+    if (isDropMerging) return;
+
+    isDropMerging = true;
+
     const { piles } = store.state;
     const x = piles[targetPileId].x;
     const y = piles[targetPileId].y;
 
-    const onDone = () => {
+    const onAllDone = () => {
+      isDropMerging = false;
       store.dispatch(
         createAction.mergePiles(
-          [sourcePileId, targetPileId],
+          [targetPileId, ...otherPileIds],
           [x, y],
           targetPileId
         )
       );
     };
 
-    animateMovePileTo(pileInstances.get(sourcePileId), x, y, { onDone });
+    const onDone = () => {
+      if (++done === otherPileIds.length) onAllDone();
+    };
+
+    let done = 0;
+    animator.addBatch(
+      otherPileIds.map(pileId =>
+        animateMovePileTo(pileInstances.get(pileId), x, y, {
+          onDone,
+          isBatch: true
+        })
+      )
+    );
   };
 
   let hit;
@@ -3790,7 +3820,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             });
 
             if (store.state.previewAggregator) {
-              animateDropMerge(pileId, targetPileId);
+              animateDropMerge(targetPileId, [pileId]);
             } else {
               store.dispatch(
                 createAction.mergePiles(
@@ -3827,7 +3857,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const blurPrevHoveredPiles = () => {
     previouslyHoveredPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(identity)
+      .filter(pile => !pile.isFocus)
       .forEach(pile => {
         pile.blur();
       });
@@ -4008,6 +4038,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (results.length !== 0) {
         if (event.shiftKey) {
+          const { focusedPiles } = store.state;
+          const firstPileId = results[0].id;
+          if (focusedPiles.includes(firstPileId)) {
+            mergeFocusedPiles(firstPileId);
+          } else {
+            store.dispatch(
+              createAction.setFocusedPiles([...focusedPiles, firstPileId])
+            );
+          }
+        } else if (event.altKey) {
           const { depileMethod } = store.state;
           if (depileMethod === 'originalPos') {
             depileToOriginPos(results[0].id);
@@ -4015,17 +4055,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             store.dispatch(createAction.setDepiledPile([results[0].id]));
           }
           store.dispatch(createAction.setFocusedPiles([]));
-        } else if (event.altKey) {
-          results.forEach(result => {
-            const pile = pileInstances.get(result.id);
-            if (pile.graphics.isHover) {
-              if (pile.isMagnified) {
-                store.dispatch(createAction.setMagnifiedPiles([]));
-              } else {
-                store.dispatch(createAction.setMagnifiedPiles([result.pileId]));
-              }
-            }
-          });
         } else {
           results.forEach(result => {
             const pile = pileInstances.get(result.id);
@@ -4035,13 +4064,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
-        if (!closedContextMenu) lasso.showStartIndicator(mouseDownPosition);
-        if (store.state.focusedPiles.length)
+        const { focusedPiles, magnifiedPiles } = store.state;
+        if (focusedPiles.length)
           store.dispatch(createAction.setFocusedPiles([]));
-        if (store.state.magnifiedPiles.length)
+        if (magnifiedPiles.length)
           store.dispatch(createAction.setMagnifiedPiles([]));
+        if (
+          !closedContextMenu &&
+          !focusedPiles.length &&
+          !magnifiedPiles.length
+        )
+          lasso.showStartIndicator(mouseDownPosition);
       }
     }
+  };
+
+  const mergeFocusedPiles = targetPileId => {
+    const { focusedPiles } = store.state;
+    const otherPileIds = focusedPiles.filter(pileId => pileId !== targetPileId);
+
+    if (!otherPileIds.length) return;
+
+    store.dispatch(createAction.setFocusedPiles([targetPileId]));
+    animateDropMerge(targetPileId, otherPileIds);
   };
 
   const mouseDblClickHandler = event => {
@@ -4058,12 +4103,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     if (result.length !== 0 && !temporaryDepiledPiles.length) {
-      if (piles[result[0].id].items.length > 1) {
+      const firstPileId = result[0].id;
+
+      if (event.shiftKey) {
+        mergeFocusedPiles(firstPileId);
+      } else if (piles[firstPileId].items.length > 1) {
         let temp = [...temporaryDepiledPiles];
-        if (temp.includes(result[0].id)) {
-          temp = temp.filter(id => id !== result[0].id);
+        if (temp.includes(firstPileId)) {
+          temp = temp.filter(id => id !== firstPileId);
         } else {
-          temp = [result[0].id];
+          temp = [firstPileId];
         }
         store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
       }

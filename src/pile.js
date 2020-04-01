@@ -473,9 +473,7 @@ const createPile = (
 
     pubSub.publish('pileLeave', { pileId: id, event });
 
-    if (!isFocus) {
-      blur();
-    }
+    if (!isFocus) blur();
 
     // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
