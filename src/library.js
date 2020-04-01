@@ -1475,7 +1475,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       true
     );
 
-    const coverImage = coverAggregator(itemsOnPile)
+    const whenCoverImage = coverAggregator(itemsOnPile)
       .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
       .then(([coverTexture]) => {
         const scaledImage = createScaledImage(coverTexture);
@@ -1495,9 +1495,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return scaledImage;
       });
 
-    pileInstance.setCover(coverImage);
+    pileInstance.setCover(whenCoverImage);
 
-    coverImage.then(() => {
+    whenCoverImage.then(() => {
       positionItems(pileInstance.id);
       updatePileBounds(pileInstance.id);
       renderRaf();
