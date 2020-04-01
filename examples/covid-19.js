@@ -339,6 +339,15 @@ const create = async (element, darkMode) => {
 
   piling.arrangeBy('custom', 'lonLat');
 
+  piling.subscribe(
+    'itemUpdate',
+    () => {
+      piling.splitBy('distance', 64, { onZoom: true });
+      piling.groupBy('overlap', 0, { onZoom: true });
+    },
+    1
+  );
+
   const scaleToZoom = scale => Math.log(scale) / Math.LN2;
 
   piling.subscribe('zoom', camera => {
