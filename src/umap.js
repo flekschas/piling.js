@@ -1,4 +1,4 @@
-import { assign, createWorker, pipe, withConstructor } from '@flekschas/utils';
+import { createWorker } from '@flekschas/utils';
 import umapScriptStr from '../node_modules/umap-js/lib/umap-js.min';
 
 import umapWorkerFn from './umap-worker';
@@ -40,47 +40,47 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
 
   const scalePoint = pt => [xScale(pt[0]), yScale(pt[1])];
 
-  const withPublicMethods = () => self =>
-    assign(self, {
-      destroy() {
-        umapWorker.terminate();
-      },
+  const destroy = () => {
+    umapWorker.terminate();
+  };
 
-      // Same as SciKit Learn's `fit(X, y)`
-      fit(data, labels = null) {
-        minX = Infinity;
-        minY = Infinity;
-        maxX = -Infinity;
-        maxY = -Infinity;
+  const fit = (data, labels = null) => {
+    minX = Infinity;
+    minY = Infinity;
+    maxX = -Infinity;
+    maxY = -Infinity;
 
-        return new Promise(resolve => {
-          umapWorker.onmessage = event => {
-            resolve(defineScales(event.data));
-          };
+    return new Promise(resolve => {
+      umapWorker.onmessage = event => {
+        resolve(defineScales(event.data));
+      };
 
-          umapWorker.postMessage({
-            task: 'fit',
-            data,
-            labels
-          });
-        });
-      },
-
-      transform(data) {
-        if (!umapWorker)
-          return Promise.reject(new Error('You need to fit data first!'));
-
-        return new Promise(resolve => {
-          umapWorker.onmessage = event => {
-            resolve(event.data.map(scalePoint));
-          };
-
-          umapWorker.postMessage({ task: 'transform', data });
-        });
-      }
+      umapWorker.postMessage({
+        task: 'fit',
+        data,
+        labels
+      });
     });
+  };
 
-  return pipe(withPublicMethods(), withConstructor(createUmap))({});
+  const transform = data => {
+    if (!umapWorker)
+      return Promise.reject(new Error('You need to fit data first!'));
+
+    return new Promise(resolve => {
+      umapWorker.onmessage = event => {
+        resolve(event.data.map(scalePoint));
+      };
+
+      umapWorker.postMessage({ task: 'transform', data });
+    });
+  };
+
+  return {
+    destroy,
+    fit,
+    transform
+  };
 };
 
 export default createUmap;
