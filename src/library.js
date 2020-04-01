@@ -3874,7 +3874,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     currentlyHoveredPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(identity)
+      .filter(pile => !pile.isFocus)
       .forEach(pile => {
         pile.hover();
       });
