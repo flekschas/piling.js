@@ -1226,21 +1226,149 @@ piling.set('dimensionalityReducer', umap);
 </p>
 </details>
 
-- **Browse a pile:**
-  - Click on a pile to focus on this pile, then hover your mouse on one item's preview to see the item.
-- **Temporarily de-pile:**
-  - Double click on a pile to temporarily de-pile the pile. Then double click on the pile again or on the background to close temporarily de-pile.
-  - Right click on a pile to open the context menu. Click on <kbd>temp depile</kbd> button to temporarily de-pile the pile. Then right click on the pile again and click on <kbd>close temp depile</kbd> button to close temporarily de-pile.
-- **De-pile:**
-  - While pressing <kbd>ALT</kbd>, click on a pile to de-pile it.
-  - Right click on a pile to open the context menu. Click on <kbd>depile</kbd> button to de-pile.
-- **Magnify a pile:**
-  - While pressing <kbd>ALT</kbd>, hover on a pile and scroll to manually magnify it. Then click on the background to automatically unmagnify it.
-  - Right click on a pile to open the context menu. Click on <kbd>magnify</kbd> button to automatically magnify the pile.
-  - Right click on a magnified pile to open the context menu. Click on <kbd>unmagnify</kbd> button to automatically unmagnify the pile.
-- **Show grid:**
-  - Right click on the background to open the context menu. Click on <kbd>show grid</kbd> button to show the grid.
-  - If the grid is shown, right click on the background and click on <kbd>hide grid</kbd> button to hide the grid.
-- **Context menu:**
-  - Right click will open the custormized context menu.
-  - While pressing <kbd>ALT</kbd>, right click will show the default context menu in the browser.
+## Browsing
+
+### Browsing in-place
+
+1. Click on the pile you want to browse
+2. Hover the mouse on the item's visible part to see the item
+
+<details><summary>See demo</summary>
+<p>
+
+![Browsing in-place](https://user-images.githubusercontent.com/39853191/78209002-7604b780-74d8-11ea-9211-34503e424135.gif)
+
+</p>
+</details>
+
+### Browsing via previews
+
+1. Click on the pile you want to browse
+2. Hover the mouse on one item's preview to see the item
+
+<details><summary>See demo</summary>
+<p>
+
+![Browsing via previews](https://user-images.githubusercontent.com/39853191/78207017-03dda400-74d3-11ea-8078-ed1d891f93d5.gif)
+
+</p>
+</details>
+
+### Browsing via temporarily de-pile
+
+1. Double click on the pile to temporarily de-pile the pile
+2. Double click again on the pile or on the background to close temporarily de-pile
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Browsing via temporarily de-pile](https://user-images.githubusercontent.com/39853191/78208161-42c12900-74d6-11ea-8ea9-01886a59b37f.gif)
+
+    </p>
+    </details>
+
+3. Alternatively, right click on the pile to open the context menu
+4. Click on <kbd>Temp. Depile</kbd> button to temporarily de-pile the pile
+5. Right click on the pile again and click on <kbd>Close Temp. Depile</kbd> button to close temporarily de-pile
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Browsing via context menu - temp depile](https://user-images.githubusercontent.com/39853191/78208221-70a66d80-74d6-11ea-9969-971cb74f8e24.gif)
+
+    </p>
+    </details>
+
+### Browsing separately
+
+1. Right click on the pile to open the context menu
+2. Click on <kbd>Browse Separately</kbd> button to browse the pile hierarchically
+3. Click on the breadcrumb trail to go back to the previous level 
+
+<details><summary>See demo</summary>
+<p>
+
+![Browse separately](https://user-images.githubusercontent.com/39853191/78208546-38ebf580-74d7-11ea-9c82-57265446f015.gif)
+
+</p>
+</details>
+
+## De-piling
+
+1. Hold down <kbd>ALT</kbd>
+2. Click on a pile to de-pile it
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Depile-alt](https://user-images.githubusercontent.com/39853191/78209508-ca5c6700-74d9-11ea-8604-bbdc4159f3c5.gif)
+
+    </p>
+    </details>
+
+3. Alternatively, right click on the pile to open the context menu
+4. Click on <kbd>Depile</kbd> button to de-pile
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Depile-context menu](https://user-images.githubusercontent.com/39853191/78209529-d6482900-74d9-11ea-8002-3b51eaeea30f.gif)
+
+    </p>
+    </details>
+
+## Others
+
+### Magnify a pile
+
+1. Hold down <kbd>ALT</kbd>
+2. Hover the mouse on a pile and scroll to manually magnify it
+3. Click on the background to automatically unmagnify it
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Magnify by wheel](https://user-images.githubusercontent.com/39853191/78210748-b9adf000-74dd-11ea-87b8-29a96d5400fc.gif)
+
+    </p>
+    </details>
+
+4. Alternatively, right click on the pile to open the context menu
+5. Click on <kbd>Magnify</kbd> button to automatically magnify the pile
+6. Right click on a magnified pile
+7. Click on <kbd>Unmagnify</kbd> button to automatically unmagnify the pile
+
+    <details><summary>See demo</summary>
+    <p>
+
+    ![Magnify by context menu](https://user-images.githubusercontent.com/39853191/78210759-c3375800-74dd-11ea-90ca-4a60564f8470.gif)
+
+    </p>
+    </details>
+
+### Show grid
+
+1. Right click on the background to open the context menu
+2. Click on <kbd>Show Grid</kbd> button to show the grid
+3. Right click on the background again and click on <kbd>Hide Grid</kbd> button to hide the grid
+
+<details><summary>See demo</summary>
+<p>
+
+![Show grid](https://user-images.githubusercontent.com/39853191/78211167-cf6fe500-74de-11ea-99cc-f6f675d381bd.gif)
+
+</p>
+</details>
+
+### Context menu
+
+1. Right click will open the custormized context menu
+2. While pressing <kbd>ALT</kbd>, right click will show the default context menu in the browser
+
+<details><summary>See demo</summary>
+<p>
+
+![Context menu](https://user-images.githubusercontent.com/39853191/78211358-4e651d80-74df-11ea-83ec-db3298e2146f.gif)
+
+</p>
+</details>
