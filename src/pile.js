@@ -473,9 +473,7 @@ const createPile = (
 
     pubSub.publish('pileLeave', { pileId: id, event });
 
-    if (!isFocus) {
-      blur();
-    }
+    if (!isFocus) blur();
 
     // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
@@ -1236,10 +1234,10 @@ const createPile = (
       whenCover = newWhenCover;
       whenCover.then(newCover => {
         cover = newCover;
-        coverContainer.addChild(cover.displayObject);
-        while (coverContainer.children.length > 1) {
+        while (coverContainer.children.length) {
           coverContainer.removeChildAt(0);
         }
+        coverContainer.addChild(cover.displayObject);
         pubSub.publish('updatePileBounds', id);
         drawBorder();
       });
@@ -1249,8 +1247,9 @@ const createPile = (
   const removeCover = () => {
     if (!cover) return;
 
-    const coverIdx = coverContainer.getChildIndex(cover.displayObject);
-    if (coverIdx >= 0) coverContainer.removeChildAt(coverIdx);
+    while (coverContainer.children.length) {
+      coverContainer.removeChildAt(0);
+    }
 
     cover = undefined;
     whenCover = undefined;
