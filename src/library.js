@@ -4135,7 +4135,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (result.length !== 0) {
         event.preventDefault();
-        store.dispatch(createAction.setMagnifiedPiles([result[0].pileId]));
+        store.dispatch(createAction.setMagnifiedPiles([result[0].id]));
         scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
     } else if (isPanZoom) {
@@ -4292,7 +4292,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         magnifyBtn.setAttribute('class', 'inactive');
         browseSeparatelyBtn.setAttribute('disabled', '');
         browseSeparatelyBtn.setAttribute('class', 'inactive');
-        tempDepileBtn.innerHTML = 'close temp depile';
+        tempDepileBtn.innerHTML = 'Close Temp. Depile';
       }
 
       if (pile.isMagnified) {
