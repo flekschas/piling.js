@@ -756,20 +756,21 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name          | Event Data              | Description                                                            |
-| ------------- | ----------------------- | ---------------------------------------------------------------------- |
-| render        |                         | Published when the data has been rendered                              |
-| update        | `{action}`              | Published when the redux store is updated                              |
-| itemUpdate    |                         | Published after items updates and their consequences have been applied |
-| pileEnter     | `{target, sourceEvent}` | Published when the mouse cursor enters a pile                          |
-| pileLeave     | `{target, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
-| pileDragStart | `{target, sourceEvent}` | Published when a pile drag is started                                  |
-| pileDragMove  | `{target, sourceEvent}` | Published when a pile is dragged                                       |
-| pileDragEnd   | `{target, sourceEvent}` | Published when a pile is dropped                                       |
-| pilesFocus    | `{targets}`             | Published when piles are focused                                       |
-| pilesBlur     | `{targets}`             | Published when piles are blurred                                       |
-| pilesActive   | `{targets}`             | Published when piles are temporarily depiled                           |
-| pilesInactive | `{targets}`             | Published when temporarily depiled piles are closed                    |
+| Name             | Event Data              | Description                                                            |
+| ---------------- | ----------------------- | ---------------------------------------------------------------------- |
+| render           |                         | Published when the data has been rendered                              |
+| update           | `{action}`              | Published when the redux store is updated                              |
+| itemUpdate       |                         | Published after items updates and their consequences have been applied |
+| pileEnter        | `{target, sourceEvent}` | Published when the mouse cursor enters a pile                          |
+| pileLeave        | `{target, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
+| pileDragStart    | `{target, sourceEvent}` | Published when a pile drag is started                                  |
+| pileDragMove     | `{target, sourceEvent}` | Published when a pile is dragged                                       |
+| pileDragEnd      | `{target, sourceEvent}` | Published when a pile is dropped                                       |
+| pilesFocus       | `{targets}`             | Published when piles are focused                                       |
+| pilesBlur        | `{targets}`             | Published when piles are blurred                                       |
+| pilesActive      | `{targets}`             | Published when piles are temporarily depiled                           |
+| pilesInactive    | `{targets}`             | Published when temporarily depiled piles are closed                    |
+| pilesPositionEnd | `{targets}`             | Published when piles positioning ended                                 |
 
 **Notes:**
 

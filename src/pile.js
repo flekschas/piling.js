@@ -987,7 +987,7 @@ const createPile = (
         moveTo(x, y);
         pubSub.publish('updatePileBounds', id);
         onDone();
-        resolve();
+        resolve(store.state.piles[id]);
         return null;
       }
 
@@ -1010,7 +1010,7 @@ const createPile = (
         onDone: () => {
           isMoving = false;
           pubSub.publish('updatePileBounds', id);
-          resolve();
+          resolve(store.state.piles[id]);
           onDone();
         }
       });

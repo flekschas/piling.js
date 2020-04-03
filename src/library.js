@@ -1180,7 +1180,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   ];
 
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
-    const { items } = store.state;
+    const { arrangementOnPile, items } = store.state;
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
@@ -1228,9 +1228,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     isInitialPositioning = false;
 
-    if (!store.state.arrangementOnPile) {
-      cancelArrangement();
-    }
+    if (!arrangementOnPile) cancelArrangement();
 
     store.dispatch(createAction.movePiles(movingPiles));
 
@@ -1479,8 +1477,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       lastPilePosition.set(id, [pileState.x, pileState.y]);
-      animateMovePileTo(pileInstance, pileState.x, pileState.y);
+      return animateMovePileTo(pileInstance, pileState.x, pileState.y);
     }
+    return Promise.resolve();
   };
 
   const updateGridMat = pileId => {
@@ -2944,7 +2943,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return hist;
     }, {});
 
-    if (!pileLabelSizeTransform) return Object.values(histogram);
+    if (!pileLabelSizeTransform) Object.values(histogram);
 
     allLabels.forEach(label => {
       histogram[label]++;
@@ -3121,6 +3120,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // does not mean that all items always have to be visible. The visibility
         // depends on the membership of items in some pile.
         const updatedPiles = {};
+        const updatedPilePositions = [];
 
         Object.entries(newState.piles).forEach(([id, pile]) => {
           if (state.piles[id]) {
@@ -3141,7 +3141,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
-            updatePilePosition(pile, id);
+            updatedPilePositions.push(updatePilePosition(pile, id));
+          }
+
+          if (updatedPilePositions.length) {
+            Promise.all(updatedPilePositions).then(positionedPiles => {
+              pubSub.publish('pilesPositionEnd', { targets: positionedPiles });
+            });
           }
 
           updatePileStyle(pile, id);
@@ -3572,6 +3578,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ...set('arrangementType', type, true)
       ])
     );
+
+    return new Promise(resolve => {
+      pubSub.subscribe('pilesPositionEnd', resolve, 1);
+    });
   };
 
   const expandPilingObjectiveOverlap = objective =>

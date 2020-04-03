@@ -36,10 +36,12 @@
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer) (#109)
 - Update and expand the Google Quickdraw examples (#172)
 - [Docsify the docs](https://piling.js.org/docs)
-- Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`.
+- Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`
+- Make `arrangeBy` return a promise that resolves once the items have been positioned
 - Ensure pile covers update as items update (#175)
 - Ensure layout is updated properly (#155, #156)
 - Ensure item/preview and pile properties can be functional properties (#174)
+- Fix pile events (#182)
 
 _[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
 
