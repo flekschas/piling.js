@@ -161,6 +161,7 @@ const createVitessce = async (element, darkMode) => {
     cellPadding: 8,
     pileBorderSize: 1,
     pileBorderColor: darkMode ? 0x333333 : 0xcccccc,
+    pileCoverScale: representativeRenderer.scaler,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
     pileVisibilityItems: pile => pile.items.length === 1,
