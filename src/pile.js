@@ -445,7 +445,7 @@ const createPile = (
   const onPointerOver = event => {
     rootGraphics.isHover = true;
 
-    pubSub.publish('pileEnter', { pileId: id, event });
+    pubSub.publish('pileEnter', { target: store.state.piles[id], event });
 
     if (isFocus) {
       if (isTempDepiled) {
@@ -471,7 +471,7 @@ const createPile = (
     if (rootGraphics.isDragging) return;
     rootGraphics.isHover = false;
 
-    pubSub.publish('pileLeave', { pileId: id, event });
+    pubSub.publish('pileLeave', { target: store.state.piles[id], event });
 
     if (!isFocus) blur();
 
@@ -505,7 +505,7 @@ const createPile = (
     rootGraphics.beforeDragY = rootGraphics.y;
     dragMove = false;
 
-    pubSub.publish('pileDragStart', { pileId: id, event });
+    pubSub.publish('pileDragStart', { target: store.state.piles[id], event });
   };
 
   const onDragEnd = event => {
@@ -517,7 +517,7 @@ const createPile = (
     rootGraphics.draggingMouseOffset = null;
 
     if (dragMove) {
-      pubSub.publish('pileDragEnd', { pileId: id, event });
+      pubSub.publish('pileDragEnd', { target: store.state.piles[id], event });
     }
   };
 
@@ -527,7 +527,7 @@ const createPile = (
     if (rootGraphics.isDragging) {
       dragMove = true;
 
-      pubSub.publish('pileDragMove', { pileId: id, event });
+      pubSub.publish('pileDragMove', { target: store.state.piles[id], event });
 
       let { x, y } = event.data.getLocalPosition(rootGraphics.parent);
       x -= rootGraphics.draggingMouseOffset[0];
@@ -976,41 +976,44 @@ const createPile = (
     x,
     y,
     { easing, isBatch = false, onDone = toVoid } = {}
-  ) => {
-    const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
+  ) =>
+    new Promise(resolve => {
+      const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
 
-    if (d < 3) {
-      moveTo(x, y);
-      pubSub.publish('updatePileBounds', id);
-      onDone();
-      return null;
-    }
-
-    isMoving = true;
-    let duration = cubicOut(Math.min(d, 250) / 250) * 250;
-    if (moveToTweener) {
-      pubSub.publish('cancelAnimation', moveToTweener);
-      if (moveToTweener.dt < moveToTweener.duration) {
-        duration = moveToTweener.dt;
-      }
-    }
-    moveToTweener = createTweener({
-      duration,
-      delay: 0,
-      easing,
-      interpolator: interpolateVector,
-      endValue: [x, y],
-      getter: () => [rootGraphics.x, rootGraphics.y],
-      setter: xy => moveTo(xy[0], xy[1]),
-      onDone: () => {
-        isMoving = false;
+      if (d < 3) {
+        moveTo(x, y);
         pubSub.publish('updatePileBounds', id);
         onDone();
+        resolve();
+        return null;
       }
+
+      isMoving = true;
+      let duration = cubicOut(Math.min(d, 250) / 250) * 250;
+      if (moveToTweener) {
+        pubSub.publish('cancelAnimation', moveToTweener);
+        if (moveToTweener.dt < moveToTweener.duration) {
+          duration = moveToTweener.dt;
+        }
+      }
+      moveToTweener = createTweener({
+        duration,
+        delay: 0,
+        easing,
+        interpolator: interpolateVector,
+        endValue: [x, y],
+        getter: () => [rootGraphics.x, rootGraphics.y],
+        setter: xy => moveTo(xy[0], xy[1]),
+        onDone: () => {
+          isMoving = false;
+          pubSub.publish('updatePileBounds', id);
+          resolve();
+          onDone();
+        }
+      });
+      if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
+      return moveToTweener;
     });
-    if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
-    return moveToTweener;
-  };
 
   const updateBaseOffset = () => {
     const firstImage = allItems[0].item.image;

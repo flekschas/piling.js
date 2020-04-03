@@ -756,19 +756,20 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
 ## Events
 
-| Name         | Event Data            | Description                                                            |
-| ------------ | --------------------- | ---------------------------------------------------------------------- |
-| render       |                       | Published when the data has been rendered                              |
-| update       | `{action}`            | Published when the redux store is updated                              |
-| itemUpdate   |                       | Published after items updates and their consequences have been applied |
-| pileEnter    | `{pile, sourceEvent}` | Published when the mouse cursor enters a pile                          |
-| pileLeave    | `{pile, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
-| pileFocus    | `{pile}`              | Published when the user focuses a pile                                 |
-| pileBlur     | `{pile}`              | Published when the user blurs a pile                                   |
-| pileActive   | `{pile}`              | Published when the user temporarily depiles a pile                     |
-| pileInactive | `{pile}`              | Published when the user closes temporarily depile a pile               |
-| pileDrag     | `{pile, sourceEvent}` | Published when a pile is started to drag                               |
-| pileDrop     | `{pile, sourceEvent}` | Published when a pile is dropped                                       |
+| Name          | Event Data              | Description                                                            |
+| ------------- | ----------------------- | ---------------------------------------------------------------------- |
+| render        |                         | Published when the data has been rendered                              |
+| update        | `{action}`              | Published when the redux store is updated                              |
+| itemUpdate    |                         | Published after items updates and their consequences have been applied |
+| pileEnter     | `{target, sourceEvent}` | Published when the mouse cursor enters a pile                          |
+| pileLeave     | `{target, sourceEvent}` | Published when the mouse cursor leaves a pile                          |
+| pileDragStart | `{target, sourceEvent}` | Published when a pile drag is started                                  |
+| pileDragMove  | `{target, sourceEvent}` | Published when a pile is dragged                                       |
+| pileDragEnd   | `{target, sourceEvent}` | Published when a pile is dropped                                       |
+| pilesFocus    | `{targets}`             | Published when piles are focused                                       |
+| pilesBlur     | `{targets}`             | Published when piles are blurred                                       |
+| pilesActive   | `{targets}`             | Published when piles are temporarily depiled                           |
+| pilesInactive | `{targets}`             | Published when temporarily depiled piles are closed                    |
 
 **Notes:**
 
@@ -1259,31 +1260,31 @@ piling.set('dimensionalityReducer', umap);
 1. Double click on the pile to temporarily de-pile the pile
 2. Double click again on the pile or on the background to close temporarily de-pile
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Browsing via temporarily de-pile](https://user-images.githubusercontent.com/39853191/78208161-42c12900-74d6-11ea-8ea9-01886a59b37f.gif)
+   ![Browsing via temporarily de-pile](https://user-images.githubusercontent.com/39853191/78208161-42c12900-74d6-11ea-8ea9-01886a59b37f.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 3. Alternatively, right click on the pile to open the context menu
 4. Click on <kbd>Temp. Depile</kbd> button to temporarily de-pile the pile
 5. Right click on the pile again and click on <kbd>Close Temp. Depile</kbd> button to close temporarily de-pile
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Browsing via context menu - temp depile](https://user-images.githubusercontent.com/39853191/78208221-70a66d80-74d6-11ea-9969-971cb74f8e24.gif)
+   ![Browsing via context menu - temp depile](https://user-images.githubusercontent.com/39853191/78208221-70a66d80-74d6-11ea-9969-971cb74f8e24.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 ### Browsing separately
 
 1. Right click on the pile to open the context menu
 2. Click on <kbd>Browse Separately</kbd> button to browse the pile hierarchically
-3. Click on the breadcrumb trail to go back to the previous level 
+3. Click on the breadcrumb trail to go back to the previous level
 
 <details><summary>See demo</summary>
 <p>
@@ -1298,24 +1299,24 @@ piling.set('dimensionalityReducer', umap);
 1. Hold down <kbd>ALT</kbd>
 2. Click on a pile to de-pile it
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Depile-alt](https://user-images.githubusercontent.com/39853191/78209508-ca5c6700-74d9-11ea-8604-bbdc4159f3c5.gif)
+   ![Depile-alt](https://user-images.githubusercontent.com/39853191/78209508-ca5c6700-74d9-11ea-8604-bbdc4159f3c5.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 3. Alternatively, right click on the pile to open the context menu
 4. Click on <kbd>Depile</kbd> button to de-pile
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Depile-context menu](https://user-images.githubusercontent.com/39853191/78209529-d6482900-74d9-11ea-8002-3b51eaeea30f.gif)
+   ![Depile-context menu](https://user-images.githubusercontent.com/39853191/78209529-d6482900-74d9-11ea-8002-3b51eaeea30f.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 ## Others
 
@@ -1325,26 +1326,26 @@ piling.set('dimensionalityReducer', umap);
 2. Hover the mouse on a pile and scroll to manually magnify it
 3. Click on the background to automatically unmagnify it
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Magnify by wheel](https://user-images.githubusercontent.com/39853191/78210748-b9adf000-74dd-11ea-87b8-29a96d5400fc.gif)
+   ![Magnify by wheel](https://user-images.githubusercontent.com/39853191/78210748-b9adf000-74dd-11ea-87b8-29a96d5400fc.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 4. Alternatively, right click on the pile to open the context menu
 5. Click on <kbd>Magnify</kbd> button to automatically magnify the pile
 6. Right click on a magnified pile
 7. Click on <kbd>Unmagnify</kbd> button to automatically unmagnify the pile
 
-    <details><summary>See demo</summary>
-    <p>
+   <details><summary>See demo</summary>
+   <p>
 
-    ![Magnify by context menu](https://user-images.githubusercontent.com/39853191/78210759-c3375800-74dd-11ea-90ca-4a60564f8470.gif)
+   ![Magnify by context menu](https://user-images.githubusercontent.com/39853191/78210759-c3375800-74dd-11ea-90ca-4a60564f8470.gif)
 
-    </p>
-    </details>
+   </p>
+   </details>
 
 ### Show grid
 

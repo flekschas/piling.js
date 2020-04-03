@@ -1956,6 +1956,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const closeTempDepile = pileIds => {
+    const { piles } = store.state;
+
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
@@ -1980,9 +1982,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           options
         );
       });
-
-      pubSub.publish('pileInactive', { pile });
     });
+
+    pubSub.publish('pileInactive', { targets: pileIds.map(id => piles[id]) });
     renderRaf();
   };
 
@@ -2089,10 +2091,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         tempDepileTwoD({ pile, items, orderer });
       }
-      pubSub.publish('pileActive', { pile });
 
       updatePileBounds(pileId);
     });
+
+    pubSub.publish('pileActive', { targets: pileIds.map(id => piles[id]) });
     renderRaf();
   };
 
@@ -3364,12 +3367,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.isFocus = true;
         });
 
+      const { piles } = state.store;
+
       if (newlyFocusedPiles.length) {
-        pubSub.publish('pileFocus', { piles: newlyFocusedPiles });
+        pubSub.publish('pileFocus', {
+          targets: newlyFocusedPiles.map(id => piles[id])
+        });
       }
 
       if (prevFocusedPiles.length) {
-        pubSub.publish('pileBlur', { piles: prevFocusedPiles });
+        pubSub.publish('pileBlur', {
+          targets: prevFocusedPiles.map(id => piles[id])
+        });
       }
 
       renderRaf();
