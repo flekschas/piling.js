@@ -3024,7 +3024,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return hist;
     }, {});
 
-    if (!pileLabelSizeTransform) return histogram;
+    if (!pileLabelSizeTransform) return Object.values(histogram);
 
     allLabels.forEach(label => {
       histogram[label]++;

@@ -784,9 +784,10 @@ const createPile = (
     if (whenCover && previewItemContainer.children.length) {
       positionPreviews(animator);
     } else if (normalItemContainer.children.length > 1) {
-      isPositioning = true;
       if (!all) {
         if (newItems.size) {
+          isPositioning = true;
+
           // newItems is a set, there is no index, so we're using a counter
           let count = 0;
 
@@ -840,6 +841,8 @@ const createPile = (
           });
         } else if (isPlaceholderDrawn) removePlaceholder();
       } else {
+        isPositioning = true;
+
         normalItemContainer.children.forEach((normalItem, index) => {
           // eslint-disable-next-line no-underscore-dangle
           const item = normalItem.__pilingjs__item;
