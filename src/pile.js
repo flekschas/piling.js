@@ -975,47 +975,60 @@ const createPile = (
   };
 
   let moveToTweener;
-  const animateMoveTo = (
+  const getMoveToTweener = (
     x,
     y,
     { easing, isBatch = false, onDone = toVoid } = {}
-  ) =>
-    new Promise(resolve => {
-      const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
+  ) => {
+    const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
 
-      if (d < 3) {
-        moveTo(x, y);
+    if (d < 3) {
+      moveTo(x, y);
+      pubSub.publish('updatePileBounds', id);
+      onDone();
+      return null;
+    }
+
+    isMoving = true;
+    let duration = cubicOut(Math.min(d, 250) / 250) * 250;
+    if (moveToTweener) {
+      pubSub.publish('cancelAnimation', moveToTweener);
+      if (moveToTweener.dt < moveToTweener.duration) {
+        duration = moveToTweener.dt;
+      }
+    }
+    moveToTweener = createTweener({
+      duration,
+      delay: 0,
+      easing,
+      interpolator: interpolateVector,
+      endValue: [x, y],
+      getter: () => [rootGraphics.x, rootGraphics.y],
+      setter: xy => moveTo(xy[0], xy[1]),
+      onDone: () => {
+        isMoving = false;
         pubSub.publish('updatePileBounds', id);
         onDone();
-        resolve(store.state.piles[id]);
-        return null;
       }
+    });
+    if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
+    return moveToTweener;
+  };
 
-      isMoving = true;
-      let duration = cubicOut(Math.min(d, 250) / 250) * 250;
-      if (moveToTweener) {
-        pubSub.publish('cancelAnimation', moveToTweener);
-        if (moveToTweener.dt < moveToTweener.duration) {
-          duration = moveToTweener.dt;
-        }
-      }
-      moveToTweener = createTweener({
-        duration,
-        delay: 0,
-        easing,
-        interpolator: interpolateVector,
-        endValue: [x, y],
-        getter: () => [rootGraphics.x, rootGraphics.y],
-        setter: xy => moveTo(xy[0], xy[1]),
-        onDone: () => {
-          isMoving = false;
-          pubSub.publish('updatePileBounds', id);
-          resolve(store.state.piles[id]);
-          onDone();
-        }
-      });
-      if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
-      return moveToTweener;
+  const animateMoveTo = (
+    x,
+    y,
+    { easing, onDone: customOnDone = toVoid } = {}
+  ) =>
+    new Promise(resolve => {
+      const onDone = () => {
+        resolve(store.state.piles[id]);
+        customOnDone();
+      };
+
+      moveToTweener = getMoveToTweener(x, y, { easing, onDone });
+
+      pubSub.publish('startAnimation', moveToTweener);
     });
 
   const updateBaseOffset = () => {
@@ -1544,6 +1557,7 @@ const createPile = (
     drawBorder,
     drawPlaceholder,
     drawSizeBadge,
+    getMoveToTweener,
     getItemById,
     hasItem,
     magnifyByWheel,

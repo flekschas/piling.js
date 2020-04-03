@@ -810,6 +810,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     updatePileBounds(pile.id);
   };
 
+  const getPileMoveToTweener = (pile, x, y, options) =>
+    pile.getMoveToTweener(...transformPointToScreen([x, y]), options);
+
   const animateMovePileTo = (pile, x, y, options) =>
     pile.animateMoveTo(...transformPointToScreen([x, y]), options);
 
@@ -2120,13 +2123,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
                 .map(id => {
                   const pileInstance = pileInstances.get(id);
                   if (!pileInstance) reject(new Error(`Pile #${id} not ready`));
-                  return animateMovePileTo(
+                  return getPileMoveToTweener(
                     pileInstances.get(id),
                     finalX,
                     finalY,
                     {
                       easing,
-                      isBatch: true,
                       onDone
                     }
                   );
@@ -3720,9 +3722,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let done = 0;
     animator.addBatch(
       otherPileIds.map(pileId =>
-        animateMovePileTo(pileInstances.get(pileId), x, y, {
-          onDone,
-          isBatch: true
+        getPileMoveToTweener(pileInstances.get(pileId), x, y, {
+          onDone
         })
       )
     );
