@@ -160,31 +160,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const properties = {
-    arrangementObjective: true,
-    arrangementOnPile: true,
-    arrangementOptions: true,
-    arrangementType: true,
-    backgroundColor: true,
-    cellAspectRatio: true,
-    cellPadding: true,
-    cellSize: true,
-    columns: true,
-    coverAggregator: true,
-    coverRenderer: true,
-    darkMode: true,
-    depiledPile: true,
-    depileMethod: true,
-    dimensionalityReducer: true,
-    easing: true,
-    focusedPiles: true,
     gridColor: {
       set: createColorOpacityActions('setGridColor', 'setGridOpacity')
     },
-    gridOpacity: true,
-    groupingObjective: true,
-    groupingOnZoom: true,
-    groupingOptions: true,
-    groupingType: true,
     items: {
       get: () => Object.values(state.items),
       set: newItems => [
@@ -192,22 +170,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         createAction.initPiles(newItems)
       ]
     },
-    itemSize: true,
-    itemSizeRange: true,
     lassoFillColor: {
       set: createColorOpacityActions('setLassoFillColor', 'setLassoFillOpacity')
     },
-    lassoFillOpacity: true,
-    lassoShowStartIndicator: true,
-    lassoStartIndicatorOpacity: true,
     lassoStrokeColor: {
       set: createColorOpacityActions(
         'setLassoStrokeColor',
         'setLassoStrokeOpacity'
       )
     },
-    lassoStrokeOpacity: true,
-    lassoStrokeSize: true,
     layout: {
       get: () => ({
         cellAspectRatio: layout.cellAspectRatio,
@@ -224,18 +195,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         width: layout.width
       })
     },
-    magnifiedPiles: true,
-    navigationMode: true,
-    orderer: true,
-    pileCoverInvert: true,
-    pileCoverScale: true,
-    pileItemBrightness: true,
-    pileItemInvert: true,
-    pileItemOffset: true,
-    pileItemOpacity: true,
-    pileItemOrder: true,
-    pileItemRotation: true,
-    pileItemTint: true,
     pileLabel: {
       set: value => {
         const objective = expandLabelObjective(value);
@@ -243,11 +202,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return actions;
       }
     },
-    pileLabelAlign: true,
-    pileLabelColor: true,
-    pileLabelFontSize: true,
-    pileLabelHeight: true,
-    pileLabelStackAlign: true,
     pileLabelSizeTransform: {
       set: value => {
         const aggregator = expandLabelSizeAggregator(value);
@@ -255,69 +209,54 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return actions;
       }
     },
-    pileLabelText: true,
     pileBorderColor: {
       set: createColorOpacityActions(
         'setPileBorderColor',
         'setPileBorderOpacity'
       )
     },
-    pileBorderOpacity: true,
     pileBorderColorHover: {
       set: createColorOpacityActions(
         'setPileBorderColorHover',
         'setPileBorderOpacityHover'
       )
     },
-    pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: createColorOpacityActions(
         'setPileBorderColorFocus',
         'setPileBorderOpacityFocus'
       )
     },
-    pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: createColorOpacityActions(
         'setPileBorderColorActive',
         'setPileBorderOpacityActive'
       )
     },
-    pileBorderOpacityActive: true,
-    pileBorderSize: true,
     pileBackgroundColor: {
       set: createColorOpacityActions(
         'setPileBackgroundColor',
         'setPileBackgroundOpacity'
       )
     },
-    pileBackgroundOpacity: true,
     pileBackgroundColorHover: {
       set: createColorOpacityActions(
         'setPileBackgroundColorHover',
         'setPileBackgroundOpacityHover'
       )
     },
-    pileBackgroundOpacityHover: true,
     pileBackgroundColorFocus: {
       set: createColorOpacityActions(
         'setPileBackgroundColorFocus',
         'setPileBackgroundOpacityFocus'
       )
     },
-    pileBackgroundOpacityFocus: true,
     pileBackgroundColorActive: {
       set: createColorOpacityActions(
         'setPileBackgroundColorActive',
         'setPileBackgroundOpacityActive'
       )
     },
-    pileBackgroundOpacityActive: true,
-    pileCellAlignment: true,
-    pileContextMenuItems: true,
-    pileOpacity: true,
-    pileScale: true,
-    pileSizeBadge: true,
     pileSizeBadgeAlign: {
       set: alignment => [
         createAction.setPileSizeBadgeAlign(
@@ -325,46 +264,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         )
       ]
     },
-    pileVisibilityItems: true,
-    popupBackgroundOpacity: true,
-    previewAggregator: true,
     previewBackgroundColor: {
       set: createColorOpacityActions(
         'setPreviewBackgroundColor',
         'setPreviewBackgroundOpacity'
       )
     },
-    previewBackgroundOpacity: true,
     previewBorderColor: {
       set: createColorOpacityActions(
         'setPreviewBorderColor',
         'setPreviewBorderOpacity'
       )
     },
-    previewBorderOpacity: true,
-    previewItemOffset: true,
-    previewOffset: true,
-    previewPadding: true,
-    previewRenderer: true,
-    previewScaling: true,
-    previewSpacing: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
-    },
-    rowHeight: true,
-    showGrid: true,
-    showSpatialIndex: true,
-    tempDepileDirection: true,
-    tempDepileOneDNum: true,
-    temporaryDepiledPiles: true
+    }
   };
 
   const get = property => {
-    if (properties[property]) {
-      if (properties[property].get) return properties[property].get();
-      return state[property];
-    }
+    if (properties[property] && properties[property].get)
+      return properties[property].get();
+
+    if (state[property] !== undefined) return state[property];
 
     console.warn(`Unknown property "${property}"`);
     return undefined;
@@ -374,15 +296,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let actions = [];
 
     if (properties[property]) {
-      const defaultSetter = v => [
-        createAction[`set${capitalize(property)}`](v)
-      ];
-      const setter = properties[property].set || defaultSetter;
-      if (setter) {
-        actions = setter(value);
+      if (properties[property].set) {
+        actions = properties[property].set(value);
       } else {
         console.warn(`Property "${property}" is not settable`);
       }
+    } else if (state[property] !== undefined) {
+      actions = [createAction[`set${capitalize(property)}`](value)];
     } else {
       console.warn(`Unknown property "${property}"`);
     }
