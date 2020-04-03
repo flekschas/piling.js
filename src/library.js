@@ -3730,16 +3730,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let hit;
 
-  const pileDragEndHandler = ({ pileId }) => {
+  const pileDragEndHandler = ({ target }) => {
     hit = false;
-    const pile = pileInstances.get(pileId);
+    const pile = pileInstances.get(target.id);
     const pileGfx = pile.graphics;
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
-      const searchBBox = calcPileBBox(pileId);
+      const searchBBox = calcPileBBox(target.id);
       const collidePiles = spatialIndex
         .search(searchBBox)
-        .filter(collidePile => collidePile.id !== pileId);
+        .filter(collidePile => collidePile.id !== target.id);
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
@@ -3759,11 +3759,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             });
 
             if (store.state.previewAggregator) {
-              animateDropMerge(targetPileId, [pileId]);
+              animateDropMerge(targetPileId, [target.id]);
             } else {
               store.dispatch(
                 createAction.mergePiles(
-                  [pileId, targetPileId],
+                  [target.id, targetPileId],
                   [targetPileState.x, targetPileState.y],
                   targetPileId
                 )
@@ -3777,7 +3777,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         store.dispatch(
           createAction.movePiles([
             {
-              id: pileId,
+              id: target.id,
               x,
               y
             }
@@ -3821,8 +3821,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     prevDragOverPiles = [...currentDragOverPiles];
   };
 
-  const pileDragStartHandler = ({ pileId, event }) => {
-    const pile = pileInstances.get(pileId);
+  const pileDragStartHandler = ({ target, event }) => {
+    const pile = pileInstances.get(target.id);
 
     if (pile && pile.isMagnified) {
       const mousePos = event.data.getLocalPosition(pile.graphics.parent);
@@ -3838,11 +3838,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(createAction.setMagnifiedPiles([]));
 
-    moveToActivePileLayer(pileInstances.get(pileId).graphics);
+    moveToActivePileLayer(pile.graphics);
   };
 
-  const pileDragMoveHandler = ({ pileId }) => {
-    indicateDragOverPiles(pileId);
+  const pileDragMoveHandler = ({ target }) => {
+    indicateDragOverPiles(target.id);
   };
 
   const hideContextMenu = contextMenuElement => {
