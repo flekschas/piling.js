@@ -3295,7 +3295,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           pile.isFocus = true;
         });
 
-      const { piles } = state.store;
+      const { piles } = store.state;
 
       if (newlyFocusedPiles.length) {
         pubSub.publish('pileFocus', {
