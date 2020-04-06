@@ -34,7 +34,9 @@ const regionToColor = region => {
 
 const selectedCategory = 'teapot';
 const categories = [
+  'cake',
   'flower',
+  'necklace',
   'piano',
   'power-outlet',
   'teapot',
