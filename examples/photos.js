@@ -1,12 +1,12 @@
 import { aggregate, max, unique } from '@flekschas/utils';
 import createPilingJs from '../src/library';
 import { createImageRenderer } from '../src/renderer';
-import { scaleLinear } from '../src/utils';
+import { createScale } from '../src/utils';
 
 const createPhotoPiles = async (element, darkMode) => {
   const imageRenderer = createImageRenderer();
 
-  const response = await fetch('data/coco-cars-annotated3.json');
+  const response = await fetch('data/coco-cars.json');
   const data = await response.json();
 
   const piling = createPilingJs(element);
@@ -33,11 +33,16 @@ const createPhotoPiles = async (element, darkMode) => {
     [Infinity, -Infinity]
   );
 
-  const iScale = scaleLinear()
+  // Needed to use log scaling for `iScale`
+  const areaScale = createScale()
     .domain(minMaxArea)
+    .range([1, 10]);
+
+  const iScale = createScale(Math.log10)
+    .domain([1, 10])
     .range([0, 10]);
+
   const jScale = superCategory => superCatToIdx.get(superCategory);
-  // console.log(minMaxArea, superCategories, categories);
 
   piling.set('darkMode', darkMode);
 
@@ -58,7 +63,7 @@ const createPhotoPiles = async (element, darkMode) => {
   const whenArranged = piling.arrangeBy('ij', pile => {
     const item = data[pile.id];
     const c = `${item.mainSuperCategory}/${item.mainCategory}`;
-    const i = Math.floor(iScale(max(item.categories[c])));
+    const i = Math.round(iScale(areaScale(max(item.categories[c]))));
     const j = jScale(item.mainSuperCategory);
     return [i, j];
   });
