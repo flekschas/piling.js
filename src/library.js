@@ -65,7 +65,7 @@ import {
   getItemProp,
   getPileProp,
   matchArrayPair,
-  scaleLinear,
+  createScale,
   toAlignment,
   toHomogeneous,
   uniqueStr
@@ -705,8 +705,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  let itemWidthScale = scaleLinear();
-  let itemHeightScale = scaleLinear();
+  let itemWidthScale = createScale();
+  let itemHeightScale = createScale();
 
   const getImageScaleFactor = image =>
     image.aspectRatio > layout.cellAspectRatio
@@ -762,11 +762,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       heightRange = [0, itemHeight];
     }
 
-    itemWidthScale = scaleLinear()
+    itemWidthScale = createScale()
       .domain([minWidth, maxWidth])
       .range(widthRange);
 
-    itemHeightScale = scaleLinear()
+    itemHeightScale = createScale()
       .domain([minHeight, maxHeight])
       .range(heightRange);
 
@@ -3500,7 +3500,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (scale) {
       case 'linear':
       default:
-        return scaleLinear;
+        return createScale;
     }
   };
 
@@ -3519,7 +3519,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         expandedObjective.aggregator = objective.propertyIsVector
           ? meanVector
           : mean;
-        expandedObjective.scale = scaleLinear;
+        expandedObjective.scale = createScale;
         expandedObjective.inverse = false;
       } else {
         expandedObjective.property = expandProperty(objective.property);

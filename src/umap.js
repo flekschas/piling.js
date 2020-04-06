@@ -2,12 +2,12 @@ import { createWorker } from '@flekschas/utils';
 import umapScriptStr from '../node_modules/umap-js/lib/umap-js.min';
 
 import umapWorkerFn from './umap-worker';
-import scaleLinear from './utils/scale-linear';
+import createScale from './utils/scale';
 import createUrlScript from './utils/create-url-script';
 
 const createUmap = (config, { padding = 0.1 } = {}) => {
-  const xScale = scaleLinear();
-  const yScale = scaleLinear();
+  const xScale = createScale();
+  const yScale = createScale();
 
   const umapUrl = createUrlScript(umapScriptStr.replace('window', 'self'));
 

@@ -6,7 +6,7 @@ import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 import createBBox from '../src/bounding-box';
-import { scaleLinear } from '../src/utils';
+import { createScale } from '../src/utils';
 
 import { rgb2hsv } from './vitessce-utils';
 
@@ -52,8 +52,8 @@ const createVitessce = async (element, darkMode) => {
     tsneYDomain[1] = Math.max(tsneYDomain[1], cell.mappings['t-SNE'][1]);
   }, {});
 
-  const tsneXScale = scaleLinear().domain(tsneXDomain);
-  const tsneYScale = scaleLinear().domain(tsneYDomain);
+  const tsneXScale = createScale().domain(tsneXDomain);
+  const tsneYScale = createScale().domain(tsneYDomain);
 
   const selectedFactor = 'Oligodendrocyte MF';
 
