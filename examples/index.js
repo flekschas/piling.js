@@ -361,6 +361,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
   let arrangeByType = 'uv';
   let arrangeByProp = spatialProps[0];
+  let arrangementObjective;
+  let arrangeOnGroup = false;
 
   let groupByRow = 'center';
   let groupByColumn = 'top';
@@ -522,10 +524,12 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           name: 'arrangementObjective',
           dtype: 'string',
           values: numericalProps,
-          setter: values =>
-            values && values.length
-              ? pilingLib.arrangeBy('data', values)
-              : pilingLib.arrangeBy(),
+          setter: values => {
+            arrangementObjective = values;
+            return values && values.length
+              ? pilingLib.arrangeBy('data', values, { onPile: arrangeOnGroup })
+              : pilingLib.arrangeBy();
+          },
           multiple: true,
           nullifiable: true
         },
@@ -534,7 +538,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           hide: spatialProps.length === 0,
           width: '4rem',
           action: () => {
-            pilingLib.arrangeBy(arrangeByType, arrangeByProp);
+            pilingLib.arrangeBy(arrangeByType, arrangeByProp, {
+              onPile: arrangeOnGroup
+            });
           },
           subInputs: [
             {
@@ -554,6 +560,20 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
               }
             }
           ]
+        },
+        {
+          name: 'arrange on grouping',
+          labelMinWidth: '4rem',
+          dtype: 'boolean',
+          nullifiable: true,
+          setter: isChecked => {
+            arrangeOnGroup = isChecked;
+            return arrangementObjective && arrangementObjective.length
+              ? pilingLib.arrangeBy('data', arrangementObjective, {
+                  onPile: arrangeOnGroup
+                })
+              : pilingLib.arrangeBy();
+          }
         },
         {
           name: 'navigationMode',
