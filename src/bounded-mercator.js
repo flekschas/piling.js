@@ -1,10 +1,10 @@
-import scaleLinear from './utils/scale-linear';
+import createScale from './utils/scale';
 
 const LAT_EXTENT = 85.051129;
 const MAX_EXTENT = 20037508.342789244;
 
-const xToU = scaleLinear().domain([-MAX_EXTENT, MAX_EXTENT]);
-const uToX = scaleLinear().range([-MAX_EXTENT, MAX_EXTENT]);
+const xToU = createScale().domain([-MAX_EXTENT, MAX_EXTENT]);
+const uToX = createScale().range([-MAX_EXTENT, MAX_EXTENT]);
 
 const llToXy = (lon, lat) => {
   let x = (lon * MAX_EXTENT) / 180;
