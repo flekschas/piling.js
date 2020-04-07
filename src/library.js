@@ -1183,7 +1183,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   ];
 
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
-    const { arrangementOnPile, items } = store.state;
+    const { arrangementOnPile, arrangementType, items } = store.state;
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
@@ -1224,7 +1224,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         Math.ceil(y / layout.rowHeight)
       );
 
-      if (isInitialPositioning || isPileUnpositioned(pile)) {
+      if (
+        isInitialPositioning ||
+        isPileUnpositioned(pile) ||
+        (arrangementType && !arrangementOnPile)
+      ) {
         renderedItems.get(pile.id).setOriginalPosition([x, y]);
       }
     }
