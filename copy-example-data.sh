@@ -25,7 +25,7 @@ cp -r examples/data/monthly_temp_deviation_decades.json examples-build/data/
 cp -r examples/data/worldbank.json examples-build/data/
 
 # 8. Time Series
-cp -r examples/data/us-daily-precipitation.json examples-build/data/
+cp -r examples/data/us-daily-precipitation-remote.json examples-build/data/us-daily-precipitation.json
 
 mkdir -p examples-build/docs
 
