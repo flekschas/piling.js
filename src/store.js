@@ -386,6 +386,10 @@ const [pileScale, setPileScale] = setter('pileScale', 1.0);
 const [pileLabel, setPileLabel] = setter('pileLabel');
 const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
 const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelTextMapping, setPileLabelTextMapping] = setter(
+  'pileLabelTextMapping',
+  false
+);
 const [pileLabelTextColor, setPileLabelTextColor] = setter(
   'pileLabelTextColor',
   0x000000
@@ -696,6 +700,7 @@ const createStore = () => {
     pileLabelSizeTransform,
     pileLabelText,
     pileLabelTextColor,
+    pileLabelTextMapping,
     pileLabelTextOpacity,
     pileOpacity,
     piles,
@@ -867,6 +872,7 @@ export const createAction = {
   setPileLabelSizeTransform,
   setPileLabelText,
   setPileLabelTextColor,
+  setPileLabelTextMapping,
   setPileLabelTextOpacity,
   setPileVisibilityItems,
   setPileOpacity,

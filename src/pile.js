@@ -1330,9 +1330,13 @@ const createPile = (
 
     const bounds = getContentBounds();
 
+    const showText = isFunction(pileLabelText)
+      ? pileLabelText(piles[id])
+      : pileLabelText;
+
     let labelWidth = bounds.width / labels.length;
     const labelHeightMax = labelTextures.length
-      ? Math.max(pileLabelText * (labelFontSize + 1), labelHeight)
+      ? Math.max(showText * (labelFontSize + 1), labelHeight)
       : labelHeight;
 
     const y =
@@ -1366,7 +1370,7 @@ const createPile = (
       labelGraphics.endFill();
     });
 
-    if (labelTextures.length) {
+    if (showText) {
       let textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
         let textX;

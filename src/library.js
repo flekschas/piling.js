@@ -3240,9 +3240,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const createUniquePileLabels = () => {
     const {
       items,
+      piles,
       pileLabel,
       pileLabelColor,
       pileLabelText,
+      pileLabelTextMapping,
       pileLabelTextColor,
       pileLabelFontSize
     } = store.state;
@@ -3291,13 +3293,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       label.color = colorAlpha;
 
-      if (pileLabelText) {
+      const showText = isFunction(pileLabelText)
+        ? Object.values(piles).some(pileState => pileLabelText(pileState))
+        : pileLabelText;
+
+      if (showText) {
         let labelText = label.text;
 
-        if (isFunction(pileLabelText)) {
-          labelText = pileLabelText(label.text, uniqueLabels);
-        }
-        if (Array.isArray(pileLabelText)) {
+        if (isFunction(pileLabelTextMapping)) {
+          labelText = pileLabelTextMapping(label.text, uniqueLabels);
+        } else if (Array.isArray(pileLabelText)) {
           labelText = pileLabelText[label.index];
         }
 
@@ -3323,7 +3328,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return hist;
     }, {});
 
-    if (!pileLabelSizeTransform) Object.values(histogram);
+    if (!pileLabelSizeTransform) return Object.values(histogram);
 
     allLabels.forEach(label => {
       histogram[label]++;
