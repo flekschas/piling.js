@@ -724,6 +724,19 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       ]
     },
     {
+      id: 'split',
+      title: 'Split By',
+      fields: [
+        {
+          name: 'Split All',
+          width: '4rem',
+          action: () => {
+            piling.splitAll();
+          }
+        }
+      ]
+    },
+    {
       id: 'label',
       title: 'Label',
       fields: [
