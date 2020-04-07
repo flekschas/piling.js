@@ -6,13 +6,15 @@ import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
 import createBBox from '../src/bounding-box';
+import { createScale } from '../src/utils';
+
 import { rgb2hsv } from './vitessce-utils';
 
 const METADATA_URL =
-  'https://vitessce-data.s3.amazonaws.com/0.0.20/master_release/linnarsson/linnarsson.cells.json';
+  'https://vitessce-data.s3.amazonaws.com/0.0.24/master_release/linnarsson/linnarsson.cells.json';
 
 const ZARR_URL =
-  'https://vitessce-data.storage.googleapis.com/0.0.20/master_release/linnarsson/linnarsson.images.zarr/pyramid/';
+  'https://vitessce-data.storage.googleapis.com/0.0.24/master_release/linnarsson/linnarsson.images.zarr/pyramid/';
 
 const ZARR_MIN_ZOOM = -6;
 
@@ -33,6 +35,8 @@ const createVitessce = async (element, darkMode) => {
 
   // Stratify cells by factors
   const cellsByFactor = {};
+  const tsneXDomain = [Infinity, -Infinity];
+  const tsneYDomain = [Infinity, -Infinity];
   Object.entries(metadata).forEach(([id, cell]) => {
     const { cluster, subcluster } = cell.factors;
 
@@ -41,7 +45,15 @@ const createVitessce = async (element, darkMode) => {
 
     cellsByFactor[cluster][id] = cell;
     cellsByFactor[subcluster][id] = cell;
+
+    tsneXDomain[0] = Math.min(tsneXDomain[0], cell.mappings['t-SNE'][0]);
+    tsneXDomain[1] = Math.max(tsneXDomain[1], cell.mappings['t-SNE'][0]);
+    tsneYDomain[0] = Math.min(tsneYDomain[0], cell.mappings['t-SNE'][1]);
+    tsneYDomain[1] = Math.max(tsneYDomain[1], cell.mappings['t-SNE'][1]);
   }, {});
+
+  const tsneXScale = createScale().domain(tsneXDomain);
+  const tsneYScale = createScale().domain(tsneYDomain);
 
   const selectedFactor = 'Oligodendrocyte MF';
 
@@ -72,12 +84,11 @@ const createVitessce = async (element, darkMode) => {
       const item = {
         id,
         embeddingTsne: cell.mappings['t-SNE'],
-        embeddingPca: cell.mappings.PCA,
-        genes: {}
+        embeddingPca: cell.mappings.PCA
       };
 
       Object.entries(cell.genes).forEach(([geneName, value]) => {
-        item.genes[geneName] = value;
+        item[geneName] = value;
       });
 
       const bBox = polyToBbox(cell.poly);
@@ -161,6 +172,7 @@ const createVitessce = async (element, darkMode) => {
     cellPadding: 8,
     pileBorderSize: 1,
     pileBorderColor: darkMode ? 0x333333 : 0xcccccc,
+    pileCoverScale: representativeRenderer.scaler,
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
     pileItemRotation: () => Math.random() * 20 - 10,
     pileVisibilityItems: pile => pile.items.length === 1,
@@ -229,6 +241,20 @@ const createVitessce = async (element, darkMode) => {
           setter: hue => {
             vitessceRenderer.setColor(1, hue);
             piling.render();
+          }
+        }
+      ]
+    },
+    {
+      title: 'Custom Arrange By',
+      fields: [
+        {
+          name: 'Normalized t-SNE',
+          action: () => {
+            piling.arrangeBy('uv', pile => [
+              tsneXScale(items[pile.index].embeddingTsne[0]),
+              tsneYScale(items[pile.index].embeddingTsne[1])
+            ]);
           }
         }
       ]

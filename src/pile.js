@@ -445,7 +445,7 @@ const createPile = (
   const onPointerOver = event => {
     rootGraphics.isHover = true;
 
-    pubSub.publish('pileEnter', { pileId: id, event });
+    pubSub.publish('pileEnter', { target: store.state.piles[id], event });
 
     if (isFocus) {
       if (isTempDepiled) {
@@ -471,11 +471,9 @@ const createPile = (
     if (rootGraphics.isDragging) return;
     rootGraphics.isHover = false;
 
-    pubSub.publish('pileLeave', { pileId: id, event });
+    pubSub.publish('pileLeave', { target: store.state.piles[id], event });
 
-    if (!isFocus) {
-      blur();
-    }
+    if (!isFocus) blur();
 
     // pubSub unsubscription for hoverItem
     if (hoverItemSubscriber) {
@@ -507,7 +505,7 @@ const createPile = (
     rootGraphics.beforeDragY = rootGraphics.y;
     dragMove = false;
 
-    pubSub.publish('pileDragStart', { pileId: id, event });
+    pubSub.publish('pileDragStart', { target: store.state.piles[id], event });
   };
 
   const onDragEnd = event => {
@@ -519,7 +517,7 @@ const createPile = (
     rootGraphics.draggingMouseOffset = null;
 
     if (dragMove) {
-      pubSub.publish('pileDragEnd', { pileId: id, event });
+      pubSub.publish('pileDragEnd', { target: store.state.piles[id], event });
     }
   };
 
@@ -529,7 +527,7 @@ const createPile = (
     if (rootGraphics.isDragging) {
       dragMove = true;
 
-      pubSub.publish('pileDragMove', { pileId: id, event });
+      pubSub.publish('pileDragMove', { target: store.state.piles[id], event });
 
       let { x, y } = event.data.getLocalPosition(rootGraphics.parent);
       x -= rootGraphics.draggingMouseOffset[0];
@@ -786,9 +784,10 @@ const createPile = (
     if (whenCover && previewItemContainer.children.length) {
       positionPreviews(animator);
     } else if (normalItemContainer.children.length > 1) {
-      isPositioning = true;
       if (!all) {
         if (newItems.size) {
+          isPositioning = true;
+
           // newItems is a set, there is no index, so we're using a counter
           let count = 0;
 
@@ -842,6 +841,8 @@ const createPile = (
           });
         } else if (isPlaceholderDrawn) removePlaceholder();
       } else {
+        isPositioning = true;
+
         normalItemContainer.children.forEach((normalItem, index) => {
           // eslint-disable-next-line no-underscore-dangle
           const item = normalItem.__pilingjs__item;
@@ -974,7 +975,7 @@ const createPile = (
   };
 
   let moveToTweener;
-  const animateMoveTo = (
+  const getMoveToTweener = (
     x,
     y,
     { easing, isBatch = false, onDone = toVoid } = {}
@@ -1013,6 +1014,22 @@ const createPile = (
     if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
     return moveToTweener;
   };
+
+  const animateMoveTo = (
+    x,
+    y,
+    { easing, onDone: customOnDone = toVoid } = {}
+  ) =>
+    new Promise(resolve => {
+      const onDone = () => {
+        resolve(store.state.piles[id]);
+        customOnDone();
+      };
+
+      moveToTweener = getMoveToTweener(x, y, { easing, onDone });
+
+      pubSub.publish('startAnimation', moveToTweener);
+    });
 
   const updateBaseOffset = () => {
     const firstImage = allItems[0].item.image;
@@ -1236,10 +1253,10 @@ const createPile = (
       whenCover = newWhenCover;
       whenCover.then(newCover => {
         cover = newCover;
-        coverContainer.addChild(cover.displayObject);
-        while (coverContainer.children.length > 1) {
+        while (coverContainer.children.length) {
           coverContainer.removeChildAt(0);
         }
+        coverContainer.addChild(cover.displayObject);
         pubSub.publish('updatePileBounds', id);
         drawBorder();
       });
@@ -1249,8 +1266,9 @@ const createPile = (
   const removeCover = () => {
     if (!cover) return;
 
-    const coverIdx = coverContainer.getChildIndex(cover.displayObject);
-    if (coverIdx >= 0) coverContainer.removeChildAt(coverIdx);
+    while (coverContainer.children.length) {
+      coverContainer.removeChildAt(0);
+    }
 
     cover = undefined;
     whenCover = undefined;
@@ -1541,6 +1559,7 @@ const createPile = (
     drawBorder,
     drawPlaceholder,
     drawSizeBadge,
+    getMoveToTweener,
     getItemById,
     hasItem,
     magnifyByWheel,

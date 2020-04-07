@@ -64,7 +64,8 @@ import {
   getBBox,
   getItemProp,
   getPileProp,
-  scaleLinear,
+  matchArrayPair,
+  createScale,
   toAlignment,
   toHomogeneous,
   uniqueStr,
@@ -167,14 +168,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const properties = {
-    arrangementObjective: true,
-    arrangementOnPile: true,
-    arrangementOptions: true,
-    arrangementType: true,
-    backgroundColor: true,
-    cellAspectRatio: true,
-    cellPadding: true,
-    cellSize: true,
     center: {
       get: () => camera.target,
       set: point => {
@@ -182,22 +175,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       },
       noAction: true
     },
-    columns: true,
-    coverAggregator: true,
-    coverRenderer: true,
-    darkMode: true,
-    depiledPile: true,
-    depileMethod: true,
-    dimensionalityReducer: true,
-    easing: true,
-    focusedPiles: true,
     gridColor: {
       set: createColorOpacityActions('setGridColor', 'setGridOpacity')
     },
-    gridOpacity: true,
-    groupingObjective: true,
-    groupingOptions: true,
-    groupingType: true,
     items: {
       get: () => Object.values(state.items),
       set: newItems => [
@@ -205,22 +185,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         createAction.initPiles(newItems)
       ]
     },
-    itemSize: true,
-    itemSizeRange: true,
     lassoFillColor: {
       set: createColorOpacityActions('setLassoFillColor', 'setLassoFillOpacity')
     },
-    lassoFillOpacity: true,
-    lassoShowStartIndicator: true,
-    lassoStartIndicatorOpacity: true,
     lassoStrokeColor: {
       set: createColorOpacityActions(
         'setLassoStrokeColor',
         'setLassoStrokeOpacity'
       )
     },
-    lassoStrokeOpacity: true,
-    lassoStrokeSize: true,
     layout: {
       get: () => ({
         cellAspectRatio: layout.cellAspectRatio,
@@ -237,77 +210,54 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         width: layout.width
       })
     },
-    magnifiedPiles: true,
-    navigationMode: true,
-    orderer: true,
-    pileCoverInvert: true,
-    pileCoverScale: true,
-    pileItemBrightness: true,
-    pileItemInvert: true,
-    pileItemOffset: true,
-    pileItemOpacity: true,
-    pileItemOrder: true,
-    pileItemRotation: true,
-    pileItemTint: true,
     pileBorderColor: {
       set: createColorOpacityActions(
         'setPileBorderColor',
         'setPileBorderOpacity'
       )
     },
-    pileBorderOpacity: true,
     pileBorderColorHover: {
       set: createColorOpacityActions(
         'setPileBorderColorHover',
         'setPileBorderOpacityHover'
       )
     },
-    pileBorderOpacityHover: true,
     pileBorderColorFocus: {
       set: createColorOpacityActions(
         'setPileBorderColorFocus',
         'setPileBorderOpacityFocus'
       )
     },
-    pileBorderOpacityFocus: true,
     pileBorderColorActive: {
       set: createColorOpacityActions(
         'setPileBorderColorActive',
         'setPileBorderOpacityActive'
       )
     },
-    pileBorderOpacityActive: true,
-    pileBorderSize: true,
     pileBackgroundColor: {
       set: createColorOpacityActions(
         'setPileBackgroundColor',
         'setPileBackgroundOpacity'
       )
     },
-    pileBackgroundOpacity: true,
     pileBackgroundColorHover: {
       set: createColorOpacityActions(
         'setPileBackgroundColorHover',
         'setPileBackgroundOpacityHover'
       )
     },
-    pileBackgroundOpacityHover: true,
     pileBackgroundColorFocus: {
       set: createColorOpacityActions(
         'setPileBackgroundColorFocus',
         'setPileBackgroundOpacityFocus'
       )
     },
-    pileBackgroundOpacityFocus: true,
     pileBackgroundColorActive: {
       set: createColorOpacityActions(
         'setPileBackgroundColorActive',
         'setPileBackgroundOpacityActive'
       )
     },
-    pileBackgroundOpacityActive: true,
-    pileCellAlignment: true,
-    pileContextMenuItems: true,
     pileLabel: {
       set: value => {
         const objective = expandLabelObjective(value);
@@ -315,11 +265,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return actions;
       }
     },
-    pileLabelAlign: true,
-    pileLabelColor: true,
-    pileLabelFontSize: true,
-    pileLabelHeight: true,
-    pileLabelStackAlign: true,
     pileLabelSizeTransform: {
       set: value => {
         const aggregator = expandLabelSizeAggregator(value);
@@ -327,17 +272,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return actions;
       }
     },
-    pileLabelText: true,
     pileLabelTextColor: {
       set: createColorOpacityActions(
         'setPileLabelTextColor',
         'setPileLabelTextOpacity'
       )
     },
-    pileLabelTextOpacity: true,
-    pileOpacity: true,
-    pileScale: true,
-    pileSizeBadge: true,
     pileSizeBadgeAlign: {
       set: alignment => [
         createAction.setPileSizeBadgeAlign(
@@ -345,30 +285,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         )
       ]
     },
-    pileVisibilityItems: true,
-    popupBackgroundOpacity: true,
-    previewAggregator: true,
     previewBackgroundColor: {
       set: createColorOpacityActions(
         'setPreviewBackgroundColor',
         'setPreviewBackgroundOpacity'
       )
     },
-    previewBackgroundOpacity: true,
     previewBorderColor: {
       set: createColorOpacityActions(
         'setPreviewBorderColor',
         'setPreviewBorderOpacity'
       )
     },
-    previewBorderOpacity: true,
-    previewItemOffset: true,
-    previewOffset: true,
-    previewPadding: true,
-    previewRenderer: true,
-    previewScaling: true,
-    previewSpacing: true,
-    projector: true,
     renderer: {
       get: () => state.itemRenderer,
       set: value => [createAction.setItemRenderer(value)]
@@ -380,23 +308,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         camera.scale(scale, [renderer.width / 2, renderer.height / 2]);
       },
       noAction: true
-    },
-    showGrid: true,
-    showSpatialIndex: true,
-    splittingObjective: true,
-    splittingOptions: true,
-    splittingType: true,
-    tempDepileDirection: true,
-    tempDepileOneDNum: true,
-    temporaryDepiledPiles: true,
-    zoomBounds: true
+    }
   };
 
   const get = property => {
-    if (properties[property]) {
-      if (properties[property].get) return properties[property].get();
-      return state[property];
-    }
+    if (properties[property] && properties[property].get)
+      return properties[property].get();
+
+    if (state[property] !== undefined) return state[property];
 
     console.warn(`Unknown property "${property}"`);
     return undefined;
@@ -407,15 +326,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let actions = [];
 
     if (config) {
-      const defaultSetter = v => [
-        createAction[`set${capitalize(property)}`](v)
-      ];
-      const setter = config.set || defaultSetter;
-      if (setter) {
-        actions = setter(value);
+      if (config.set) {
+        actions = config.set(value);
       } else {
         console.warn(`Property "${property}" is not settable`);
       }
+    } else if (state[property] !== undefined) {
+      actions = [createAction[`set${capitalize(property)}`](value)];
     } else {
       console.warn(`Unknown property "${property}"`);
     }
@@ -837,8 +754,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  let itemWidthScale = scaleLinear();
-  let itemHeightScale = scaleLinear();
+  let itemWidthScale = createScale();
+  let itemHeightScale = createScale();
 
   const getImageScaleFactor = image =>
     image.aspectRatio > layout.cellAspectRatio
@@ -894,11 +811,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       heightRange = [0, itemHeight];
     }
 
-    itemWidthScale = scaleLinear()
+    itemWidthScale = createScale()
       .domain([minWidth, maxWidth])
       .range(widthRange);
 
-    itemHeightScale = scaleLinear()
+    itemHeightScale = createScale()
       .domain([minHeight, maxHeight])
       .range(heightRange);
 
@@ -941,6 +858,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     movePileTo(pile, x, y);
     updatePileBounds(pile.id);
   };
+
+  const getPileMoveToTweener = (pile, x, y, options) =>
+    pile.getMoveToTweener(...transformPointToScreen([x, y]), options);
 
   const animateMovePileTo = (pile, x, y, options) =>
     pile.animateMoveTo(...transformPointToScreen([x, y]), options);
@@ -1326,7 +1246,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   ];
 
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
-    const { items } = store.state;
+    const { arrangementOnPile, arrangementType, items } = store.state;
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
@@ -1367,16 +1287,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         Math.ceil(y / layout.rowHeight)
       );
 
-      if (isInitialPositioning || isPileUnpositioned(pile)) {
+      if (
+        isInitialPositioning ||
+        isPileUnpositioned(pile) ||
+        (arrangementType && !arrangementOnPile)
+      ) {
         renderedItems.get(pile.id).setOriginalPosition([x, y]);
       }
     }
 
     isInitialPositioning = false;
 
-    if (!store.state.arrangementOnPile) {
-      cancelArrangement();
-    }
+    if (!arrangementOnPile) cancelArrangement();
 
     store.dispatch(createAction.movePiles(movingPiles));
 
@@ -1541,7 +1463,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       true
     );
 
-    const coverImage = coverAggregator(itemsOnPile)
+    const whenCoverImage = coverAggregator(itemsOnPile)
       .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
       .then(([coverTexture]) => {
         const scaledImage = createScaledImage(coverTexture);
@@ -1561,9 +1483,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         return scaledImage;
       });
 
-    pileInstance.setCover(coverImage);
+    pileInstance.setCover(whenCoverImage);
 
-    coverImage.then(() => {
+    whenCoverImage.then(() => {
       positionItems(pileInstance.id);
       updatePileBounds(pileInstance.id);
       renderRaf();
@@ -1625,8 +1547,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       lastPilePosition.set(id, [pileState.x, pileState.y]);
-      animateMovePileTo(pileInstance, pileState.x, pileState.y);
+      return animateMovePileTo(pileInstance, pileState.x, pileState.y);
     }
+    return Promise.resolve();
   };
 
   const updateGridMat = pileId => {
@@ -1944,7 +1867,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     store.dispatch(createAction.scatterPiles([depiledPile]));
-    blurPrevHoveredPiles();
+    blurPrevDragOverPiles();
 
     if (!store.state.arrangementType) {
       animateDepile(pileId, items);
@@ -1986,14 +1909,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const closeTempDepile = pileIds => {
+    const { piles } = store.state;
+
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
       const onDone = () => {
         pile.tempDepileContainer.removeChildren();
         pile.isTempDepiled = false;
-        pile.hover();
-        store.dispatch(createAction.setFocusedPiles([]));
+        pile.focus();
+        store.dispatch(createAction.setFocusedPiles([pile.id]));
         updatePileBounds(pileId);
       };
 
@@ -2010,9 +1935,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           options
         );
       });
-
-      pubSub.publish('pileInactive', { pile });
     });
+
+    pubSub.publish('pileInactive', { targets: pileIds.map(id => piles[id]) });
     renderRaf();
   };
 
@@ -2119,10 +2044,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       } else {
         tempDepileTwoD({ pile, items, orderer });
       }
-      pubSub.publish('pileActive', { pile });
 
       updatePileBounds(pileId);
     });
+
+    pubSub.publish('pileActive', { targets: pileIds.map(id => piles[id]) });
     renderRaf();
   };
 
@@ -2228,13 +2154,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
                 .map(id => {
                   const pileInstance = pileInstances.get(id);
                   if (!pileInstance) reject(new Error(`Pile #${id} not ready`));
-                  return animateMovePileTo(
+                  return getPileMoveToTweener(
                     pileInstances.get(id),
                     finalX,
                     finalY,
                     {
                       easing,
-                      isBatch: true,
                       onDone
                     }
                   );
@@ -3398,7 +3323,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return hist;
     }, {});
 
-    if (!pileLabelSizeTransform) return histogram;
+    if (!pileLabelSizeTransform) Object.values(histogram);
 
     allLabels.forEach(label => {
       histogram[label]++;
@@ -3575,6 +3500,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // does not mean that all items always have to be visible. The visibility
         // depends on the membership of items in some pile.
         const updatedPiles = {};
+        const updatedPilePositions = [];
 
         Object.entries(newState.piles).forEach(([id, pile]) => {
           if (state.piles[id]) {
@@ -3595,7 +3521,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
             pile.items.length !== 0
           ) {
-            updatePilePosition(pile, id);
+            updatedPilePositions.push(updatePilePosition(pile, id));
+          }
+
+          if (updatedPilePositions.length) {
+            Promise.all(updatedPilePositions).then(positionedPiles => {
+              pubSub.publish('pilesPositionEnd', { targets: positionedPiles });
+            });
           }
 
           updatePileStyle(pile, id);
@@ -3712,28 +3644,47 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (state.focusedPiles !== newState.focusedPiles) {
+      const [prevFocusedPiles, newlyFocusedPiles] = matchArrayPair(
+        state.focusedPiles,
+        newState.focusedPiles
+      );
+
       // Unset previously focused pile
-      if (pileInstances.has(state.focusedPiles[0])) {
-        const pile = pileInstances.get(state.focusedPiles[0]);
-        if (!pile.isTempDepiled) {
-          pile.blur();
-          pile.isFocus = false;
-        }
-      }
+      prevFocusedPiles
+        .filter(pileId => pileInstances.has(pileId))
+        .forEach(pileId => {
+          const pile = pileInstances.get(pileId);
+          if (!pile.isTempDepiled) {
+            pile.blur();
+            pile.isFocus = false;
+          }
+        });
 
       // Set newly focused pile if any
-      if (newState.focusedPiles.length !== 0) {
-        const pile = pileInstances.get(newState.focusedPiles[0]);
-        if (pile.isTempDepiled) {
-          pile.active();
-        } else {
-          pile.focus();
-        }
-        pile.isFocus = true;
-        pubSub.publish('pileFocus', { pile });
-      } else {
-        const pile = pileInstances.get(state.focusedPiles[0]);
-        pubSub.publish('pileBlur', { pile });
+      newlyFocusedPiles
+        .filter(pileId => pileInstances.has(pileId))
+        .forEach(pileId => {
+          const pile = pileInstances.get(pileId);
+          if (pile.isTempDepiled) {
+            pile.active();
+          } else {
+            pile.focus();
+          }
+          pile.isFocus = true;
+        });
+
+      const { piles } = store.state;
+
+      if (newlyFocusedPiles.length) {
+        pubSub.publish('pileFocus', {
+          targets: newlyFocusedPiles.map(id => piles[id])
+        });
+      }
+
+      if (prevFocusedPiles.length) {
+        pubSub.publish('pileBlur', {
+          targets: prevFocusedPiles.map(id => piles[id])
+        });
       }
 
       renderRaf();
@@ -3881,9 +3832,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const resetPileBorder = () => {
     pileInstances.forEach(pile => {
-      if (!pile.isFocus) {
-        pile.blur();
-      }
+      if (pile) pile.blur();
     });
   };
 
@@ -3929,7 +3878,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     switch (scale) {
       case 'linear':
       default:
-        return scaleLinear;
+        return createScale;
     }
   };
 
@@ -3948,7 +3897,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         expandedObjective.aggregator = objective.propertyIsVector
           ? meanVector
           : mean;
-        expandedObjective.scale = scaleLinear;
+        expandedObjective.scale = createScale;
         expandedObjective.inverse = false;
       } else {
         expandedObjective.property = expandProperty(objective.property);
@@ -4010,6 +3959,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ...set('arrangementType', type, true)
       ])
     );
+
+    return new Promise(resolve => {
+      pubSub.subscribe('pilesPositionEnd', resolve, 1);
+    });
   };
 
   const expandGroupingObjectiveDistance = objective => objective || 1;
@@ -4208,36 +4161,53 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const animateDropMerge = (sourcePileId, targetPileId) => {
+  let isDropMerging = false;
+  const animateDropMerge = (targetPileId, otherPileIds) => {
+    if (isDropMerging) return;
+
+    isDropMerging = true;
+
     const { piles } = store.state;
     const x = piles[targetPileId].x;
     const y = piles[targetPileId].y;
 
-    const onDone = () => {
+    const onAllDone = () => {
+      isDropMerging = false;
       store.dispatch(
         createAction.mergePiles(
-          [sourcePileId, targetPileId],
+          [targetPileId, ...otherPileIds],
           [x, y],
           targetPileId
         )
       );
     };
 
-    animateMovePileTo(pileInstances.get(sourcePileId), x, y, { onDone });
+    const onDone = () => {
+      if (++done === otherPileIds.length) onAllDone();
+    };
+
+    let done = 0;
+    animator.addBatch(
+      otherPileIds.map(pileId =>
+        getPileMoveToTweener(pileInstances.get(pileId), x, y, {
+          onDone
+        })
+      )
+    );
   };
 
   let hit;
 
-  const pileDragEndHandler = ({ pileId }) => {
+  const pileDragEndHandler = ({ target }) => {
     hit = false;
-    const pile = pileInstances.get(pileId);
+    const pile = pileInstances.get(target.id);
     const pileGfx = pile.graphics;
 
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
-      const searchBBox = calcPileBBox(pileId);
+      const searchBBox = calcPileBBox(target.id);
       const collidePiles = spatialIndex
         .search(searchBBox)
-        .filter(collidePile => collidePile.id !== pileId);
+        .filter(collidePile => collidePile.id !== target.id);
 
       // only one pile is colliding with the pile
       if (collidePiles.length === 1) {
@@ -4257,11 +4227,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             });
 
             if (store.state.previewAggregator) {
-              animateDropMerge(pileId, targetPileId);
+              animateDropMerge(targetPileId, [target.id]);
             } else {
               store.dispatch(
                 createAction.mergePiles(
-                  [pileId, targetPileId],
+                  [target.id, targetPileId],
                   [targetPileState.x, targetPileState.y],
                   targetPileId
                 )
@@ -4275,7 +4245,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         store.dispatch(
           createAction.movePiles([
             {
-              id: pileId,
+              id: target.id,
               x,
               y
             }
@@ -4289,38 +4259,38 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let previouslyHoveredPiles = [];
+  let prevDragOverPiles = [];
 
-  const blurPrevHoveredPiles = () => {
-    previouslyHoveredPiles
+  const blurPrevDragOverPiles = () => {
+    prevDragOverPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(identity)
+      .filter(identity) // to filter out undefined piles
       .forEach(pile => {
         pile.blur();
       });
 
-    previouslyHoveredPiles = [];
+    prevDragOverPiles = [];
   };
 
-  const highlightHoveringPiles = pileId => {
+  const indicateDragOverPiles = pileId => {
     if (store.state.temporaryDepiledPiles.length) return;
 
-    const currentlyHoveredPiles = spatialIndex.search(calcPileBBox(pileId));
+    const currentDragOverPiles = spatialIndex.search(calcPileBBox(pileId));
 
-    blurPrevHoveredPiles();
+    blurPrevDragOverPiles();
 
-    currentlyHoveredPiles
+    currentDragOverPiles
       .map(pile => pileInstances.get(pile.id))
-      .filter(identity)
+      .filter(identity) // to filter out undefined piles
       .forEach(pile => {
         pile.hover();
       });
 
-    previouslyHoveredPiles = [...currentlyHoveredPiles];
+    prevDragOverPiles = [...currentDragOverPiles];
   };
 
-  const pileDragStartHandler = ({ pileId, event }) => {
-    const pile = pileInstances.get(pileId);
+  const pileDragStartHandler = ({ target, event }) => {
+    const pile = pileInstances.get(target.id);
 
     if (pile && pile.isMagnified) {
       const mousePos = event.data.getLocalPosition(pile.graphics.parent);
@@ -4336,12 +4306,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     store.dispatch(createAction.setMagnifiedPiles([]));
 
-    moveToActivePileLayer(pileInstances.get(pileId).graphics);
-    highlightHoveringPiles(pileId);
+    moveToActivePileLayer(pile.graphics);
   };
 
-  const pileDragMoveHandler = ({ pileId }) => {
-    highlightHoveringPiles(pileId);
+  const pileDragMoveHandler = ({ target }) => {
+    indicateDragOverPiles(target.id);
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -4450,7 +4419,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     setTimeout(() => {
       isClicked = false;
-    }, 500);
+    }, 300);
 
     const contextMenuElement = rootElement.querySelector(
       '#piling-js-context-menu'
@@ -4475,6 +4444,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (results.length !== 0) {
         if (event.shiftKey) {
+          const { focusedPiles } = store.state;
+          const firstPileId = results[0].id;
+          if (focusedPiles.includes(firstPileId)) {
+            mergeFocusedPiles(firstPileId);
+          } else {
+            store.dispatch(
+              createAction.setFocusedPiles([...focusedPiles, firstPileId])
+            );
+          }
+        } else if (event.altKey) {
           const { depileMethod } = store.state;
           if (depileMethod === 'originalPos') {
             depileToOriginPos(results[0].id);
@@ -4482,17 +4461,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             store.dispatch(createAction.setDepiledPile([results[0].id]));
           }
           store.dispatch(createAction.setFocusedPiles([]));
-        } else if (event.altKey) {
-          results.forEach(result => {
-            const pile = pileInstances.get(result.id);
-            if (pile.graphics.isHover) {
-              if (pile.isMagnified) {
-                store.dispatch(createAction.setMagnifiedPiles([]));
-              } else {
-                store.dispatch(createAction.setMagnifiedPiles([result.pileId]));
-              }
-            }
-          });
         } else {
           results.forEach(result => {
             const pile = pileInstances.get(result.id);
@@ -4502,13 +4470,29 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           });
         }
       } else {
-        if (!closedContextMenu) lasso.showStartIndicator(mouseDownPosition);
-        if (store.state.focusedPiles.length)
+        const { focusedPiles, magnifiedPiles } = store.state;
+        if (focusedPiles.length)
           store.dispatch(createAction.setFocusedPiles([]));
-        if (store.state.magnifiedPiles.length)
+        if (magnifiedPiles.length)
           store.dispatch(createAction.setMagnifiedPiles([]));
+        if (
+          !closedContextMenu &&
+          !focusedPiles.length &&
+          !magnifiedPiles.length
+        )
+          lasso.showStartIndicator(mouseDownPosition);
       }
     }
+  };
+
+  const mergeFocusedPiles = targetPileId => {
+    const { focusedPiles } = store.state;
+    const otherPileIds = focusedPiles.filter(pileId => pileId !== targetPileId);
+
+    if (!otherPileIds.length) return;
+
+    store.dispatch(createAction.setFocusedPiles([targetPileId]));
+    animateDropMerge(targetPileId, otherPileIds);
   };
 
   const mouseDblClickHandler = event => {
@@ -4525,12 +4509,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
 
     if (result.length !== 0 && !temporaryDepiledPiles.length) {
-      if (piles[result[0].id].items.length > 1) {
+      const firstPileId = result[0].id;
+
+      if (event.shiftKey) {
+        mergeFocusedPiles(firstPileId);
+      } else if (piles[firstPileId].items.length > 1) {
         let temp = [...temporaryDepiledPiles];
-        if (temp.includes(result[0].id)) {
-          temp = temp.filter(id => id !== result[0].id);
+        if (temp.includes(firstPileId)) {
+          temp = temp.filter(id => id !== firstPileId);
         } else {
-          temp = [result[0].id];
+          temp = [firstPileId];
         }
         store.dispatch(createAction.setTemporaryDepiledPiles([...temp]));
       }
@@ -4554,7 +4542,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (result.length !== 0) {
         event.preventDefault();
-        store.dispatch(createAction.setMagnifiedPiles([result[0].pileId]));
+        store.dispatch(createAction.setMagnifiedPiles([result[0].id]));
         scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
     } else if (isPanZoom) {
@@ -4716,7 +4704,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         magnifyBtn.setAttribute('class', 'inactive');
         browseSeparatelyBtn.setAttribute('disabled', '');
         browseSeparatelyBtn.setAttribute('class', 'inactive');
-        tempDepileBtn.innerHTML = 'close temp depile';
+        tempDepileBtn.innerHTML = 'Close Temp. Depile';
       }
 
       if (pile.isMagnified) {

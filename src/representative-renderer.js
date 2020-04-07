@@ -5,33 +5,34 @@ import { toDisplayObject } from './utils';
 /**
  * [description]
  * @param {number} n - Number of items
- * @return {array} Triple of number of rows, number of columns, aspectRatio
+ * @return {array} Quintuple of number of number of images, rows,
+ *   number of columns, aspectRatio, scaling
  */
 const getRegularGrid = n => {
   switch (n) {
     case 1:
-      return [1, 1, 1];
+      return [1, 1, 1, 1, 1];
 
     case 2:
-      return [1, 2, 1.5];
+      return [2, 1, 2, 1.5, 1.25];
 
     case 3:
-      return [1, 3, 2];
+      return [3, 1, 3, 2, 1.35];
 
     case 4:
     case 5:
-      return [2, 2, 1];
+      return [4, 2, 2, 1, 1.25];
 
     case 6:
     case 7:
-      return [2, 3, 1.5];
+      return [6, 2, 3, 1.5, 1.5];
 
     case 8:
-      return [2, 4, 2];
+      return [8, 2, 4, 2, 1.7];
 
     case 9:
     default:
-      return [3, 3, 1];
+      return [9, 3, 3, 1, 1.5];
   }
 };
 
@@ -46,9 +47,9 @@ const renderRepresentative = async (
   } = {}
 ) => {
   const n = Math.min(maxNumberOfRepresentatives, srcs.length);
-  const renderedItems = await itemRenderer(srcs.slice(0, n));
+  const [_n, rows, cols, aspectRatio] = getRegularGrid(n);
 
-  const [rows, cols, aspectRatio] = getRegularGrid(n);
+  const renderedItems = await itemRenderer(srcs.slice(0, _n));
 
   const relWidth = 1.0;
   const relHeight = 1.0 / aspectRatio;
@@ -135,9 +136,15 @@ const renderRepresentative = async (
   return gfx;
 };
 
-const createRepresentativeRenderer = (itemRenderer, options) => sources =>
-  Promise.all(
-    sources.map(srcs => renderRepresentative(srcs, itemRenderer, options))
-  );
+const createRepresentativeRenderer = (itemRenderer, options) => {
+  const renderer = sources =>
+    Promise.all(
+      sources.map(srcs => renderRepresentative(srcs, itemRenderer, options))
+    );
+
+  renderer.scaler = pile => getRegularGrid(pile.items.length)[4];
+
+  return renderer;
+};
 
 export default createRepresentativeRenderer;

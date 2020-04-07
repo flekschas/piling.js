@@ -1,7 +1,9 @@
-const scaleLinear = () => {
-  let domainMin = 0;
-  let domainMax = 1;
-  let domainSize = 1;
+const createScale = (transformer = x => x) => {
+  let domainMin = 1;
+  let domainMinTransformed = Math.log10(domainMin);
+  let domainMax = 10;
+  let domainMaxTransformed = Math.log10(domainMax);
+  let domainSize = domainMaxTransformed - domainMinTransformed;
 
   let rangeMin = 0;
   let rangeMax = 1;
@@ -12,7 +14,8 @@ const scaleLinear = () => {
       rangeMax,
       Math.max(
         rangeMin,
-        rangeMax - ((domainMax - value) / domainSize) * rangeSize
+        rangeMax -
+          ((domainMaxTransformed - transformer(value)) / domainSize) * rangeSize
       )
     );
 
@@ -22,9 +25,11 @@ const scaleLinear = () => {
     const [newDomainMin, newDomainMax] = newDomain;
 
     domainMin = newDomainMin;
+    domainMinTransformed = transformer(newDomainMin);
     domainMax = newDomainMax;
+    domainMaxTransformed = transformer(newDomainMax);
 
-    domainSize = domainMax - domainMin || 1;
+    domainSize = domainMaxTransformed - domainMinTransformed || 1;
 
     return scale;
   };
@@ -45,4 +50,4 @@ const scaleLinear = () => {
   return scale;
 };
 
-export default scaleLinear;
+export default createScale;
