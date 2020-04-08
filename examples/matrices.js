@@ -143,11 +143,12 @@ const createMatrixPiles = async (element, darkMode) => {
     cellSize: 64,
     pileCellAlignment: 'center',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
-    pileItemOrder: itemStates => {
-      itemStates.sort((a, b) => a.id - b.id);
+    pileOrderItems: pileState => {
+      const itemIds = pileState.items;
+      itemIds.sort((a, b) => a - b);
       const itemIdsMap = new Map();
-      itemStates.forEach((item, index) => {
-        itemIdsMap.set(item.id.toString(), index);
+      itemIds.forEach((id, index) => {
+        itemIdsMap.set(id.toString(), index);
       });
       return itemIdsMap;
     },

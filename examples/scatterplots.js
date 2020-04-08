@@ -85,7 +85,10 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     height: previewHeight
   });
 
-  const pileItemOrder = itemStates => {
+  const pileOrderItems = pileState => {
+    const itemStates = pileState.items.map(itemId => {
+      return { ...items[itemId], id: itemId };
+    });
     itemStates.sort((a, b) => {
       if (a.region === b.region) {
         return a.year - b.year;
@@ -144,7 +147,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     cellAlign: 'center',
     cellPadding: 9,
     cellAspectRatio,
-    pileItemOrder,
+    pileOrderItems,
     pileScale: () => cameraScale,
     previewItemOffset,
     previewScaling: pile => {
