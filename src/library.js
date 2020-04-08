@@ -337,7 +337,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       console.warn(`Unknown property "${property}"`);
     }
 
-    if (!noDispatch && !config.noAction) {
+    if (!noDispatch && (!config || !config.noAction)) {
       actions.forEach(action => store.dispatch(action));
     }
 
@@ -474,6 +474,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pile.updateBounds(...getXyOffset());
     spatialIndex.insert(pile.bBox);
     drawSpatialIndex();
+    pubSub.publish('pileBoundsUpdate', pileId);
   };
 
   const translatePiles = () => {
@@ -1444,7 +1445,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       coverAggregator,
       pileCoverInvert,
       pileCoverScale,
-      previewAggregator
+      previewAggregator,
+      previewRenderer
     } = store.state;
 
     const itemsOnPile = [];
@@ -1459,7 +1461,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     pileInstance.setItems(
       itemInstances,
-      { asPreview: !!previewAggregator },
+      { asPreview: !!(previewAggregator || previewRenderer) },
       true
     );
 
@@ -1547,7 +1549,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       lastPilePosition.set(id, [pileState.x, pileState.y]);
-      return animateMovePileTo(pileInstance, pileState.x, pileState.y);
+      return Promise.all([
+        animateMovePileTo(pileInstance, pileState.x, pileState.y),
+        new Promise(resolve => {
+          function pileBoundsUpdateHandler(pileId) {
+            if (pileId === id) {
+              pubSub.unsubscribe('pileBoundsUpdate', this);
+              resolve();
+            }
+          }
+          pubSub.subscribe('pileBoundsUpdate', pileBoundsUpdateHandler);
+        })
+      ]);
     }
     return Promise.resolve();
   };
@@ -2714,6 +2727,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     const search = currentTarget => {
+      if (piles[currentTarget.id].items.length < 2) return;
+
       const hits = splitSpatialIndex.search(
         toBBox(currentTarget, objective.threshold)
       );
@@ -4231,7 +4246,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
               pileItem.item.tmpRelScale = pile.scale;
             });
 
-            if (store.state.previewAggregator) {
+            const { previewAggregator, previewRenderer } = store.state;
+
+            if (previewAggregator || previewRenderer) {
               animateDropMerge(targetPileId, [target.id]);
             } else {
               store.dispatch(
