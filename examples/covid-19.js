@@ -1,4 +1,6 @@
+import { debounce } from '@flekschas/utils';
 import * as d3 from 'd3';
+import * as RBush from 'rbush';
 
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
@@ -23,7 +25,7 @@ const loadMapbox = () =>
     })
   ]);
 
-const createMapbox = element => () => {
+const createMapbox = (element, darkMode) => () => {
   const mapEl = document.createElement('div');
   mapEl.id = 'map';
   element.appendChild(mapEl);
@@ -37,7 +39,9 @@ const createMapbox = element => () => {
 
   const map = new window.mapboxgl.Map({
     container: mapEl,
-    style: 'mapbox://styles/flekschas/cjx3bh1701w8i1dn33wx6iugc',
+    style: darkMode
+      ? 'mapbox://styles/flekschas/cjx3bh1701w8i1dn33wx6iugc'
+      : 'mapbox://styles/flekschas/ck8qb1rew01wi1ijyh00coodb',
     zoom: 0,
     center: [0, 0],
     minZoom: 0,
@@ -63,6 +67,12 @@ const monthNames = [
   'Dec'
 ];
 
+const addDays = (date, days) => {
+  const copy = new Date(Number(date));
+  copy.setDate(date.getDate() + days);
+  return copy;
+};
+
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
   pilingEl.style.position = 'absolute';
@@ -72,25 +82,36 @@ const create = async (element, darkMode) => {
 
   element.appendChild(pilingEl);
 
-  let response = await fetch('data/covid-19.json');
-  response = await response.json();
+  let data = await fetch('data/covid-19.json');
+  data = await data.json();
 
-  const data = response.data;
-  const startDate = response.startDate;
-  const endDate = response.endDate;
+  const numDays = data.US.cases.length;
+  const startDate = new Date('2020-01-22:00:00');
+  const endDate = addDays(startDate, data.US.cases.length);
 
-  let regions = await fetch('data/covid-19-regions.json');
-  regions = await regions.json();
-
-  const map = await loadMapbox().then(createMapbox(element));
+  const map = await loadMapbox().then(createMapbox(element, darkMode));
   map.setCenter([0, 0]);
   map.setZoom(0);
   const minZoom = map.getZoom();
 
-  const { width, height } = element.getBoundingClientRect();
+  const level1Index = new RBush();
+  const level2Index = new RBush();
 
-  const countries = Object.keys(data);
-  const numDays = data[countries[0]].cases.length;
+  Object.entries(data).forEach(([id, region]) => {
+    if (region.level === 0) return;
+
+    const index = region.level === 1 ? level1Index : level2Index;
+
+    index.insert({
+      id,
+      minX: region.longLat[0] - 0.1,
+      maxX: region.longLat[0] + 0.1,
+      minY: -1 * region.longLat[1] - 0.1,
+      maxY: -1 * region.longLat[1] + 0.1
+    });
+  });
+
+  const { width, height } = element.getBoundingClientRect();
 
   const columns = 20;
   const relHeight = 1.0;
@@ -106,33 +127,38 @@ const create = async (element, darkMode) => {
   const svgRenderer = createSvgRenderer({
     width: itemWidth * 3,
     height: itemHeight * 3,
-    color: darkMode ? '#333' : '#ccc'
+    color: darkMode ? '#333' : '#333'
   });
 
   const svgRendererSmall = createSvgRenderer({
     width: itemWidth * 3,
     height: previewHeight * 3,
-    color: darkMode ? '#333' : '#ccc'
+    color: darkMode ? '#333' : '#333',
+    background: 'yellow'
   });
 
   const stepSize = absWidth / numDays;
   const halfStepSize = stepSize / 2;
 
-  const maxCases = countries.reduce(
-    (max, country) => Math.max(max, data[country].cases[numDays - 1]),
+  const maxCases = Object.values(data).reduce(
+    (max, region) => Math.max(max, region.cases[numDays - 1]),
     0
   );
 
+  const numTicks = Math.ceil(Math.log10(maxCases));
+  const yScaleRange = Array(numTicks + 1)
+    .fill()
+    .map((x, i) => 10 ** i);
+
   const xScale = d3
     .scaleTime()
-    .domain([new Date(startDate), new Date(endDate)])
+    .domain([startDate, endDate])
     .nice();
 
   const yScale = d3
     .scaleLog()
     .domain([1, maxCases])
-    .range([0, 1])
-    .clamp(true);
+    .range([0, 1]);
 
   const createSvgStart = h =>
     `<svg viewBox="0 0 100 ${h}" xmlns="http://www.w3.org/2000/svg">`;
@@ -238,7 +264,7 @@ const create = async (element, darkMode) => {
 
   const strokeColorRange = darkMode
     ? ['#808080', '#d96921']
-    : ['#333333', '#663413'];
+    : ['#808080', '#d96921'];
 
   const toXy = ys =>
     ys.reduce((xys, y, i) => {
@@ -250,7 +276,7 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis([10, 100, 1000, 10000, 100000]),
+      createYAxis(yScaleRange),
       createXAxis([
         new Date('2020-02-01 00:00'),
         new Date('2020-03-01 00:00'),
@@ -277,7 +303,7 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis([10, 100, 1000, 10000, 100000]),
+      createYAxis(yScaleRange),
       createXAxis([
         new Date('2020-02-01 00:00'),
         new Date('2020-03-01 00:00'),
@@ -290,19 +316,24 @@ const create = async (element, darkMode) => {
   const coverRenderer = sources =>
     svgRenderer(sources.map(createStackedAreaChart));
 
-  const items = countries.map(country => {
-    // const r = regions[country];
-    // if (!r) console.log('Not found:', country);
-    return {
-      src: data[country].cases,
-      country,
-      lonLat: regions[country]
-        ? [regions[country].long, regions[country].lat]
-        : [0, 0]
-    };
+  const itemize = ([region, { cases, longLat }]) => ({
+    src: cases,
+    id: region,
+    region,
+    lonLat: longLat
   });
 
-  const coverAggregator = _items => Promise.resolve(_items.map(i => i.src));
+  const countries = Object.entries(data)
+    .filter(([, d]) => d.level === 0)
+    .map(itemize);
+
+  const coverAggregator = _items => {
+    const sortedItems = [..._items];
+    sortedItems.sort(
+      (a, b) => a.src[a.src.length - 1] - b.src[b.src.length - 1]
+    );
+    return Promise.resolve(sortedItems.map(i => i.src));
+  };
 
   const boundedMercator = createBoundedMercator(width, height);
 
@@ -315,44 +346,112 @@ const create = async (element, darkMode) => {
     renderer,
     previewRenderer,
     coverRenderer,
-    items,
-    columns: 12,
+    items: countries,
+    itemSize: 64,
     navigationMode: 'panZoom',
-    pileBackgroundColor: 'rgba(0, 0, 0, 0.85)',
+    pileBackgroundColor: 'rgba(33, 33, 33, 0.9)',
+    pileBackgroundColorHover: 'rgba(33, 33, 33, 1)',
     pileBorderSize: 1,
     pileBorderColor: 'rgba(255, 255, 255, 0.1)',
     pileItemOffset: [0, 0],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
-    pileLabel: 'country',
+    pileLabel: 'region',
     pileLabelAlign: 'top',
     pileLabelStackAlign: 'vertical',
-    pileLabelText: true,
-    pileLabelColor: () => 'rgba(0, 0, 0, 0.0)',
-    pileLabelTextColor: 'rgba(255, 255, 255, 1)',
+    pileLabelText: pile => pile.items.length === 1,
+    pileLabelColor: 'rgba(0, 0, 0, 0.0)',
+    pileLabelTextColor: darkMode
+      ? 'rgba(255, 255, 255, 1)'
+      : 'rgba(0, 0, 0, 1)',
+    pileSizeBadge: pile => pile.items.length > 1,
+    pileVisibilityItems: pile => pile.items.length === 1,
     previewOffset: 1,
     previewPadding: 2,
     projector: ll => boundedMercator.toPx(ll),
-    zoomBounds: [0, 5]
+    zoomBounds: [0, 8]
   });
 
-  piling.arrangeBy('custom', 'lonLat');
+  const whenItemUpdated = () =>
+    new Promise(resolve => piling.subscribe('itemUpdate', resolve, 1));
 
-  piling.subscribe(
-    'itemUpdate',
-    () => {
-      piling.splitBy('distance', 64, { onZoom: true });
-      piling.groupBy('overlap', 0, { onZoom: true });
-    },
-    1
+  const whenArranged = whenItemUpdated().then(() =>
+    piling.arrangeBy('custom', 'lonLat')
   );
+
+  whenArranged.then(() => {
+    piling.splitBy('distance', 16, { onZoom: true });
+    piling.groupBy('overlap', 64, { onZoom: true });
+  });
 
   const scaleToZoom = scale => Math.log(scale) / Math.LN2;
 
+  const zoomInThresholds = zoomLevel => {
+    if (zoomLevel >= 6) return 2;
+    if (zoomLevel >= 2) return 1;
+    return 0;
+  };
+
+  const zoomOutThresholds = zoomLevel => {
+    if (zoomLevel <= 1.5) return 0;
+    if (zoomLevel <= 4.5) return 1;
+    return 2;
+  };
+
+  const getItems = level => {
+    const { lng: minLng, lat: minLat } = map.unproject([0, 0]);
+    const { lng: maxLng, lat: maxLat } = map.unproject([width, height]);
+
+    const bBox = {
+      minX: minLng,
+      maxX: maxLng,
+      minY: -1 * minLat,
+      maxY: -1 * maxLat
+    };
+
+    const items = [...countries];
+
+    if (level >= 1) {
+      const hits = level1Index.search(bBox);
+      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
+    }
+
+    if (level >= 2) {
+      const hits = level1Index.search(bBox);
+      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
+    }
+
+    return items;
+  };
+
+  const setItems = level => {
+    const items = getItems(level);
+    piling.set('items', items);
+    whenItemUpdated().then(piling.arrangeBy('custom', 'lonLat'));
+    lastLevel = level;
+  };
+
+  const setItemsDb = debounce(setItems, 500);
+
+  let lastLevel = 0;
+  const updateItems = (zoomLevel, lastZoomLevel) => {
+    const level =
+      zoomLevel > lastZoomLevel
+        ? zoomInThresholds(zoomLevel)
+        : zoomOutThresholds(zoomLevel);
+
+    if (level !== lastLevel || level > 0) {
+      setItemsDb(level);
+    }
+  };
+
+  let lastZoomLevel = 0;
   piling.subscribe('zoom', camera => {
+    const zoomLevel = scaleToZoom(camera.scaling);
     map.panTo(boundedMercator.toLl(camera.target), { animate: false });
-    map.setZoom(minZoom + scaleToZoom(camera.scaling));
+    map.setZoom(minZoom + zoomLevel);
+    updateItems(zoomLevel, lastZoomLevel);
+    lastZoomLevel = zoomLevel;
   });
 
   return [piling];
