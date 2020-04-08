@@ -1394,11 +1394,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     updatePreviewStyle(pileState);
 
-    pileInstance.setItems(
-      itemInstances,
-      { asPreview: !!previewAggregator },
-      true
-    );
+    pileInstance.setItems(itemInstances, {
+      asPreview: !!previewAggregator,
+      shouldDrawPlaceholder: true
+    });
 
     const whenCoverImage = coverAggregator(itemsOnPile)
       .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))

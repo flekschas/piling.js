@@ -1221,8 +1221,7 @@ const createPile = (
    */
   const setItems = (
     items,
-    { asPreview = false } = {},
-    shouldDrawPlaceholder = false
+    { asPreview = false, shouldDrawPlaceholder = false } = {}
   ) => {
     if (shouldDrawPlaceholder) drawPlaceholder();
 
