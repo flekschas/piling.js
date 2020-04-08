@@ -671,19 +671,17 @@ const createPile = (
       duration: 250,
       interpolator: interpolateVector,
       endValue: [x, y, targetScale, angle],
-      getter: () => {
-        return [
-          itemSprite.x,
-          itemSprite.y,
-          itemSprite.scale.x,
-          itemSprite.angle
-        ];
-      },
+      getter: () => [
+        itemSprite.x,
+        itemSprite.y,
+        itemSprite.scale.x,
+        itemSprite.angle
+      ],
       setter: newValue => {
         itemSprite.x = newValue[0];
         itemSprite.y = newValue[1];
         itemSprite.scale.x = newValue[2];
-        itemSprite.scale.y = itemSprite.scale.x;
+        itemSprite.scale.y = newValue[2];
         itemSprite.angle = newValue[3];
       },
       onDone: () => {
@@ -740,7 +738,7 @@ const createPile = (
       const halfWidth = _cover.width / 2;
       const halfHeight = _cover.height / 2;
 
-      isPositioning = previewItemContainer.children > 0;
+      isPositioning = previewItemContainer.children.length > 0;
 
       previewItemContainer.children.forEach((previewItem, index) => {
         // eslint-disable-next-line no-underscore-dangle
