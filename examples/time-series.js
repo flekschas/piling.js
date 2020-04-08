@@ -17,7 +17,8 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
   const imageRenderer = createImageRenderer();
 
-  const { width, height } = element.getBoundingClientRect();
+  let width = element.getBoundingClientRect().width;
+  let height = element.getBoundingClientRect().height;
 
   const n = data.length;
   const colorMap = darkMode
@@ -63,6 +64,8 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     return g;
   };
 
+  let embedding = 'umap_gray';
+
   const additionalSidebarOptions = [
     {
       id: 'positionby',
@@ -85,6 +88,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
               onPile: true
             });
             lineGroup = drawPileConnections(values);
+            embedding = values;
           }
         }
       ]
@@ -147,6 +151,11 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     transformData.push(...camera.translation, cameraScale);
   });
 
+  piling.subscribe('resize', size => {
+    width = size.width;
+    height = size.height;
+    lineGroup = drawPileConnections(embedding);
+  });
   return [piling, additionalSidebarOptions];
 };
 

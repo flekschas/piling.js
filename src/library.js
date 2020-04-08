@@ -4103,6 +4103,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       .endFill();
 
     updateGrid();
+
+    pubSub.publish('resize', { width, height });
   };
 
   const resizeHandlerDb = debounce(resizeHandler, 500);
