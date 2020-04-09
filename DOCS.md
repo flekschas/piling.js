@@ -594,20 +594,10 @@ Unsubscribe from an event. See [events](#events) for all the events.
   }
   ```
 
-- `pileOrderItems` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive the current [pile](#statepiles), and should return a `Map` that maps the item's id to its expected index after sorting. E.g.,
+- `pileOrderItems` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive the current [pile](#statepiles), and should return an array of sorted itemIDs. E.g.,
 
   ```javascript
-  const pileOrderItems = pileState => {
-    const itemIds = pileState.items;
-    itemIds.sort((a, b) => a - b);
-
-    const itemIdToIndexMap = new Map();
-    itemIds.forEach((id, index) => {
-      itemIdToIndexMap.set(id.toString(), index);
-    });
-
-    return itemIdToIndexMap;
-  };
+  const pileOrderItems = pileState => pileState.items.sort((a, b) => a - b);
 
   piling.set('pileOrderItems', pileOrderItems);
   ```
@@ -616,8 +606,8 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
   ```javascript
     function (pileState) {
-      // Sort item ids and create a map
-      return itemIdToIndexMap;
+      // Sort itemIDs
+      return arrayOfSortedIds;
     }
   ```
 
