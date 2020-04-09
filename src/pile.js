@@ -746,6 +746,9 @@ const createPile = (
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
+        // Make sure previews are as wide as the cover
+        previewItem.scale.x *= _cover.width / previewItem.width;
+
         let itemOffset;
 
         if (isFunction(previewItemOffset)) {
