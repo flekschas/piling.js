@@ -48,7 +48,8 @@
     "start": "webpack-dev-server --config ./webpack.config.js --mode development --open",
     "test": "rollup -c; webpack --config ./webpack.config.js",
     "watch": "rollup -cw",
-    "wbuild": "webpack --config ./webpack.config.js --mode development"
+    "wbuild": "webpack --config ./webpack.config.js --mode development",
+    "measure-init-time": "node scripts/measure-init-time.js"
   },
   "lint-staged": {
     "*.js": [
@@ -128,6 +129,7 @@
     "node-sass": "^4.13.1",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
+    "puppeteer": "^2.1.1",
     "raw-loader": "^4.0.0",
     "react": "16.12.0",
     "react-dom": "16.12.0",
