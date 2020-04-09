@@ -1042,6 +1042,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       } else {
         isSet.checked = true;
         isSet.disabled = true;
+        if (field.hideCheckbox) {
+          isSet.style.display = 'none';
+        }
       }
 
       if (
