@@ -95,11 +95,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
       }
       return regionOrderIndex[a.region] - regionOrderIndex[b.region];
     });
-    const itemIdsMap = new Map();
-    itemStates.forEach((item, index) => {
-      itemIdsMap.set(item.id.toString(), index);
-    });
-    return itemIdsMap;
+    return itemStates.map(item => item.id);
   };
 
   const previewItemYOffset = d3.scaleLinear();
