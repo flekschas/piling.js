@@ -110,6 +110,7 @@ const createPile = (
   let mode = MODE_NORMAL;
 
   let baseScale = 1;
+  let zoomScale = 1;
   let magnification = 1;
 
   const pubSubSubscribers = [];
@@ -876,13 +877,16 @@ const createPile = (
     newItems.clear();
   };
 
-  const getScale = () => contentGraphics.scale.x;
+  const scale = (currentScale = baseScale) => {
+    contentGraphics.scale.x = currentScale * zoomScale;
+    contentGraphics.scale.y = currentScale * zoomScale;
+  };
+
+  const getScale = () => contentGraphics.scale.x / zoomScale;
 
   const setScale = (newScale, { isMagnification = false } = {}) => {
     if (!isMagnification) baseScale = newScale;
-
-    contentGraphics.scale.x = newScale;
-    contentGraphics.scale.y = newScale;
+    scale(newScale);
   };
 
   let scaleTweener;
@@ -902,7 +906,7 @@ const createPile = (
       done();
     };
 
-    if (isClose(getScale(), newScale, 3)) {
+    if (isClose(getScale(), newScale * zoomScale, 3)) {
       immideate();
       return;
     }
@@ -1435,6 +1439,11 @@ const createPile = (
     render();
   };
 
+  const setZoomScale = newZoomScale => {
+    zoomScale = newZoomScale;
+    scale();
+  };
+
   const init = () => {
     rootGraphics.addChild(borderedContentContainer);
 
@@ -1575,6 +1584,7 @@ const createPile = (
     setOpacity,
     setVisibilityItems,
     setItemOrder,
+    setZoomScale,
     showSizeBadge,
     updateBounds,
     updateOffset: updateBaseOffset,

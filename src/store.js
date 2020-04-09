@@ -376,6 +376,8 @@ const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
 
+const [zoomScale, setZoomScale] = setter('zoomScale', 1.0);
+
 // Label
 const [pileLabel, setPileLabel] = setter('pileLabel');
 const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
@@ -676,7 +678,8 @@ const createStore = () => {
     showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
-    temporaryDepiledPiles
+    temporaryDepiledPiles,
+    zoomScale
   });
 
   const rootReducer = (state, action) => {
@@ -840,5 +843,6 @@ export const createAction = {
   setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
-  setTemporaryDepiledPiles
+  setTemporaryDepiledPiles,
+  setZoomScale
 };

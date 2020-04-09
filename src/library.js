@@ -453,10 +453,22 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     renderRaf();
   };
 
+  const zoomPiles = () => {
+    const { zoomScale } = store.state;
+    const scaling = isFunction(zoomScale)
+      ? zoomScale(camera.scaling)
+      : zoomScale;
+    pileInstances.forEach(pile => {
+      pile.setZoomScale(scaling);
+    });
+    renderRaf();
+  };
+
   const panZoomHandler = (updatePilePosition = true) => {
     // Update the camera
     camera.tick();
     translatePiles();
+    zoomPiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
     pubSub.publish('zoom', camera);

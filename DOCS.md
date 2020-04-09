@@ -480,6 +480,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | tempDepileDirection         | string                            | horizontal         | horizontal or vertical                                                                          | `true`     |
 | tempDepileOneDNum           | number                            | `6`                | the maximum number of items to be temporarily depiled in 1D layout                              | `true`     |
 | temporaryDepiledPile        | array                             | `[]`               | the id of the pile to be temporarily depiled                                                    | `true`     |
+| zoomScale                   | number or function                | `1`                | Allows adjusting the zoom-induced pile scale                                                    | `true`     |
 
 **Examples and Notes:**
 
@@ -752,6 +753,14 @@ Unsubscribe from an event. See [events](#events) for all the events.
     // Define the x and y scaling
     return [xScaling, yScaling];
   });
+  ```
+
+- `zoomScale` allows to dynamically adjust the scale factor related to zooming. By default zooming **does not** affect the scale!
+
+  ```javascript
+  piling.set('zoomScale', cameraScale =>
+    cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
+  );
   ```
 
 ## Events
