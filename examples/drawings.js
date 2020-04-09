@@ -97,14 +97,17 @@ const createDrawingPiles = async (element, darkMode) => {
     coverAggregator: quickDrawCoverAggregator,
     items,
     cellSize: 32,
-    itemSize: 32,
+    itemSize: 12,
     cellPadding: 16,
     pileCoverInvert: darkMode,
     pileItemInvert: darkMode,
     pileItemOffset: [0, 0],
     pileBackgroundColor: darkMode
-      ? 'rgba(0, 0, 0, 0.9)'
-      : 'rgba(255, 255, 255, 0.9)',
+      ? 'rgba(0, 0, 0, 0)'
+      : 'rgba(255, 255, 255, 0)',
+    pileBackgroundColorHover: darkMode
+      ? 'rgba(0, 0, 0, 1.0)'
+      : 'rgba(255, 255, 255, 1.0)',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
     pileVisibilityItems: pile => pile.items.length === 1,
     backgroundColor: '#ffffff',
@@ -113,7 +116,7 @@ const createDrawingPiles = async (element, darkMode) => {
     pileLabel: 'region',
     pileLabelColor: regionToColor,
     pileLabelStackAlign: 'horizontal',
-    pileLabelHeight: pile => (pile.items.length > 1 ? 12 : 2),
+    pileLabelHeight: pile => (pile.items.length > 1 ? 12 : 0.5),
     pileLabelSizeTransform: (counts, labels) => {
       const totalCounts = sum(counts);
       let max = 0;
@@ -124,7 +127,9 @@ const createDrawingPiles = async (element, darkMode) => {
         return observedOverExpected;
       });
       return normValues.map(x => x / max);
-    }
+    },
+    zoomScale: cameraScale =>
+      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
   });
 
   piling.subscribe('itemUpdate', () => {
