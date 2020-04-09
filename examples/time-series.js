@@ -100,8 +100,6 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
   };
 
-  let cameraScale = 1;
-
   const representativeRenderer = createRepresentativeRenderer(imageRenderer, {
     backgroundColor: 0xffffff
   });
@@ -129,7 +127,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
       pile.items.length > 1
         ? (0.25 + Math.max(0.25, i * 0.001)) * brightnessMod
         : 0,
-    pileScale: () =>
+    zoomScale: cameraScale =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
   });
 
@@ -143,12 +141,11 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
   piling.subscribe('zoom', camera => {
     transformData = [];
-    cameraScale = camera.scaling;
     lineGroup.attr(
       'transform',
-      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${cameraScale})`
+      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${camera.scaling})`
     );
-    transformData.push(...camera.translation, cameraScale);
+    transformData.push(...camera.translation, camera.scaling);
   });
 
   piling.subscribe('resize', size => {
