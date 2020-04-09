@@ -163,7 +163,6 @@ const createPile = (
             index
           );
 
-          getForegroundColor(borderColor);
           item.image.drawBackground(
             getForegroundColor(borderColor),
             borderOpacity,
@@ -740,7 +739,7 @@ const createPile = (
       const halfWidth = _cover.width / 2;
       const halfHeight = _cover.height / 2;
 
-      isPositioning = previewItemContainer.children > 0;
+      isPositioning = previewItemContainer.children.length > 0;
 
       previewItemContainer.children.forEach((previewItem, index) => {
         // eslint-disable-next-line no-underscore-dangle
