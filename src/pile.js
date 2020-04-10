@@ -981,11 +981,7 @@ const createPile = (
   };
 
   let moveToTweener;
-  const getMoveToTweener = (
-    x,
-    y,
-    { easing, isBatch = false, onDone = toVoid } = {}
-  ) => {
+  const getMoveToTweener = (x, y, { easing, onDone = toVoid } = {}) => {
     const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
 
     if (d < 3) {
@@ -1003,7 +999,7 @@ const createPile = (
         duration = moveToTweener.dt;
       }
     }
-    moveToTweener = createTweener({
+    return createTweener({
       duration,
       delay: 0,
       easing,
@@ -1017,8 +1013,6 @@ const createPile = (
         onDone();
       }
     });
-    if (!isBatch) pubSub.publish('startAnimation', moveToTweener);
-    return moveToTweener;
   };
 
   const animateMoveTo = (
@@ -1034,7 +1028,7 @@ const createPile = (
 
       moveToTweener = getMoveToTweener(x, y, { easing, onDone });
 
-      pubSub.publish('startAnimation', moveToTweener);
+      if (moveToTweener) pubSub.publish('startAnimation', moveToTweener);
     });
 
   const updateBaseOffset = () => {
