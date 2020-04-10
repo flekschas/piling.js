@@ -1230,7 +1230,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const [x, y] = point;
 
-      if (immideate) movePileToWithUpdate(pile, x, y);
+      if (immideate || isInitialPositioning) movePileToWithUpdate(pile, x, y);
 
       movingPiles.push({ id: pile.id, x, y });
 
