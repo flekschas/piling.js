@@ -94,8 +94,11 @@ const l2RectDist = lRectDist(2);
 
 const createPilingJs = (rootElement, initOptions = {}) => {
   const scrollContainer = document.createElement('div');
+  scrollContainer.className = 'pilingjs-scroll-container';
   const scrollEl = document.createElement('div');
+  scrollEl.className = 'pilingjs-scroll-element';
   const canvas = document.createElement('canvas');
+  canvas.className = 'pilingjs-canvas';
 
   const pubSub = createPubSub();
   const store = createStore();
