@@ -1881,18 +1881,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const animateAlpha = (graphics, endValue) => {
-    const tweener = createTweener({
-      duration: 250,
-      interpolator: interpolateNumber,
-      endValue,
-      getter: () => {
-        return graphics.alpha;
-      },
-      setter: newValue => {
-        graphics.alpha = newValue;
-      }
-    });
-    animator.add(tweener);
+    animator.add(
+      createTweener({
+        interpolator: interpolateNumber,
+        endValue,
+        getter: () => {
+          return graphics.alpha;
+        },
+        setter: newValue => {
+          graphics.alpha = newValue;
+        }
+      })
+    );
   };
 
   const closeTempDepile = pileIds => {
