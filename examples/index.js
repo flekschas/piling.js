@@ -90,6 +90,11 @@ const updateHandler = ({ action }) => {
   if (history.length > 10) history.shift();
 };
 
+const updateHandlerIdled = (...args) =>
+  window.requestIdleCallback(() => {
+    updateHandler(...args);
+  });
+
 const hideEl = el => {
   el.style.display = 'none';
 };
@@ -118,7 +123,7 @@ const createPiles = async example => {
       undoButton.disabled = true;
       [piling, additionalOptions] = await createPhotoPiles(photosEl, darkMode);
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'matrices':
@@ -132,7 +137,7 @@ const createPiles = async example => {
         darkMode
       );
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'lines':
@@ -143,7 +148,7 @@ const createPiles = async example => {
       undoButton.disabled = true;
       [piling, additionalOptions] = await createSvgLinesPiles(svgEl, darkMode);
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'drawings':
@@ -157,7 +162,7 @@ const createPiles = async example => {
         darkMode
       );
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'joyplot':
@@ -168,7 +173,7 @@ const createPiles = async example => {
       undoButton.disabled = true;
       piling = await createJoyPlotPiles(joyplotEl, darkMode);
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'vitessce':
@@ -179,7 +184,7 @@ const createPiles = async example => {
       undoButton.disabled = true;
       [piling, additionalOptions] = await createVitessce(vitessceEl, darkMode);
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'scatterplots':
@@ -190,7 +195,7 @@ const createPiles = async example => {
       undoButton.disabled = true;
       piling = await createScatterplotPiles(scatterplotsEl, darkMode);
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     case 'timeseries':
@@ -204,7 +209,7 @@ const createPiles = async example => {
         darkMode
       );
       history = [];
-      piling.subscribe('update', updateHandler);
+      piling.subscribe('update', updateHandlerIdled);
       break;
 
     default:
