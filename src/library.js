@@ -1202,7 +1202,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
-      pileIds.splice(0, 0, ...Object.keys(store.state.piles));
+      // eslint-disable-next-line no-param-reassign
+      pileIds = Object.keys(store.state.piles);
     }
 
     if (Object.keys(items).length === 0) {
@@ -1250,13 +1251,19 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     isInitialPositioning = false;
 
-    if (!arrangementOnPile) cancelArrangement();
+    const arrangementCancelActions = !arrangementOnPile
+      ? getArrangementCancelActions()
+      : [];
 
-    store.dispatch(createAction.movePiles(movingPiles));
+    store.dispatch(
+      batchActions([
+        createAction.movePiles(movingPiles),
+        ...arrangementCancelActions
+      ])
+    );
 
-    if (positionAllPiles) {
-      createRBush();
-    }
+    if (positionAllPiles) createRBush();
+
     updateScrollHeight();
     renderRaf();
   };
@@ -2622,7 +2629,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (changed) {
       translatePiles();
-      positionPiles();
       updateScrollHeight();
     }
   };
@@ -2858,24 +2864,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (arrangementType === 'data') {
       arranging = updateArragnementByData(pileIds, newObjectives);
+      await arranging;
     }
-
-    await arranging;
 
     updateNavigationMode();
   };
 
-  const cancelArrangement = () => {
-    if (store.state.arrangementType === null) return;
+  const getArrangementCancelActions = () => {
+    if (store.state.arrangementType === null) return [];
 
-    store.dispatch(
-      batchActions([
-        ...set('arrangementOnPile', false, true),
-        ...set('arrangementOptions', {}, true),
-        ...set('arrangementObjective', null, true),
-        ...set('arrangementType', null, true)
-      ])
-    );
+    return [
+      ...set('arrangementOnPile', false, true),
+      ...set('arrangementOptions', {}, true),
+      ...set('arrangementObjective', null, true),
+      ...set('arrangementType', null, true)
+    ];
   };
 
   const uniqueLabels = new Map();
@@ -3024,7 +3027,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // Add updates
       itemUpdates.push(...newItemUpdates);
 
-      // We need to keep track of the update call as promises can be canceled
+      // We need to keep track of the update call as promises can't be canceled
       // and we really only want to apply the consequences once all the item
       // updates finished.
       const itemUpdateCall = ++itemUpdateCalls;
@@ -3042,6 +3045,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           // Clear consequences and updates
           itemUpdatesConsequences.splice(0, itemUpdatesConsequences.length);
           itemUpdates.splice(0, itemUpdates.length);
+          // collect garbage: remove outdated textures on the GPU
+          renderer.textureGC.run();
           pubSub.publish('itemUpdate');
         });
     }
@@ -3152,27 +3157,32 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         // Update piles
         Object.entries(updatedPiles).forEach(([id, pile]) => {
-          if (pile.items.length !== state.piles[id].items.length) {
+          const itemsChanged =
+            pile.items.length !== state.piles[id].items.length;
+          const positionChanged =
+            (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
+            pile.items.length !== 0;
+
+          if (itemsChanged) {
             updatePileItems(pile, id);
             updatedPileItems.push(id);
           }
 
-          if (
-            (pile.x !== state.piles[id].x || pile.y !== state.piles[id].y) &&
-            pile.items.length !== 0
-          ) {
+          if (positionChanged) {
             updatedPilePositions.push(updatePilePosition(pile, id));
           }
 
-          if (updatedPilePositions.length) {
-            Promise.all(updatedPilePositions).then(positionedPiles => {
-              pubSub.publish('pilesPositionEnd', { targets: positionedPiles });
-            });
+          if (itemsChanged || positionChanged) {
+            updatePileStyle(pile, id);
+            setPileLabel(pile, id);
           }
-
-          updatePileStyle(pile, id);
-          setPileLabel(pile, id);
         });
+
+        if (updatedPilePositions.length) {
+          Promise.all(updatedPilePositions).then(positionedPiles => {
+            pubSub.publish('pilesPositionEnd', { targets: positionedPiles });
+          });
+        }
       }
     }
 
@@ -3237,15 +3247,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('layout');
     }
 
-    if (state.pileItemOffset !== newState.pileItemOffset) {
-      stateUpdates.add('positionItems');
-    }
-
-    if (state.pileItemRotation !== newState.pileItemRotation) {
-      stateUpdates.add('positionItems');
-    }
-
     if (
+      state.pileItemOffset !== newState.pileItemOffset ||
+      state.pileItemRotation !== newState.pileItemRotation ||
       state.previewPadding !== newState.previewPadding ||
       state.previewSpacing !== newState.previewSpacing ||
       state.previewScaling !== newState.previewScaling ||
@@ -3255,11 +3259,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       stateUpdates.add('positionItems');
     }
 
-    if (state.tempDepileDirection !== newState.tempDepileDirection) {
-      stateUpdates.add('layout');
-    }
-
-    if (state.tempDepileOneDNum !== newState.tempDepileOneDNum) {
+    if (
+      state.tempDepileDirection !== newState.tempDepileDirection ||
+      state.tempDepileOneDNum !== newState.tempDepileOneDNum
+    ) {
       stateUpdates.add('layout');
     }
 
@@ -3370,10 +3373,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (
       Object.keys(newState.items).length &&
       (
-        state.arrangementType !== newState.arrangementType ||
-        state.arrangementObjective !== newState.arrangementObjective ||
-        (
-          newState.arrangementType &&
+        newState.arrangementType && (
+          state.arrangementType !== newState.arrangementType ||
+          state.arrangementObjective !== newState.arrangementObjective ||
           (
             (currentItemUpdates.length || updatedPileItems.length) ||
             (
