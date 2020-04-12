@@ -448,7 +448,6 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileItemInvert              | boolean or function               | `false`            | can only be `true` or `false` where `true` refers inverted colors and `false` are normal colors | `false`    |
 | pileItemOffset              | array or function                 | `[5, 5]`           | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemOpacity             | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
-| pileItemOrder               | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemRotation            | float or function                 | `0`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemTint                | string, int or function           | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `true`     |
 | pileLabel                   | string, array, function or object |                    | see [`notes`](#notes)                                                                           | `true`     |
@@ -460,6 +459,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
+| pileOrderItems              | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileSizeBadge               | boolean or function               | `false`            | if `true` show the pile size as a badge                                                         | `true`     |
 | pileSizeBadgeAlign          | array or function                 | `['top', 'right']` | if `true` show the pile size as a badge                                                         | `true`     |
@@ -594,6 +594,23 @@ Unsubscribe from an event. See [events](#events) for all the events.
   }
   ```
 
+- `pileOrderItems` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive the current [pile](#statepiles), and should return an array of sorted itemIDs. E.g.,
+
+  ```javascript
+  const pileOrderItems = pileState => pileState.items.sort((a, b) => a - b);
+
+  piling.set('pileOrderItems', pileOrderItems);
+  ```
+
+  The signature of the callback function is as follows:
+
+  ```javascript
+    function (pileState) {
+      // Sort itemIDs
+      return arrayOfSortedIds;
+    }
+  ```
+
 - `pileItemOffset` can be set to an array or a callback function. The array should be a tuple specifying the x and y offset in pixel. E.g.,
 
   ```javascript
@@ -628,32 +645,6 @@ Unsubscribe from an event. See [events](#events) for all the events.
   The function should return a value within `[0, 1]`.
 
 - The default value of `previewBackgroundColor` and `previewBackgroundOpacity` is `'inherit'`, which means that their value inherits from `pileBackgroundColor` and `pileBackgroundOpacity`. If you want preview's background color to be different from pile's, you can set a specific color.
-
-- `pileItemOrder` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive an array of all the [items](#stateitems) on the pile, and should return a `Map` that maps the item's id to its expected index after sorting. E.g.,
-
-  ```javascript
-  const pileItemOrder = itemStates => {
-    itemStates.sort((a, b) => a.id - b.id);
-
-    const itemIdToIndexMap = new Map();
-    itemStates.forEach((item, index) => {
-      itemIdToIndexMap.set(item.id.toString(), index);
-    });
-
-    return itemIdToIndexMap;
-  };
-
-  piling.set('pileItemOrder', pileItemOrder);
-  ```
-
-  The signature of the callback function is as follows:
-
-  ```javascript
-    function (itemStates) {
-      // Sort item states and create a map
-      return itemIdToIndexMap;
-    }
-  ```
 
 - `pileLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
 
