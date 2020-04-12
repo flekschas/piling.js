@@ -13,16 +13,16 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
 
     // go to the page
-    await page.goto('http://localhost:8080/?example=photos&mode=white');
+    await page.goto('http://localhost:8080/?example=matrices&mode=white');
 
     // or you can wait for div#piling-start to appear:
-    await page.waitForSelector('#piling-start');
+    await page.waitForSelector('#piling-start', { timeout: 120000 });
 
     // start measuring time
     const start = performance.now();
 
     // or you can wait for div#piling-ready to appear:
-    await page.waitForSelector('#piling-ready');
+    await page.waitForSelector('#piling-ready', { timeout: 120000 });
 
     // eslint-disable-next-line no-console
     console.log(`Took ${performance.now() - start} msec`);

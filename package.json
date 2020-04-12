@@ -49,7 +49,9 @@
     "test": "rollup -c; webpack --config ./webpack.config.js",
     "watch": "rollup -cw",
     "wbuild": "webpack --config ./webpack.config.js --mode development",
-    "measure-init-time": "node scripts/measure-init-time.js"
+    "measure-init-time": "node scripts/measure-init-time.js",
+    "measure-scroll-fps": "node scripts/measure-scrolling-fps.js",
+    "measure-pan-zoom-fps": "node scripts/measure-pan-zoom-fps.js"
   },
   "lint-staged": {
     "*.js": [
