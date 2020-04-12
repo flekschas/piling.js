@@ -362,11 +362,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const popup = createPopup();
 
+  const disableInteractivity = () => {
+    root.interactive = false;
+    stage.interactive = false;
+    pileInstances.forEach(pile => {
+      pile.disableInteractivity();
+    });
+  };
+
+  const enableInteractivity = () => {
+    root.interactive = true;
+    stage.interactive = true;
+    pileInstances.forEach(pile => {
+      pile.enableInteractivity();
+    });
+  };
+
   let isMouseDown = false;
   let isLasso = false;
 
   const lasso = createLasso({
     onStart: () => {
+      disableInteractivity();
       isLasso = true;
       isMouseDown = true;
     },
@@ -2072,21 +2089,28 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return pilesInPolygon;
   };
 
-  const lassoEndHandler = () => {
+  const lassoEndHandler = async () => {
+    let whenMerged = Promise.resolve();
+
     isLasso = false;
     const lassoPoints = lasso.end();
     const lassoPolygon = lassoPoints.flatMap(translatePointFromScreen);
+
     drawSpatialIndex(
       [lassoPolygon.length - 2, lassoPolygon.length - 1],
       lassoPolygon
     );
+
     if (!store.state.temporaryDepiledPiles.length) {
       const pilesInLasso = findPilesInLasso(lassoPolygon);
       if (pilesInLasso.length > 1) {
         store.dispatch(createAction.setFocusedPiles([]));
-        animateMerge([pilesInLasso]);
+        whenMerged = animateMerge([pilesInLasso]);
       }
     }
+
+    await whenMerged;
+    enableInteractivity();
   };
 
   const animateMerge = (groupsOfPileIds, centerAggregation) => {

@@ -1438,6 +1438,18 @@ const createPile = (
     scale();
   };
 
+  const disableInteractivity = () => {
+    rootGraphics.interactive = false;
+    rootGraphics.buttonMode = false;
+    tempDepileContainer.interactive = false;
+  };
+
+  const enableInteractivity = () => {
+    rootGraphics.interactive = true;
+    rootGraphics.buttonMode = true;
+    tempDepileContainer.interactive = true;
+  };
+
   const init = () => {
     rootGraphics.addChild(borderedContentContainer);
 
@@ -1551,6 +1563,8 @@ const createPile = (
     animateOpacity,
     animateScale,
     blur,
+    disableInteractivity,
+    enableInteractivity,
     hover,
     focus,
     active,
