@@ -218,7 +218,7 @@ const [pileItemBrightness, setPileItemBrightness] = setter(
 const [pileItemInvert, setPileItemInvert] = setter('pileItemInvert', false);
 const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
-const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
+const [pileOrderItems, setPileOrderItems] = setter('pileOrderItems');
 const [pileItemRotation, setPileItemRotation] = setter('pileItemRotation', 0);
 const [pileItemTint, setPileItemTint] = setter(
   'pileItemTint',
@@ -645,7 +645,7 @@ const createStore = () => {
     pileItemBrightness,
     pileItemInvert,
     pileItemOpacity,
-    pileItemOrder,
+    pileOrderItems,
     pileItemRotation,
     pileItemTint,
     pileLabel,
@@ -808,7 +808,7 @@ export const createAction = {
   setPileCoverInvert,
   setPileCoverScale,
   setPileItemOffset,
-  setPileItemOrder,
+  setPileOrderItems,
   setPileItemBrightness,
   setPileItemInvert,
   setPileItemOpacity,

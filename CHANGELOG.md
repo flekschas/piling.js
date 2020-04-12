@@ -1,6 +1,7 @@
 ### Next
 
 - Add `zoomScale` for efficient zoom-based scaling
+- Rename `pileItemOrder` to `pileOrderItems` to make it a pile property (#194)
 - Add piling by selection (i.e., focused piles). See (interactions)[https://piling.js.org/docs/#/README?id=multi-select-grouping] for details.
 - Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile (#167)
 - Add some pile/item properties and label properties to sidebar (#158)

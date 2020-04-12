@@ -704,16 +704,21 @@ const createPile = (
     animator.add(tweener);
   };
 
-  const setItemOrder = itemIdsMap => {
+  const setItemOrder = itemIds => {
+    const itemIdToIndex = new Map();
+    itemIds.forEach((itemId, index) => {
+      itemIdToIndex.set(itemId.toString(), index);
+    });
+
     const sortFunc = index => (a, b) => {
       const id1 = index.get(a);
       const id2 = index.get(b);
-      return itemIdsMap.get(id1) - itemIdsMap.get(id2);
+      return itemIdToIndex.get(id1) - itemIdToIndex.get(id2);
     };
 
     normalItemContainer.children.sort(sortFunc(normalItemIdIndex));
     previewItemContainer.children.sort(sortFunc(previewItemIdIndex));
-    allItems.sort((a, b) => itemIdsMap.get(a.id) - itemIdsMap.get(b.id));
+    allItems.sort((a, b) => itemIdToIndex.get(a.id) - itemIdToIndex.get(b.id));
   };
 
   const positionPreviews = animator => {

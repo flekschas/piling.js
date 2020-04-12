@@ -1291,13 +1291,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const positionPilesDb = debounce(positionPiles, POSITION_PILES_DEBOUNCE_TIME);
 
   const positionItems = (pileId, { all = false } = {}) => {
-    const { items, pileItemOrder } = store.state;
+    const { piles, pileOrderItems } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
 
-    if (isFunction(pileItemOrder)) {
-      const itemStates = pileInstance.items.map(item => items[item.id]);
-      pileInstance.setItemOrder(pileItemOrder(itemStates));
+    if (isFunction(pileOrderItems)) {
+      const pileState = piles[pileId];
+      pileInstance.setItemOrder(pileOrderItems(pileState));
     }
 
     pileInstance.positionItems(animator, { all });

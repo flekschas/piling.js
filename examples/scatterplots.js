@@ -85,18 +85,17 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     height: previewHeight
   });
 
-  const pileItemOrder = itemStates => {
+  const pileOrderItems = pileState => {
+    const itemStates = pileState.items.map(itemId => {
+      return { ...items[itemId], id: itemId };
+    });
     itemStates.sort((a, b) => {
       if (a.region === b.region) {
         return a.year - b.year;
       }
       return regionOrderIndex[a.region] - regionOrderIndex[b.region];
     });
-    const itemIdsMap = new Map();
-    itemStates.forEach((item, index) => {
-      itemIdsMap.set(item.id.toString(), index);
-    });
-    return itemIdsMap;
+    return itemStates.map(item => item.id);
   };
 
   const previewItemYOffset = d3.scaleLinear();
@@ -144,7 +143,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     cellAlign: 'center',
     cellPadding: 9,
     cellAspectRatio,
-    pileItemOrder,
+    pileOrderItems,
     pileScale: () => cameraScale,
     previewItemOffset,
     previewScaling: pile => {
