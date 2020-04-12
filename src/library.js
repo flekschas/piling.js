@@ -163,6 +163,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const properties = {
+    camera: {
+      get: () => camera
+    },
     gridColor: {
       set: createColorOpacityActions('setGridColor', 'setGridOpacity')
     },
