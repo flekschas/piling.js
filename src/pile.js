@@ -79,9 +79,9 @@ const createPile = (
   const normalItemIdIndex = new Map();
   const previewItemIdIndex = new Map();
   const newItems = new Set();
-  const rootGraphics = new PIXI.Container();
+  const rootContainer = new PIXI.Container();
   const borderGraphics = new PIXI.Graphics();
-  const contentGraphics = new PIXI.Container();
+  const contentContainer = new PIXI.Container();
   const borderedContentContainer = new PIXI.Container();
   const normalItemContainer = new PIXI.Container();
   const previewItemContainer = new PIXI.Container();
@@ -119,7 +119,7 @@ const createPile = (
 
   const destroy = () => {
     if (previousSizeBadge) previousSizeBadge.destroy();
-    rootGraphics.destroy();
+    rootContainer.destroy();
     pubSubSubscribers.forEach(subscriber => {
       pubSub.unsubscribe(subscriber);
     });
@@ -142,7 +142,7 @@ const createPile = (
   // eslint-disable-next-line no-shadow
   const itemOverHandler = ({ item }) => {
     if (isFocus) {
-      if (!rootGraphics.isDragging) {
+      if (!rootContainer.isDragging) {
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
         coverContainer.visible = false;
@@ -227,7 +227,7 @@ const createPile = (
     if (pileBounds.drawCall === borderDrawCall) return pileBounds;
 
     const borderBounds = borderGraphics.getBounds();
-    const contentBounds = contentGraphics.getBounds();
+    const contentBounds = contentContainer.getBounds();
 
     pileBounds = {
       drawCall: borderDrawCall,
@@ -261,7 +261,7 @@ const createPile = (
       sizeBadge = badgeFactory.create(size, { darkMode });
 
       if (previousSize !== undefined) {
-        rootGraphics.removeChild(previousSizeBadge.displayObject);
+        rootContainer.removeChild(previousSizeBadge.displayObject);
         previousSizeBadge.destroy();
       }
     }
@@ -280,7 +280,7 @@ const createPile = (
     sizeBadge.displayObject.y =
       bounds.y - borderSizeBase + (bounds.height + 2 * borderSizeBase) * yMod;
 
-    if (newBadge) rootGraphics.addChild(sizeBadge.displayObject);
+    if (newBadge) rootContainer.addChild(sizeBadge.displayObject);
 
     previousSizeBadge = sizeBadge;
     previousSize = size;
@@ -294,7 +294,7 @@ const createPile = (
     if (isShowSizeBadge) {
       drawSizeBadge();
     } else if (previousSizeBadge) {
-      rootGraphics.removeChild(previousSizeBadge.displayObject);
+      rootContainer.removeChild(previousSizeBadge.displayObject);
       previousSizeBadge.destroy();
       previousSize = undefined;
     }
@@ -435,15 +435,15 @@ const createPile = (
   };
 
   const onPointerDown = () => {
-    rootGraphics.isPointerDown = true;
+    rootContainer.isPointerDown = true;
   };
 
   const onPointerUp = () => {
-    rootGraphics.isPointerDown = false;
+    rootContainer.isPointerDown = false;
   };
 
   const onPointerOver = event => {
-    rootGraphics.isHover = true;
+    rootContainer.isHover = true;
 
     pubSub.publish('pileEnter', { target: store.state.piles[id], event });
 
@@ -468,8 +468,8 @@ const createPile = (
   };
 
   const onPointerOut = event => {
-    if (rootGraphics.isDragging) return;
-    rootGraphics.isHover = false;
+    if (rootContainer.isDragging) return;
+    rootContainer.isHover = false;
 
     pubSub.publish('pileLeave', { target: store.state.piles[id], event });
 
@@ -495,14 +495,14 @@ const createPile = (
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
-    rootGraphics.draggingMouseOffset = [
-      event.data.getLocalPosition(rootGraphics.parent).x - rootGraphics.x,
-      event.data.getLocalPosition(rootGraphics.parent).y - rootGraphics.y
+    rootContainer.draggingMouseOffset = [
+      event.data.getLocalPosition(rootContainer.parent).x - rootContainer.x,
+      event.data.getLocalPosition(rootContainer.parent).y - rootContainer.y
     ];
-    rootGraphics.alpha = 1;
-    rootGraphics.isDragging = true;
-    rootGraphics.beforeDragX = rootGraphics.x;
-    rootGraphics.beforeDragY = rootGraphics.y;
+    rootContainer.alpha = 1;
+    rootContainer.isDragging = true;
+    rootContainer.beforeDragX = rootContainer.x;
+    rootContainer.beforeDragY = rootContainer.y;
     dragMove = false;
 
     pubSub.publish('pileDragStart', { target: store.state.piles[id], event });
@@ -511,10 +511,10 @@ const createPile = (
   const onDragEnd = event => {
     if (event.data.button === 2) return;
 
-    if (!rootGraphics.isDragging) return;
-    rootGraphics.alpha = 1;
-    rootGraphics.isDragging = false;
-    rootGraphics.draggingMouseOffset = null;
+    if (!rootContainer.isDragging) return;
+    rootContainer.alpha = 1;
+    rootContainer.isDragging = false;
+    rootContainer.draggingMouseOffset = null;
 
     if (dragMove) {
       pubSub.publish('pileDragEnd', { target: store.state.piles[id], event });
@@ -524,14 +524,14 @@ const createPile = (
   const onDragMove = event => {
     if (event.data.button === 2) return;
 
-    if (rootGraphics.isDragging) {
+    if (rootContainer.isDragging) {
       dragMove = true;
 
       pubSub.publish('pileDragMove', { target: store.state.piles[id], event });
 
-      let { x, y } = event.data.getLocalPosition(rootGraphics.parent);
-      x -= rootGraphics.draggingMouseOffset[0];
-      y -= rootGraphics.draggingMouseOffset[1];
+      let { x, y } = event.data.getLocalPosition(rootContainer.parent);
+      x -= rootContainer.draggingMouseOffset[0];
+      y -= rootContainer.draggingMouseOffset[1];
 
       const size = getBorderSize();
 
@@ -543,8 +543,8 @@ const createPile = (
       if (isMoving) {
         moveToTweener.updateEndValue([x, y]);
       } else {
-        rootGraphics.x = x;
-        rootGraphics.y = y;
+        rootContainer.x = x;
+        rootContainer.y = y;
       }
 
       if (isTempDepiled) {
@@ -615,9 +615,9 @@ const createPile = (
     updateBBox(xOffset, yOffset);
   };
 
-  const getOpacity = () => rootGraphics.alpha;
+  const getOpacity = () => rootContainer.alpha;
   const setOpacity = newOpacity => {
-    rootGraphics.alpha = newOpacity;
+    rootContainer.alpha = newOpacity;
   };
 
   let opacityTweener;
@@ -820,8 +820,8 @@ const createPile = (
 
             if (!Number.isNaN(+item.tmpAbsX) && !Number.isNaN(+item.tmpAbsY)) {
               pileItem.moveTo(
-                (pileItem.x + item.tmpAbsX - rootGraphics.x) / currentScale,
-                (pileItem.y + item.tmpAbsY - rootGraphics.y) / currentScale
+                (pileItem.x + item.tmpAbsX - rootContainer.x) / currentScale,
+                (pileItem.y + item.tmpAbsY - rootContainer.y) / currentScale
               );
               delete item.tmpAbsX;
               delete item.tmpAbsY;
@@ -883,11 +883,11 @@ const createPile = (
   };
 
   const scale = (currentScale = baseScale) => {
-    contentGraphics.scale.x = currentScale * zoomScale;
-    contentGraphics.scale.y = currentScale * zoomScale;
+    contentContainer.scale.x = currentScale * zoomScale;
+    contentContainer.scale.y = currentScale * zoomScale;
   };
 
-  const getScale = () => contentGraphics.scale.x / zoomScale;
+  const getScale = () => contentContainer.scale.x / zoomScale;
 
   const setScale = (newScale, { isMagnification = false } = {}) => {
     if (!isMagnification) baseScale = newScale;
@@ -987,7 +987,7 @@ const createPile = (
 
   let moveToTweener;
   const getMoveToTweener = (x, y, { easing, onDone = toVoid } = {}) => {
-    const d = l2PointDist(x, y, rootGraphics.x, rootGraphics.y);
+    const d = l2PointDist(x, y, rootContainer.x, rootContainer.y);
 
     if (d < 3) {
       moveTo(x, y);
@@ -1010,7 +1010,7 @@ const createPile = (
       easing,
       interpolator: interpolateVector,
       endValue: [x, y],
-      getter: () => [rootGraphics.x, rootGraphics.y],
+      getter: () => [rootContainer.x, rootContainer.y],
       setter: xy => moveTo(xy[0], xy[1]),
       onDone: () => {
         isMoving = false;
@@ -1045,8 +1045,8 @@ const createPile = (
   };
 
   const moveTo = (x, y) => {
-    rootGraphics.x = x;
-    rootGraphics.y = y;
+    rootContainer.x = x;
+    rootContainer.y = y;
   };
 
   const replaceItemsImage = (itemId = null) => {
@@ -1311,7 +1311,7 @@ const createPile = (
 
     if (!labelGraphics) {
       labelGraphics = new PIXI.Graphics();
-      rootGraphics.addChild(labelGraphics);
+      rootContainer.addChild(labelGraphics);
     } else {
       labelGraphics.clear();
       labelGraphics.removeChildren();
@@ -1405,7 +1405,7 @@ const createPile = (
   const drawPlaceholder = () => {
     if (!placeholderGfx) {
       placeholderGfx = new PIXI.Graphics();
-      contentGraphics.addChild(placeholderGfx);
+      contentContainer.addChild(placeholderGfx);
     }
     const width = anchorBox.width / baseScale;
     const height = anchorBox.height / baseScale;
@@ -1444,45 +1444,45 @@ const createPile = (
   };
 
   const disableInteractivity = () => {
-    rootGraphics.interactive = false;
-    rootGraphics.buttonMode = false;
+    rootContainer.interactive = false;
+    rootContainer.buttonMode = false;
     tempDepileContainer.interactive = false;
   };
 
   const enableInteractivity = () => {
-    rootGraphics.interactive = true;
-    rootGraphics.buttonMode = true;
+    rootContainer.interactive = true;
+    rootContainer.buttonMode = true;
     tempDepileContainer.interactive = true;
   };
 
   const init = () => {
-    rootGraphics.addChild(borderedContentContainer);
+    rootContainer.addChild(borderedContentContainer);
 
     borderedContentContainer.addChild(borderGraphics);
-    borderedContentContainer.addChild(contentGraphics);
+    borderedContentContainer.addChild(contentContainer);
 
-    contentGraphics.addChild(normalItemContainer);
-    contentGraphics.addChild(previewItemContainer);
-    contentGraphics.addChild(coverContainer);
-    contentGraphics.addChild(hoverItemContainer);
-    contentGraphics.addChild(tempDepileContainer);
-    contentGraphics.addChild(hoverPreviewContainer);
+    contentContainer.addChild(normalItemContainer);
+    contentContainer.addChild(previewItemContainer);
+    contentContainer.addChild(coverContainer);
+    contentContainer.addChild(hoverItemContainer);
+    contentContainer.addChild(tempDepileContainer);
+    contentContainer.addChild(hoverPreviewContainer);
 
-    rootGraphics.interactive = true;
-    rootGraphics.buttonMode = true;
-    rootGraphics.x = initialX;
-    rootGraphics.y = initialY;
+    rootContainer.interactive = true;
+    rootContainer.buttonMode = true;
+    rootContainer.x = initialX;
+    rootContainer.y = initialY;
 
     tempDepileContainer.interactive = true;
 
-    rootGraphics
+    rootContainer
       .on('pointerdown', onPointerDown)
       .on('pointerup', onPointerUp)
       .on('pointerupoutside', onPointerUp)
       .on('pointerover', onPointerOver)
       .on('pointerout', onPointerOut);
 
-    rootGraphics
+    rootContainer
       .on('pointerdown', onDragStart)
       .on('pointerup', onDragEnd)
       .on('pointerupoutside', onDragEnd)
@@ -1506,10 +1506,10 @@ const createPile = (
       return cover;
     },
     get graphics() {
-      return rootGraphics;
+      return rootContainer;
     },
-    get contentGraphics() {
-      return contentGraphics;
+    get contentContainer() {
+      return contentContainer;
     },
     get height() {
       return borderedContentContainer.height;
@@ -1557,10 +1557,10 @@ const createPile = (
       return borderedContentContainer.width;
     },
     get x() {
-      return rootGraphics.x;
+      return rootContainer.x;
     },
     get y() {
-      return rootGraphics.y;
+      return rootContainer.y;
     },
     id,
     // Methods
