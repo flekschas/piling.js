@@ -124,7 +124,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     antialias: true,
     transparent: true,
     resolution: window.devicePixelRatio,
-    autoDensity: true
+    autoDensity: true,
+    preserveDrawingBuffer: false,
+    legacy: false,
+    powerPreference: 'high-performance'
   });
 
   let isInitialPositioning = true;
@@ -141,14 +144,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.sortableChildren = true;
 
   const gridGfx = new PIXI.Graphics();
-  stage.addChild(gridGfx);
-
   const spatialIndexGfx = new PIXI.Graphics();
-  stage.addChild(spatialIndexGfx);
 
   root.addChild(stage);
 
   const mask = new PIXI.Graphics();
+  mask.cacheAsBitmap = true;
   root.addChild(mask);
   stage.mask = mask;
 
@@ -393,6 +394,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   });
 
   stage.addChild(gridGfx);
+  stage.addChild(spatialIndexGfx);
   stage.addChild(lasso.fillContainer);
   stage.addChild(normalPiles);
   stage.addChild(activePile);
