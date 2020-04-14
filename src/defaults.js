@@ -1,6 +1,8 @@
 export const ALIGNMENTS_X = ['left', 'center', 'right'];
 export const ALIGNMENTS_Y = ['top', 'center', 'bottom'];
 
+export const EPS = 1e-9;
+
 export const BLACK = 0x000000;
 export const WHITE = 0xffffff;
 

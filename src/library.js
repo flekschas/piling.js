@@ -45,6 +45,7 @@ import {
   BLACK,
   CAMERA_VIEW,
   DEFAULT_COLOR_MAP,
+  EPS,
   EVENT_LISTENER_ACTIVE,
   EVENT_LISTENER_PASSIVE,
   INHERIT,
@@ -137,11 +138,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let arranging = Promise.resolve();
 
   const root = new PIXI.Container();
-  root.interactive = true;
 
   const stage = new PIXI.Container();
-  stage.interactive = true;
-  stage.sortableChildren = true;
+  // Fritz: not sure if we really need the following line
+  // stage.sortableChildren = true;
 
   const gridGfx = new PIXI.Graphics();
   const spatialIndexGfx = new PIXI.Graphics();
@@ -363,20 +363,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const popup = createPopup();
 
+  let isInteractive = false;
   const disableInteractivity = () => {
-    root.interactive = false;
+    if (!isInteractive) return;
     stage.interactive = false;
+    stage.interactiveChildren = false;
     pileInstances.forEach(pile => {
       pile.disableInteractivity();
     });
+    isInteractive = false;
   };
 
   const enableInteractivity = () => {
-    root.interactive = true;
+    if (isInteractive) return;
     stage.interactive = true;
+    stage.interactiveChildren = true;
     pileInstances.forEach(pile => {
       pile.enableInteractivity();
     });
+    isInteractive = true;
   };
 
   let isMouseDown = false;
@@ -433,7 +438,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (pileInstances) {
       pileInstances.forEach(pile => {
-        pile.updateBounds(...getXyOffset());
+        pile.updateBounds(...getXyOffset(), true);
         boxList.push(pile.bBox);
       });
       spatialIndex.load(boxList);
@@ -838,13 +843,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const movePileTo = (pile, x, y) => {
+  const movePileTo = (pile, x, y) =>
     pile.moveTo(...transformPointToScreen([x, y]));
-  };
 
   const movePileToWithUpdate = (pile, x, y) => {
-    movePileTo(pile, x, y);
-    updatePileBounds(pile.id);
+    if (movePileTo(pile, x, y)) updatePileBounds(pile.id);
   };
 
   const getPileMoveToTweener = (pile, x, y, options) =>
@@ -4046,7 +4049,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         } else {
           results.forEach(result => {
             const pile = pileInstances.get(result.id);
-            if (pile.graphics.isHover) {
+            if (pile.isHover) {
               store.dispatch(createAction.setFocusedPiles([result.id]));
             }
           });
@@ -4167,7 +4170,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         if (d < 3) {
           movePileTo(pile, x, y);
-          updatePileBounds(pile.id);
+          if (d > EPS) updatePileBounds(pile.id);
           return false;
         }
 
@@ -4264,7 +4267,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       let pile;
       results.forEach(result => {
-        if (pileInstances.get(result.id).graphics.isHover) {
+        if (pileInstances.get(result.id).isHover) {
           pile = pileInstances.get(result.id);
         }
       });
@@ -4461,6 +4464,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     resizeHandler();
     initGrid();
     enableScrolling();
+    enableInteractivity();
 
     setPublic(initOptions);
   };
