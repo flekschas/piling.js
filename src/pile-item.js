@@ -95,7 +95,7 @@ const createPileItem = ({ image, item, pubSub }) => {
       ),
       withDestroy(container),
       withMoveTo(),
-      withInteractivity(),
+      withInteractivity(pubSub),
       withPublicMethods(),
       withConstructor(createPileItem)
     )({})
