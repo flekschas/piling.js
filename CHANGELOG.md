@@ -40,6 +40,7 @@
 - [Docsify the docs](https://piling.js.org/docs)
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`
 - Make `arrangeBy` return a promise that resolves once the items have been positioned
+- Several perfomance improvements
 - Ensure pile covers update as items update (#175)
 - Ensure layout is updated properly (#155, #156)
 - Ensure item/preview and pile properties can be functional properties (#174)
