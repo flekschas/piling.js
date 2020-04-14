@@ -60,34 +60,50 @@ const createPhotoPiles = async (element, darkMode) => {
     .domain([1, 10])
     .range([0, yRange]);
 
-  const el = document.createElement('div');
-  el.id = 'piling-start';
-  document.body.appendChild(el);
+  // Uncomment for `node scripts/measure-init-time`
+  // const el = document.createElement('div');
+  // el.id = 'piling-start';
+  // document.body.appendChild(el);
 
   const piling = createPilingJs(element, {
     darkMode,
-    columns: maxJ + 1,
     renderer: imageRenderer,
     items: data,
+    columns: 20,
+    cellPadding: 4,
+    // Use with `node scripts/measure-init-time`
+    // columns: 10, // 200
+    // columns: 15, // 500
+    // columns: 20, // 1000
+    // columns: 30, // 2000
+    // columns: 50, // 5000
+    // cellPadding: 4, // 200
+    // cellPadding: 3, // 500
+    // cellPadding: 3, // 1000
+    // cellPadding: 2, // 2000
+    // cellPadding: 1, // 5000
     pileCellAlignment: 'center',
-    cellPadding: 6,
     cellAspectRatio: 1.5,
     pileBorderColor: pile =>
       interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
     pileBorderSize: pile => Math.log(pile.items.length),
     pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    pileItemRotation: () => Math.random() * 20 - 10
+    pileItemRotation: () => Math.random() * 20 - 10,
+    navigationMode: 'panZoom',
+    zoomScale: scale => scale
   });
 
-  piling.subscribe(
-    'itemUpdate',
-    () => {
-      const div = document.createElement('div');
-      div.id = 'piling-ready';
-      document.body.appendChild(div);
-    },
-    1
-  );
+  // Uncomment for `node scripts/measure-init-time`
+  // window.pilingjs = piling;
+  // piling.subscribe(
+  //   'itemUpdate',
+  //   () => {
+  //     const div = document.createElement('div');
+  //     div.id = 'piling-ready';
+  //     document.body.appendChild(div);
+  //   },
+  //   1
+  // );
 
   const getSuperCat = item => {
     const c = `${item.mainSuperCategory}/${item.mainCategory}`;
@@ -124,15 +140,6 @@ const createPhotoPiles = async (element, darkMode) => {
     ];
   };
 
-  const whenArranged = piling.arrangeBy('ij', pile => {
-    const item = data[pile.id];
-    return xAxis === 'super categories' ? getSuperCat(item) : getCat(item);
-  });
-
-  whenArranged.then(() => {
-    // piling.groupBy('grid');
-  });
-
   const additionalSidebarOptions = [
     {
       id: 'factor',
@@ -143,6 +150,8 @@ const createPhotoPiles = async (element, darkMode) => {
           width: '4rem',
           action: async () => {
             iScale.range([0, yRange - 1]);
+
+            piling.set('columns', maxJ + 1);
 
             await piling.arrangeBy('ij', pile => {
               const item = data[pile.id];
