@@ -6,7 +6,7 @@ const worker = function worker() {
     const n = items.length;
     for (let s = 0; s < n; s++) {
       for (let i = 0; i < length; i++) {
-        data[i] += items[s].src.data[i] / n;
+        data[i] += Math.max(0, items[s].src.data[i]) / n;
       }
     }
   };
