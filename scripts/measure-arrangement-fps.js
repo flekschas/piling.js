@@ -25,7 +25,7 @@ const numItems = 5000;
 
     // start the profiling, with a path to the out file and screenshots collected
     await page.tracing.start({
-      path: `logs/arrangement-trace-${numItems}-${i}-alt.json`
+      path: `logs/arrangement-trace-${numItems}-${i}.json`
     });
 
     await page.evaluate(async () =>
