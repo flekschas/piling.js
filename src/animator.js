@@ -1,6 +1,6 @@
 import withRaf from 'with-raf';
 
-const PARTIAL_ON_DONE_BATCH_SIZE = 500;
+const PARTIAL_ON_DONE_BATCH_SIZE = 100;
 
 /**
  * Factory function to create an animator
@@ -14,7 +14,6 @@ const createAnimator = (render, pubSub) => {
 
   const onCall = () => {
     if (activeTweeners.size) {
-      // eslint-disable-next-line no-use-before-define
       animateRaf();
     } else {
       onDone();
