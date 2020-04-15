@@ -467,14 +467,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return pileInstances.get(pileId).calcBBox(...getXyOffset());
   };
 
-  const updatePileBounds = pileId => {
+  const updatePileBounds = (pileId, { forceUpdate = false } = {}) => {
     const pile = pileInstances.get(pileId);
 
     spatialIndex.remove(pile.bBox, (a, b) => a.id === b.id);
-    pile.updateBounds(...getXyOffset());
+    pile.updateBounds(...getXyOffset(), forceUpdate);
     spatialIndex.insert(pile.bBox);
     drawSpatialIndex();
   };
+
+  const updatePileBoundsHandler = ({ id, forceUpdate }) =>
+    updatePileBounds(id, { forceUpdate });
 
   const translatePiles = () => {
     lastPilePosition.forEach((pilePos, pileId) => {
@@ -4437,7 +4440,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('pileDragEnd', pileDragEndHandler);
     pubSub.subscribe('startAnimation', startAnimationHandler);
     pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
-    pubSub.subscribe('updatePileBounds', updatePileBounds);
+    pubSub.subscribe('updatePileBounds', updatePileBoundsHandler);
 
     storeUnsubscribor = store.subscribe(updated);
 
