@@ -16,6 +16,7 @@ const worker = function worker() {
       });
     } catch (err) {
       self.postMessage(error(`Failed to import skmeans: ${err}`));
+      return;
     }
 
     // Get the data from the items
@@ -24,6 +25,7 @@ const worker = function worker() {
       data = items.map(self.valueGetter || identity);
     } catch (err) {
       self.postMessage(error(`Failed to load features: ${err}`));
+      return;
     }
 
     if (data.length <= k) {
