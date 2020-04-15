@@ -224,7 +224,7 @@ const [pileItemBrightness, setPileItemBrightness] = setter(
 const [pileItemInvert, setPileItemInvert] = setter('pileItemInvert', false);
 const [pileItemOffset, setPileItemOffset] = setter('pileItemOffset', [5, 5]);
 const [pileItemOpacity, setPileItemOpacity] = setter('pileItemOpacity', 1.0);
-const [pileItemOrder, setPileItemOrder] = setter('pileItemOrder');
+const [pileOrderItems, setPileOrderItems] = setter('pileOrderItems');
 const [pileItemRotation, setPileItemRotation] = setter('pileItemRotation', 0);
 const [pileItemTint, setPileItemTint] = setter(
   'pileItemTint',
@@ -381,6 +381,8 @@ const [pileVisibilityItems, setPileVisibilityItems] = setter(
 const [pileOpacity, setPileOpacity] = setter('pileOpacity', 1.0);
 
 const [pileScale, setPileScale] = setter('pileScale', 1.0);
+
+const [zoomScale, setZoomScale] = setter('zoomScale', 1.0);
 
 // Label
 const [pileLabel, setPileLabel] = setter('pileLabel');
@@ -688,7 +690,7 @@ const createStore = () => {
     pileItemBrightness,
     pileItemInvert,
     pileItemOpacity,
-    pileItemOrder,
+    pileOrderItems,
     pileItemRotation,
     pileItemTint,
     pileLabel,
@@ -729,7 +731,8 @@ const createStore = () => {
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles,
-    zoomBounds
+    zoomBounds,
+    zoomScale
   });
 
   const rootReducer = (state, action) => {
@@ -857,7 +860,7 @@ export const createAction = {
   setPileCoverInvert,
   setPileCoverScale,
   setPileItemOffset,
-  setPileItemOrder,
+  setPileOrderItems,
   setPileItemBrightness,
   setPileItemInvert,
   setPileItemOpacity,
@@ -901,5 +904,6 @@ export const createAction = {
   setTempDepileOneDNum,
   setTemporaryDepiledPiles,
   setZoomBounds,
+  setZoomScale,
   splitPiles
 };

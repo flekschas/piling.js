@@ -7,7 +7,7 @@ import {
 import { createRepresentativeAggregator } from '../src/aggregator';
 
 const createTimeSeriesPiles = async (element, darkMode) => {
-  const response = await fetch('data/us-daily-precipitation.json');
+  const response = await fetch('data/us-daily-precipitation-remote.json');
 
   // const response = await fetch('data/cube.json');
   // const response = await fetch('data/last-knit.json');
@@ -17,7 +17,8 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
   const imageRenderer = createImageRenderer();
 
-  const { width, height } = element.getBoundingClientRect();
+  let width = element.getBoundingClientRect().width;
+  let height = element.getBoundingClientRect().height;
 
   const n = data.length;
   const colorMap = darkMode
@@ -63,6 +64,8 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     return g;
   };
 
+  let embedding = 'umap_gray';
+
   const additionalSidebarOptions = [
     {
       id: 'positionby',
@@ -85,6 +88,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
               onPile: true
             });
             lineGroup = drawPileConnections(values);
+            embedding = values;
           }
         }
       ]
@@ -95,8 +99,6 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     const sortedItemIds = items.map(itemId => +itemId).sort();
     return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
   };
-
-  let cameraScale = 1;
 
   const representativeRenderer = createRepresentativeRenderer(imageRenderer, {
     backgroundColor: 0xffffff
@@ -117,15 +119,16 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     cellSize: 128,
     cellPadding: 32,
     pileCoverScale: 0.9,
+    pileBackgroundColor: 'rgba(255,255,255,1)',
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
-    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    pileItemRotation: () => Math.random() * 20 - 10,
+    pileItemOffset: () => [Math.random() * 24 - 11, Math.random() * 24 - 11],
+    pileItemRotation: () => Math.random() * 24 - 11,
     pileItemBrightness: (item, i, pile) =>
       pile.items.length > 1
-        ? (0.25 + Math.max(0.25, i * 0.001)) * brightnessMod
+        ? Math.max(-0.25, (pile.items.length - i - 1) * -0.01) * brightnessMod
         : 0,
-    pileScale: () =>
+    zoomScale: cameraScale =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
   });
 
@@ -139,14 +142,18 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
   piling.subscribe('zoom', camera => {
     transformData = [];
-    cameraScale = camera.scaling;
     lineGroup.attr(
       'transform',
-      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${cameraScale})`
+      `translate(${camera.translation[0]}, ${camera.translation[1]}) scale(${camera.scaling})`
     );
-    transformData.push(...camera.translation, cameraScale);
+    transformData.push(...camera.translation, camera.scaling);
   });
 
+  piling.subscribe('resize', size => {
+    width = size.width;
+    height = size.height;
+    lineGroup = drawPileConnections(embedding);
+  });
   return [piling, additionalSidebarOptions];
 };
 

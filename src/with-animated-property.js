@@ -8,7 +8,10 @@ import {
 
 import createTweener from './tweener';
 
-const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
+const addAnimation = (
+  { name, pubSub },
+  { duration, delay, eps = 1e-6 } = {}
+) => self => {
   const getter = () => self[name];
   const setter = value => {
     self[`set${capitalize(name)}`](value);
@@ -17,7 +20,14 @@ const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
   let tweener;
 
   return assign(self, {
-    animateOpacity(newOpacity) {
+    [`animate${capitalize(name)}`]: newValue => {
+      const d = Math.abs(newValue - getter());
+
+      if (d < eps) {
+        setter(newValue);
+        return;
+      }
+
       let remainingDuration = duration;
       if (tweener) {
         pubSub.publish('cancelAnimation', tweener);
@@ -29,7 +39,7 @@ const addAnimation = ({ name, pubSub }, { duration, delay } = {}) => self => {
         delay,
         duration: remainingDuration,
         interpolator: interpolateNumber,
-        endValue: newOpacity,
+        endValue: newValue,
         getter,
         setter
       });

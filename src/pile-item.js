@@ -26,25 +26,29 @@ const withMoveTo = () => self =>
     }
   });
 
-const createPileItem = ({ image, item, pubSub }) => {
-  const init = self => {
-    self.displayObject.addChild(self.image.displayObject);
-
-    const pointerOverHandler = () => {
+const withInteractivity = pubSub => self =>
+  assign(self, {
+    pointerOverHandler() {
       pubSub.publish('itemOver', { item: self });
-    };
-    const pointerOutHandler = () => {
+    },
+    pointerOutHandler() {
       pubSub.publish('itemOut', { item: self });
-    };
+    },
+    disableInteractivity() {
+      self.displayObject.interactive = false;
+      self.displayObject.buttonMode = false;
+      self.displayObject.off('pointerover', self.pointerOverHandler);
+      self.displayObject.off('pointerout', self.pointerOutHandler);
+    },
+    enableInteractivity() {
+      self.displayObject.interactive = true;
+      self.displayObject.buttonMode = true;
+      self.displayObject.on('pointerover', self.pointerOverHandler);
+      self.displayObject.on('pointerout', self.pointerOutHandler);
+    }
+  });
 
-    self.displayObject.interactive = true;
-    self.displayObject.buttonMode = true;
-    self.displayObject.on('pointerover', pointerOverHandler);
-    self.displayObject.on('pointerout', pointerOutHandler);
-
-    return self;
-  };
-
+const createPileItem = ({ image, item, pubSub }) => {
   const container = new PIXI.Container();
   // eslint-disable-next-line no-underscore-dangle
   container.__pilingjs__item = item; // Dirty: for quick access in pile.js
@@ -60,6 +64,14 @@ const createPileItem = ({ image, item, pubSub }) => {
     assign(self, {
       replaceImage
     });
+
+  const init = self => {
+    self.displayObject.addChild(self.image.displayObject);
+
+    self.enableInteractivity();
+
+    return self;
+  };
 
   return init(
     pipe(
@@ -83,6 +95,7 @@ const createPileItem = ({ image, item, pubSub }) => {
       ),
       withDestroy(container),
       withMoveTo(),
+      withInteractivity(pubSub),
       withPublicMethods(),
       withConstructor(createPileItem)
     )({})

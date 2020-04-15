@@ -1,9 +1,8 @@
-const renderStroke = (strokes, size = 64) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
+import * as PIXI from 'pixi.js';
+
+const renderStroke = (ctx, strokes, size) => {
   ctx.clearRect(0, 0, size, size);
+  ctx.beginPath();
 
   for (let s = 0; s < strokes.length; s++) {
     const xPos = strokes[s][0];
@@ -15,10 +14,20 @@ const renderStroke = (strokes, size = 64) => {
     ctx.stroke();
   }
 
-  return canvas;
+  return ctx.getImageData(0, 0, size, size).data;
 };
 
-const createGoogleQuickDrawRenderer = size => sources =>
-  Promise.all(sources.map(src => renderStroke(src, size)));
+const createGoogleQuickDrawRenderer = (size = 64) => sources => {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  return Promise.resolve(
+    sources.map(src =>
+      PIXI.Texture.fromBuffer(renderStroke(ctx, src, size), size, size)
+    )
+  );
+};
 
 export default createGoogleQuickDrawRenderer;

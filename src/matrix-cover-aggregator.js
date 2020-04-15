@@ -1,7 +1,7 @@
 import { createWorker } from '@flekschas/utils';
 import workerFn from './matrix-cover-aggregator-worker';
 
-const createMatrixCoverAggregator = (aggregagtor = 'mean') => items => {
+const createMatrixCoverAggregator = (aggregator = 'mean') => items => {
   return new Promise((resolve, reject) => {
     const worker = createWorker(workerFn);
 
@@ -13,7 +13,7 @@ const createMatrixCoverAggregator = (aggregagtor = 'mean') => items => {
 
     worker.postMessage({
       items,
-      aggregagtor
+      aggregator
     });
   });
 };

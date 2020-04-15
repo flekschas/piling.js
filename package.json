@@ -47,8 +47,7 @@
     "pretest": "npm run lint",
     "start": "webpack-dev-server --config ./webpack.config.js --mode development --open",
     "test": "rollup -c; webpack --config ./webpack.config.js",
-    "watch": "rollup -cw",
-    "wbuild": "webpack --config ./webpack.config.js --mode development"
+    "watch": "rollup -cw"
   },
   "lint-staged": {
     "*.js": [
@@ -120,6 +119,7 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "esm": "^3.2.25",
     "gh-pages": "^2.2.0",
+    "glob": "^7.1.6",
     "html-inline-css-webpack-plugin": "^1.8.0",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^4.0.6",
@@ -128,6 +128,7 @@
     "node-sass": "^4.13.1",
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
+    "puppeteer": "^2.1.1",
     "raw-loader": "^4.0.0",
     "react": "16.12.0",
     "react-dom": "16.12.0",

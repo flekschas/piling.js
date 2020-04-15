@@ -31,16 +31,18 @@ const createTweener = ({
   let endValue = initialEndValue;
 
   const startAnimation = () => {
-    startTime = performance.now();
     startValue = getter();
-    ready = startValue !== undefined && startValue !== null;
+    ready = startValue !== null;
     if (!ready) {
       console.warn(`Invalid start value for animation: ${startValue}`);
     }
   };
 
   const register = () => {
-    setTimeout(startAnimation, delay);
+    // The following line leads to partial adding of animations
+    // setTimeout(startAnimation, delay);
+    if (!delay) startAnimation();
+    else setTimeout(startAnimation, delay);
   };
 
   /**
@@ -49,6 +51,7 @@ const createTweener = ({
    */
   const update = () => {
     if (!ready) return false;
+    if (!startTime) startTime = performance.now();
 
     dt = performance.now() - startTime;
 

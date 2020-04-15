@@ -1,7 +1,9 @@
 ### Next
 
 - Add `pileLabelTextColor` and `pileLabelTextOpacity`
-- Add some pile/item properties and label properties to sidebar
+- Add more pile/item properties and label properties to sidebar
+- Add `zoomScale` for efficient zoom-based scaling
+- Rename `pileItemOrder` to `pileOrderItems` to make it a pile property (#194)
 - Add piling by selection (i.e., focused piles). See (interactions)[https://piling.js.org/docs/#/README?id=multi-select-grouping] for details.
 - Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile (#167)
 - Add some pile/item properties and label properties to sidebar (#158)
@@ -41,6 +43,7 @@
 - [Docsify the docs](https://piling.js.org/docs)
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`
 - Make `arrangeBy` return a promise that resolves once the items have been positioned
+- Several perfomance improvements
 - Ensure pile covers update as items update (#175)
 - Ensure layout is updated properly (#155, #156)
 - Ensure item/preview and pile properties can be functional properties (#174)
