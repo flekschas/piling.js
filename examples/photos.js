@@ -87,9 +87,14 @@ const createPhotoPiles = async (element, darkMode) => {
     pileBorderColor: pile =>
       interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
     pileBorderSize: pile => Math.log(pile.items.length),
-    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    pileItemRotation: () => Math.random() * 20 - 10,
-    navigationMode: 'panZoom',
+    // pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
+    // pileItemRotation: () => Math.random() * 20 - 10,
+    pileItemOffset: (item, i, pile) => [
+      Math.random() * 4 - 2,
+      -i * (2 * ((i + 1) / pile.items.length) ** 2) + (Math.random() * 2 - 1)
+    ],
+    pileItemRotation: (item, i, pile) =>
+      i === pile.items.length - 1 ? 0 : Math.random() * 16 - 8,
     zoomScale: scale => scale
   });
 
