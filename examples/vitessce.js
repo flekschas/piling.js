@@ -1,7 +1,11 @@
+import { interpolateGreys } from 'd3-scale-chromatic';
 import * as PIXI from 'pixi.js';
 import createPilingJs from '../src/library';
 import { createRepresentativeAggregator } from '../src/aggregator';
-import { createRepresentativeRenderer } from '../src/renderer';
+import {
+  createMatrixRenderer,
+  createRepresentativeRenderer
+} from '../src/renderer';
 import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
@@ -79,6 +83,24 @@ const createVitessce = async (element, darkMode) => {
 
   const padding = 0.25;
 
+  const rgbStr2rgba = (rgbStr, alpha = 1) => {
+    return [
+      ...rgbStr
+        .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+        .slice(1, 4)
+        .map(x => parseInt(x, 10) / 256),
+      alpha
+    ];
+  };
+
+  const createColorMap = (numColors = 256) =>
+    new Array(numColors)
+      .fill(0)
+      .map((x, i) =>
+        rgbStr2rgba(interpolateGreys(Math.abs((numColors - i) / numColors)))
+      );
+
+  let numGenes = 0;
   const createItems = factor =>
     Object.entries(cellsByFactor[factor]).map(([id, cell]) => {
       const item = {
@@ -87,9 +109,13 @@ const createVitessce = async (element, darkMode) => {
         embeddingPca: cell.mappings.PCA
       };
 
+      const genes = [];
       Object.entries(cell.genes).forEach(([geneName, value]) => {
         item[geneName] = value;
+        genes.push(value);
       });
+
+      numGenes = genes.length;
 
       const bBox = polyToBbox(cell.poly);
       const cellSize = Math.max(bBox.width, bBox.height);
@@ -107,7 +133,8 @@ const createVitessce = async (element, darkMode) => {
         cX: bBox.cX,
         cY: bBox.cY,
         zoom,
-        zoomLevel: Math.ceil(zoom)
+        zoomLevel: Math.ceil(zoom),
+        genes
       };
 
       return item;
@@ -121,12 +148,14 @@ const createVitessce = async (element, darkMode) => {
   });
 
   const colors = {
-    polyT: [255, 128, 0],
-    nuclei: [0, 128, 255]
+    // polyT: [255, 128, 0],
+    // nuclei: [0, 128, 255]
+    polyT: [0, 0, 255],
+    nuclei: [0, 255, 0]
   };
 
   const vitessceRenderer = createVitessceRenderer(getData, {
-    darkMode,
+    darkMode: true,
     colors: Object.values(colors),
     domains: null // Auto-scale channels
   });
@@ -153,11 +182,24 @@ const createVitessce = async (element, darkMode) => {
 
   const representativeRenderer = createRepresentativeRenderer(
     vitessceRenderer.renderer,
-    { backgroundColor: darkMode ? 0xffffff : 0x000000 }
+    { backgroundColor: darkMode ? 0xffffff : 0x000000, outerPadding: 0 }
   );
 
   const representativeAggregator = createRepresentativeAggregator(9, {
-    valueGetter: item => Object.values(item.genes)
+    valueGetter: item => Object.values(item.src.genes)
+  });
+
+  const previewAggregator = _items =>
+    Promise.resolve(
+      _items.map(i => {
+        const m = Math.max(...i.src.genes);
+        return { shape: [1, numGenes], data: i.src.genes.map(x => x / m) };
+      })
+    );
+
+  const previewRenderer = createMatrixRenderer({
+    colorMap: createColorMap(256),
+    shape: [1, numGenes]
   });
 
   const piling = createPilingJs(element, {
@@ -166,23 +208,34 @@ const createVitessce = async (element, darkMode) => {
     renderer: vitessceRenderer.renderer,
     coverAggregator: representativeAggregator,
     coverRenderer: representativeRenderer,
-    items,
+    previewAggregator,
+    previewRenderer: previewRenderer.renderer,
+    items: items.slice(0, 10),
     itemSize,
     cellSize: 64,
     cellPadding: 8,
-    pileBorderSize: 1,
-    pileBorderColor: darkMode ? 0x333333 : 0xcccccc,
+    pileBackgroundColor: darkMode ? 0xffffff : 0x000000,
+    pileBackgroundOpacity: 1,
+    pileBorderColor: darkMode ? 0xffffff : 0x000000,
+    pileBorderSize: 0.5,
     pileCoverScale: representativeRenderer.scaler,
-    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    pileItemRotation: () => Math.random() * 20 - 10,
-    pileVisibilityItems: pile => pile.items.length === 1,
+    // pileVisibilityItems: pile => pile.items.length === 1,
     pileContextMenuItems: [
       {
         id: 'umapify',
         label: 'UMAPify',
         callback: umapHandler
       }
-    ]
+    ],
+    // previewScaling: pile => [
+    //   1,
+    //   Math.max(0.1, 1 - (pile.items.length - 2) / 10)
+    // ],
+    previewBorderColor: darkMode ? 0xffffff : 'rgba(0, 255, 0, 0.66)',
+    previewOffset: 2,
+    previewPadding: 0.5,
+    previewSpacing: 4,
+    previewScaleToCover: [true, false]
   });
 
   const additionalSidebarOptions = [
@@ -214,7 +267,7 @@ const createVitessce = async (element, darkMode) => {
       title: 'Coloring',
       fields: [
         {
-          name: 'poly-T hue',
+          name: 'poly-T',
           labelMinWidth: '4rem',
           id: 'polyt-hue',
           dtype: 'float',
