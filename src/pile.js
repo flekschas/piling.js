@@ -746,7 +746,7 @@ const createPile = (
         const itemState = store.state.items[item.id];
 
         // Make sure previews are as wide as the cover
-        previewItem.scale.x *= _cover.width / previewItem.width;
+        // previewItem.scale.x *= _cover.width / previewItem.width;
 
         let itemOffset;
 
