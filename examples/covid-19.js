@@ -119,22 +119,25 @@ const create = async (element, darkMode) => {
   const absHeight = absWidth * relHeight;
   const xAxisHeight = 12;
   const finalHeight = absHeight + xAxisHeight;
-  const previewHeight = 10;
   const aspectRatio = 1 / relHeight;
   const itemWidth = (width / columns) * 3;
   const itemHeight = itemWidth * (finalHeight / absWidth);
 
+  const renderedItemWidth = itemWidth * 10;
+  const renderedItemHeight = itemHeight * 10;
+
+  const renderedPreviewHeight =
+    renderedItemHeight * ((absHeight - xAxisHeight) / absHeight);
+
   const svgRenderer = createSvgRenderer({
-    width: itemWidth * 3,
-    height: itemHeight * 3,
+    width: renderedItemWidth,
+    height: renderedItemHeight,
     color: darkMode ? '#333' : '#333'
   });
 
-  const svgRendererSmall = createSvgRenderer({
-    width: itemWidth * 3,
-    height: previewHeight * 3,
-    color: darkMode ? '#333' : '#333',
-    background: 'yellow'
+  const svgPreviewRenderer = createSvgRenderer({
+    width: renderedItemWidth / 25,
+    height: renderedItemHeight
   });
 
   const stepSize = absWidth / numDays;
@@ -145,10 +148,17 @@ const create = async (element, darkMode) => {
     0
   );
 
+  const xRange = [
+    new Date('2020-02-01 00:00'),
+    new Date('2020-03-01 00:00'),
+    new Date('2020-04-01 00:00')
+  ];
+
   const numTicks = Math.ceil(Math.log10(maxCases));
-  const yScaleRange = Array(numTicks + 1)
+
+  const yRange = Array(numTicks)
     .fill()
-    .map((x, i) => 10 ** i);
+    .map((x, i) => 10 ** (i + 1));
 
   const xScale = d3
     .scaleTime()
@@ -160,8 +170,8 @@ const create = async (element, darkMode) => {
     .domain([1, maxCases])
     .range([0, 1]);
 
-  const createSvgStart = h =>
-    `<svg viewBox="0 0 100 ${h}" xmlns="http://www.w3.org/2000/svg">`;
+  const createSvgStart = (w, h) =>
+    `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
 
   const createGradient = (name, startColor, endColor) => `<defs>
   <linearGradient id="${name}" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -177,22 +187,22 @@ const create = async (element, darkMode) => {
     .x(d => halfStepSize + stepSize * d[0])
     .y(d => absHeight - absHeight * yScale(d[1] + 1));
 
-  const createPath = y => {
-    const path = createLine(y);
+  const createArea = y => {
+    const path = createLine(y).slice(1);
     return [
-      `<defs><mask id="path"><path d="${path}" stroke="white" stroke-width="3" fill="none"/></mask></defs>`,
-      `<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path)" />`
+      `<defs><mask id="path"><path d="M0,100L${path}L100,100" stroke="none" fill="white"/></mask></defs>`,
+      '<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path)" />'
     ];
   };
 
-  const createSmallLine = d3
-    .line()
-    .x(d => halfStepSize + stepSize * d[0])
-    .y(d => previewHeight - previewHeight * yScale(d[1] + 1));
-
-  const createArea = y => {
-    const path = createSmallLine(y);
-    return `<path d="M 0 ${previewHeight} ${path} L 100 ${previewHeight}" stroke="none" fill="url(#linear-stroke)"/>`;
+  const createBar = y => {
+    const yScaled = absHeight - absHeight * yScale(y + 1);
+    const h = absHeight - yScaled;
+    return [
+      `<defs><mask id="path"><rect x="0" y="${yScaled}" width="10" height="${h}" fill="white"/></mask></defs>`,
+      '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />',
+      `<rect x="0" y="${yScaled}" width="10" height="${h}" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
+    ];
   };
 
   const createStackedArea = ys => {
@@ -245,19 +255,19 @@ const create = async (element, darkMode) => {
       const y = 100 - yScale(tick) * 100;
       const y2 = y + 10;
       return [
-        `<text x="0" y="${y2}" fill="#fff" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
-        `<path d="M 0 ${y} L 100 ${y}" stroke="#fff" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
+        `<text x="0" y="${y2}" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
+        `<path d="M 0 ${y} L 100 ${y}" stroke="#000" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
       ];
     });
 
   const createXAxis = ticks => [
-    `<line x1="0" y1="100" x2="100" y2="100" stroke="#fff" stroke-opacity="0.33" stroke-width="1" />`,
+    `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
     ...ticks.flatMap(tick => {
       const label = monthNames[tick.getMonth()];
       const x = xScale(tick) * 100;
       return [
-        `<text x="${x}" y="112" fill="#fff" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
-        `<path d="M ${x} 100 L ${x} 103" stroke="#fff" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
+        `<text x="${x}" y="112" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
+        `<path d="M ${x} 100 L ${x} 103" stroke="#000" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
       ];
     })
   ];
@@ -272,43 +282,35 @@ const create = async (element, darkMode) => {
       return xys;
     }, []);
 
-  const createLineChart = y =>
+  const createAreaChart = y =>
     [
-      createSvgStart(finalHeight),
+      createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis(yScaleRange),
-      createXAxis([
-        new Date('2020-02-01 00:00'),
-        new Date('2020-03-01 00:00'),
-        new Date('2020-04-01 00:00')
-      ]),
-      createPath(toXy(y)),
-      createSvgEnd()
-    ].join('');
-
-  const renderer = sources => svgRenderer(sources.map(createLineChart));
-
-  const createSmallAreaChart = y =>
-    [
-      createSvgStart(previewHeight),
-      createGradient('linear-stroke', ...strokeColorRange),
+      // createYAxis(yRange),
+      // createXAxis(xRange),
       createArea(toXy(y)),
       createSvgEnd()
     ].join('');
 
+  const renderer = sources => svgRenderer(sources.map(createAreaChart));
+
+  const createBarChart = y =>
+    [
+      createSvgStart(1, finalHeight),
+      createGradient('linear-stroke', ...strokeColorRange),
+      createBar(y),
+      createSvgEnd()
+    ].join('');
+
   const previewRenderer = sources =>
-    svgRendererSmall(sources.map(createSmallAreaChart));
+    svgPreviewRenderer(sources.map(createBarChart));
 
   const createStackedAreaChart = ys =>
     [
-      createSvgStart(finalHeight),
+      createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis(yScaleRange),
-      createXAxis([
-        new Date('2020-02-01 00:00'),
-        new Date('2020-03-01 00:00'),
-        new Date('2020-04-01 00:00')
-      ]),
+      createYAxis(yRange),
+      createXAxis(xRange),
       createStackedArea(ys.map(toXy)),
       createSvgEnd()
     ].join('');
@@ -316,16 +318,21 @@ const create = async (element, darkMode) => {
   const coverRenderer = sources =>
     svgRenderer(sources.map(createStackedAreaChart));
 
-  const itemize = ([region, { cases, longLat }]) => ({
+  const itemize = ([region, { cases, longLat, level, numLevels }]) => ({
     src: cases,
     id: region,
     region,
-    lonLat: longLat
+    lonLat: longLat,
+    level,
+    numLevels
   });
 
-  const countries = Object.entries(data)
-    .filter(([, d]) => d.level === 0)
+  const countriesAndStates = Object.entries(data)
+    .filter(([, d]) => d.level <= 1)
     .map(itemize);
+
+  const previewAggregator = _items =>
+    Promise.resolve(_items.map(item => item.src[item.src.length - 1]));
 
   const coverAggregator = _items => {
     const sortedItems = [..._items];
@@ -337,6 +344,45 @@ const create = async (element, darkMode) => {
 
   const boundedMercator = createBoundedMercator(width, height);
 
+  const getItems = level => {
+    const { lng: minLng, lat: minLat } = map.unproject([0, 0]);
+    const { lng: maxLng, lat: maxLat } = map.unproject([width, height]);
+
+    const bBox = {
+      minX: minLng,
+      maxX: maxLng,
+      minY: -1 * minLat,
+      maxY: -1 * maxLat
+    };
+
+    const items = countriesAndStates.filter(
+      country =>
+        !country.numLevels ||
+        country.numLevels < level ||
+        country.level === level
+    );
+
+    if (level === 2) {
+      const hits = level2Index.search(bBox);
+      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
+    }
+
+    return items;
+  };
+
+  const previewScaleFactor = renderedPreviewHeight / numDays;
+  const previewItemOffset = (item, i) => [
+    renderedItemWidth + i * previewScaleFactor * 2.75 + previewScaleFactor,
+    renderedItemHeight / 2
+  ];
+
+  const pileOrderItems = pile =>
+    [...pile.items].sort((a, b) => {
+      const casesA = data[a].cases[data[a].cases.length - 1];
+      const casesB = data[b].cases[data[b].cases.length - 1];
+      return casesB - casesA;
+    });
+
   const piling = createPilingJs(pilingEl, {
     darkMode,
     cellAspectRatio: aspectRatio,
@@ -344,19 +390,21 @@ const create = async (element, darkMode) => {
     cellPadding: 4,
     coverAggregator,
     renderer,
+    previewAggregator,
     previewRenderer,
     coverRenderer,
-    items: countries,
-    itemSize: 64,
+    items: getItems(1),
+    itemSize: 36,
     navigationMode: 'panZoom',
-    pileBackgroundColor: 'rgba(33, 33, 33, 0.9)',
-    pileBackgroundColorHover: 'rgba(33, 33, 33, 1)',
-    pileBorderSize: 1,
-    pileBorderColor: 'rgba(255, 255, 255, 0.1)',
+    pileBackgroundColor: 'rgba(255, 255, 255, 0)',
+    pileBackgroundColorHover: 'rgba(255, 255, 255, 1)',
+    // pileBorderSize: 1,
+    // pileBorderColor: 'rgba(255, 255, 255, 0.1)',
+    pileBorderColorHover: 'rgba(224, 224, 224, 1.0)',
     pileItemOffset: [0, 0],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileLabel: 'region',
+    // pileLabel: 'region',
     pileLabelAlign: 'top',
     pileLabelStackAlign: 'vertical',
     pileLabelText: pile => pile.items.length === 1,
@@ -364,10 +412,12 @@ const create = async (element, darkMode) => {
     pileLabelTextColor: darkMode
       ? 'rgba(255, 255, 255, 1)'
       : 'rgba(0, 0, 0, 1)',
-    pileSizeBadge: pile => pile.items.length > 1,
-    pileVisibilityItems: pile => pile.items.length === 1,
+    pileOrderItems,
+    // pileSizeBadge: pile => pile.items.length > 1,
     previewOffset: 1,
     previewPadding: 2,
+    previewItemOffset,
+    // previewScaling: [previewScaleFactor * 3, 1],
     projector: ll => boundedMercator.toPx(ll),
     zoomBounds: [0, 8]
   });
@@ -388,40 +438,14 @@ const create = async (element, darkMode) => {
 
   const zoomInThresholds = zoomLevel => {
     if (zoomLevel >= 6) return 2;
-    if (zoomLevel >= 2) return 1;
-    return 0;
+    // if (zoomLevel >= 2) return 1;
+    return 1;
   };
 
   const zoomOutThresholds = zoomLevel => {
-    if (zoomLevel <= 1.5) return 0;
+    // if (zoomLevel <= 1.5) return 0;
     if (zoomLevel <= 4.5) return 1;
     return 2;
-  };
-
-  const getItems = level => {
-    const { lng: minLng, lat: minLat } = map.unproject([0, 0]);
-    const { lng: maxLng, lat: maxLat } = map.unproject([width, height]);
-
-    const bBox = {
-      minX: minLng,
-      maxX: maxLng,
-      minY: -1 * minLat,
-      maxY: -1 * maxLat
-    };
-
-    const items = [...countries];
-
-    if (level >= 1) {
-      const hits = level1Index.search(bBox);
-      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
-    }
-
-    if (level >= 2) {
-      const hits = level1Index.search(bBox);
-      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
-    }
-
-    return items;
   };
 
   const setItems = level => {
@@ -433,7 +457,7 @@ const create = async (element, darkMode) => {
 
   const setItemsDb = debounce(setItems, 500);
 
-  let lastLevel = 0;
+  let lastLevel = 1;
   const updateItems = (zoomLevel, lastZoomLevel) => {
     const level =
       zoomLevel > lastZoomLevel
