@@ -3285,6 +3285,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.previewPadding !== newState.previewPadding ||
       state.previewSpacing !== newState.previewSpacing ||
       state.previewScaling !== newState.previewScaling ||
+      state.previewScaleToCover !== newState.previewScaleToCover ||
       state.previewOffset !== newState.previewOffset ||
       state.previewItemOffset !== newState.previewItemOffset
     ) {

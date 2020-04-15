@@ -737,7 +737,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
   });
   ```
 
-- `previewScaling` defines how much preview items are scaled according to the cover. Normally the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
+- `previewScaling` defines how much preview items are scaled according to the cover. Normally, the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
 
   ```javascript
   piling.set('previewScaling', pileState => {
@@ -745,6 +745,8 @@ Unsubscribe from an event. See [events](#events) for all the events.
     return [xScaling, yScaling];
   });
   ```
+
+  Additionally, `previewScaleToCover` allows to automatically pick the scale factor such that the width or height of the preview are identical to the width and height of the cover. To do so, `previewScaleToCover` accepts a tuple of Boolean values (for the width and height scaling), where `true` will make the preview's width/height scale to the cover's with/height.
 
 - `zoomScale` allows to dynamically adjust the scale factor related to zooming. By default zooming **does not** affect the scale!
 

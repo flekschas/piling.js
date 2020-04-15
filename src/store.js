@@ -264,6 +264,11 @@ const [previewPadding, setPreviewPadding] = setter('previewPadding', 2);
 
 const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
 
+const [
+  previewScaleToCover,
+  setPreviewScaleToCover
+] = setter('previewScaleToCover', [false, false]);
+
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
 
 const [previewOffset, setPreviewOffset] = setter('previewOffset', 2);
@@ -668,11 +673,12 @@ const createStore = () => {
     previewBorderColor,
     previewBorderOpacity,
     previewItemOffset,
+    previewOffset,
     previewPadding,
     previewRenderer,
+    previewScaleToCover,
     previewScaling,
     previewSpacing,
-    previewOffset,
     rowHeight,
     showGrid,
     showSpatialIndex,
@@ -833,11 +839,12 @@ export const createAction = {
   setPreviewBorderColor,
   setPreviewBorderOpacity,
   setPreviewItemOffset,
+  setPreviewOffset,
   setPreviewPadding,
   setPreviewRenderer,
+  setPreviewScaleToCover,
   setPreviewScaling,
   setPreviewSpacing,
-  setPreviewOffset,
   setRowHeight,
   setShowGrid,
   setShowSpatialIndex,

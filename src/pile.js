@@ -721,7 +721,8 @@ const createPile = (
       piles,
       previewItemOffset,
       previewOffset,
-      previewSpacing
+      previewSpacing,
+      previewScaleToCover
     } = store.state;
     const pileState = piles[id];
 
@@ -733,6 +734,12 @@ const createPile = (
       let offset = isFunction(previewOffset)
         ? previewOffset(pileState)
         : previewOffset;
+
+      const [scaleWidthToCover, scaleHeightToCover] = isFunction(
+        previewScaleToCover
+      )
+        ? previewScaleToCover(pileState)
+        : previewScaleToCover;
 
       offset = offset !== null ? offset : spacing / 2;
 
@@ -748,7 +755,10 @@ const createPile = (
         const itemState = store.state.items[item.id];
 
         // Make sure previews are as wide as the cover
-        previewItem.scale.x *= _cover.width / previewItem.width;
+        if (scaleWidthToCover)
+          previewItem.scale.x *= _cover.width / previewItem.width;
+        if (scaleHeightToCover)
+          previewItem.scale.y *= _cover.height / previewItem.height;
 
         let itemOffset;
 
