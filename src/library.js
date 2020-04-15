@@ -3785,6 +3785,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const pileDragEndHandler = ({ target }) => {
     hit = false;
+
+    updatePileBounds(target.id);
+
     const pile = pileInstances.get(target.id);
     const pileGfx = pile.graphics;
 
