@@ -7,7 +7,7 @@ import {
 import { createRepresentativeAggregator } from '../src/aggregator';
 
 const createTimeSeriesPiles = async (element, darkMode) => {
-  const response = await fetch('data/us-daily-precipitation.json');
+  const response = await fetch('data/us-daily-precipitation-remote.json');
 
   // const response = await fetch('data/cube.json');
   // const response = await fetch('data/last-knit.json');
@@ -119,13 +119,14 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     cellSize: 128,
     cellPadding: 32,
     pileCoverScale: 0.9,
+    pileBackgroundColor: 'rgba(255,255,255,1)',
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
-    pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    pileItemRotation: () => Math.random() * 20 - 10,
+    pileItemOffset: () => [Math.random() * 24 - 11, Math.random() * 24 - 11],
+    pileItemRotation: () => Math.random() * 24 - 11,
     pileItemBrightness: (item, i, pile) =>
       pile.items.length > 1
-        ? (0.25 + Math.max(0.25, i * 0.001)) * brightnessMod
+        ? Math.max(-0.25, (pile.items.length - i - 1) * -0.01) * brightnessMod
         : 0,
     zoomScale: cameraScale =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
