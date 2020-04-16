@@ -145,7 +145,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const gridGfx = new PIXI.Graphics();
   const spatialIndexGfx = new PIXI.Graphics();
 
-  const mask = new PIXI.Graphics();
+  const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
   root.addChild(mask);
   stage.mask = mask;
 
@@ -4149,10 +4149,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     renderer.resize(width, height);
 
-    mask
-      .beginFill(0xffffff)
-      .drawRect(0, 0, width, height)
-      .endFill();
+    mask.width = width;
+    mask.height = height;
 
     updateGrid();
 
