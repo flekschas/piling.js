@@ -530,8 +530,8 @@ body.dark-mode #undo {
   }
 }
 
-#polyt-hue::-webkit-slider-runnable-track,
-#nuclei-hue::-webkit-slider-runnable-track {
+#hue-mrna::-webkit-slider-runnable-track,
+#hue-nuclei::-webkit-slider-runnable-track {
   // prettier-ignore
   background: -webkit-linear-gradient(
     right, red, orange, yellow, green, cyan, blue, violet, red
@@ -542,8 +542,8 @@ body.dark-mode #undo {
   );
 }
 
-#polyt-hue::-moz-range-track,
-#nuclei-hue::-moz-range-track {
+#hue-mrna::-moz-range-track,
+#hue-nuclei::-moz-range-track {
   // prettier-ignore
   background: -moz-linear-gradient(
     right, red, orange, yellow, green, cyan, blue, violet, red
