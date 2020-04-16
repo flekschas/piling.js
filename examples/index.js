@@ -1023,6 +1023,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
 
     input.setAttribute('value', currentValue);
 
+    if (field.class) {
+      input.className = `${input.className} ${field.class}`;
+    }
+
     return input;
   };
 
