@@ -140,16 +140,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const root = new PIXI.Container();
 
   const stage = new PIXI.Container();
-  // Fritz: not sure if we really need the following line
-  // stage.sortableChildren = true;
+  root.addChild(stage);
 
   const gridGfx = new PIXI.Graphics();
   const spatialIndexGfx = new PIXI.Graphics();
 
-  root.addChild(stage);
-
   const mask = new PIXI.Graphics();
-  mask.cacheAsBitmap = true;
   root.addChild(mask);
   stage.mask = mask;
 
