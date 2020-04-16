@@ -1,10 +1,6 @@
 import * as d3 from 'd3';
 import createPilingJs from '../src/library';
-import {
-  createImageRenderer,
-  createRepresentativeRenderer
-} from '../src/renderer';
-import { createRepresentativeAggregator } from '../src/aggregator';
+import { createImageRenderer } from '../src/renderer';
 
 const createTimeSeriesPiles = async (element, darkMode) => {
   const response = await fetch('data/us-daily-precipitation-remote.json');
@@ -100,21 +96,11 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
   };
 
-  const representativeRenderer = createRepresentativeRenderer(imageRenderer, {
-    backgroundColor: 0xffffff
-  });
-
-  const representativeAggregator = createRepresentativeAggregator(1, {
-    valueGetter: item => item.umap_gray
-  });
-
   const brightnessMod = darkMode ? -1 : 1;
 
   const piling = createPilingJs(element, {
     darkMode,
     renderer: imageRenderer,
-    coverRenderer: representativeRenderer,
-    coverAggregator: representativeAggregator,
     items: data,
     cellSize: 128,
     cellPadding: 32,
@@ -122,8 +108,25 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     pileBackgroundColor: 'rgba(255,255,255,1)',
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
-    pileItemOffset: () => [Math.random() * 24 - 11, Math.random() * 24 - 11],
-    pileItemRotation: () => Math.random() * 24 - 11,
+    pileItemOffset: (item, i, pile) => {
+      const isLast = pile.items.length - 1 !== i;
+      return [
+        +isLast * (Math.random() * 24 - 11),
+        +isLast * (Math.random() * 24 - 11)
+      ];
+    },
+    pileOrderItems: pile => {
+      const median = Math.floor(pile.items.length / 2);
+      return [
+        ...pile.items.slice(0, median),
+        ...pile.items.slice(median + 1),
+        pile.items[median]
+      ];
+    },
+    pileItemRotation: (item, i, pile) => {
+      const isLast = pile.items.length - 1 !== i;
+      return +isLast * (Math.random() * 24 - 11);
+    },
     pileItemBrightness: (item, i, pile) =>
       pile.items.length > 1
         ? Math.max(-0.25, (pile.items.length - i - 1) * -0.01) * brightnessMod
