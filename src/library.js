@@ -2655,32 +2655,25 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  let splitSpatialIndex;
-  const idToBBox = new Map();
   const createSplitSpatialIndex = (items, coordType) => {
-    if (splitSpatialIndex) return [splitSpatialIndex, idToBBox];
+    // if (splitSpatialIndex) return [splitSpatialIndex, idToBBox];
 
     const { width, height } = canvas.getBoundingClientRect();
 
     const toX = coordType === 'uv' ? x => x * width : identity;
-
     const toY = coordType === 'uv' ? y => y * height : identity;
 
-    splitSpatialIndex = new RBush();
-
-    idToBBox.clear();
+    const splitSpatialIndex = new RBush();
+    const idToBBox = new Map();
 
     const bBoxes = items.map(item => {
-      const bBox =
-        item.minX === undefined
-          ? {
-              id: item.id,
-              minX: toX(item.cX) - item.width / 2,
-              maxX: toX(item.cX) + item.width / 2,
-              minY: toY(item.cY) - item.height / 2,
-              maxY: toY(item.cY) + item.height / 2
-            }
-          : item;
+      const bBox = {
+        id: item.id,
+        minX: toX(item.cX) - item.width / camera.scaling / 2,
+        maxX: toX(item.cX) + item.width / camera.scaling / 2,
+        minY: toY(item.cY) - item.height / camera.scaling / 2,
+        maxY: toY(item.cY) + item.height / camera.scaling / 2
+      };
       idToBBox.set(item.id, bBox);
       return bBox;
     });
@@ -2799,7 +2792,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       piles[currentTarget.id].items.forEach(itemId => {
         if (!assessedItems.has(itemId)) {
-          splitItem(currentTarget, idToBBox.get(itemId));
+          const bBox = idToBBox.get(itemId);
+          if (itemId === currentTarget.id) keepItem(currentTarget, bBox);
+          else splitItem(currentTarget, bBox);
         }
       });
     };
@@ -2815,7 +2810,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (splittedPiles[pileId].split.length)
         out.push(...splittedPiles[pileId].split.map(g => g.items));
 
-      splittedPiles[pileId] = out;
+      if (out.length > 1) splittedPiles[pileId] = out;
+      else delete splittedPiles[pileId];
     });
 
     return splittedPiles;
@@ -2841,9 +2837,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     maxX: target.maxX + distance,
     maxY: target.maxY + distance
   });
-  const splitByDistanceComparator = (target, hit, pixels) => {
+  const splitByDistanceComparator = (target, hit, threshold) => {
     const d = l2RectDist(target, hit);
-    return [l2RectDist(target, hit) < pixels, d];
+    return [d < threshold, d];
   };
   const splitByDistance = splitSpatially({
     toBBox: splitByDistanceBBoxifier,
@@ -2959,6 +2955,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     whenSplittings.then(splittedPiles => {
+      if (!Object.keys(splittedPiles).length) return;
+
       store.dispatch(
         batchActions([
           createAction.setFocusedPiles([]),
@@ -2966,10 +2964,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ])
       );
 
-      Object.entries(splittedPiles).forEach(([pileId, splits]) => {
-        const targets = splits.map(splitGroup => splitGroup[0]);
-        animateDepile(pileId, targets);
-      });
+      Object.entries(splittedPiles)
+        .filter(splittedPile => splittedPile[1].length > 1)
+        .forEach(([pileId, splits]) => {
+          const targets = splits.map(splitGroup => splitGroup[0]);
+          animateDepile(pileId, targets);
+        });
     });
   };
 
@@ -4114,8 +4114,17 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const itemizeSpatialIndex = () => {
     const { piles } = store.state;
 
-    const bBoxes = spatialIndex.all().reduce((b, d) => {
-      b[d.id] = { ...d };
+    // Extract current bounding boxes from rbush
+    const bBoxes = spatialIndex.all().reduce((b, bBox) => {
+      const width = bBox.maxX - bBox.minX;
+      const height = bBox.maxY - bBox.minY;
+      b[bBox.id] = {
+        cX: bBox.minX + width / 2,
+        cY: bBox.minY + width / 2,
+        width,
+        height,
+        id: bBox.id
+      };
       return b;
     }, {});
 
