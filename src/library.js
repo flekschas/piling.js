@@ -3641,7 +3641,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.pileBorderSize !== newState.pileBorderSize ||
         state.pileScale !== newState.pileScale ||
         state.pileSizeBadge !== newState.pileSizeBadge ||
-        state.pileSizeBadgeAlign !== newState.pileSizeBadgeAlign)
+        state.pileSizeBadgeAlign !== newState.pileSizeBadgeAlign ||
+        state.pileVisibilityItems !== newState.pileVisibilityItems)
     ) {
       Object.entries(newState.piles).forEach(([id, pile]) => {
         updatePileStyle(pile, id);
@@ -3670,6 +3671,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (
+      state.itemSize !== newState.itemSize ||
       state.pileItemOffset !== newState.pileItemOffset ||
       state.pileItemRotation !== newState.pileItemRotation ||
       state.previewPadding !== newState.previewPadding ||
