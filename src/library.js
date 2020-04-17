@@ -148,16 +148,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const root = new PIXI.Container();
 
   const stage = new PIXI.Container();
-  // Fritz: not sure if we really need the following line
-  // stage.sortableChildren = true;
+  root.addChild(stage);
 
   const gridGfx = new PIXI.Graphics();
   const spatialIndexGfx = new PIXI.Graphics();
 
-  root.addChild(stage);
-
-  const mask = new PIXI.Graphics();
-  mask.cacheAsBitmap = true;
+  const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
   root.addChild(mask);
   stage.mask = mask;
 
@@ -494,15 +490,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return pileInstances.get(pileId).calcBBox(...getXyOffset());
   };
 
-  const updatePileBounds = pileId => {
+  const updatePileBounds = (pileId, { forceUpdate = false } = {}) => {
     const pile = pileInstances.get(pileId);
 
     spatialIndex.remove(pile.bBox, (a, b) => a.id === b.id);
-    pile.updateBounds(...getXyOffset());
+    pile.updateBounds(...getXyOffset(), forceUpdate);
     spatialIndex.insert(pile.bBox);
     drawSpatialIndex();
     pubSub.publish('pileBoundsUpdate', pileId);
   };
+
+  const updatePileBoundsHandler = ({ id, forceUpdate }) =>
+    updatePileBounds(id, { forceUpdate });
 
   const translatePiles = () => {
     lastPilePosition.forEach((pilePos, pileId) => {
@@ -3676,6 +3675,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.previewPadding !== newState.previewPadding ||
       state.previewSpacing !== newState.previewSpacing ||
       state.previewScaling !== newState.previewScaling ||
+      state.previewScaleToCover !== newState.previewScaleToCover ||
       state.previewOffset !== newState.previewOffset ||
       state.previewItemOffset !== newState.previewItemOffset
     ) {
@@ -4636,10 +4636,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (camera) camera.setViewCenter([containerWidth / 2, containerHeight / 2]);
 
-    mask
-      .beginFill(0xffffff)
-      .drawRect(0, 0, containerWidth, containerHeight)
-      .endFill();
+    mask.width = width;
+    mask.height = height;
 
     updateGrid();
 
@@ -4923,7 +4921,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('pileDragEnd', pileDragEndHandler);
     pubSub.subscribe('startAnimation', startAnimationHandler);
     pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
-    pubSub.subscribe('updatePileBounds', updatePileBounds);
+    pubSub.subscribe('updatePileBounds', updatePileBoundsHandler);
 
     storeUnsubscribor = store.subscribe(updated);
 

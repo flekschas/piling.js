@@ -2,7 +2,7 @@ import { line } from 'd3-shape';
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
 
-const createSvgLinesPiles = async (element, darkMode) => {
+const create = async (element, darkMode) => {
   const response = await fetch('data/monthly_temp_deviation_decades.json');
   const data = await response.json();
 
@@ -141,4 +141,4 @@ const createSvgLinesPiles = async (element, darkMode) => {
   return piling;
 };
 
-export default createSvgLinesPiles;
+export default create;

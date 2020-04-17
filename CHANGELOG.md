@@ -29,7 +29,7 @@
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position previews with a per-item callback function (#113)
 - Add `previewOffset` and `previewPadding` and adjust `previewSpacing` to position previews with a per-pile callback function (#148)
-- Add `previewScaling` to adjust the x and y scaling factor of previews with a per-pile callback function (#148)
+- Add `previewScaling` and `previewScaleToCover` to adjust the x and y scaling factor or width/height of previews relative to the cover (#148)
 - Add representative [aggregator](https://piling.js.org/docs/#/README?id=representative-renderer) and [renderer](https://piling.js.org/docs/#/README?id=representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size

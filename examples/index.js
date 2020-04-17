@@ -5,7 +5,7 @@ import createSvgLinesPiles from './covid-19';
 import createScatterplotPiles from './scatterplots';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
-import createJoyPlotPiles from './joy-plot';
+import createRidgePlotPiles from './ridge-plot';
 import createTimeSeriesPiles from './time-series';
 
 import './index.scss';
@@ -16,7 +16,7 @@ const svgEl = document.getElementById('svg');
 const scatterplotsEl = document.getElementById('scatterplots');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
-const joyplotEl = document.getElementById('joyplot');
+const ridgePlotEl = document.getElementById('ridgeplot');
 const timeseriesEl = document.getElementById('timeseries');
 
 const photosCreditEl = document.getElementById('photos-credit');
@@ -25,7 +25,7 @@ const svgCreditEl = document.getElementById('svg-credit');
 const scatterplotsCreditEl = document.getElementById('scatterplots-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
-const joyplotCreditEl = document.getElementById('joyplot-credit');
+const ridgePlotCreditEl = document.getElementById('ridgeplot-credit');
 const timeseriesCreditEl = document.getElementById('timeseries-credit');
 
 const conditionalElements = [
@@ -35,7 +35,7 @@ const conditionalElements = [
   scatterplotsEl,
   drawingsEl,
   vitessceEl,
-  joyplotEl,
+  ridgePlotEl,
   timeseriesEl,
   photosCreditEl,
   matricesCreditEl,
@@ -43,7 +43,7 @@ const conditionalElements = [
   scatterplotsCreditEl,
   drawingsCreditEl,
   vitessceCreditEl,
-  joyplotCreditEl,
+  ridgePlotCreditEl,
   timeseriesCreditEl
 ];
 
@@ -104,7 +104,7 @@ const pilingEls = {
   matrices: matricesEl,
   lines: svgEl,
   drawings: drawingsEl,
-  joyplot: joyplotEl,
+  ridgeplot: ridgePlotEl,
   vitessce: vitessceEl,
   scatterplots: scatterplotsEl,
   timeseries: timeseriesEl
@@ -165,13 +165,13 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandlerIdled);
       break;
 
-    case 'joyplot':
+    case 'ridgeplot':
       if (piling) piling.destroy();
       conditionalElements.forEach(hideEl);
-      joyplotEl.style.display = 'block';
-      joyplotCreditEl.style.display = 'block';
+      ridgePlotEl.style.display = 'block';
+      ridgePlotCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      piling = await createJoyPlotPiles(joyplotEl, darkMode);
+      piling = await createRidgePlotPiles(ridgePlotEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandlerIdled);
       break;
@@ -251,7 +251,7 @@ switch (example) {
     exampleEl.selectedIndex = 3;
     break;
 
-  case 'joyplot':
+  case 'ridgeplot':
     exampleEl.selectedIndex = 4;
     break;
 
@@ -1038,6 +1038,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     }
 
     input.setAttribute('value', currentValue);
+
+    if (field.class) {
+      input.className = `${input.className} ${field.class}`;
+    }
 
     return input;
   };

@@ -6,8 +6,10 @@ import {
   createMatrixRenderer,
   createRepresentativeRenderer
 } from '../src/renderer';
+import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
+import createBBox from '../src/bounding-box';
 import { createScale } from '../src/utils';
 
 import { rgb2hsv } from './vitessce-utils';
@@ -15,18 +17,30 @@ import { rgb2hsv } from './vitessce-utils';
 const METADATA_URL =
   'https://vitessce-data.s3.amazonaws.com/0.0.24/master_release/linnarsson/linnarsson.cells.json';
 
-const createVitessce = async (element, darkMode) => {
-  let response = await fetch(METADATA_URL);
-  const metadata = await response.json();
+const ZARR_URL =
+  'https://vitessce-data.storage.googleapis.com/0.0.24/master_release/linnarsson/linnarsson.images.zarr/pyramid/';
 
-  response = await fetch('data/vitessce/sample.json');
-  const data = await response.json();
+const ZARR_MIN_ZOOM = -6;
+
+const ZARR_CHANNELS = {
+  polyT: ZARR_URL,
+  nuclei: ZARR_URL
+};
+
+// Absolute value ranges.
+// const ZARR_RANGES = {
+//   polyT: [0, 3834],
+//   nuclei: [0, 3790]
+// };
+
+const createVitessce = async (element, darkMode) => {
+  const response = await fetch(METADATA_URL);
+  const metadata = await response.json();
 
   // Stratify cells by factors
   const cellsByFactor = {};
   const tsneXDomain = [Infinity, -Infinity];
   const tsneYDomain = [Infinity, -Infinity];
-
   Object.entries(metadata).forEach(([id, cell]) => {
     const { cluster, subcluster } = cell.factors;
 
@@ -36,40 +50,38 @@ const createVitessce = async (element, darkMode) => {
     cellsByFactor[cluster][id] = cell;
     cellsByFactor[subcluster][id] = cell;
 
-    if (data[id]) {
-      data[id] = {
-        ...cell,
-        data: data[id],
-        factors: {
-          cluster,
-          subcluster
-        }
-      };
-    }
-
     tsneXDomain[0] = Math.min(tsneXDomain[0], cell.mappings['t-SNE'][0]);
     tsneXDomain[1] = Math.max(tsneXDomain[1], cell.mappings['t-SNE'][0]);
     tsneYDomain[0] = Math.min(tsneYDomain[0], cell.mappings['t-SNE'][1]);
     tsneYDomain[1] = Math.max(tsneYDomain[1], cell.mappings['t-SNE'][1]);
   }, {});
 
-  Object.entries(data).forEach(([id, cell]) => {
-    if (!cellsByFactor.Sample) cellsByFactor.Sample = {};
-
-    cell.data = cell.data.map(d => ({
-      ...d,
-      values: new Float32Array(d.values)
-    }));
-
-    cellsByFactor.Sample[id] = cell;
-  });
-
   const tsneXScale = createScale().domain(tsneXDomain);
   const tsneYScale = createScale().domain(tsneYDomain);
 
-  const selectedFactor = 'Sample';
+  const selectedFactor = 'Oligodendrocyte MF';
 
   const itemSize = 64;
+
+  const polyToBbox = polygon =>
+    createBBox()(
+      polygon.reduce(
+        (bBox, point) => ({
+          minX: Math.min(bBox.minX, point[0]),
+          minY: Math.min(bBox.minY, point[1]),
+          maxX: Math.max(bBox.maxX, point[0]),
+          maxY: Math.max(bBox.maxY, point[1])
+        }),
+        {
+          minX: Infinity,
+          minY: Infinity,
+          maxX: -Infinity,
+          maxY: -Infinity
+        }
+      )
+    );
+
+  const padding = 0.25;
 
   const rgbStr2rgba = (rgbStr, alpha = 1) => {
     return [
@@ -88,7 +100,10 @@ const createVitessce = async (element, darkMode) => {
         rgbStr2rgba(interpolateGreys(Math.abs((numColors - i) / numColors)))
       );
 
-  const getData = async source => data[source.id].data;
+  const getData = await createVitessceDataFetcher({
+    channels: ZARR_CHANNELS,
+    minZoom: ZARR_MIN_ZOOM
+  });
 
   let numGenes = 0;
   const createItems = factor =>
@@ -96,9 +111,7 @@ const createVitessce = async (element, darkMode) => {
       const item = {
         id,
         embeddingTsne: cell.mappings['t-SNE'],
-        embeddingPca: cell.mappings.PCA,
-        cellType: cell.factors.cluster,
-        cellSubType: cell.factors.subcluster
+        embeddingPca: cell.mappings.PCA
       };
 
       const genes = [];
@@ -109,8 +122,23 @@ const createVitessce = async (element, darkMode) => {
 
       numGenes = genes.length;
 
+      const bBox = polyToBbox(cell.poly);
+      const cellSize = Math.max(bBox.width, bBox.height);
+      const paddedCellSize = cellSize * (1 + padding * 2);
+      const zoom = Math.max(
+        ZARR_MIN_ZOOM,
+        -Math.log2(paddedCellSize / itemSize)
+      );
+
       item.src = {
-        id,
+        minX: bBox.minX - bBox.width * padding,
+        minY: bBox.minY - bBox.height * padding,
+        maxX: bBox.maxX + bBox.width * padding,
+        maxY: bBox.maxY + bBox.height * padding,
+        cX: bBox.cX,
+        cY: bBox.cY,
+        zoom,
+        zoomLevel: Math.ceil(zoom),
         genes
       };
 
@@ -119,9 +147,74 @@ const createVitessce = async (element, darkMode) => {
 
   const items = createItems(selectedFactor);
 
+  // function download(content, fileName, contentType) {
+  //   const a = document.createElement('a');
+  //   const file = new Blob([content], { type: contentType });
+  //   a.href = URL.createObjectURL(file);
+  //   a.download = fileName;
+  //   a.click();
+  // }
+
+  // const rleEncode = array => {
+  //   let run = 0;
+  //   const o = [];
+
+  //   for (let i = 0; i < array.length; i++) {
+  //     if (!array[i]) {
+  //       run++;
+  //     } else {
+  //       if (run > 0) {
+  //         o.push(0, run);
+  //         run = 0;
+  //       }
+  //       o.push(array[i]);
+  //     }
+  //   }
+
+  //   return o;
+  // };
+
+  // const rleDecode = d => {
+  //   const o = new Float32Array(d.size);
+
+  //   let k = 0;
+  //   for (let i = 0; i < d.rle.length; i++) {
+  //     if (!d.rle[i]) {
+  //       k += d.rle[i + 1];
+  //       i++; // Skip next number
+  //     } else {
+  //       o[k] = d.rle[i];
+  //       k++;
+  //     }
+  //   }
+
+  //   return o;
+  // };
+
+  // const downloadItems = async items => {
+  //   const data = {};
+
+  //   // eslint-disable-next-line no-restricted-syntax
+  //   for (const item of items) {
+  //     // eslint-disable-next-line no-await-in-loop
+  //     const d = await getData(item.src);
+  //     data[item.id] = d.map(daddy => ({
+  //       shape: daddy.shape,
+  //       dtype: daddy.dtype,
+  //       size: daddy.size,
+  //       values: Array.from(daddy.values)
+  //       // rle: rleEncode(daddy.values)
+  //     }));
+  //   }
+
+  //   download(JSON.stringify(data), 'vitessce-data.json', 'application/json');
+  // };
+
   const colors = {
-    polyT: [0, 255, 0],
-    nuclei: [0, 0, 255]
+    // polyT: [255, 128, 0],
+    // nuclei: [0, 128, 255]
+    polyT: [0, 0, 255],
+    nuclei: [0, 255, 0]
   };
 
   const vitessceRenderer = createVitessceRenderer(getData, {
@@ -180,7 +273,7 @@ const createVitessce = async (element, darkMode) => {
     coverRenderer: representativeRenderer,
     previewAggregator,
     previewRenderer: previewRenderer.renderer,
-    items,
+    items: items.slice(0, 1),
     itemSize,
     cellSize: 64,
     cellPadding: 8,
@@ -209,38 +302,37 @@ const createVitessce = async (element, darkMode) => {
   });
 
   const additionalSidebarOptions = [
-    // {
-    //   id: 'factor',
-    //   title: 'Subset',
-    //   fields: [
-    //     {
-    //       name: 'items',
-    //       dtype: 'string',
-    //       defaultValue: selectedFactor,
-    //       values: ['-', ...Object.keys(cellsByFactor)],
-    //       labels: [
-    //         '-',
-    //         ...Object.keys(cellsByFactor).map(
-    //           cluster =>
-    //             `${cluster} (${Object.keys(cellsByFactor[cluster]).length})`
-    //         )
-    //       ],
-    //       setter: factor => {
-    //         vitessceRenderer.clear();
-    //         let newItems = createItems(factor);
-    //         // piling.set('items', createItems(factor));
-    //       }
-    //     }
-    //   ]
-    // },
+    {
+      id: 'factor',
+      title: 'Subset',
+      fields: [
+        {
+          name: 'items',
+          dtype: 'string',
+          defaultValue: selectedFactor,
+          values: ['-', ...Object.keys(cellsByFactor)],
+          labels: [
+            '-',
+            ...Object.keys(cellsByFactor).map(
+              cluster =>
+                `${cluster} (${Object.keys(cellsByFactor[cluster]).length})`
+            )
+          ],
+          setter: factor => {
+            vitessceRenderer.clear();
+            piling.set('items', createItems(factor));
+          }
+        }
+      ]
+    },
     {
       id: 'coloring',
       title: 'Coloring',
       fields: [
         {
-          name: 'mRNA',
-          id: 'hue-mrna',
+          name: 'poly-T',
           labelMinWidth: '4rem',
+          id: 'polyt-hue',
           dtype: 'float',
           min: 0,
           max: 1,
@@ -253,9 +345,9 @@ const createVitessce = async (element, darkMode) => {
           }
         },
         {
-          name: 'Nuclei',
-          id: 'hue-nuclei',
+          name: 'nuclei',
           labelMinWidth: '4rem',
+          id: 'nuclei-hue',
           dtype: 'float',
           min: 0,
           max: 1,

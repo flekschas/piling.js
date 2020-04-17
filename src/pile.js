@@ -554,18 +554,18 @@ const createPile = (
    * Calculate the current anchor box of the pile
    * @return  {object}  Anchor bounding box
    */
-  const calcAnchorBox = (xOffset = 0, yOffset = 0, enforceUpdate) => {
+  const calcAnchorBox = (xOffset = 0, yOffset = 0, forceUpdate) => {
     let bounds;
     let localXOffset = 0;
     let localYOffset = 0;
 
     if (coverContainer.children.length) {
-      bounds = coverContainer.getBounds(!enforceUpdate);
+      bounds = coverContainer.getBounds(!forceUpdate);
     } else {
-      bounds = normalItemContainer.getBounds(!enforceUpdate);
+      bounds = normalItemContainer.getBounds(!forceUpdate);
       if (allItems.length > 1) {
         const firstItemBounds = allItems[0].displayObject.getBounds(
-          !enforceUpdate
+          !forceUpdate
         );
         localXOffset = bounds.x - firstItemBounds.x;
         localYOffset = bounds.y - firstItemBounds.y;
@@ -582,16 +582,16 @@ const createPile = (
     });
   };
 
-  const updateAnchorBox = (xOffset, yOffset, enforceUpdate) => {
-    anchorBox = calcAnchorBox(xOffset, yOffset, enforceUpdate);
+  const updateAnchorBox = (xOffset, yOffset, forceUpdate) => {
+    anchorBox = calcAnchorBox(xOffset, yOffset, forceUpdate);
   };
 
   /**
    * Compute the current bounding box of the pile
    * @return  {object}  Pile bounding box
    */
-  const calcBBox = (xOffset = 0, yOffset = 0, enforceUpdate) => {
-    const bounds = borderedContentContainer.getBounds(!enforceUpdate);
+  const calcBBox = (xOffset = 0, yOffset = 0, forceUpdate) => {
+    const bounds = borderedContentContainer.getBounds(!forceUpdate);
 
     return createPileBBox({
       minX: bounds.x - xOffset,
@@ -601,13 +601,13 @@ const createPile = (
     });
   };
 
-  const updateBBox = (xOffset, yOffset, enforceUpdate) => {
-    bBox = calcBBox(xOffset, yOffset, enforceUpdate);
+  const updateBBox = (xOffset, yOffset, forceUpdate) => {
+    bBox = calcBBox(xOffset, yOffset, forceUpdate);
   };
 
-  const updateBounds = (xOffset, yOffset, enforceUpdate) => {
-    updateAnchorBox(xOffset, yOffset, enforceUpdate);
-    updateBBox(xOffset, yOffset, enforceUpdate);
+  const updateBounds = (xOffset, yOffset, forceUpdate) => {
+    updateAnchorBox(xOffset, yOffset, forceUpdate);
+    updateBBox(xOffset, yOffset, forceUpdate);
   };
 
   const getOpacity = () => rootContainer.alpha;
@@ -689,7 +689,7 @@ const createPile = (
             fn();
           });
           postPilePositionAnimation.clear();
-          pubSub.publish('updatePileBounds', id);
+          pubSub.publish('updatePileBounds', { id });
           if (isPlaceholderDrawn) removePlaceholder();
         }
       }
@@ -719,7 +719,8 @@ const createPile = (
       piles,
       previewItemOffset,
       previewOffset,
-      previewSpacing
+      previewSpacing,
+      previewScaleToCover
     } = store.state;
     const pileState = piles[id];
 
@@ -731,6 +732,12 @@ const createPile = (
       let offset = isFunction(previewOffset)
         ? previewOffset(pileState)
         : previewOffset;
+
+      const [scaleWidthToCover, scaleHeightToCover] = isFunction(
+        previewScaleToCover
+      )
+        ? previewScaleToCover(pileState)
+        : previewScaleToCover;
 
       offset = offset !== null ? offset : spacing / 2;
 
@@ -745,8 +752,10 @@ const createPile = (
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        // Make sure previews are as wide as the cover
-        // previewItem.scale.x *= _cover.width / previewItem.width;
+        if (scaleWidthToCover)
+          previewItem.scale.x *= _cover.width / previewItem.width;
+        if (scaleHeightToCover)
+          previewItem.scale.y *= _cover.height / previewItem.height;
 
         let itemOffset;
 
@@ -897,7 +906,8 @@ const createPile = (
     const done = () => {
       drawBorder();
       drawLabel();
-      if (!isSame) pubSub.publish('updatePileBounds', id);
+      if (!isSame)
+        pubSub.publish('updatePileBounds', { id, forceUpdate: true });
       onDone();
     };
 
@@ -986,7 +996,7 @@ const createPile = (
 
     if (d < 3) {
       moveTo(x, y);
-      if (d > EPS) pubSub.publish('updatePileBounds', id);
+      if (d > EPS) pubSub.publish('updatePileBounds', { id });
       onDone();
       return null;
     }
@@ -1009,7 +1019,7 @@ const createPile = (
       setter: xy => moveTo(xy[0], xy[1]),
       onDone: () => {
         isMoving = false;
-        pubSub.publish('updatePileBounds', id);
+        pubSub.publish('updatePileBounds', { id });
         onDone();
       }
     });
@@ -1260,7 +1270,7 @@ const createPile = (
           coverContainer.removeChildAt(0);
         }
         coverContainer.addChild(cover.displayObject);
-        pubSub.publish('updatePileBounds', id);
+        pubSub.publish('updatePileBounds', { id, forceUpdate: true });
         drawBorder();
       });
     }
