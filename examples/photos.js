@@ -70,7 +70,7 @@ const createPhotoPiles = async (element, darkMode) => {
     renderer: imageRenderer,
     items: data,
     columns: 20,
-    cellPadding: 4,
+    cellPadding: 16,
     // Use with `node scripts/measure-init-time`
     // columns: 10, // 200
     // columns: 15, // 500
@@ -83,18 +83,27 @@ const createPhotoPiles = async (element, darkMode) => {
     // cellPadding: 2, // 2000
     // cellPadding: 1, // 5000
     pileCellAlignment: 'center',
-    cellAspectRatio: 1.5,
+    cellAspectRatio: 1.1,
     pileBorderColor: pile =>
       interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
     pileBorderSize: pile => Math.log(pile.items.length),
-    // pileItemOffset: () => [Math.random() * 20 - 10, Math.random() * 20 - 10],
-    // pileItemRotation: () => Math.random() * 20 - 10,
-    pileItemOffset: (item, i, pile) => [
-      Math.random() * 4 - 2,
-      -i * (2 * ((i + 1) / pile.items.length) ** 2) + (Math.random() * 2 - 1)
-    ],
-    pileItemRotation: (item, i, pile) =>
-      i === pile.items.length - 1 ? 0 : Math.random() * 16 - 8,
+    pileItemOffset: (item, i, pile) => {
+      const isNotLast = pile.items.length - 1 !== i;
+      return [
+        +isNotLast * (Math.random() * 12 - 6),
+        +isNotLast * (Math.random() * 12 - 6)
+      ];
+    },
+    pileItemRotation: (item, i, pile) => {
+      const isNotLast = pile.items.length - 1 !== i;
+      return +isNotLast * (Math.random() * 12 - 6);
+    },
+    // pileItemOffset: (item, i, pile) => [
+    //   Math.random() * 4 - 2,
+    //   -i * (2 * ((i + 1) / pile.items.length) ** 2) + (Math.random() * 2 - 1)
+    // ],
+    // pileItemRotation: (item, i, pile) =>
+    //   i === pile.items.length - 1 ? 0 : Math.random() * 16 - 8,
     zoomScale: scale => scale
   });
 
@@ -156,7 +165,7 @@ const createPhotoPiles = async (element, darkMode) => {
           action: async () => {
             iScale.range([0, yRange - 1]);
 
-            piling.set('columns', maxJ + 1);
+            piling.set('columns', maxJ);
 
             await piling.arrangeBy('ij', pile => {
               const item = data[pile.id];
