@@ -2858,8 +2858,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         // eslint-disable-next-line no-shadow
         const splits = pileState.items.reduce((splits, itemId, index) => {
           const cat = objective
-            .map(o =>
-              o.property(
+            .map(objectiveFn =>
+              objectiveFn(
                 store.state.items[itemId],
                 itemId,
                 index,
@@ -2967,7 +2967,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
 
       Object.entries(splittedPiles).forEach(([pileId, splits]) => {
-        const targets = splits.map(s => Math.min.apply(null, s).toString());
+        const targets = splits.map(splitGroup => splitGroup[0]);
         animateDepile(pileId, targets);
       });
     });
@@ -2991,7 +2991,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
   };
 
-  const splitAll = () => splitBy('category', 'id');
+  const splitAll = () => splitByPublic('category', 'id');
 
   const updateNavigationMode = () => {
     const {

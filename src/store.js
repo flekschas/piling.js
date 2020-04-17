@@ -583,7 +583,7 @@ const piles = (previousState = {}, action) => {
         if (splits <= 1) return;
 
         splits.forEach(itemIds => {
-          const target = Math.min.apply([], itemIds);
+          const target = itemIds[0];
           newState[target] = {
             ...newState[source],
             items: itemIds
