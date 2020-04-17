@@ -1,7 +1,7 @@
 import { isFunction } from '@flekschas/utils';
 import createPhotoPiles from './photos';
 import createMatrixPiles from './matrices';
-import createSvgLinesPiles from './covid-19';
+import createCovidPiles from './covid-19';
 import createScatterplotPiles from './scatterplots';
 import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
@@ -12,7 +12,7 @@ import './index.scss';
 
 const photosEl = document.getElementById('photos');
 const matricesEl = document.getElementById('matrices');
-const svgEl = document.getElementById('svg');
+const covidEl = document.getElementById('covid');
 const scatterplotsEl = document.getElementById('scatterplots');
 const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
@@ -21,7 +21,7 @@ const timeseriesEl = document.getElementById('timeseries');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
-const svgCreditEl = document.getElementById('svg-credit');
+const covidCreditEl = document.getElementById('covid-credit');
 const scatterplotsCreditEl = document.getElementById('scatterplots-credit');
 const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
@@ -31,7 +31,7 @@ const timeseriesCreditEl = document.getElementById('timeseries-credit');
 const conditionalElements = [
   photosEl,
   matricesEl,
-  svgEl,
+  covidEl,
   scatterplotsEl,
   drawingsEl,
   vitessceEl,
@@ -39,7 +39,7 @@ const conditionalElements = [
   timeseriesEl,
   photosCreditEl,
   matricesCreditEl,
-  svgCreditEl,
+  covidCreditEl,
   scatterplotsCreditEl,
   drawingsCreditEl,
   vitessceCreditEl,
@@ -102,7 +102,7 @@ const hideEl = el => {
 const pilingEls = {
   photos: photosEl,
   matrices: matricesEl,
-  lines: svgEl,
+  covid: covidEl,
   drawings: drawingsEl,
   ridgeplot: ridgePlotEl,
   vitessce: vitessceEl,
@@ -140,13 +140,13 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandlerIdled);
       break;
 
-    case 'lines':
+    case 'covid':
       if (piling) piling.destroy();
       conditionalElements.forEach(hideEl);
-      svgEl.style.display = 'block';
-      svgCreditEl.style.display = 'block';
+      covidEl.style.display = 'block';
+      covidCreditEl.style.display = 'block';
       undoButton.disabled = true;
-      [piling, additionalOptions] = await createSvgLinesPiles(svgEl, darkMode);
+      [piling, additionalOptions] = await createCovidPiles(covidEl, darkMode);
       history = [];
       piling.subscribe('update', updateHandlerIdled);
       break;
@@ -243,7 +243,7 @@ switch (example) {
     exampleEl.selectedIndex = 1;
     break;
 
-  case 'lines':
+  case 'covid':
     exampleEl.selectedIndex = 2;
     break;
 
