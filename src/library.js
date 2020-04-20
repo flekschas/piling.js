@@ -691,9 +691,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const initGrid = () => {
     const { orderer } = store.state;
 
-    const { width, height } = canvas.getBoundingClientRect();
-
-    layout = createGrid({ width, height, orderer }, store.state);
+    layout = createGrid(
+      { width: containerWidth, height: containerHeight, orderer },
+      store.state
+    );
 
     updateScrollHeight();
   };
@@ -703,9 +704,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const oldLayout = layout;
 
-    const { width, height } = canvas.getBoundingClientRect();
-
-    layout = createGrid({ width, height, orderer }, store.state);
+    layout = createGrid(
+      { width: containerWidth, height: containerHeight, orderer },
+      store.state
+    );
 
     // eslint-disable-next-line no-use-before-define
     updateLayout(oldLayout, layout);
@@ -2470,10 +2472,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const groupByGrid = async objective => {
     const { orderer, piles } = store.state;
 
-    const { width, height } = canvas.getBoundingClientRect();
-
     const grid = objective
-      ? createGrid({ width, height, orderer }, objective)
+      ? createGrid(
+          { width: containerWidth, height: containerHeight, orderer },
+          objective
+        )
       : layout;
 
     return Object.entries(piles).reduce((groups, [pileId, pileState]) => {
@@ -2656,12 +2659,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const createSplitSpatialIndex = (items, coordType) => {
-    // if (splitSpatialIndex) return [splitSpatialIndex, idToBBox];
-
-    const { width, height } = canvas.getBoundingClientRect();
-
-    const toX = coordType === 'uv' ? x => x * width : identity;
-    const toY = coordType === 'uv' ? y => y * height : identity;
+    const toX = coordType === 'uv' ? x => x * containerWidth : identity;
+    const toY = coordType === 'uv' ? y => y * containerHeight : identity;
 
     const splitSpatialIndex = new RBush();
     const idToBBox = new Map();
@@ -2669,6 +2668,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const bBoxes = items.map(item => {
       const bBox = {
         id: item.id,
+        cX: item.cX,
         minX: toX(item.cX) - item.width / camera.scaling / 2,
         maxX: toX(item.cX) + item.width / camera.scaling / 2,
         minY: toY(item.cY) - item.height / camera.scaling / 2,
@@ -3170,8 +3170,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   let arrangement2dScales = [];
   const updateArrangement2dScales = () => {
     const { arrangementObjective } = store.state;
-    const { width, height } = canvas.getBoundingClientRect();
-    const rangeMax = [width, height];
+    const rangeMax = [containerWidth, containerHeight];
 
     arrangement2dScales = arrangementObjective.map((objective, i) => {
       const currentScale = arrangement2dScales[i];
@@ -4121,8 +4120,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       const width = bBox.maxX - bBox.minX;
       const height = bBox.maxY - bBox.minY;
       b[bBox.id] = {
-        cX: bBox.minX + width / 2,
-        cY: bBox.minY + width / 2,
+        cX: (bBox.minX + width / 2) / containerWidth,
+        cY: (bBox.minY + width / 2) / containerHeight,
         width,
         height,
         id: bBox.id
