@@ -3131,11 +3131,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
 
         minValue = newMin
-          ? aggregatedPileValues[pileSortPosByAggregate[i].indexOf(minPos)][i]
+          ? aggregatedPileValues[pileSortPosByAggregate[i][minPos]][i]
           : minValue;
 
         maxValue = newMax
-          ? aggregatedPileValues[pileSortPosByAggregate[i].indexOf(maxPos)][i]
+          ? aggregatedPileValues[pileSortPosByAggregate[i][maxPos]][i]
           : maxValue;
       }
 
