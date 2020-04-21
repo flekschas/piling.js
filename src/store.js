@@ -579,17 +579,20 @@ const piles = (previousState = {}, action) => {
 
       const newState = { ...previousState };
 
-      Object.entries(action.payload.piles).forEach(([source, splits]) => {
-        if (splits <= 1) return;
-
-        splits.forEach(itemIds => {
-          const target = itemIds[0];
-          newState[target] = {
-            ...newState[source],
-            items: itemIds
-          };
+      // The 0th index represents the groups that is kept on the source pile
+      Object.entries(action.payload.piles)
+        // If there is only one split group we don't have to do anything
+        .filter(splittedPiles => splittedPiles[1].length > 1)
+        .forEach(([source, splits]) => {
+          splits.forEach(itemIds => {
+            newState[itemIds[0]] = {
+              ...newState[itemIds[0]],
+              x: newState[source].x,
+              y: newState[source].y,
+              items: [...itemIds]
+            };
+          });
         });
-      });
       return newState;
     }
 
