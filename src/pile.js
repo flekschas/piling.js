@@ -559,8 +559,14 @@ const createPile = (
     let localXOffset = 0;
     let localYOffset = 0;
 
-    if (coverContainer.children.length) {
-      bounds = coverContainer.getBounds(!forceUpdate);
+    if (whenCover) {
+      if (coverContainer.children.length) {
+        bounds = coverContainer.getBounds(!forceUpdate);
+      } else {
+        // We're in the middle of updating the cover so lets return the
+        // old anchor box for now.
+        return anchorBox;
+      }
     } else {
       bounds = normalItemContainer.getBounds(!forceUpdate);
       if (allItems.length > 1) {
