@@ -1103,14 +1103,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const getPilePositionBy1dOrdering = pileId => {
     const pile = pileInstances.get(pileId);
-    return Promise.resolve(
-      layout.idxToXy(
-        pileSortPosByAggregate[0][pileId],
-        pile.width,
-        pile.height,
-        pile.offset
-      )
+    const pos = layout.idxToXy(
+      pileSortPosByAggregate[0][pileId],
+      pile.width,
+      pile.height,
+      pile.offset
     );
+    return Promise.resolve(pos);
   };
 
   const getPilePositionBy2dScales = pileId =>
@@ -1581,7 +1580,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           cachedMdPilePos.set(id, itemInstances[0].originalPosition);
         }
 
-        updatePileBounds(id);
+        updatePileBounds(id, { forceUpdate: true });
         updatePileItemStyle(pileState, id);
       }
     } else {
@@ -3130,13 +3129,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           }
         });
 
-        minValue = newMin
-          ? aggregatedPileValues[pileSortPosByAggregate[i][minPos]][i]
-          : minValue;
+        // Todo: improve
+        if (newMin) {
+          const [pileId] = Object.entries(pileSortPosByAggregate[i]).find(
+            pileIdAndPos => {
+              if (pileIdAndPos[1] === minPos) return true;
+              return false;
+            }
+          );
+          minValue = aggregatedPileValues[pileId][i];
+        }
 
-        maxValue = newMax
-          ? aggregatedPileValues[pileSortPosByAggregate[i][maxPos]][i]
-          : maxValue;
+        if (newMax) {
+          const [pileId] = Object.entries(pileSortPosByAggregate[i]).find(
+            pileIdAndPos => {
+              if (pileIdAndPos[1] === maxPos) return true;
+              return false;
+            }
+          );
+          maxValue = aggregatedPileValues[pileId][i];
+        }
       }
 
       pileIds.forEach(pileId => {
@@ -4289,9 +4301,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let done = 0;
     animator.addBatch(
       otherPileIds.map(pileId =>
-        getPileMoveToTweener(pileInstances.get(pileId), x, y, {
-          onDone
-        })
+        getPileMoveToTweener(pileInstances.get(pileId), x, y, { onDone })
       )
     );
   };
