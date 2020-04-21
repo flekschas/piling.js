@@ -1,4 +1,4 @@
-import { debounce } from '@flekschas/utils';
+// import { debounce } from '@flekschas/utils';
 import * as d3 from 'd3';
 import * as RBush from 'rbush';
 
@@ -33,7 +33,10 @@ const createMapbox = (element, darkMode) => () => {
   mapEl.style.zIndex = 0;
   mapEl.style.width = '100%';
   mapEl.style.height = '100%';
+  mapEl.style.opacity = 0;
+  mapEl.style.transition = 'opacity 0.25s ease';
 
+  window.mapboxgl.workerCount = 1;
   window.mapboxgl.accessToken =
     'pk.eyJ1IjoiZmxla3NjaGFzIiwiYSI6ImNqZXB2aWd4NDBmZTIzM3BjdGZudTFob2oifQ.Jnmp1xWJyS4_lRhzrZAFBQ';
 
@@ -52,26 +55,26 @@ const createMapbox = (element, darkMode) => () => {
   return map;
 };
 
-const monthNames = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec'
-];
+// const monthNames = [
+//   'Jan',
+//   'Feb',
+//   'Mar',
+//   'Apr',
+//   'May',
+//   'Jun',
+//   'Jul',
+//   'Aug',
+//   'Sep',
+//   'Oct',
+//   'Nov',
+//   'Dec'
+// ];
 
-const addDays = (date, days) => {
-  const copy = new Date(Number(date));
-  copy.setDate(date.getDate() + days);
-  return copy;
-};
+// const addDays = (date, days) => {
+//   const copy = new Date(Number(date));
+//   copy.setDate(date.getDate() + days);
+//   return copy;
+// };
 
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
@@ -86,8 +89,8 @@ const create = async (element, darkMode) => {
   data = await data.json();
 
   const numDays = data.US.cases.length;
-  const startDate = new Date('2020-01-22:00:00');
-  const endDate = addDays(startDate, data.US.cases.length);
+  // const startDate = new Date('2020-01-22:00:00');
+  // const endDate = addDays(startDate, data.US.cases.length);
 
   const map = await loadMapbox().then(createMapbox(element, darkMode));
   map.setCenter([0, 0]);
@@ -123,11 +126,12 @@ const create = async (element, darkMode) => {
   const itemWidth = (width / columns) * 3;
   const itemHeight = itemWidth * (finalHeight / absWidth);
 
-  const renderedItemWidth = itemWidth * 10;
-  const renderedItemHeight = itemHeight * 10;
+  const renderedItemWidth = itemWidth * 2;
+  const renderedItemHeight = itemHeight * 2;
 
-  const renderedPreviewHeight =
-    renderedItemHeight * ((absHeight - xAxisHeight) / absHeight);
+  const relPreviewWidth = 0.05;
+  const renderedPreviewHeight = itemWidth * (absHeight / absWidth) * 2;
+  const renderedPreviewWidth = renderedPreviewHeight * relPreviewWidth;
 
   const svgRenderer = createSvgRenderer({
     width: renderedItemWidth,
@@ -136,8 +140,8 @@ const create = async (element, darkMode) => {
   });
 
   const svgPreviewRenderer = createSvgRenderer({
-    width: renderedItemWidth / 25,
-    height: renderedItemHeight
+    width: renderedPreviewWidth,
+    height: renderedPreviewHeight
   });
 
   const stepSize = absWidth / numDays;
@@ -148,22 +152,22 @@ const create = async (element, darkMode) => {
     0
   );
 
-  const xRange = [
-    new Date('2020-02-01 00:00'),
-    new Date('2020-03-01 00:00'),
-    new Date('2020-04-01 00:00')
-  ];
+  // const xRange = [
+  //   new Date('2020-02-01 00:00'),
+  //   new Date('2020-03-01 00:00'),
+  //   new Date('2020-04-01 00:00')
+  // ];
 
-  const numTicks = Math.ceil(Math.log10(maxCases));
+  // const numTicks = Math.ceil(Math.log10(maxCases));
 
-  const yRange = Array(numTicks)
-    .fill()
-    .map((x, i) => 10 ** (i + 1));
+  // const yRange = Array(numTicks)
+  //   .fill()
+  //   .map((x, i) => 10 ** (i + 1));
 
-  const xScale = d3
-    .scaleTime()
-    .domain([startDate, endDate])
-    .nice();
+  // const xScale = d3
+  //   .scaleTime()
+  //   .domain([startDate, endDate])
+  //   .nice();
 
   const yScale = d3
     .scaleLog()
@@ -173,9 +177,20 @@ const create = async (element, darkMode) => {
   const createSvgStart = (w, h) =>
     `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
 
-  const createGradient = (name, startColor, endColor) => `<defs>
+  const createStop = (color, i, colors) => {
+    const offset = ((i + 1) / (colors.length + 1)) * 100;
+    return `<stop offset="${offset}%" stop-color="${color}"/>`;
+  };
+
+  const createGradient = (
+    name,
+    startColor,
+    endColor,
+    middleColors = []
+  ) => `<defs>
   <linearGradient id="${name}" x1="0%" y1="100%" x2="0%" y2="0%">
     <stop offset="0%"   stop-color="${startColor}"/>
+    ${middleColors.map(createStop)}
     <stop offset="100%" stop-color="${endColor}"/>
   </linearGradient>
 </defs>`;
@@ -200,8 +215,8 @@ const create = async (element, darkMode) => {
     const h = absHeight - yScaled;
     return [
       `<defs><mask id="path"><rect x="0" y="${yScaled}" width="10" height="${h}" fill="white"/></mask></defs>`,
-      '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />',
-      `<rect x="0" y="${yScaled}" width="10" height="${h}" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
+      '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />'
+      // `<rect x="0" y="${yScaled}" width="10" height="${h}" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
     ];
   };
 
@@ -249,32 +264,32 @@ const create = async (element, darkMode) => {
     ];
   };
 
-  const createYAxis = ticks =>
-    ticks.flatMap(tick => {
-      const label = d3.format('~s')(tick);
-      const y = 100 - yScale(tick) * 100;
-      const y2 = y + 10;
-      return [
-        `<text x="0" y="${y2}" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
-        `<path d="M 0 ${y} L 100 ${y}" stroke="#000" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
-      ];
-    });
+  // const createYAxis = ticks =>
+  //   ticks.flatMap(tick => {
+  //     const label = d3.format('~s')(tick);
+  //     const y = 100 - yScale(tick) * 100;
+  //     const y2 = y + 10;
+  //     return [
+  //       `<text x="0" y="${y2}" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
+  //       `<path d="M 0 ${y} L 100 ${y}" stroke="#000" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
+  //     ];
+  //   });
 
-  const createXAxis = ticks => [
-    `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
-    ...ticks.flatMap(tick => {
-      const label = monthNames[tick.getMonth()];
-      const x = xScale(tick) * 100;
-      return [
-        `<text x="${x}" y="112" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
-        `<path d="M ${x} 100 L ${x} 103" stroke="#000" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
-      ];
-    })
-  ];
+  // const createXAxis = ticks => [
+  //   `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
+  //   ...ticks.flatMap(tick => {
+  //     const label = monthNames[tick.getMonth()];
+  //     const x = xScale(tick) * 100;
+  //     return [
+  //       `<text x="${x}" y="112" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
+  //       `<path d="M ${x} 100 L ${x} 103" stroke="#000" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
+  //     ];
+  //   })
+  // ];
 
   const strokeColorRange = darkMode
-    ? ['#808080', '#d96921']
-    : ['#808080', '#d96921'];
+    ? ['#b2b2b2', '#803500', ['#998273', '#bf6226']]
+    : ['#b2b2b2', '#803500', ['#998273', '#bf6226']];
 
   const toXy = ys =>
     ys.reduce((xys, y, i) => {
@@ -296,7 +311,7 @@ const create = async (element, darkMode) => {
 
   const createBarChart = y =>
     [
-      createSvgStart(1, finalHeight),
+      createSvgStart(absHeight * relPreviewWidth, absHeight),
       createGradient('linear-stroke', ...strokeColorRange),
       createBar(y),
       createSvgEnd()
@@ -309,8 +324,8 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis(yRange),
-      createXAxis(xRange),
+      // createYAxis(yRange),
+      // createXAxis(xRange),
       createStackedArea(ys.map(toXy)),
       createSvgEnd()
     ].join('');
@@ -370,10 +385,11 @@ const create = async (element, darkMode) => {
     return items;
   };
 
-  const previewScaleFactor = renderedPreviewHeight / numDays;
   const previewItemOffset = (item, i) => [
-    renderedItemWidth + i * previewScaleFactor * 2.75 + previewScaleFactor,
-    renderedItemHeight / 2
+    renderedItemWidth +
+      (i + 0.5) * renderedPreviewHeight * relPreviewWidth * 1.25,
+    renderedItemHeight / 2 -
+      (renderedItemHeight / 2 - renderedPreviewHeight / 2)
   ];
 
   const pileOrderItems = pile =>
@@ -388,14 +404,13 @@ const create = async (element, darkMode) => {
     cellAspectRatio: aspectRatio,
     pileCellAlignment: 'center',
     cellPadding: 4,
-    coverAggregator,
     renderer,
+    coverAggregator,
+    coverRenderer,
     previewAggregator,
     previewRenderer,
-    coverRenderer,
     items: getItems(1),
     itemSize: 36,
-    navigationMode: 'panZoom',
     pileBackgroundColor: 'rgba(255, 255, 255, 0)',
     pileBackgroundColorHover: 'rgba(255, 255, 255, 1)',
     // pileBorderSize: 1,
@@ -413,72 +428,106 @@ const create = async (element, darkMode) => {
       ? 'rgba(255, 255, 255, 1)'
       : 'rgba(0, 0, 0, 1)',
     pileOrderItems,
-    // pileSizeBadge: pile => pile.items.length > 1,
+    pileVisibilityItems: pile => pile.items.length < 2,
     previewOffset: 1,
     previewPadding: 2,
     previewItemOffset,
-    // previewScaling: [previewScaleFactor * 3, 1],
     projector: ll => boundedMercator.toPx(ll),
-    zoomBounds: [0, 8]
+    zoomBounds: [0, 8],
+    showSpatialIndex: false
   });
 
   const whenItemUpdated = () =>
     new Promise(resolve => piling.subscribe('itemUpdate', resolve, 1));
-
-  const whenArranged = whenItemUpdated().then(() =>
-    piling.arrangeBy('custom', 'lonLat')
-  );
-
-  whenArranged.then(() => {
-    piling.splitBy('distance', 16, { onZoom: true });
-    piling.groupBy('overlap', 64, { onZoom: true });
-  });
+  const whenItemLastUpdated = whenItemUpdated();
 
   const scaleToZoom = scale => Math.log(scale) / Math.LN2;
 
-  const zoomInThresholds = zoomLevel => {
-    if (zoomLevel >= 6) return 2;
-    // if (zoomLevel >= 2) return 1;
-    return 1;
-  };
+  // const zoomInThresholds = zoomLevel => {
+  //   if (zoomLevel >= 6) return 2;
+  //   return 1;
+  // };
 
-  const zoomOutThresholds = zoomLevel => {
-    // if (zoomLevel <= 1.5) return 0;
-    if (zoomLevel <= 4.5) return 1;
-    return 2;
-  };
+  // const zoomOutThresholds = zoomLevel => {
+  //   if (zoomLevel <= 4.5) return 1;
+  //   return 2;
+  // };
 
-  const setItems = level => {
-    const items = getItems(level);
-    piling.set('items', items);
-    whenItemUpdated().then(piling.arrangeBy('custom', 'lonLat'));
-    lastLevel = level;
-  };
+  // const setItems = level => {
+  //   const items = getItems(level);
+  //   piling.set('items', items);
+  //   whenItemUpdated().then(piling.arrangeBy('custom', 'lonLat'));
+  //   lastLevel = level;
+  // };
 
-  const setItemsDb = debounce(setItems, 500);
+  // const setItemsDb = debounce(setItems, 500);
 
-  let lastLevel = 1;
-  const updateItems = (zoomLevel, lastZoomLevel) => {
-    const level =
-      zoomLevel > lastZoomLevel
-        ? zoomInThresholds(zoomLevel)
-        : zoomOutThresholds(zoomLevel);
+  // let lastLevel = 1;
+  // const updateItems = (zoomLevel, lastZoomLevel) => {
+  //   const level =
+  //     zoomLevel > lastZoomLevel
+  //       ? zoomInThresholds(zoomLevel)
+  //       : zoomOutThresholds(zoomLevel);
 
-    if (level !== lastLevel || level > 0) {
-      setItemsDb(level);
+  //   if (level !== lastLevel || level > 0) {
+  //     setItemsDb(level);
+  //   }
+  // };
+
+  // let lastZoomLevel = 0;
+
+  let whenArranged = whenItemLastUpdated;
+  const additionalSidebarOptions = [
+    {
+      title: 'Explore Geospatially',
+      fields: [
+        {
+          name: 'Arrange on worldmap',
+          action: () => {
+            whenArranged = whenItemLastUpdated.then(() => {
+              map.getContainer().style.opacity = 1;
+              piling.set('navigationMode', 'panZoom');
+              piling.subscribe('zoom', camera => {
+                const zoomLevel = scaleToZoom(camera.scaling);
+                map.panTo(boundedMercator.toLl(camera.target), {
+                  animate: false
+                });
+                map.setZoom(minZoom + zoomLevel);
+                // updateItems(zoomLevel, lastZoomLevel);
+                // lastZoomLevel = zoomLevel;
+              });
+              return piling.arrangeBy('custom', 'lonLat');
+            });
+          }
+        },
+        {
+          name: 'Automatically group and split',
+          action: () => {
+            whenArranged
+              .then(() => piling.splitAll())
+              .then(() => {
+                piling.splitBy('distance', 0.5, { onZoom: true });
+                piling.groupBy('overlap', 384, { onZoom: true });
+              });
+          }
+        },
+        {
+          name: 'Show previews',
+          labelMinWidth: '6rem',
+          nullifiable: true,
+          dtype: 'boolean',
+          setter: isChecked => {
+            piling.set(
+              'pileVisibilityItems',
+              isChecked || (pile => pile.items.length < 2)
+            );
+          }
+        }
+      ]
     }
-  };
+  ];
 
-  let lastZoomLevel = 0;
-  piling.subscribe('zoom', camera => {
-    const zoomLevel = scaleToZoom(camera.scaling);
-    map.panTo(boundedMercator.toLl(camera.target), { animate: false });
-    map.setZoom(minZoom + zoomLevel);
-    updateItems(zoomLevel, lastZoomLevel);
-    lastZoomLevel = zoomLevel;
-  });
-
-  return [piling];
+  return [piling, additionalSidebarOptions];
 };
 
 export default create;
