@@ -197,7 +197,7 @@ Position piles with user-specified arrangement method.
 
 The following options are available for all types:
 
-- `options.onPile` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
+- `options.onGrouping` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
 
 **Notes and examples:**
 

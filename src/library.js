@@ -1285,7 +1285,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   ];
 
   const positionPiles = async (pileIds = [], { immideate = false } = {}) => {
-    const { arrangementOnPile, arrangementType, items } = store.state;
+    const { arrangeOnGrouping, arrangementType, items } = store.state;
     const positionAllPiles = !pileIds.length;
 
     if (positionAllPiles) {
@@ -1330,7 +1330,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (
         isInitialPositioning ||
         isPileUnpositioned(pile) ||
-        (arrangementType && !arrangementOnPile)
+        (arrangementType && !arrangeOnGrouping)
       ) {
         renderedItems.get(pile.id).setOriginalPosition([x, y]);
       }
@@ -1338,7 +1338,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     isInitialPositioning = false;
 
-    const arrangementCancelActions = !arrangementOnPile
+    const arrangementCancelActions = !arrangeOnGrouping
       ? getArrangementCancelActions()
       : [];
 
@@ -3307,7 +3307,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (store.state.arrangementType === null) return [];
 
     return [
-      ...set('arrangementOnPile', false, true),
+      ...set('arrangeOnGrouping', false, true),
       ...set('arrangementOptions', {}, true),
       ...set('arrangementObjective', null, true),
       ...set('arrangementType', null, true)
@@ -3894,8 +3894,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       currentItemUpdates.length > 0 ||
       updatedPileItems.length > 0
     ) {
+      const pilesToPosition = state.arrangeOnGrouping
+        ? [] // position all piles
+        : [...updatedPileItems];
+
       const positionUpdater = (_updatedPileItems => async () =>
-        positionPiles(_updatedPileItems))([...updatedPileItems]);
+        positionPiles(_updatedPileItems))(pilesToPosition);
 
       if (currentItemUpdates.length) {
         itemUpdatesConsequences.push(positionUpdater);
@@ -4035,12 +4039,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       // no default
     }
 
-    const onPile = !!options.onPile;
-    delete options.onPile;
+    const onGrouping = !!options.onGrouping;
+    delete options.onGrouping;
 
     store.dispatch(
       batchActions([
-        ...set('arrangementOnPile', onPile, true),
+        ...set('arrangeOnGrouping', onGrouping, true),
         ...set('arrangementOptions', options, true),
         ...set('arrangementObjective', expandedObjective, true),
         ...set('arrangementType', type, true)

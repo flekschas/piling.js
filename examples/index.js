@@ -367,7 +367,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
   let arrangeByType = 'uv';
   let arrangeByProp = spatialProps[0];
   let arrangementObjective;
-  let arrangeOnGroup = false;
+  let arrangeOnGrouping = false;
 
   let groupByRow = 'center';
   let groupByColumn = 'top';
@@ -532,7 +532,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           setter: values => {
             arrangementObjective = values;
             return values && values.length
-              ? pilingLib.arrangeBy('data', values, { onPile: arrangeOnGroup })
+              ? pilingLib.arrangeBy('data', values, {
+                  onGrouping: arrangeOnGrouping
+                })
               : pilingLib.arrangeBy();
           },
           multiple: true,
@@ -544,7 +546,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           width: '4rem',
           action: () => {
             pilingLib.arrangeBy(arrangeByType, arrangeByProp, {
-              onPile: arrangeOnGroup
+              onGrouping: arrangeOnGrouping
             });
           },
           subInputs: [
@@ -572,10 +574,10 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'boolean',
           nullifiable: true,
           setter: isChecked => {
-            arrangeOnGroup = isChecked;
+            arrangeOnGrouping = isChecked;
             return arrangementObjective && arrangementObjective.length
               ? pilingLib.arrangeBy('data', arrangementObjective, {
-                  onPile: arrangeOnGroup
+                  onGrouping: arrangeOnGrouping
                 })
               : pilingLib.arrangeBy();
           }

@@ -116,8 +116,8 @@ const [arrangementObjective, setArrangementObjective] = setter(
   'arrangementObjective'
 );
 
-const [arrangementOnPile, setArrangementOnPile] = setter(
-  'arrangementOnPile',
+const [arrangeOnGrouping, setArrangeOnGrouping] = setter(
+  'arrangeOnGrouping',
   false
 );
 
@@ -636,12 +636,12 @@ const createStore = () => {
   let lastAction = null;
 
   const appReducer = combineReducers({
-    coverRenderer,
     arrangementObjective,
-    arrangementOnPile,
     arrangementOptions,
     arrangementType,
+    arrangeOnGrouping,
     backgroundColor,
+    coverRenderer,
     cellAspectRatio,
     cellPadding,
     cellSize,
@@ -812,7 +812,7 @@ export const createAction = {
   scatterPiles,
   setCoverRenderer,
   setArrangementObjective,
-  setArrangementOnPile,
+  setArrangeOnGrouping,
   setArrangementOptions,
   setArrangementType,
   setBackgroundColor,
