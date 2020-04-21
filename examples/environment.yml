@@ -8,6 +8,7 @@ dependencies:
   - keras
   - matplotlib
   - numba
+  - pandas
   - pip
   - scikit-image
   - scikit-learn

@@ -457,7 +457,10 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
 | pileLabelStackAlign         | string or function                | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
 | pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
-| pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelText               | boolean or function               | `false`            | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextMapping        | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextColor          | string or int                     | `0x000000`         | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextOpacity        | float                             | `1`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileOrderItems              | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
@@ -697,13 +700,14 @@ Unsubscribe from an event. See [events](#events) for all the events.
     };
   ```
 
-- `pileLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,
+- `pileLabelTextMapping` can be set to an `array` of strings, or a callback function. E.g.,
 
   ```javascript
-  piling.set('pileLabelText', false); // default, i.e., no text by default
-  piling.set('pileLabelText', true); // simply show the label string
-  piling.set('pileLabelText', ['red', 'blue', 'yellow', 'green']);
-  piling.set('pileLabelText', (label, allLabels) => `#{abbreviation[label]}`);
+  piling.set('pileLabelTextMapping', ['red', 'blue', 'yellow', 'green']);
+  piling.set(
+    'pileLabelTextMapping',
+    (label, allLabels) => `${abbreviation[label]}`
+  );
   ```
 
   The callback function receives the current label (`string`), and an array of all the labels, and it should return a text string. The signature is as follows:

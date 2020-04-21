@@ -130,9 +130,15 @@ const [groupingType, setGroupingType] = setter('groupingType');
 
 const [groupingObjective, setGroupingObjective] = setter('groupingObjective');
 
-const [groupingOnZoom, setGroupingOnZoom] = setter('groupingOnZoom', false);
-
 const [groupingOptions, setGroupingOptions] = setter('groupingOptions', {});
+
+const [splittingType, setSplittingType] = setter('splittingType');
+
+const [splittingObjective, setSplittingObjective] = setter(
+  'splittingObjective'
+);
+
+const [splittingOptions, setSplittingOptions] = setter('splittingOptions', {});
 
 const [backgroundColor, setBackgroundColor] = setter(
   'backgroundColor',
@@ -387,6 +393,18 @@ const [zoomScale, setZoomScale] = setter('zoomScale', 1.0);
 const [pileLabel, setPileLabel] = setter('pileLabel');
 const [pileLabelColor, setPileLabelColor] = setter('pileLabelColor');
 const [pileLabelText, setPileLabelText] = setter('pileLabelText', false);
+const [pileLabelTextMapping, setPileLabelTextMapping] = setter(
+  'pileLabelTextMapping',
+  false
+);
+const [pileLabelTextColor, setPileLabelTextColor] = setter(
+  'pileLabelTextColor',
+  0x000000
+);
+const [pileLabelTextOpacity, setPileLabelTextOpacity] = setter(
+  'pileLabelTextOpacity',
+  1
+);
 const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
 const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
   'pileLabelStackAlign',
@@ -400,6 +418,10 @@ const [pileLabelHeight, setPileLabelHeight] = setter('pileLabelHeight', 2);
 const [pileLabelSizeTransform, setPileLabelSizeTransform] = setter(
   'pileLabelSizeTransform'
 );
+
+const [projector, setProjector] = setter('projector');
+
+const [zoomBounds, setZoomBounds] = setter('zoomBounds', [-Infinity, Infinity]);
 
 const items = (previousState = {}, action) => {
   switch (action.type) {
@@ -552,6 +574,28 @@ const piles = (previousState = {}, action) => {
       return newState;
     }
 
+    case 'SPLIT_PILES': {
+      if (!Object.values(action.payload.piles).length) return previousState;
+
+      const newState = { ...previousState };
+
+      // The 0th index represents the groups that is kept on the source pile
+      Object.entries(action.payload.piles)
+        // If there is only one split group we don't have to do anything
+        .filter(splittedPiles => splittedPiles[1].length > 1)
+        .forEach(([source, splits]) => {
+          splits.forEach(itemIds => {
+            newState[itemIds[0]] = {
+              ...newState[itemIds[0]],
+              x: newState[source].x,
+              y: newState[source].y,
+              items: [...itemIds]
+            };
+          });
+        });
+      return newState;
+    }
+
     default:
       return previousState;
   }
@@ -576,6 +620,11 @@ const movePiles = movingPiles => ({
 const scatterPiles = pilesToBeScattered => ({
   type: 'SCATTER_PILES',
   payload: { piles: pilesToBeScattered }
+});
+
+const splitPiles = pilesToBeSplit => ({
+  type: 'SPLIT_PILES',
+  payload: { piles: pilesToBeSplit }
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -606,7 +655,6 @@ const createStore = () => {
     gridColor,
     gridOpacity,
     groupingObjective,
-    groupingOnZoom,
     groupingOptions,
     groupingType,
     darkMode,
@@ -661,6 +709,9 @@ const createStore = () => {
     pileLabelStackAlign,
     pileLabelSizeTransform,
     pileLabelText,
+    pileLabelTextColor,
+    pileLabelTextMapping,
+    pileLabelTextOpacity,
     pileOpacity,
     piles,
     pileScale,
@@ -679,12 +730,17 @@ const createStore = () => {
     previewScaleToCover,
     previewScaling,
     previewSpacing,
+    projector,
     rowHeight,
+    splittingObjective,
+    splittingOptions,
+    splittingType,
     showGrid,
     showSpatialIndex,
     tempDepileDirection,
     tempDepileOneDNum,
     temporaryDepiledPiles,
+    zoomBounds,
     zoomScale
   });
 
@@ -750,10 +806,10 @@ const createStore = () => {
 export default createStore;
 
 export const createAction = {
-  scatterPiles,
   initPiles,
   mergePiles,
   movePiles,
+  scatterPiles,
   setCoverRenderer,
   setArrangementObjective,
   setArrangementOnPile,
@@ -773,7 +829,6 @@ export const createAction = {
   setGridColor,
   setGridOpacity,
   setGroupingObjective,
-  setGroupingOnZoom,
   setGroupingOptions,
   setGroupingType,
   setDarkMode,
@@ -828,6 +883,9 @@ export const createAction = {
   setPileLabelStackAlign,
   setPileLabelSizeTransform,
   setPileLabelText,
+  setPileLabelTextColor,
+  setPileLabelTextMapping,
+  setPileLabelTextOpacity,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
@@ -845,11 +903,17 @@ export const createAction = {
   setPreviewScaleToCover,
   setPreviewScaling,
   setPreviewSpacing,
+  setProjector,
   setRowHeight,
+  setSplittingObjective,
+  setSplittingOptions,
+  setSplittingType,
   setShowGrid,
   setShowSpatialIndex,
   setTempDepileDirection,
   setTempDepileOneDNum,
   setTemporaryDepiledPiles,
-  setZoomScale
+  setZoomBounds,
+  setZoomScale,
+  splitPiles
 };

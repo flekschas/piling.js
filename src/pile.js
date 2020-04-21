@@ -666,19 +666,17 @@ const createPile = (
       duration: 250,
       interpolator: interpolateVector,
       endValue: [x, y, targetScale, angle],
-      getter: () => {
-        return [
-          itemSprite.x,
-          itemSprite.y,
-          itemSprite.scale.x,
-          itemSprite.angle
-        ];
-      },
+      getter: () => [
+        itemSprite.x,
+        itemSprite.y,
+        itemSprite.scale.x,
+        itemSprite.angle
+      ],
       setter: newValue => {
         itemSprite.x = newValue[0];
         itemSprite.y = newValue[1];
         itemSprite.scale.x = newValue[2];
-        itemSprite.scale.y = itemSprite.scale.x;
+        itemSprite.scale.y = newValue[2];
         itemSprite.angle = newValue[3];
       },
       onDone: () => {
@@ -754,7 +752,6 @@ const createPile = (
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        // Make sure previews are as wide as the cover
         if (scaleWidthToCover)
           previewItem.scale.x *= _cover.width / previewItem.width;
         if (scaleHeightToCover)
@@ -1335,6 +1332,7 @@ const createPile = (
       pileLabelFontSize,
       pileLabelStackAlign,
       pileLabelText,
+      pileLabelTextOpacity,
       piles
     } = store.state;
 
@@ -1345,9 +1343,13 @@ const createPile = (
 
     const bounds = getContentBounds();
 
+    const showText = isFunction(pileLabelText)
+      ? pileLabelText(piles[id])
+      : pileLabelText;
+
     let labelWidth = bounds.width / labels.length;
     const labelHeightMax = labelTextures.length
-      ? Math.max(pileLabelText * (labelFontSize + 1), labelHeight)
+      ? Math.max(showText * (labelFontSize + 1), labelHeight)
       : labelHeight;
 
     const y =
@@ -1360,28 +1362,28 @@ const createPile = (
     labels.forEach((label, index) => {
       let labelX;
       let labelY = y + toTop;
-      let labelHeightTmp = labelHeightMax;
+      let finalLabelHeight = labelHeightMax;
       switch (labelStackAlign) {
         case 'vertical':
           labelWidth = bounds.width * scaleFactors[index];
           labelX = -bounds.width / 2;
-          labelY += (labelHeightTmp + 1) * index * toTop;
+          labelY += (finalLabelHeight + 1) * index * toTop;
           break;
 
         case 'horizontal':
         default:
           labelX = labelWidth * index - bounds.width / 2;
-          labelHeightTmp = labelHeightMax * scaleFactors[index];
-          if (labelAlign === 'top') labelY += labelHeightMax - labelHeightTmp;
+          finalLabelHeight = labelHeightMax * scaleFactors[index];
+          if (labelAlign === 'top') labelY += labelHeightMax - finalLabelHeight;
           break;
       }
       const color = colors[index];
-      labelGraphics.beginFill(color, 1);
-      labelGraphics.drawRect(labelX, labelY, labelWidth, labelHeightTmp);
+      labelGraphics.beginFill(...color);
+      labelGraphics.drawRect(labelX, labelY, labelWidth, finalLabelHeight);
       labelGraphics.endFill();
     });
 
-    if (labelTextures.length) {
+    if (showText) {
       let textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
         let textX;
@@ -1404,6 +1406,7 @@ const createPile = (
         labelText.y = textY;
         labelText.width /= 2 * window.devicePixelRatio;
         labelText.height /= 2 * window.devicePixelRatio;
+        labelText.alpha = pileLabelTextOpacity;
         labelGraphics.addChild(labelText);
       });
     }

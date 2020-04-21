@@ -91,7 +91,6 @@
     <script>
       if (window.mode === null) {
         switch (window.example) {
-          case 'lines':
           case 'drawings':
           case 'ridgeplot':
             window.mode = 'white-mode';
@@ -124,7 +123,7 @@
             <select id="example">
               <option value="photos">Photos (HTML Image)</option>
               <option value="matrices">Matrices (Numerical Array)</option>
-              <option value="lines">Lines (SVG)</option>
+              <option value="covid">COVID-19 (SVG)</option>
               <option value="drawings">Drawings (Canvas)</option>
               <option value="ridgeplot">Ridge Plot (SVG)</option>
               <option value="vitessce">Microscopy (WebGL)</option>
@@ -146,7 +145,14 @@
                   >Lekschas et al., 2018</a
                 >)
               </em>
-              <em id="svg-credit">(Randomly generated)</em>
+              <em id="covid-credit"
+                >(Randomly generated) (From
+                <a
+                  href="https://github.com/CSSEGISandData/COVID-19"
+                  target="_blank"
+                  >Johns Hopkins University</a
+                >)</em
+              >
               <em id="drawings-credit" style="display: none">
                 (From
                 <a
@@ -201,7 +207,7 @@
 
     <div id="photos" class="container"></div>
     <div id="matrices" class="container"></div>
-    <div id="svg" class="container"></div>
+    <div id="covid" class="container"></div>
     <div id="drawings" class="container"></div>
     <div id="ridgeplot" class="container"></div>
     <div id="vitessce" class="container"></div>
