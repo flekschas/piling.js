@@ -503,7 +503,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const updatePileBoundsHandler = ({ id, forceUpdate }) =>
     updatePileBounds(id, { forceUpdate });
 
-  const translatePiles = () => {
+  const transformPiles = () => {
     lastPilePosition.forEach((pilePos, pileId) => {
       movePileTo(pileInstances.get(pileId), pilePos[0], pilePos[1]);
     });
@@ -524,7 +524,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const panZoomHandler = (updatePilePosition = true) => {
     // Update the camera
     camera.tick();
-    translatePiles();
+    transformPiles();
     zoomPiles();
     isPanZoomed = true;
     if (updatePilePosition) positionPilesDb();
@@ -565,7 +565,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     isPanZoomed = false;
     // Update the camera
     camera.tick();
-    translatePiles();
+    transformPiles();
     pubSub.publish('zoom', camera);
   };
 
@@ -1272,7 +1272,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   /**
    * Translate a point according to the camera position.
    *
-   * @description This methis is similar to `transformPointFromCamera` but it
+   * @description This method is similar to `transformPointFromCamera` but it
    *   does not incorporate the zoom level. We use this method together with the
    *   search index as the search index is zoom-invariant.
    *
@@ -1783,67 +1783,72 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     return { depilePos, distance };
   };
 
-  const animateDepile = (srcPileId, itemIds, itemPositions = []) => {
-    const { easing } = store.state;
-    const movingPiles = [];
+  const animateDepile = (srcPileId, itemIds, itemPositions = []) =>
+    new Promise(resolve => {
+      const { easing } = store.state;
+      const movingPiles = [];
 
-    const srcPile = pileInstances.get(srcPileId);
-    srcPile.blur();
-    srcPile.drawBorder();
+      const srcPile = pileInstances.get(srcPileId);
+      srcPile.blur();
+      srcPile.drawBorder();
 
-    const onAllDone = () => {
-      movingPiles.forEach(pileMove => {
-        updatePileBounds(pileMove.id);
-      });
-      store.dispatch(createAction.movePiles(movingPiles));
-    };
+      const readyPiles = itemIds
+        .map(itemId => pileInstances.get(itemId))
+        .filter(identity);
 
-    let done = 0;
-    const onDone = () => {
-      done++;
-      if (done === itemIds.length) onAllDone();
-    };
-
-    animator.addBatch(
-      itemIds.map((itemId, index) => {
-        const pile = pileInstances.get(itemId);
-        const pileItem = pile.getItemById(itemId);
-
-        movingPiles.push({
-          id: pile.id,
-          x: pileItem.item.originalPosition[0],
-          y: pileItem.item.originalPosition[1]
+      const onAllDone = () => {
+        movingPiles.forEach(pileMove => {
+          updatePileBounds(pileMove.id);
         });
+        store.dispatch(createAction.movePiles(movingPiles));
+        resolve();
+      };
 
-        const endPos =
-          itemPositions.length > 0
-            ? itemPositions[index]
-            : transformPointToScreen(pileItem.item.originalPosition);
+      let done = 0;
+      const onDone = () => {
+        done++;
+        if (done === readyPiles.length) onAllDone();
+      };
 
-        const d = l2PointDist(...endPos, pile.x, pile.y);
+      animator.addBatch(
+        readyPiles.map((pile, index) => {
+          const pileItem = pile.getItemById(pile.id);
 
-        const duration = cubicOut(Math.min(d, 250) / 250) * 250;
+          movingPiles.push({
+            id: pile.id,
+            x: pileItem.item.originalPosition[0],
+            y: pileItem.item.originalPosition[1]
+          });
 
-        return createTweener({
-          duration,
-          easing,
-          interpolator: interpolateVector,
-          endValue: [
-            ...(itemPositions.length > 0
+          const endPos =
+            itemPositions.length > 0
               ? itemPositions[index]
-              : transformPointToScreen(pileItem.item.originalPosition)),
-            0 // angle
-          ],
-          getter: () => [pile.x, pile.y, pileItem.displayObject.angle],
-          setter: newValue => {
-            pile.moveTo(newValue[0], newValue[1]);
-            pileItem.displayObject.angle = newValue[2];
-          },
-          onDone
-        });
-      })
-    );
-  };
+              : transformPointToScreen(pileItem.item.originalPosition);
+
+          const d = l2PointDist(...endPos, pile.x, pile.y);
+
+          const duration = cubicOut(Math.min(d, 250) / 250) * 250;
+
+          return createTweener({
+            duration,
+            easing,
+            interpolator: interpolateVector,
+            endValue: [
+              ...(itemPositions.length > 0
+                ? itemPositions[index]
+                : transformPointToScreen(pileItem.item.originalPosition)),
+              0 // angle
+            ],
+            getter: () => [pile.x, pile.y, pileItem.displayObject.angle],
+            setter: newValue => {
+              pile.moveTo(newValue[0], newValue[1]);
+              pileItem.displayObject.angle = newValue[2];
+            },
+            onDone
+          });
+        })
+      );
+    });
 
   const depile = pileId => {
     const itemNum = pileInstances.get(pileId).size;
@@ -2666,13 +2671,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const idToBBox = new Map();
 
     const bBoxes = items.map(item => {
+      const [cX, cY] = translatePointFromCamera(
+        transformPointToScreen([toX(item.cX), toY(item.cY)])
+      );
       const bBox = {
         id: item.id,
-        cX: item.cX,
-        minX: toX(item.cX) - item.width / camera.scaling / 2,
-        maxX: toX(item.cX) + item.width / camera.scaling / 2,
-        minY: toY(item.cY) - item.height / camera.scaling / 2,
-        maxY: toY(item.cY) + item.height / camera.scaling / 2
+        minX: cX - item.width / 2,
+        maxX: cX + item.width / 2,
+        minY: cY - item.height / 2,
+        maxY: cY + item.height / 2
       };
       idToBBox.set(item.id, bBox);
       return bBox;
@@ -2716,18 +2723,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       return closest;
     };
 
+    const createSplittedPile = target => {
+      splittedPiles[target.id] = { keep: [target.id], split: [] };
+    };
+
     const keepItem = (target, hit) => {
-      if (!splittedPiles[target.id]) {
-        splittedPiles[target.id] = { keep: [], split: [] };
-      }
       splittedPiles[target.id].keep.push(hit.id);
     };
 
     const splitItem = (target, hit) => {
-      if (!splittedPiles[target.id]) {
-        splittedPiles[target.id] = { keep: [], split: [] };
-      }
-
       const width = hit.maxX - hit.minX;
       const height = hit.maxY - hit.minY;
       const center = [hit.minX + width / 2, hit.minY + height / 2];
@@ -2776,9 +2780,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       );
 
       const assessedItems = new Set();
+      assessedItems.add(currentTarget.id); // Always skip self
+
+      createSplittedPile(currentTarget);
 
       hits.forEach(hit => {
-        if (hit.id === currentTarget.id) keepItem(currentTarget, hit);
+        if (piles[currentTarget.id].items.indexOf(hit.id) === -1) return;
+        if (hit.id === currentTarget.id) return;
 
         const okay =
           compare(currentTarget, hit, objective.threshold)[0] &&
@@ -2847,10 +2855,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   });
 
   const splitByCategory = async objective =>
-    Object.entries(store.state.piles).reduce(
-      (splittedPiles, [pileId, pileState]) => {
-        if (!pileState.items.length) return splittedPiles;
-
+    Object.entries(store.state.piles)
+      .filter(p => p[1].items.length > 1)
+      .reduce((splittedPiles, [pileId, pileState]) => {
         // eslint-disable-next-line no-shadow
         const splits = pileState.items.reduce((splits, itemId, index) => {
           const cat = objective
@@ -2875,9 +2882,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         }
 
         return splittedPiles;
-      },
-      {}
-    );
+      }, {});
 
   const splitByCluster = async (objective, options = {}) => {
     const itemIdToIdx = new Map();
@@ -2931,31 +2936,37 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
+  let isSplitting = false;
+  let whenSplitted = Promise.resolve();
   const splitBy = (type, objective, options = {}) => {
-    let whenSplittings;
+    if (isSplitting) return whenSplitted;
+
+    isSplitting = true;
+
+    let whenSplittedPiles;
 
     switch (type) {
       case 'overlap':
-        whenSplittings = splitByOverlap(objective, options);
+        whenSplittedPiles = splitByOverlap(objective, options);
         break;
 
       case 'distance':
-        whenSplittings = splitByDistance(objective, options);
+        whenSplittedPiles = splitByDistance(objective, options);
         break;
 
       case 'category':
-        whenSplittings = splitByCategory(objective);
+        whenSplittedPiles = splitByCategory(objective);
         break;
 
       case 'cluster':
-        whenSplittings = splitByCluster(objective, options);
+        whenSplittedPiles = splitByCluster(objective, options);
         break;
 
       // no default
     }
 
-    whenSplittings.then(splittedPiles => {
-      if (!Object.keys(splittedPiles).length) return;
+    whenSplitted = whenSplittedPiles.then(splittedPiles => {
+      if (!Object.keys(splittedPiles).length) return Promise.resolve();
 
       store.dispatch(
         batchActions([
@@ -2964,19 +2975,27 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ])
       );
 
-      Object.entries(splittedPiles)
-        .filter(splittedPile => splittedPile[1].length > 1)
-        .forEach(([pileId, splits]) => {
-          const targets = splits.map(splitGroup => splitGroup[0]);
-          animateDepile(pileId, targets);
-        });
+      return Promise.all(
+        Object.entries(splittedPiles)
+          .filter(splittedPile => splittedPile[1].length > 1)
+          .map(([pileId, splits]) => {
+            const targets = splits.map(splitGroup => splitGroup[0]);
+            return animateDepile(pileId, targets);
+          })
+      );
     });
+
+    whenSplitted.then(() => {
+      isSplitting = false;
+    });
+
+    return whenSplitted;
   };
 
   const splitByPublic = (type, objective = null, options = {}) => {
     const expandedObjective = expandSplittingObjective(type, objective);
 
-    splitBy(type, expandedObjective, options);
+    const whenSplit = splitBy(type, expandedObjective, options);
 
     if ((type === 'distance' || type === 'overlap') && options.onZoom) {
       delete options.onZoom;
@@ -2989,6 +3008,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         ])
       );
     }
+
+    return whenSplit;
   };
 
   const splitAll = () => splitByPublic('category', 'id');
@@ -3041,7 +3062,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (changed) {
-      translatePiles();
+      transformPiles();
       updateScrollHeight();
     }
   };
