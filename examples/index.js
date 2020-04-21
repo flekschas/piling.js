@@ -783,6 +783,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       fields: [
         {
           name: 'Pile properties',
+          propName: 'pileLabel',
           hide: categoricalProps.length === 0,
           labelMinWidth: '4rem',
           dtype: 'string',
