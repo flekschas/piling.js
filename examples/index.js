@@ -398,7 +398,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       title: 'Pile/Item',
       fields: [
         {
-          name: 'itemSize',
+          name: 'Item size',
+          propName: 'itemSize',
           labelMinWidth: '4rem',
           dtype: 'int',
           min: 4,
@@ -407,7 +408,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
-          name: 'pileItemOffset',
+          name: 'Item offset',
+          propName: 'pileItemOffset',
           width: '6rem',
           dtype: null,
           hide: pileItemOffsetDisable || piling.get('previewRenderer'),
@@ -448,7 +450,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         //   max: 10
         // },
         {
-          name: 'previewSpacing',
+          name: 'Preview spacing',
+          propName: 'previewSpacing',
           hide:
             isFunction(pilingLib.get('previewSpacing')) ||
             !piling.get('previewRenderer'),
@@ -458,7 +461,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           max: 10
         },
         {
-          name: 'previewOffset',
+          name: 'Preview offset',
+          propName: 'previewOffset',
           hide:
             isFunction(pilingLib.get('previewOffset')) ||
             !piling.get('previewRenderer'),
@@ -474,7 +478,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       title: 'Layout',
       fields: [
         {
-          name: 'cellSize',
+          name: 'Cell size',
+          propName: 'cellSize',
           labelMinWidth: '4rem',
           dtype: 'int',
           min: 16,
@@ -483,7 +488,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
-          name: 'cellPadding',
+          name: 'Cell padding',
+          propName: 'cellPadding',
           labelMinWidth: '4rem',
           dtype: 'int',
           min: 0,
@@ -491,7 +497,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           numSteps: 32
         },
         {
-          name: 'columns',
+          name: 'Columns',
+          propName: 'columns',
           labelMinWidth: '4rem',
           dtype: 'int',
           min: 1,
@@ -499,7 +506,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
-          name: 'rowHeight',
+          name: 'Row height',
+          propName: 'rowHeight',
           labelMinWidth: '4rem',
           dtype: 'int',
           min: 16,
@@ -508,13 +516,15 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
-          name: 'cellAspectRatio',
+          name: 'Cell aspect ratio',
+          propName: 'cellAspectRatio',
           labelMinWidth: '6.25rem',
           dtype: 'float',
           nullifiable: true
         },
         {
-          name: 'pileCellAlignment',
+          name: 'Cell alignment',
+          propName: 'pileCellAlignment',
           labelMinWidth: '6.25rem',
           dtype: 'string',
           values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
@@ -526,7 +536,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       title: 'Arrangement',
       fields: [
         {
-          name: 'arrangementObjective',
+          name: 'Pile properties',
           dtype: 'string',
           values: numericalProps,
           setter: values => {
@@ -569,8 +579,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           ]
         },
         {
-          name: 'arrange on grouping',
-          labelMinWidth: '4rem',
+          name: 'Update arrangement on grouping',
+          labelMinWidth: '5rem',
           dtype: 'boolean',
           nullifiable: true,
           setter: isChecked => {
@@ -583,7 +593,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           }
         },
         {
-          name: 'navigationMode',
+          name: 'Navigation mode',
+          propName: 'navigationMode',
           dtype: 'string',
           values: ['auto', 'panZoom', 'scroll']
         }
@@ -771,7 +782,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       title: 'Label',
       fields: [
         {
-          name: 'pileLabel',
+          name: 'Pile properties',
           hide: categoricalProps.length === 0,
           labelMinWidth: '4rem',
           dtype: 'string',
@@ -780,14 +791,16 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           nullifiable: true
         },
         {
-          name: 'pileLabelText',
+          name: 'Show text label',
+          propName: 'pileLabelText',
           hide: categoricalProps.length === 0 || pileLabelTextDisable,
           labelMinWidth: '4rem',
           dtype: 'boolean',
           nullifiable: true
         },
         {
-          name: 'pileLabelAlign',
+          name: 'Alignment',
+          propName: 'pileLabelAlign',
           hide: categoricalProps.length === 0,
           labelMinWidth: '6.25rem',
           dtype: 'string',
@@ -796,7 +809,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           defaultValue: piling.get('pileLabelAlign')
         },
         {
-          name: 'pileLabelStackAlign',
+          name: 'Stack direction',
+          propName: 'pileLabelStackAlign',
           hide: categoricalProps.length === 0,
           labelMinWidth: '6.25rem',
           dtype: 'string',
@@ -805,7 +819,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           defaultValue: piling.get('pileLabelStackAlign')
         },
         {
-          name: 'pileLabelFontSize',
+          name: 'Font size',
+          propName: 'pileLabelFontSize',
           hide: categoricalProps.length === 0,
           labelMinWidth: '6rem',
           dtype: 'int',
@@ -813,7 +828,8 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           max: 16
         },
         {
-          name: 'pileLabelHeight',
+          name: 'Height',
+          propName: 'pileLabelHeight',
           hide:
             categoricalProps.length === 0 ||
             isFunction(piling.get('pileLabelHeight')),
@@ -824,13 +840,14 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           numSteps: 159
         },
         {
-          name: 'pileSizeBadge',
+          name: 'Show size badge',
+          propName: 'pileSizeBadge',
           hide: isFunction(piling.get('pileSizeBadge')),
           labelMinWidth: '6rem',
           dtype: 'boolean'
         },
         {
-          name: 'pileSizeBadgeAlign',
+          name: 'Size badge align',
           hide: isFunction(piling.get('pileSizeBadgeAlign')),
           width: '6rem',
           dtype: null,
@@ -884,7 +901,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
     const currentValue =
       !Number.isNaN(+field.defaultValue) || field.defaultValue
         ? field.defaultValue
-        : pilingLib.get(field.name);
+        : field.propName && pilingLib.get(field.propName);
 
     if (field.action) {
       const button = document.createElement('button');
@@ -1044,8 +1061,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
       isSet.setAttribute('type', 'checkbox');
       if (field.nullifiable) {
         if (
-          pilingLib.get(field.name) !== undefined &&
-          pilingLib.get(field.name) !== null
+          field.propName &&
+          pilingLib.get(field.propName) !== undefined &&
+          pilingLib.get(field.propName) !== null
         ) {
           isSet.checked = true;
         }
@@ -1058,7 +1076,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             } else if (field.action) {
               field.action(value);
             } else {
-              pilingLib.set(field.name, value);
+              pilingLib.set(field.propName, value);
             }
 
             if (field.dtype === 'int' && (field.min || field.max)) {
@@ -1068,7 +1086,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             if (field.setter) {
               field.setter(null);
             } else {
-              pilingLib.set(field.name, null);
+              pilingLib.set(field.propName, null);
             }
             valueEl.textContent = '';
           }
@@ -1106,7 +1124,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         if (field.setter) {
           field.setter(value);
         } else {
-          pilingLib.set(field.name, value);
+          pilingLib.set(field.propName, value);
         }
       } else if (isSet && isSet.checked) {
         value = field.dtype && parseDtype[field.dtype](value);
@@ -1116,7 +1134,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         } else if (field.action) {
           field.action(value);
         } else {
-          pilingLib.set(field.name, value);
+          pilingLib.set(field.propName, value);
         }
 
         if (field.dtype === 'int' && (field.min || field.max)) {
@@ -1126,7 +1144,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
         if (field.setter) {
           field.setter(null);
         } else {
-          pilingLib.set(field.name, null);
+          pilingLib.set(field.propName, null);
         }
       }
     });
@@ -1213,7 +1231,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             valueEl.textContent =
               field.defaultValue !== undefined
                 ? field.defaultValue
-                : pilingLib.get(field.name);
+                : field.propName && pilingLib.get(field.propName);
           }
         }
 
@@ -1230,7 +1248,7 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
             valueEl.textContent =
               subInputField.defaultValue !== undefined
                 ? subInputField.defaultValue
-                : pilingLib.get(field.name);
+                : field.propName && pilingLib.get(field.propName);
           }
         });
 
