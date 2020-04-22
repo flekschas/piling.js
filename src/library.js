@@ -1501,8 +1501,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       itemInstances.push(renderedItems.get(itemId));
     });
 
-    updatePreviewStyle(pileState);
-
     pileInstance.setItems(itemInstances, {
       asPreview: !!(previewAggregator || previewRenderer),
       shouldDrawPlaceholder: true
@@ -1543,6 +1541,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       positionItems(pileInstance.id);
       pileInstance.setItems([renderedItems.get(pileState.items[0])]);
     } else {
+      updatePreviewStyle(pileState);
       updateCover(pileState, pileInstance);
     }
   };
@@ -1572,6 +1571,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         if (store.state.coverAggregator) {
           updatePreviewAndCover(pileState, pileInstance);
         } else {
+          if (store.state.previewRenderer) {
+            updatePreviewStyle(pileState);
+          }
           pileInstance.setItems(itemInstances);
           positionItems(id);
         }
@@ -2290,6 +2292,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (store.state.coverAggregator) {
       updatePreviewAndCover(pileState, newPile);
     } else {
+      if (store.state.previewRenderer) {
+        updatePreviewStyle(pileState);
+      }
       newPile.setItems(items);
       positionItems(pileId);
     }
@@ -3708,12 +3713,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       state.pileItemRotation !== newState.pileItemRotation ||
       state.previewPadding !== newState.previewPadding ||
       state.previewSpacing !== newState.previewSpacing ||
-      state.previewScaling !== newState.previewScaling ||
       state.previewScaleToCover !== newState.previewScaleToCover ||
       state.previewOffset !== newState.previewOffset ||
       state.previewItemOffset !== newState.previewItemOffset
     ) {
       stateUpdates.add('positionItems');
+    }
+
+    if (
+      pileInstances.size &&
+      state.previewScaling !== newState.previewScaling
+    ) {
+      Object.values(newState.piles).forEach(pile => {
+        updatePreviewStyle(pile);
+      });
     }
 
     if (
