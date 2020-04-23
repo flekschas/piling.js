@@ -371,11 +371,14 @@ const createPile = (
     const state = store.state;
 
     const borderOffset = Math.ceil(size / 2);
-    const backgroundColor =
-      getPileProp(
-        state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
-        state.piles[id]
-      ) || getBackgroundColor();
+    let backgroundColor = getPileProp(
+      state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
+      state.piles[id]
+    );
+
+    if (backgroundColor === null) {
+      backgroundColor = getBackgroundColor();
+    }
 
     // draw black background
     borderGraphics.beginFill(backgroundColor, backgroundOpacity);
