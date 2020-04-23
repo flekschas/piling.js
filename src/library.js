@@ -4385,6 +4385,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     if (!hit) {
       clearActivePileLayer();
     }
+
+    blurPrevDragOverPiles();
   };
 
   let prevDragOverPiles = [];
@@ -4403,7 +4405,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const indicateDragOverPiles = pileId => {
     if (store.state.temporaryDepiledPiles.length) return;
 
-    const currentDragOverPiles = spatialIndex.search(calcPileBBox(pileId));
+    const currentDragOverPiles = spatialIndex
+      .search(calcPileBBox(pileId))
+      .filter(collidePile => collidePile.id !== pileId);
 
     blurPrevDragOverPiles();
 
@@ -4439,6 +4443,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   const pileDragMoveHandler = ({ target }) => {
     indicateDragOverPiles(target.id);
+  };
+
+  const pileEnterHandler = ({ target }) => {
+    const pile = pileInstances.get(target.id);
+    moveToActivePileLayer(pile.graphics);
+  };
+
+  const pileLeaveHandler = () => {
+    clearActivePileLayer();
   };
 
   const hideContextMenu = contextMenuElement => {
@@ -4977,6 +4990,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pubSub.subscribe('pileDragStart', pileDragStartHandler);
     pubSub.subscribe('pileDragMove', pileDragMoveHandler);
     pubSub.subscribe('pileDragEnd', pileDragEndHandler);
+    pubSub.subscribe('pileEnter', pileEnterHandler);
+    pubSub.subscribe('pileLeave', pileLeaveHandler);
     pubSub.subscribe('startAnimation', startAnimationHandler);
     pubSub.subscribe('cancelAnimation', cancelAnimationHandler);
     pubSub.subscribe('updatePileBounds', updatePileBoundsHandler);
