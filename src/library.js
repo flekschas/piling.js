@@ -1594,6 +1594,14 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       lastPilePosition.set(id, [pileState.x, pileState.y]);
+      if (pileInstance.size === 1) {
+        const item = renderedItems.get(id);
+        if (!item.fromDepiling) {
+          item.setOriginalPosition([pileState.x, pileState.y]);
+        } else {
+          delete item.fromDepiling;
+        }
+      }
       return Promise.all([
         animateMovePileTo(pileInstance, pileState.x, pileState.y),
         new Promise(resolve => {
@@ -1928,6 +1936,13 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       x: piles[pileId].x,
       y: piles[pileId].y
     };
+
+    items
+      .filter(id => id !== pileId)
+      .forEach(id => {
+        const item = renderedItems.get(id);
+        item.fromDepiling = true;
+      });
 
     store.dispatch(createAction.scatterPiles([depiledPile]));
     blurPrevDragOverPiles();
