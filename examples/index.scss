@@ -189,6 +189,12 @@ body.permanent-options .container {
   right: 17rem;
 }
 
+body.fullscreen .container {
+  top: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+}
+
 .credits {
   margin-left: 0.5rem;
 }
@@ -258,6 +264,10 @@ header #description {
   display: flex;
   flex-grow: 1;
   flex-direction: column;
+}
+
+body.fullscreen header {
+  display: none;
 }
 
 #description .wrapper {
@@ -464,6 +474,14 @@ body.permanent-options #options {
   .toggler {
     display: none;
   }
+}
+
+body.fullscreen #options .toggler {
+  opacity: 0;
+}
+
+body.fullscreen #options.open .toggler {
+  opacity: 1;
 }
 
 body.dark-mode #options {
