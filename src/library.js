@@ -2605,48 +2605,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const groupBy = (type, objective = null, options = {}) => {
-    let whenGroupings;
+    let whenGrouped;
     let mergeCenter = 'mean';
 
     switch (type) {
       case 'overlap':
-        whenGroupings = groupByOverlap(objective, options);
+        whenGrouped = groupByOverlap(objective, options);
         break;
 
       case 'distance':
-        whenGroupings = groupByDistance(objective, options);
+        whenGrouped = groupByDistance(objective, options);
         break;
 
       case 'grid':
-        whenGroupings = groupByGrid(objective);
+        whenGrouped = groupByGrid(objective);
         break;
 
       case 'column':
         mergeCenter = objective;
-        whenGroupings = groupByColumn(objective);
+        whenGrouped = groupByColumn(objective);
         break;
 
       case 'row':
         mergeCenter = objective;
-        whenGroupings = groupByRow(objective);
+        whenGrouped = groupByRow(objective);
         break;
 
       case 'category':
-        whenGroupings = groupByCategory(objective);
+        whenGrouped = groupByCategory(objective);
         break;
 
       case 'cluster':
-        whenGroupings = groupByCluster(objective, options);
+        whenGrouped = groupByCluster(objective, options);
         break;
 
-      // no default
+      default:
+        whenGrouped = Promise.reject(
+          new Error(`Unknown group by type: ${type}`)
+        );
+        break;
     }
 
-    whenGroupings.then(groupedPiles => {
+    return whenGrouped.then(groupedPiles => {
       store.dispatch(createAction.setFocusedPiles([]));
 
       // If there's only one pile on a pile we can ignore it
-      animateMerge(
+      return animateMerge(
         groupedPiles.filter(pileIds => pileIds.length > 1),
         mergeCenter
       );
