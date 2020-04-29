@@ -3668,9 +3668,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.pileLabelHeight !== newState.pileLabelHeight ||
         state.pileLabelStackAlign !== newState.pileLabelStackAlign)
     ) {
-      Object.entries(newState.piles).forEach(([id, pile], index) => {
-        setPileLabel(pile, id, !index);
-      });
+      Object.entries(newState.piles)
+        .filter(pileIdState => pileIdState[1].items.length)
+        .forEach(([id, pile], index) => {
+          setPileLabel(pile, id, !index);
+        });
     }
 
     if (
@@ -3951,9 +3953,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (stateUpdates.has('positionItems')) {
-      Object.values(state.piles).forEach(pile => {
-        if (pile.items.length > 1) positionItems(pile.id, { all: true });
-      });
+      Object.values(state.piles)
+        .filter(pile => pile.items.length > 1)
+        .forEach(pile => {
+          positionItems(pile.id, { all: true });
+        });
     }
 
     awaitItemUpdates(currentItemUpdates);
