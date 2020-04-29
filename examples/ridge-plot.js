@@ -133,7 +133,8 @@ const create = async (element, darkMode) => {
     pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1)
+    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
+    pileOrderItems: pile => [...pile.items].sort((a, b) => a - b)
   });
 
   piling.arrangeBy('data', 'numDecade');
