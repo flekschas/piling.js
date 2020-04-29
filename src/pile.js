@@ -1390,26 +1390,23 @@ const createPile = (
     });
 
     if (showText) {
-      let textWidth = bounds.width / labelTextures.length;
+      const textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
-        let textX;
-        let textY = y + toTop;
+        const labelText = new PIXI.Sprite(texture);
+        labelText.y = y + toTop;
         switch (labelStackAlign) {
           case 'vertical':
-            textWidth = bounds.width;
-            textX = -bounds.width / 2 + textWidth / 2;
-            textY += (labelHeightMax + 1) * index * toTop;
+            labelText.anchor.set(0, 0);
+            labelText.x = -bounds.width / 2 + 2;
+            labelText.y += (labelHeightMax + 1) * index * toTop;
             break;
 
           case 'horizontal':
           default:
-            textX = textWidth * index - bounds.width / 2 + textWidth / 2;
+            labelText.anchor.set(0.5, 0);
+            labelText.x = textWidth * index - bounds.width / 2 + textWidth / 2;
             break;
         }
-        const labelText = new PIXI.Sprite(texture);
-        labelText.anchor.set(0.5, 0);
-        labelText.x = textX;
-        labelText.y = textY;
         labelText.width /= 2 * window.devicePixelRatio;
         labelText.height /= 2 * window.devicePixelRatio;
         labelText.alpha = pileLabelTextOpacity;
