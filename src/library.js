@@ -3405,6 +3405,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const pixiText = new PIXI.Text(labelText, {
           fill: pileLabelTextColor,
+          dropShadow: true,
+          dropShadowBlur: 3 * window.devicePixelRatio,
+          dropShadowDistance: 0,
           fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
           align: 'center'
         });
@@ -3451,16 +3454,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!idToLabel.size || reset) createUniquePileLabels();
 
-    const allLabels = pileState.items.flatMap(itemId =>
-      pileLabel.map(objective => objective(items[itemId])).join('-')
+    const allLabels = pileState.items
+      .flatMap(itemId =>
+        pileLabel.map(objective => objective(items[itemId])).join('-')
+      )
+      .filter(label => label.length);
+
+    const uniquePileLabels = unique(allLabels);
+
+    uniquePileLabels.sort(
+      (a, b) =>
+        (uniqueLabels.get(a.toString()).index || Infinity) -
+        (uniqueLabels.get(b.toString()).index || Infinity)
     );
 
-    const labels = unique(allLabels);
-
     const scaleFactors =
-      labels.length > 1 ? getPileLabelSizeScale(labels, allLabels) : [1];
+      uniquePileLabels.length > 1
+        ? getPileLabelSizeScale(uniquePileLabels, allLabels)
+        : [1];
 
-    const args = labels.reduce(
+    const args = uniquePileLabels.reduce(
       (_args, labelText) => {
         const label =
           labelText && labelText.toString
