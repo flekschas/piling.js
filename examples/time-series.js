@@ -96,44 +96,34 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
   };
 
-  const brightnessMod = darkMode ? -1 : 1;
+  const isLast = (i, arr) => arr.length - 1 !== i;
 
-  const piling = createPilingJs(element, {
-    darkMode,
-    renderer: imageRenderer,
+  const viewSpecification = {
+    // Item rendering
     items: data,
-    cellSize: 128,
-    cellPadding: 32,
-    pileCoverScale: 0.9,
-    pileBackgroundColor: 'rgba(255,255,255,1)',
+    renderer: imageRenderer,
+
+    // Global properties
+    darkMode,
+    itemSize: 96,
+    zoomScale: cameraScale =>
+      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2,
+
+    // Pile-specific properties
+    pileBackgroundColor: 'rgba(0, 0, 0, 1)',
     pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
     pileBorderSize: pile => 1 + Math.log(pile.items.length),
-    pileItemOffset: (item, i, pile) => {
-      const isLast = pile.items.length - 1 !== i;
-      return [
-        +isLast * (Math.random() * 24 - 11),
-        +isLast * (Math.random() * 24 - 11)
-      ];
-    },
-    pileOrderItems: pile => {
-      const median = Math.floor(pile.items.length / 2);
-      return [
-        ...pile.items.slice(0, median),
-        ...pile.items.slice(median + 1),
-        pile.items[median]
-      ];
-    },
-    pileItemRotation: (item, i, pile) => {
-      const isLast = pile.items.length - 1 !== i;
-      return +isLast * (Math.random() * 24 - 11);
-    },
-    pileItemBrightness: (item, i, pile) =>
-      pile.items.length > 1
-        ? Math.max(-0.25, (pile.items.length - i - 1) * -0.01) * brightnessMod
-        : 0,
-    zoomScale: cameraScale =>
-      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
-  });
+
+    // Item-specific properties
+    pileItemOffset: (item, i, pile) => [
+      isLast(i, pile.items) * (Math.random() * 24 - 12),
+      isLast(i, pile.items) * (Math.random() * 24 - 12)
+    ],
+    pileItemRotation: (item, i, pile) =>
+      isLast(i, pile.items) * (Math.random() * 24 - 12)
+  };
+
+  const piling = createPilingJs(element, viewSpecification);
 
   piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray, {
     onPile: true
