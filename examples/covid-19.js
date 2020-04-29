@@ -55,26 +55,26 @@ const createMapbox = (element, darkMode) => () => {
   return map;
 };
 
-// const monthNames = [
-//   'Jan',
-//   'Feb',
-//   'Mar',
-//   'Apr',
-//   'May',
-//   'Jun',
-//   'Jul',
-//   'Aug',
-//   'Sep',
-//   'Oct',
-//   'Nov',
-//   'Dec'
-// ];
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+];
 
-// const addDays = (date, days) => {
-//   const copy = new Date(Number(date));
-//   copy.setDate(date.getDate() + days);
-//   return copy;
-// };
+const addDays = (date, days) => {
+  const copy = new Date(Number(date));
+  copy.setDate(date.getDate() + days);
+  return copy;
+};
 
 const create = async (element, darkMode) => {
   const pilingEl = document.createElement('div');
@@ -89,8 +89,8 @@ const create = async (element, darkMode) => {
   data = await data.json();
 
   const numDays = data.US.cases.length;
-  // const startDate = new Date('2020-01-22:00:00');
-  // const endDate = addDays(startDate, data.US.cases.length);
+  const startDate = new Date('2020-01-22:00:00');
+  const endDate = addDays(startDate, data.US.cases.length);
 
   const map = await loadMapbox().then(createMapbox(element, darkMode));
   map.setCenter([0, 0]);
@@ -135,8 +135,13 @@ const create = async (element, darkMode) => {
 
   const svgRenderer = createSvgRenderer({
     width: renderedItemWidth,
+    height: renderedItemHeight
+  });
+
+  const svgCoverRenderer = createSvgRenderer({
+    width: renderedItemWidth,
     height: renderedItemHeight,
-    color: darkMode ? '#333' : '#333'
+    background: 'rgba(0, 0, 0, 0.33)'
   });
 
   const svgPreviewRenderer = createSvgRenderer({
@@ -152,22 +157,22 @@ const create = async (element, darkMode) => {
     0
   );
 
-  // const xRange = [
-  //   new Date('2020-02-01 00:00'),
-  //   new Date('2020-03-01 00:00'),
-  //   new Date('2020-04-01 00:00')
-  // ];
+  const xRange = [
+    new Date('2020-02-01 00:00'),
+    new Date('2020-03-01 00:00'),
+    new Date('2020-04-01 00:00')
+  ];
 
-  // const numTicks = Math.ceil(Math.log10(maxCases));
+  const numTicks = Math.ceil(Math.log10(maxCases));
 
-  // const yRange = Array(numTicks)
-  //   .fill()
-  //   .map((x, i) => 10 ** (i + 1));
+  const yRange = Array(numTicks)
+    .fill()
+    .map((x, i) => 10 ** (i + 1));
 
-  // const xScale = d3
-  //   .scaleTime()
-  //   .domain([startDate, endDate])
-  //   .nice();
+  const xScale = d3
+    .scaleTime()
+    .domain([startDate, endDate])
+    .nice();
 
   const yScale = d3
     .scaleLog()
@@ -216,7 +221,6 @@ const create = async (element, darkMode) => {
     return [
       `<defs><mask id="path"><rect x="0" y="${yScaled}" width="10" height="${h}" fill="white"/></mask></defs>`,
       '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />'
-      // `<rect x="0" y="${yScaled}" width="10" height="${h}" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
     ];
   };
 
@@ -264,32 +268,34 @@ const create = async (element, darkMode) => {
     ];
   };
 
-  // const createYAxis = ticks =>
-  //   ticks.flatMap(tick => {
-  //     const label = d3.format('~s')(tick);
-  //     const y = 100 - yScale(tick) * 100;
-  //     const y2 = y + 10;
-  //     return [
-  //       `<text x="0" y="${y2}" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
-  //       `<path d="M 0 ${y} L 100 ${y}" stroke="#000" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
-  //     ];
-  //   });
+  const createYAxis = ticks =>
+    ticks.flatMap(tick => {
+      const label = d3.format('~s')(tick);
+      const y = 100 - yScale(tick) * 100;
+      const y2 = y + 10;
+      const color = darkMode ? '#fff' : '#000';
+      return [
+        `<text x="0" y="${y2}" fill="${color}" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
+        `<path d="M 0 ${y} L 100 ${y}" stroke="${color}" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
+      ];
+    });
 
-  // const createXAxis = ticks => [
-  //   `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
-  //   ...ticks.flatMap(tick => {
-  //     const label = monthNames[tick.getMonth()];
-  //     const x = xScale(tick) * 100;
-  //     return [
-  //       `<text x="${x}" y="112" fill="#000" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
-  //       `<path d="M ${x} 100 L ${x} 103" stroke="#000" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
-  //     ];
-  //   })
-  // ];
+  const createXAxis = ticks => [
+    `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
+    ...ticks.flatMap(tick => {
+      const label = monthNames[tick.getMonth()];
+      const x = xScale(tick) * 100;
+      const color = darkMode ? '#fff' : '#000';
+      return [
+        `<text x="${x}" y="112" fill="${color}" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
+        `<path d="M ${x} 100 L ${x} 103" stroke="${color}" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
+      ];
+    })
+  ];
 
   const strokeColorRange = darkMode
-    ? ['#b2b2b2', '#803500', ['#998273', '#bf6226']]
-    : ['#b2b2b2', '#803500', ['#998273', '#bf6226']];
+    ? ['#444444', '#ff9957', ['#a34e23', '#d37136']]
+    : ['#bbbbbb', '#802000', ['#c76526']];
 
   const toXy = ys =>
     ys.reduce((xys, y, i) => {
@@ -301,8 +307,8 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      // createYAxis(yRange),
-      // createXAxis(xRange),
+      createYAxis(yRange),
+      createXAxis(xRange),
       createArea(toXy(y)),
       createSvgEnd()
     ].join('');
@@ -324,23 +330,46 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      // createYAxis(yRange),
-      // createXAxis(xRange),
+      createYAxis(yRange),
+      createXAxis(xRange),
       createStackedArea(ys.map(toXy)),
       createSvgEnd()
     ].join('');
 
   const coverRenderer = sources =>
-    svgRenderer(sources.map(createStackedAreaChart));
+    svgCoverRenderer(sources.map(createStackedAreaChart));
 
-  const itemize = ([region, { cases, longLat, level, numLevels }]) => ({
-    src: cases,
-    id: region,
-    region,
-    lonLat: longLat,
-    level,
-    numLevels
-  });
+  const itemize = ([region, { cases, longLat, level, numLevels }]) => {
+    let r = region
+      .replace(', United Kingdom', ', UK')
+      .replace(', Netherlands', ', NL')
+      .replace(', Denmark', ', DK')
+      .replace(', Canada', ', CA')
+      .replace(', France', ', FR')
+      .replace(', Australia', ', AU')
+      .replace(' and ', ' & ')
+      .replace(' Islands', ' Is.')
+      .replace(' Island', ' Is.');
+
+    const lastCommaIdx = r.lastIndexOf(',');
+
+    if (lastCommaIdx >= 0) {
+      let f = r.slice(0, lastCommaIdx);
+      f = f.length >= 12 ? `${f.slice(0, 11)}…` : f;
+      r = `${f}${r.slice(lastCommaIdx)}`;
+    } else {
+      r = r.length >= 16 ? `${r.slice(0, 15)}…` : r;
+    }
+
+    return {
+      src: cases,
+      id: region,
+      region: r,
+      lonLat: longLat,
+      level,
+      numLevels
+    };
+  };
 
   const countriesAndStates = Object.entries(data)
     .filter(([, d]) => d.level <= 1)
@@ -411,11 +440,17 @@ const create = async (element, darkMode) => {
     previewRenderer,
     items: getItems(1),
     itemSize: 36,
-    pileBackgroundColor: 'rgba(255, 255, 255, 0)',
-    pileBackgroundColorHover: 'rgba(255, 255, 255, 1)',
+    pileBackgroundColor: darkMode
+      ? 'rgba(0, 0, 0, 0)'
+      : 'rgba(255, 255, 255, 0)',
+    pileBackgroundColorHover: darkMode
+      ? 'rgba(0, 0, 0, 1)'
+      : 'rgba(255, 255, 255, 1)',
     // pileBorderSize: 1,
-    // pileBorderColor: 'rgba(255, 255, 255, 0.1)',
-    pileBorderColorHover: 'rgba(224, 224, 224, 1.0)',
+    // pileBorderColor: 'rgba(255,255,255,0.1)',
+    pileBorderColorHover: darkMode
+      ? 'rgba(34, 34, 34, 1.0)'
+      : 'rgba(224, 224, 224, 1.0)',
     pileItemOffset: [0, 0],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
@@ -434,6 +469,8 @@ const create = async (element, darkMode) => {
     previewItemOffset,
     projector: ll => boundedMercator.toPx(ll),
     zoomBounds: [0, 8],
+    // zoomScale: scale =>
+    //   scale >= 1 ? 1 + (scale - 1) / 3 : 1 - (1 - scale) / 3,
     showSpatialIndex: false
   });
 
