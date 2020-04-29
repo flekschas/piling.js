@@ -7,6 +7,7 @@ import createDrawingPiles from './drawings';
 import createVitessce from './vitessce';
 import createRidgePlotPiles from './ridge-plot';
 import createTimeSeriesPiles from './time-series';
+import createBookPiles from './books';
 
 import './index.scss';
 
@@ -18,6 +19,7 @@ const drawingsEl = document.getElementById('drawings');
 const vitessceEl = document.getElementById('vitessce');
 const ridgePlotEl = document.getElementById('ridgeplot');
 const timeseriesEl = document.getElementById('timeseries');
+const booksEl = document.getElementById('books');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
@@ -27,6 +29,7 @@ const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
 const ridgePlotCreditEl = document.getElementById('ridgeplot-credit');
 const timeseriesCreditEl = document.getElementById('timeseries-credit');
+const booksCreditEl = document.getElementById('books-credit');
 
 const conditionalElements = [
   photosEl,
@@ -37,6 +40,7 @@ const conditionalElements = [
   vitessceEl,
   ridgePlotEl,
   timeseriesEl,
+  booksEl,
   photosCreditEl,
   matricesCreditEl,
   covidCreditEl,
@@ -44,7 +48,8 @@ const conditionalElements = [
   drawingsCreditEl,
   vitessceCreditEl,
   ridgePlotCreditEl,
-  timeseriesCreditEl
+  timeseriesCreditEl,
+  booksCreditEl
 ];
 
 const optionsEl = document.getElementById('options');
@@ -107,7 +112,8 @@ const pilingEls = {
   ridgeplot: ridgePlotEl,
   vitessce: vitessceEl,
   scatterplots: scatterplotsEl,
-  timeseries: timeseriesEl
+  timeseries: timeseriesEl,
+  books: booksEl
 };
 const createPiles = async example => {
   let additionalOptions;
@@ -212,6 +218,17 @@ const createPiles = async example => {
       piling.subscribe('update', updateHandlerIdled);
       break;
 
+    case 'books':
+      if (piling) piling.destroy();
+      conditionalElements.forEach(hideEl);
+      booksEl.style.display = 'block';
+      booksCreditEl.style.display = 'block';
+      undoButton.disabled = true;
+      [piling, additionalOptions] = await createBookPiles(booksEl, darkMode);
+      history = [];
+      piling.subscribe('update', updateHandlerIdled);
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -290,7 +307,7 @@ const handleOptionsTogglerClick = event => {
 
 optionsTogglerEl.addEventListener('click', handleOptionsTogglerClick);
 
-createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
+createPiles(example).then(([pilingLib, additionalOptions = []]) => {
   const firstItem = pilingLib.get('items')[0];
 
   const excludedProps = ['src', 'id'];
@@ -501,8 +518,9 @@ createPiles(exampleEl.value).then(([pilingLib, additionalOptions = []]) => {
           propName: 'columns',
           labelMinWidth: '4rem',
           dtype: 'int',
-          min: 1,
-          max: 20,
+          min: 2,
+          max: 80,
+          numSteps: 39,
           nullifiable: true
         },
         {
