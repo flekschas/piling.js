@@ -2257,7 +2257,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
     if (pile.magnifyByWheel(wheelDelta)) {
-      updatePileBounds(pileId);
+      updatePileBounds(pileId, { forceUpdate: true });
+      pile.drawBorder();
     }
     renderRaf();
   };
