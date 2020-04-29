@@ -266,6 +266,11 @@ const [navigationMode, setNavigationMode] = setterOptions(
 
 const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
 
+const [previewAlignment, setPreviewAlignment] = setter(
+  'previewAlignment',
+  'top'
+);
+
 const [previewPadding, setPreviewPadding] = setter('previewPadding', 2);
 
 const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
@@ -719,6 +724,7 @@ const createStore = () => {
     pileSizeBadgeAlign,
     pileVisibilityItems,
     previewAggregator,
+    previewAlignment,
     previewBackgroundColor,
     previewBackgroundOpacity,
     previewBorderColor,
@@ -892,6 +898,7 @@ export const createAction = {
   setPileSizeBadge,
   setPileSizeBadgeAlign,
   setPreviewAggregator,
+  setPreviewAlignment,
   setPreviewBackgroundColor,
   setPreviewBackgroundOpacity,
   setPreviewBorderColor,

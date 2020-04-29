@@ -732,7 +732,9 @@ Unsubscribe from an event. See [events](#events) for all the events.
   });
   ```
 
-- `previewOffset` and `previewSpacing` are used to **globally** position preview items. Hereby, `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
+- `previewAlignment`, `previewOffset` and `previewSpacing` are used to **globally** position preview items. `previewAlignment` specifies the alignment direction, which can one of `top` (default), `left`, `right`, or `bottom`.
+
+- `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
 
   ```javascript
   piling.set('previewOffset', pileState => {

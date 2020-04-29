@@ -723,6 +723,7 @@ const createPile = (
   const positionPreviews = animator => {
     const {
       piles,
+      previewAlignment,
       previewItemOffset,
       previewOffset,
       previewSpacing,
@@ -731,13 +732,17 @@ const createPile = (
     const pileState = piles[id];
 
     whenCover.then(_cover => {
-      const spacing = isFunction(previewSpacing)
-        ? previewSpacing(pileState)
-        : previewSpacing;
+      const alignment = isFunction(previewAlignment)
+        ? previewAlignment(pileState)
+        : previewAlignment;
 
       let offset = isFunction(previewOffset)
         ? previewOffset(pileState)
         : previewOffset;
+
+      const spacing = isFunction(previewSpacing)
+        ? previewSpacing(pileState)
+        : previewSpacing;
 
       const [scaleWidthToCover, scaleHeightToCover] = isFunction(
         previewScaleToCover
@@ -753,15 +758,26 @@ const createPile = (
 
       isPositioning = previewItemContainer.children.length > 0;
 
+      let prevOffset = [0, 0];
+      let prevSize = [0, 0];
+
       previewItemContainer.children.forEach((previewItem, index) => {
         // eslint-disable-next-line no-underscore-dangle
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        if (scaleWidthToCover)
+        if (scaleWidthToCover === true) {
+          const scaleFactor = _cover.width / previewItem.width;
+          previewItem.scale.x *= scaleFactor;
+          if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
+        } else if (scaleHeightToCover === true) {
+          const scaleFactor = _cover.height / previewItem.height;
+          previewItem.scale.y *= scaleFactor;
+          if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
+        } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
           previewItem.scale.x *= _cover.width / previewItem.width;
-        if (scaleHeightToCover)
           previewItem.scale.y *= _cover.height / previewItem.height;
+        }
 
         let itemOffset;
 
@@ -770,13 +786,46 @@ const createPile = (
           itemOffset[0] = itemOffset[0] * _cover.scaleFactor - halfWidth;
           itemOffset[1] = itemOffset[1] * _cover.scaleFactor - halfHeight;
         } else {
-          itemOffset = [
-            0,
-            -halfHeight -
-              item.preview.height * (index + 0.5) -
-              halfSpacing * index -
-              offset
-          ];
+          switch (alignment) {
+            case 'left':
+              itemOffset = [
+                (index === 0) * -halfWidth +
+                  prevOffset[0] -
+                  prevSize[0] / 2 -
+                  previewItem.width / 2 -
+                  halfSpacing,
+                0
+              ];
+              break;
+
+            case 'right':
+              itemOffset = [
+                (index === 0) * halfWidth +
+                  prevOffset[0] +
+                  prevSize[0] / 2 +
+                  previewItem.width / 2 +
+                  halfSpacing,
+                0
+              ];
+              break;
+
+            case 'bottom':
+              itemOffset = [
+                0,
+                halfHeight + index + halfSpacing * index + offset
+              ];
+              break;
+
+            default:
+            case 'top':
+              itemOffset = [
+                0,
+                -halfHeight - index - halfSpacing * index - offset
+              ];
+              break;
+          }
+          prevOffset = [...itemOffset];
+          prevSize = [previewItem.width, previewItem.height];
         }
 
         item.preview.clearBackground();
