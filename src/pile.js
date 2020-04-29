@@ -1425,8 +1425,8 @@ const createPile = (
       placeholderGfx = new PIXI.Graphics();
       contentContainer.addChild(placeholderGfx);
     }
-    const width = anchorBox.width / baseScale;
-    const height = anchorBox.height / baseScale;
+    const width = anchorBox.width / baseScale / zoomScale;
+    const height = anchorBox.height / baseScale / zoomScale;
 
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
