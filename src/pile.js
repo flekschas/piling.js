@@ -191,7 +191,7 @@ const createPile = (
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
       coverContainer.visible = true;
-      if (hoverItemContainer.children.length === 1) {
+      while (hoverItemContainer.children.length) {
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
