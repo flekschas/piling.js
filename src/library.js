@@ -5074,6 +5074,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   return {
     // Properties
+    get renderer() {
+      return renderer;
+    },
     get version() {
       return version;
     },
@@ -5086,7 +5089,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     halt,
     importState,
     render: renderRaf,
-    renderer,
     resume,
     set: setPublic,
     splitAll,
