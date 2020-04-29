@@ -204,7 +204,7 @@ const createVitessce = async (element, darkMode) => {
     previewBorderColor: darkMode ? 0xffffff : 'rgba(0, 255, 0, 0.66)',
     previewOffset: 2,
     previewPadding: 0.5,
-    previewSpacing: 4,
+    previewSpacing: 0,
     previewScaleToCover: [true, false]
   });
 
