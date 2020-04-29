@@ -108,6 +108,7 @@ const createMatrixPiles = async (element, darkMode) => {
           setter: newMinValue => {
             domain[0] = newMinValue;
             matrixRenderer.setDomain(domain);
+            coverRenderer.setDomain(domain);
             matrix1DRenderer.setDomain(domain);
             piling.render();
           }
@@ -123,6 +124,7 @@ const createMatrixPiles = async (element, darkMode) => {
           setter: newMaxValue => {
             domain[1] = newMaxValue;
             matrixRenderer.setDomain(domain);
+            coverRenderer.setDomain(domain);
             matrix1DRenderer.setDomain(domain);
             piling.render();
           }
