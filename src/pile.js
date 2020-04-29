@@ -745,11 +745,11 @@ const createPile = (
         ? previewScaleToCover(pileState)
         : previewScaleToCover;
 
-      offset = offset !== null ? offset : spacing / 2;
+      offset = Math.round(offset !== null ? offset : spacing / 2);
 
       const halfSpacing = spacing / 2;
-      const halfWidth = _cover.width / 2;
-      const halfHeight = _cover.height / 2;
+      const halfWidth = Math.round(_cover.width / 2);
+      const halfHeight = Math.round(_cover.height / 2);
 
       isPositioning = previewItemContainer.children.length > 0;
 
@@ -1059,8 +1059,8 @@ const createPile = (
   };
 
   const moveTo = (x, y) => {
-    rootContainer.x = x;
-    rootContainer.y = y;
+    rootContainer.x = Math.round(x);
+    rootContainer.y = Math.round(y);
     return Math.hypot(rootContainer.x - x, rootContainer.y - y) > EPS;
   };
 
