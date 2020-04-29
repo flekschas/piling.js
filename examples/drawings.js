@@ -55,7 +55,7 @@ const createItems = async category => {
 const createDrawingPiles = async (element, darkMode) => {
   let items = await createItems('necklace');
 
-  const coverOptions = { size: 128, lineWidth: 3 };
+  const coverOptions = { size: 128, lineWidth: 3, log: darkMode };
 
   const quickDrawRenderer = createGoogleQuickDrawRenderer();
   const quickDrawCoverAggregator = createGoogleQuickDrawCoverAggregator(
