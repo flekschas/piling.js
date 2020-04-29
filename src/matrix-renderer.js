@@ -27,7 +27,7 @@ const createMatrixRenderer = ({
 } = {}) => {
   const geometry = new PIXI.Geometry();
   geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
-  geometry.addAttribute('aTextureCoord', [0, 1, 1, 1, 1, 0, 0, 0], 2);
+  geometry.addAttribute('aTextureCoord', [0, 0, 1, 0, 1, 1, 0, 1], 2);
   geometry.addIndex([0, 1, 2, 0, 3, 2]);
 
   const [uColorMapTex, uColorMapTexRes] = createColorTexture(colorMap);
