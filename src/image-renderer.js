@@ -11,6 +11,7 @@ export const loadImage = (src, isCrossOrigin = false) =>
       resolve(image);
     };
     image.onerror = error => {
+      console.error(`Could't load ${src}`);
       reject(error);
     };
     image.src = src;
