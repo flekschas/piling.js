@@ -79,7 +79,7 @@ const createBookPiles = async (element, darkMode) => {
           }
         },
         {
-          name: 'Left-Algined Foreshortened Previews',
+          name: 'Left-Aligned Foreshortened Previews',
           action: () => {
             piling.set({
               coverAggregator,
