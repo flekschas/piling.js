@@ -86,20 +86,9 @@ const createBookPiles = async (element, darkMode) => {
               coverRenderer: renderer,
               previewAggregator,
               previewRenderer: renderer,
-              previewScaleToCover: [false, true],
-              pileOrderItems: pile => [...pile.items].reverse(),
-              previewItemOffset: (
-                item,
-                i,
-                pile,
-                previewItem,
-                coverItem,
-                lastOffset
-              ) => [
-                lastOffset[0] - lastOffset[2] / 2 - previewItem.width / 2 - 2,
-                coverItem.height / 2,
-                true
-              ]
+              previewAlignment: 'left',
+              previewScaleToCover: ['auto', true],
+              pileOrderItems: pile => [...pile.items].reverse()
             });
           }
         },
