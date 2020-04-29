@@ -517,6 +517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : zoomScale;
     pileInstances.forEach(pile => {
       pile.setZoomScale(scaling);
+      pile.drawBorder();
     });
     renderRaf();
   };
@@ -888,6 +889,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pile.cover.scale(scaleFactor);
       }
       pile.updateOffset();
+      pile.drawBorder();
     });
   };
 
