@@ -2010,10 +2010,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       store.dispatch(createAction.setFocusedPiles([]));
       store.dispatch(createAction.setFocusedPiles([pile.id]));
     };
+    const scale = camera ? camera.scaling : 1;
     const createOptions = isLast => (isLast ? { onDone } : undefined);
 
     if (tempDepileDirection === 'horizontal') {
-      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      pile.tempDepileContainer.x = pile.bBox.width / scale;
       pile.tempDepileContainer.y = 0;
       pile.tempDepileContainer.interactive = true;
 
@@ -2033,7 +2034,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     } else if (tempDepileDirection === 'vertical') {
       pile.tempDepileContainer.x = 0;
-      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      pile.tempDepileContainer.x = pile.bBox.height / scale;
       pile.tempDepileContainer.interactive = true;
 
       let heights = 0;
@@ -2054,10 +2055,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const tempDepileTwoD = ({ pile, items, orderer }) => {
-    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    const scale = camera ? camera.scaling : 1;
+    pile.tempDepileContainer.x = pile.bBox.width / scale;
     pile.tempDepileContainer.y = 0;
 
-    const squareLength = Math.ceil(Math.sqrt(items.length));
+    // Number of columns
+    const numColumns = Math.ceil(Math.sqrt(items.length));
 
     const onDone = () => {
       pile.isTempDepiled = true;
@@ -2066,15 +2069,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     const createOptions = isLast => (isLast ? { onDone } : undefined);
+    const getPosition = orderer(numColumns);
 
     items.forEach((itemId, index) => {
       const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
       clonedSprite.x = -pile.tempDepileContainer.x;
       pile.tempDepileContainer.addChild(clonedSprite);
-      const getPosition = orderer(squareLength);
-      let [x, y] = getPosition(index);
-      x *= layout.columnWidth;
-      y *= layout.rowHeight;
+      const [j, i] = getPosition(index);
+      // TODO: allow adjusting the padding!
+      const x = j * (layout.cellWidth + 6);
+      const y = i * (layout.cellHeight + 6);
 
       const options = createOptions(index === items.length - 1);
 
