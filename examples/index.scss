@@ -42,6 +42,7 @@ body.dark-mode {
 }
 
 a {
+  color: inherit;
   text-decoration: underline;
 }
 
@@ -545,6 +546,24 @@ body.dark-mode #undo {
   :disabled {
     color: $white;
     background: $black;
+  }
+}
+
+#no-webgl2-support {
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparentize($primary, 0.9);
+
+  > div {
+    width: 100%;
+    max-width: 24rem;
+    padding: 1rem;
+    color: black;
+    border-radius: 0.25rem;
+    background: $primary;
   }
 }
 
