@@ -1125,7 +1125,11 @@ const createPile = (
         pileItem.replaceImage(newImage);
       } else if (hasPreviewItem(pileItem)) {
         const newImage = pileItem.item.preview;
-        pileItem.replaceImage(newImage);
+        if (newImage) {
+          pileItem.replaceImage(newImage);
+        } else {
+          updateItemToNormal(pileItem.item);
+        }
       }
     } else {
       normalItemIndex.forEach(pileItem => {
@@ -1134,7 +1138,11 @@ const createPile = (
       });
       previewItemIndex.forEach(pileItem => {
         const newImage = pileItem.item.preview;
-        pileItem.replaceImage(newImage);
+        if (newImage) {
+          pileItem.replaceImage(newImage);
+        } else {
+          updateItemToNormal(pileItem.item);
+        }
       });
     }
   };
