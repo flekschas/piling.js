@@ -29,10 +29,13 @@ const createItem = (
     image.destroy();
     // eslint-disable-next-line no-param-reassign
     image = newImage;
+    if (preview) preview.destroy();
     if (newPreview) {
-      preview.destroy();
       // eslint-disable-next-line no-param-reassign
       preview = newPreview;
+    } else {
+      // eslint-disable-next-line no-param-reassign
+      preview = null;
     }
   };
 
