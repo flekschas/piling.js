@@ -74,7 +74,12 @@ const createBookPiles = async (element, darkMode) => {
                 i * 2 + (Math.random() * 20 - 10),
                 i * -10 + (Math.random() * 8 - 4)
               ],
-              pileItemRotation: () => Math.random() * 16 - 8
+              pileItemRotation: () => Math.random() * 16 - 8,
+              coverAggregator: null,
+              coverRenderer: null,
+              previewAggregator: null,
+              previewRenderer: null,
+              pileVisibilityItems: true
             });
           }
         },
@@ -88,7 +93,8 @@ const createBookPiles = async (element, darkMode) => {
               previewRenderer: renderer,
               previewAlignment: 'left',
               previewScaleToCover: ['auto', true],
-              pileOrderItems: pile => [...pile.items].reverse()
+              pileOrderItems: pile => [...pile.items].reverse(),
+              pileVisibilityItems: true
             });
           }
         },
