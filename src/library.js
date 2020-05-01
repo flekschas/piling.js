@@ -1066,6 +1066,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             });
           }
         });
+
+        pileInstances.forEach(pile => {
+          const pileState = piles[pile.id];
+          updatePreviewAndCover(pileState, pile);
+        });
+
         scaleItems();
         renderRaf();
         resume();
@@ -1507,6 +1513,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       asPreview: !!(previewAggregator || previewRenderer),
       shouldDrawPlaceholder: true
     });
+
+    if (!coverRenderer) {
+      pileInstance.setCover(null);
+      positionItems(pileInstance.id, { all: true });
+      return;
+    }
 
     const whenCoverImage = coverAggregator(itemsOnPile)
       .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
