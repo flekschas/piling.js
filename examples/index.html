@@ -60,9 +60,12 @@
 
     <script>
       let urlParams = new URLSearchParams(window.location.search);
+
       window.permanentOptions = urlParams.has('options')
         ? 'permanent-options'
         : '';
+
+      window.fullscreen = urlParams.has('fullscreen') ? 'fullscreen' : '';
 
       switch (urlParams.get('mode')) {
         case 'white':
@@ -91,6 +94,7 @@
     <script>
       if (window.mode === null) {
         switch (window.example) {
+          case 'books':
           case 'drawings':
           case 'ridgeplot':
             window.mode = 'white-mode';
@@ -103,7 +107,12 @@
       }
       document.body.setAttribute(
         'class',
-        [window.example, window.permanentOptions, window.mode].join(' ')
+        [
+          window.example,
+          window.permanentOptions,
+          window.mode,
+          window.fullscreen
+        ].join(' ')
       );
     </script>
 
@@ -197,6 +206,7 @@
                 >
                 )
               </em>
+              <em id="books-credit" style="display: none"></em>
             </div>
           </div>
         </div>
@@ -211,6 +221,21 @@
     <div id="vitessce" class="container"></div>
     <div id="scatterplots" class="container"></div>
     <div id="timeseries" class="container"></div>
+    <div id="books" class="container"></div>
+
+    <div id="no-webgl2-support" class="container error">
+      <div>
+        <p>
+          <strong
+            >Your
+            <a href="https://caniuse.com/webgl2" target="_blank"
+              >browser does not support WebGL2</a
+            >!</strong
+          ><br />
+          Please use Chrome, Firefox, or Edge to see this demo.
+        </p>
+      </div>
+    </div>
 
     <div id="group-by-grid"><canvas></canvas></div>
 

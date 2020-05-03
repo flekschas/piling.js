@@ -517,6 +517,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : zoomScale;
     pileInstances.forEach(pile => {
       pile.setZoomScale(scaling);
+      pile.drawBorder();
     });
     renderRaf();
   };
@@ -888,6 +889,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pile.cover.scale(scaleFactor);
       }
       pile.updateOffset();
+      pile.drawBorder();
     });
   };
 
@@ -1064,6 +1066,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
             });
           }
         });
+
+        pileInstances.forEach(pile => {
+          updatePreviewAndCover(piles[pile.id], pile);
+        });
+
         scaleItems();
         renderRaf();
         resume();
@@ -1505,6 +1512,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       asPreview: !!(previewAggregator || previewRenderer),
       shouldDrawPlaceholder: true
     });
+
+    if (!coverRenderer) {
+      pileInstance.setCover(null);
+      positionItems(pileInstance.id, { all: true });
+      return;
+    }
 
     const whenCoverImage = coverAggregator(itemsOnPile)
       .then(aggregatedSrcs => coverRenderer([aggregatedSrcs]))
@@ -2025,10 +2038,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       store.dispatch(createAction.setFocusedPiles([]));
       store.dispatch(createAction.setFocusedPiles([pile.id]));
     };
+    const scale = camera ? camera.scaling : 1;
     const createOptions = isLast => (isLast ? { onDone } : undefined);
 
     if (tempDepileDirection === 'horizontal') {
-      pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+      pile.tempDepileContainer.x = pile.bBox.width / scale;
       pile.tempDepileContainer.y = 0;
       pile.tempDepileContainer.interactive = true;
 
@@ -2048,7 +2062,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
     } else if (tempDepileDirection === 'vertical') {
       pile.tempDepileContainer.x = 0;
-      pile.tempDepileContainer.y = pile.bBox.maxY - pile.bBox.minY + 10;
+      pile.tempDepileContainer.x = pile.bBox.height / scale;
       pile.tempDepileContainer.interactive = true;
 
       let heights = 0;
@@ -2069,10 +2083,12 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const tempDepileTwoD = ({ pile, items, orderer }) => {
-    pile.tempDepileContainer.x = pile.bBox.maxX - pile.bBox.minX + 10;
+    const scale = camera ? camera.scaling : 1;
+    pile.tempDepileContainer.x = pile.bBox.width / scale;
     pile.tempDepileContainer.y = 0;
 
-    const squareLength = Math.ceil(Math.sqrt(items.length));
+    // Number of columns
+    const numColumns = Math.ceil(Math.sqrt(items.length));
 
     const onDone = () => {
       pile.isTempDepiled = true;
@@ -2081,15 +2097,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     };
 
     const createOptions = isLast => (isLast ? { onDone } : undefined);
+    const getPosition = orderer(numColumns);
 
     items.forEach((itemId, index) => {
       const clonedSprite = cloneSprite(renderedItems.get(itemId).image.sprite);
       clonedSprite.x = -pile.tempDepileContainer.x;
       pile.tempDepileContainer.addChild(clonedSprite);
-      const getPosition = orderer(squareLength);
-      let [x, y] = getPosition(index);
-      x *= layout.columnWidth;
-      y *= layout.rowHeight;
+      const [j, i] = getPosition(index);
+      // TODO: allow adjusting the padding!
+      const x = j * (layout.cellWidth + 6);
+      const y = i * (layout.cellHeight + 6);
 
       const options = createOptions(index === items.length - 1);
 
@@ -2266,7 +2283,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const scalePile = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
     if (pile.magnifyByWheel(wheelDelta)) {
-      updatePileBounds(pileId);
+      updatePileBounds(pileId, { forceUpdate: true });
+      pile.drawBorder();
     }
     renderRaf();
   };
@@ -2616,48 +2634,52 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   };
 
   const groupBy = (type, objective = null, options = {}) => {
-    let whenGroupings;
+    let whenGrouped;
     let mergeCenter = 'mean';
 
     switch (type) {
       case 'overlap':
-        whenGroupings = groupByOverlap(objective, options);
+        whenGrouped = groupByOverlap(objective, options);
         break;
 
       case 'distance':
-        whenGroupings = groupByDistance(objective, options);
+        whenGrouped = groupByDistance(objective, options);
         break;
 
       case 'grid':
-        whenGroupings = groupByGrid(objective);
+        whenGrouped = groupByGrid(objective);
         break;
 
       case 'column':
         mergeCenter = objective;
-        whenGroupings = groupByColumn(objective);
+        whenGrouped = groupByColumn(objective);
         break;
 
       case 'row':
         mergeCenter = objective;
-        whenGroupings = groupByRow(objective);
+        whenGrouped = groupByRow(objective);
         break;
 
       case 'category':
-        whenGroupings = groupByCategory(objective);
+        whenGrouped = groupByCategory(objective);
         break;
 
       case 'cluster':
-        whenGroupings = groupByCluster(objective, options);
+        whenGrouped = groupByCluster(objective, options);
         break;
 
-      // no default
+      default:
+        whenGrouped = Promise.reject(
+          new Error(`Unknown group by type: ${type}`)
+        );
+        break;
     }
 
-    whenGroupings.then(groupedPiles => {
+    return whenGrouped.then(groupedPiles => {
       store.dispatch(createAction.setFocusedPiles([]));
 
       // If there's only one pile on a pile we can ignore it
-      animateMerge(
+      return animateMerge(
         groupedPiles.filter(pileIds => pileIds.length > 1),
         mergeCenter
       );
@@ -3358,7 +3380,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileLabelText,
       pileLabelTextMapping,
       pileLabelTextColor,
-      pileLabelFontSize
+      pileLabelFontSize,
+      pileLabelTextStyle
     } = store.state;
 
     // Destroy existing labels to avoid memory leaks
@@ -3421,7 +3444,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const pixiText = new PIXI.Text(labelText, {
           fill: pileLabelTextColor,
           fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
-          align: 'center'
+          align: 'center',
+          ...(pileLabelTextStyle || {})
         });
         pixiText.updateText();
         label.texture = pixiText.texture;
@@ -3466,16 +3490,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!idToLabel.size || reset) createUniquePileLabels();
 
-    const allLabels = pileState.items.flatMap(itemId =>
-      pileLabel.map(objective => objective(items[itemId])).join('-')
+    const allLabels = pileState.items
+      .flatMap(itemId =>
+        pileLabel.map(objective => objective(items[itemId])).join('-')
+      )
+      .filter(label => label.length);
+
+    const uniquePileLabels = unique(allLabels);
+
+    uniquePileLabels.sort(
+      (a, b) =>
+        (uniqueLabels.get(a.toString()).index || Infinity) -
+        (uniqueLabels.get(b.toString()).index || Infinity)
     );
 
-    const labels = unique(allLabels);
-
     const scaleFactors =
-      labels.length > 1 ? getPileLabelSizeScale(labels, allLabels) : [1];
+      uniquePileLabels.length > 1
+        ? getPileLabelSizeScale(uniquePileLabels, allLabels)
+        : [1];
 
-    const args = labels.reduce(
+    const args = uniquePileLabels.reduce(
       (_args, labelText) => {
         const label =
           labelText && labelText.toString
@@ -3670,9 +3704,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         state.pileLabelHeight !== newState.pileLabelHeight ||
         state.pileLabelStackAlign !== newState.pileLabelStackAlign)
     ) {
-      Object.entries(newState.piles).forEach(([id, pile], index) => {
-        setPileLabel(pile, id, !index);
-      });
+      Object.entries(newState.piles)
+        .filter(pileIdState => pileIdState[1].items.length)
+        .forEach(([id, pile], index) => {
+          setPileLabel(pile, id, !index);
+        });
     }
 
     if (
@@ -3826,6 +3862,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           // We currently allow only one item to be magnified up so all
           // previously magnified piles are reset
           scaledPileInstance.unmagnify();
+          delete scaledPileInstance.magnifiedByWheel;
           updatePileBounds(scaledPileInstance.id);
           clearActivePileLayer();
         });
@@ -3834,7 +3871,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
-          scaledPileInstance.magnify();
+          if (!scaledPileInstance.magnifiedByWheel) {
+            scaledPileInstance.magnify();
+          }
           moveToActivePileLayer(scaledPileInstance.graphics);
         });
 
@@ -3953,9 +3992,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     if (stateUpdates.has('positionItems')) {
-      Object.values(state.piles).forEach(pile => {
-        if (pile.items.length > 1) positionItems(pile.id, { all: true });
-      });
+      Object.values(state.piles)
+        .filter(pile => pile.items.length > 1)
+        .forEach(pile => {
+          positionItems(pile.id, { all: true });
+        });
     }
 
     awaitItemUpdates(currentItemUpdates);
@@ -4697,8 +4738,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       if (result.length !== 0) {
+        const pile = pileInstances.get(result[0].id);
         event.preventDefault();
-        store.dispatch(createAction.setMagnifiedPiles([result[0].id]));
+        if (pile.isMagnified) {
+          pile.magnifiedByWheel = true;
+          store.dispatch(createAction.setMagnifiedPiles([pile.id]));
+        } else {
+          delete pile.magnifiedByWheel;
+          store.dispatch(createAction.setMagnifiedPiles([]));
+        }
         scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
     } else if (isPanZoom) {
@@ -5079,6 +5127,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   return {
     // Properties
+    get renderer() {
+      return renderer;
+    },
     get version() {
       return version;
     },
@@ -5091,7 +5142,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     halt,
     importState,
     render: renderRaf,
-    renderer,
     resume,
     set: setPublic,
     splitAll,

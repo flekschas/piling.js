@@ -4,33 +4,31 @@ import createGoogleQuickDrawRenderer from './google-quickdraw-renderer';
 import createGoogleQuickDrawCoverRenderer from './google-quickdraw-cover-renderer';
 import createGoogleQuickDrawCoverAggregator from './google-quickdraw-cover-aggregator';
 
-const regionToColor = region => {
-  switch (region.toUpperCase()) {
-    case 'LCN': // Latin America & Caribbean
-      return '#E69F00'; // Orange
+// To counterbalance small counts
+const EPS = 0.005;
 
-    case 'SAS': // South Asia
-      return '#56B4E9'; // sky blue
-
-    case 'SSF': // Sub-Saharan Africa
-      return '#009E73'; // bluish green
-
-    case 'ECS': // Europe & Central Asia
-      return '#D55E00'; // vermillion
-
-    case 'MEA': // Middle East & North Africa
-      return '#F0E442'; // yellow
-
-    case 'EAS': // East Asia & Pacific
-      return '#CC79A7'; // reddish purple
-
-    case 'NAC': // North America
-      return '#0072B2'; // blue
-
-    default:
-      return '#808080';
-  }
+const regionToLabel = {
+  LCN: 'Latin America',
+  SAS: 'South Asia',
+  SSF: 'South Africa',
+  ECS: 'Europe',
+  MEA: 'Middle East',
+  EAS: 'East Asia',
+  NAC: 'North America'
 };
+
+const regionToColor = {
+  LCN: '#E69F00',
+  SAS: '#56B4E9',
+  SSF: '#009E73',
+  ECS: '#D55E00',
+  MEA: '#F0E442',
+  EAS: '#CC79A7',
+  NAC: '#0072B2'
+};
+
+const mapRegion = (mapping, unknown) => region =>
+  mapping[region.toUpperCase()] || unknown;
 
 const selectedCategory = 'teapot';
 const categories = [
@@ -55,14 +53,9 @@ const createItems = async category => {
 };
 
 const createDrawingPiles = async (element, darkMode) => {
-  const response = await fetch('data/teapot-2000.json');
-  const items = await response.json();
+  let items = await createItems('necklace');
 
-  items.forEach((item, index) => {
-    item.id = `teapot${index}`;
-  });
-
-  const coverOptions = { size: 128, lineWidth: 3 };
+  const coverOptions = { size: 128, lineWidth: 3, log: darkMode };
 
   const quickDrawRenderer = createGoogleQuickDrawRenderer();
   const quickDrawCoverAggregator = createGoogleQuickDrawCoverAggregator(
@@ -78,17 +71,23 @@ const createDrawingPiles = async (element, darkMode) => {
     return regionsA.every((region, i) => region === regionsB[i]);
   };
 
-  let total = 0;
-  const regionHistogram = items.reduce((hist, item) => {
-    if (!hist[item.region]) hist[item.region] = 1;
-    else ++hist[item.region];
-    ++total;
-    return hist;
-  }, {});
+  let regionHistogram = [];
 
-  Object.keys(regionHistogram).forEach(region => {
-    regionHistogram[region] /= total;
-  });
+  const createRegionHistogram = _items => {
+    let total = 0;
+    regionHistogram = _items.reduce((hist, item) => {
+      if (!hist[item.region]) hist[item.region] = 1;
+      else ++hist[item.region];
+      ++total;
+      return hist;
+    }, {});
+
+    Object.keys(regionHistogram).forEach(region => {
+      regionHistogram[region] /= total;
+    });
+  };
+
+  createRegionHistogram(items);
 
   // Uncomment for `npm run measure-init-time`
   // const el = document.createElement('div');
@@ -105,19 +104,19 @@ const createDrawingPiles = async (element, darkMode) => {
     // itemSize: 48, // 200
     // itemSize: 24, // 500
     // itemSize: 16, // 1000
-    itemSize: 12, // 2000
+    // itemSize: 12, // 2000
     // itemSize: 10, // 5000
 
     // columns: 10, // 200
     // columns: 15, // 500
-    // columns: 20, // 1000
-    columns: 30, // 2000
+    columns: 20, // 1000
+    // columns: 30, // 2000
     // columns: 50, // 5000
-    // cellPadding: 16,
+    cellPadding: 12,
     // cellPadding: 10, // 200
     // cellPadding: 8, // 500
     // cellPadding: 4, // 1000
-    cellPadding: 2, // 2000
+    // cellPadding: 2, // 2000
     // cellPadding: 1, // 5000
     pileCoverInvert: darkMode,
     pileItemInvert: darkMode,
@@ -128,26 +127,30 @@ const createDrawingPiles = async (element, darkMode) => {
     pileBackgroundColorHover: darkMode
       ? 'rgba(0, 0, 0, 1.0)'
       : 'rgba(255, 255, 255, 1.0)',
+    pileBorderOpacityHover: 0,
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
     pileVisibilityItems: pile => pile.items.length === 1,
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
     lassoStrokeColor: '#000000',
     // pileLabel: 'region',
-    pileLabelColor: regionToColor,
+    pileLabelColor: mapRegion(regionToColor, '#808080'),
+    pileLabelTextColor: darkMode ? 0xffffff : 0x000000,
     pileLabelStackAlign: 'horizontal',
-    pileLabelHeight: pile => (pile.items.length > 1 ? 12 : 0.5),
+    pileLabelHeight: pile => (pile.items.length > 1 ? 9 : 0.5),
     pileLabelSizeTransform: (counts, labels) => {
       const totalCounts = sum(counts);
       let max = 0;
       const normValues = counts.map((c, i) => {
         const observedOverExpected =
-          c / (totalCounts * (regionHistogram[labels[i]] || 1));
+          c /
+          (totalCounts * (regionHistogram[labels[i]] || 1) + totalCounts * EPS);
         max = Math.max(max, observedOverExpected);
         return observedOverExpected;
       });
       return normValues.map(x => x / max);
     },
+    pileLabelTextMapping: mapRegion(regionToLabel, 'Unknown'),
     zoomScale: cameraScale =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : cameraScale
   });
@@ -204,10 +207,10 @@ const createDrawingPiles = async (element, darkMode) => {
           dtype: 'string',
           defaultValue: selectedCategory,
           values: categories,
-          setter: category => {
-            createItems(category).then(_item => {
-              piling.set('items', _item);
-            });
+          setter: async category => {
+            items = await createItems(category);
+            createRegionHistogram(items);
+            piling.set('items', items);
           }
         }
       ]

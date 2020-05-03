@@ -42,6 +42,7 @@ body.dark-mode {
 }
 
 a {
+  color: inherit;
   text-decoration: underline;
 }
 
@@ -189,6 +190,12 @@ body.permanent-options .container {
   right: 17rem;
 }
 
+body.fullscreen .container {
+  top: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+}
+
 .credits {
   margin-left: 0.5rem;
 }
@@ -258,6 +265,10 @@ header #description {
   display: flex;
   flex-grow: 1;
   flex-direction: column;
+}
+
+body.fullscreen header {
+  display: none;
 }
 
 #description .wrapper {
@@ -466,6 +477,14 @@ body.permanent-options #options {
   }
 }
 
+body.fullscreen #options .toggler {
+  opacity: 0;
+}
+
+body.fullscreen #options.open .toggler {
+  opacity: 1;
+}
+
 body.dark-mode #options {
   color: $white;
   border-left-color: $gray-darker;
@@ -527,6 +546,24 @@ body.dark-mode #undo {
   :disabled {
     color: $white;
     background: $black;
+  }
+}
+
+#no-webgl2-support {
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparentize($primary, 0.9);
+
+  > div {
+    width: 100%;
+    max-width: 24rem;
+    padding: 1rem;
+    color: black;
+    border-radius: 0.25rem;
+    background: $primary;
   }
 }
 

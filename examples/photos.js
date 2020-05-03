@@ -1,7 +1,6 @@
 import { interpolateGreys } from 'd3-scale-chromatic';
 import { aggregate, max, unique } from '@flekschas/utils';
-import createPilingJs from '../src/library';
-import { createImageRenderer } from '../src/renderer';
+import createPilingJs, { createImageRenderer } from '../src';
 import { createScale } from '../src/utils';
 
 const createPhotoPiles = async (element, darkMode) => {
@@ -85,7 +84,9 @@ const createPhotoPiles = async (element, darkMode) => {
     pileCellAlignment: 'center',
     cellAspectRatio: 1.1,
     pileBorderColor: pile =>
-      interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
+      darkMode
+        ? interpolateGreys(1 - (0.2 + (pile.items.length / 500) * 0.8))
+        : interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
     pileBorderSize: pile => Math.log(pile.items.length),
     pileItemOffset: (item, i, pile) => {
       const isNotLast = pile.items.length - 1 !== i;

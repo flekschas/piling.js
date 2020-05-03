@@ -191,7 +191,7 @@ const createPile = (
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
       coverContainer.visible = true;
-      if (hoverItemContainer.children.length === 1) {
+      while (hoverItemContainer.children.length) {
         hoverItemContainer.removeChildAt(0);
       }
       if (hasPreviewItem(item)) {
@@ -726,6 +726,7 @@ const createPile = (
   const positionPreviews = animator => {
     const {
       piles,
+      previewAlignment,
       previewItemOffset,
       previewOffset,
       previewSpacing,
@@ -734,13 +735,17 @@ const createPile = (
     const pileState = piles[id];
 
     whenCover.then(_cover => {
-      const spacing = isFunction(previewSpacing)
-        ? previewSpacing(pileState)
-        : previewSpacing;
+      const alignment = isFunction(previewAlignment)
+        ? previewAlignment(pileState)
+        : previewAlignment;
 
       let offset = isFunction(previewOffset)
         ? previewOffset(pileState)
         : previewOffset;
+
+      const spacing = isFunction(previewSpacing)
+        ? previewSpacing(pileState)
+        : previewSpacing;
 
       const [scaleWidthToCover, scaleHeightToCover] = isFunction(
         previewScaleToCover
@@ -748,23 +753,34 @@ const createPile = (
         ? previewScaleToCover(pileState)
         : previewScaleToCover;
 
-      offset = offset !== null ? offset : spacing / 2;
+      offset = Math.round(offset !== null ? offset : spacing / 2);
 
       const halfSpacing = spacing / 2;
-      const halfWidth = _cover.width / 2;
-      const halfHeight = _cover.height / 2;
+      const halfWidth = Math.round(_cover.width / 2);
+      const halfHeight = Math.round(_cover.height / 2);
 
       isPositioning = previewItemContainer.children.length > 0;
+
+      let prevOffset = [0, 0];
+      let prevSize = [0, 0];
 
       previewItemContainer.children.forEach((previewItem, index) => {
         // eslint-disable-next-line no-underscore-dangle
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        if (scaleWidthToCover)
+        if (scaleWidthToCover === true) {
+          const scaleFactor = _cover.width / previewItem.width;
+          previewItem.scale.x *= scaleFactor;
+          if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
+        } else if (scaleHeightToCover === true) {
+          const scaleFactor = _cover.height / previewItem.height;
+          previewItem.scale.y *= scaleFactor;
+          if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
+        } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
           previewItem.scale.x *= _cover.width / previewItem.width;
-        if (scaleHeightToCover)
           previewItem.scale.y *= _cover.height / previewItem.height;
+        }
 
         let itemOffset;
 
@@ -773,13 +789,46 @@ const createPile = (
           itemOffset[0] = itemOffset[0] * _cover.scaleFactor - halfWidth;
           itemOffset[1] = itemOffset[1] * _cover.scaleFactor - halfHeight;
         } else {
-          itemOffset = [
-            0,
-            -halfHeight -
-              item.preview.height * (index + 0.5) -
-              halfSpacing * index -
-              offset
-          ];
+          switch (alignment) {
+            case 'left':
+              itemOffset = [
+                (index === 0) * -halfWidth +
+                  prevOffset[0] -
+                  prevSize[0] / 2 -
+                  previewItem.width / 2 -
+                  halfSpacing,
+                0
+              ];
+              break;
+
+            case 'right':
+              itemOffset = [
+                (index === 0) * halfWidth +
+                  prevOffset[0] +
+                  prevSize[0] / 2 +
+                  previewItem.width / 2 +
+                  halfSpacing,
+                0
+              ];
+              break;
+
+            case 'bottom':
+              itemOffset = [
+                0,
+                halfHeight + index + halfSpacing * index + offset
+              ];
+              break;
+
+            default:
+            case 'top':
+              itemOffset = [
+                0,
+                -halfHeight - index - halfSpacing * index - offset
+              ];
+              break;
+          }
+          prevOffset = [...itemOffset];
+          prevSize = [previewItem.width, previewItem.height];
         }
 
         item.preview.clearBackground();
@@ -974,7 +1023,7 @@ const createPile = (
 
   const magnifyByWheel = wheelDelta => {
     const force = Math.log(Math.abs(wheelDelta) + 1);
-    const momentum = Math.sign(wheelDelta) * force;
+    const momentum = -Math.sign(wheelDelta) * force;
 
     const currentScale = getScale();
     const newScale = Math.min(
@@ -1062,8 +1111,8 @@ const createPile = (
   };
 
   const moveTo = (x, y) => {
-    rootContainer.x = x;
-    rootContainer.y = y;
+    rootContainer.x = Math.round(x);
+    rootContainer.y = Math.round(y);
     return Math.hypot(rootContainer.x - x, rootContainer.y - y) > EPS;
   };
 
@@ -1076,7 +1125,11 @@ const createPile = (
         pileItem.replaceImage(newImage);
       } else if (hasPreviewItem(pileItem)) {
         const newImage = pileItem.item.preview;
-        pileItem.replaceImage(newImage);
+        if (newImage) {
+          pileItem.replaceImage(newImage);
+        } else {
+          updateItemToNormal(pileItem.item);
+        }
       }
     } else {
       normalItemIndex.forEach(pileItem => {
@@ -1085,7 +1138,11 @@ const createPile = (
       });
       previewItemIndex.forEach(pileItem => {
         const newImage = pileItem.item.preview;
-        pileItem.replaceImage(newImage);
+        if (newImage) {
+          pileItem.replaceImage(newImage);
+        } else {
+          updateItemToNormal(pileItem.item);
+        }
       });
     }
   };
@@ -1393,26 +1450,23 @@ const createPile = (
     });
 
     if (showText) {
-      let textWidth = bounds.width / labelTextures.length;
+      const textWidth = bounds.width / labelTextures.length;
       labelTextures.forEach((texture, index) => {
-        let textX;
-        let textY = y + toTop;
+        const labelText = new PIXI.Sprite(texture);
+        labelText.y = y + toTop;
         switch (labelStackAlign) {
           case 'vertical':
-            textWidth = bounds.width;
-            textX = -bounds.width / 2 + textWidth / 2;
-            textY += (labelHeightMax + 1) * index * toTop;
+            labelText.anchor.set(0, 0);
+            labelText.x = -bounds.width / 2 + 2;
+            labelText.y += (labelHeightMax + 1) * index * toTop;
             break;
 
           case 'horizontal':
           default:
-            textX = textWidth * index - bounds.width / 2 + textWidth / 2;
+            labelText.anchor.set(0.5, 0);
+            labelText.x = textWidth * index - bounds.width / 2 + textWidth / 2;
             break;
         }
-        const labelText = new PIXI.Sprite(texture);
-        labelText.anchor.set(0.5, 0);
-        labelText.x = textX;
-        labelText.y = textY;
         labelText.width /= 2 * window.devicePixelRatio;
         labelText.height /= 2 * window.devicePixelRatio;
         labelText.alpha = pileLabelTextOpacity;
@@ -1431,8 +1485,8 @@ const createPile = (
       placeholderGfx = new PIXI.Graphics();
       contentContainer.addChild(placeholderGfx);
     }
-    const width = anchorBox.width / baseScale;
-    const height = anchorBox.height / baseScale;
+    const width = anchorBox.width / baseScale / zoomScale;
+    const height = anchorBox.height / baseScale / zoomScale;
 
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;

@@ -1,6 +1,6 @@
 ### Next
 
-- Add `pileLabelTextColor` and `pileLabelTextOpacity` (#164)
+- Add `pileLabelTextColor`, `pileLabelTextOpacity`, and `pileLabelTextStyle` (#164)
 - Add more pile/item properties and label properties to sidebar
 - Add `zoomScale` for efficient zoom-based scaling (#164)
 - Rename `pileItemOrder` to `pileOrderItems` to make it a pile property (#194)

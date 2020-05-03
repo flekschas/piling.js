@@ -266,6 +266,11 @@ const [navigationMode, setNavigationMode] = setterOptions(
 
 const [previewItemOffset, setPreviewItemOffset] = setter('previewItemOffset');
 
+const [previewAlignment, setPreviewAlignment] = setter(
+  'previewAlignment',
+  'top'
+);
+
 const [previewPadding, setPreviewPadding] = setter('previewPadding', 2);
 
 const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
@@ -404,6 +409,10 @@ const [pileLabelTextColor, setPileLabelTextColor] = setter(
 const [pileLabelTextOpacity, setPileLabelTextOpacity] = setter(
   'pileLabelTextOpacity',
   1
+);
+const [pileLabelTextStyle, setPileLabelTextStyle] = setter(
+  'pileLabelTextDropShadow',
+  {}
 );
 const [pileLabelAlign, setPileLabelAlign] = setter('pileLabelAlign', 'bottom');
 const [pileLabelStackAlign, setPileLabelStackAlign] = setter(
@@ -712,6 +721,7 @@ const createStore = () => {
     pileLabelTextColor,
     pileLabelTextMapping,
     pileLabelTextOpacity,
+    pileLabelTextStyle,
     pileOpacity,
     piles,
     pileScale,
@@ -719,6 +729,7 @@ const createStore = () => {
     pileSizeBadgeAlign,
     pileVisibilityItems,
     previewAggregator,
+    previewAlignment,
     previewBackgroundColor,
     previewBackgroundOpacity,
     previewBorderColor,
@@ -886,12 +897,14 @@ export const createAction = {
   setPileLabelTextColor,
   setPileLabelTextMapping,
   setPileLabelTextOpacity,
+  setPileLabelTextStyle,
   setPileVisibilityItems,
   setPileOpacity,
   setPileScale,
   setPileSizeBadge,
   setPileSizeBadgeAlign,
   setPreviewAggregator,
+  setPreviewAlignment,
   setPreviewBackgroundColor,
   setPreviewBackgroundOpacity,
   setPreviewBorderColor,

@@ -80,13 +80,14 @@ const renderRepresentative = async (
     const objectAspectRatio = displayObject.width / displayObject.height;
     const isMorePortrait = objectAspectRatio < cellAspectRatio;
 
-    const size = isMorePortrait ? displayObject.width : displayObject.height;
-
     const scaleFactor = isMorePortrait
       ? cellWidth / displayObject.width
       : cellHeight / displayObject.height;
 
-    if (scaleFactor > 1) {
+    // TODO: Fix this hack! One would expect to always scale the display object
+    // but somehow this can lead to incorrect scales when the display object is
+    // a PIXI Graphics object
+    if (scaleFactor > 1 || isTexture) {
       displayObject.width *= scaleFactor;
       displayObject.height *= scaleFactor;
     }
@@ -98,11 +99,9 @@ const renderRepresentative = async (
     displayObject.y = objRow * cellHeight + row * innerPadding + outerPadding;
 
     if (isTexture) {
-      const xOffset = isMorePortrait ? 0 : (displayObject.width - size) / 2;
-      const yOffset = isMorePortrait ? (displayObject.height - size) / 2 : 0;
-
-      displayObject.x -= xOffset;
-      displayObject.y -= yOffset;
+      const size = isMorePortrait ? displayObject.width : displayObject.height;
+      displayObject.x -= isMorePortrait ? 0 : (displayObject.width - size) / 2;
+      displayObject.y -= isMorePortrait ? (displayObject.height - size) / 2 : 0;
     }
 
     gfx.addChild(displayObject);

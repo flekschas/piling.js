@@ -3,6 +3,7 @@
 
 const worker = function worker() {
   const getPixelHistFromDrawings = ({ hist, size, items, lineWidth }) => {
+    const n = items.length;
     items.forEach(({ src }) => {
       const canvas = new OffscreenCanvas(size, size);
       const ctx = canvas.getContext('2d');
@@ -22,17 +23,18 @@ const worker = function worker() {
       const pixelValues = ctx.getImageData(0, 0, size, size).data;
 
       let j = 0;
+
       for (let i = 3; i < pixelValues.length; i += 4) {
-        hist[j] += pixelValues[i] / 255 / items.length;
+        hist[j] += pixelValues[i] / 255 / n;
         j++;
       }
     });
   };
 
-  const scaleLinearMaxToUint8 = domainMax => value =>
-    Math.min(255, Math.max(0, 255 - ((domainMax - value) / domainMax) * 255));
+  const scaleLinearMaxToUint8 = (max, t) => value =>
+    Math.min(255, Math.max(0, 255 - ((max - t(value)) / max) * 255));
 
-  const toRgba = data => {
+  const toRgba = (data, { log = false } = {}) => {
     const rgba = new Uint8ClampedArray(data.length * 4);
 
     // const max = Math.max.apply(null, data);
@@ -41,7 +43,9 @@ const worker = function worker() {
       max = max > data[i] ? max : data[i];
     }
 
-    const scale = scaleLinearMaxToUint8(max);
+    const scaleFactor = log ? (1 / max) * 9 : 1;
+    const transformer = log ? x => Math.log10(x * scaleFactor + 1) : x => x;
+    const scale = scaleLinearMaxToUint8(transformer(max), transformer);
 
     let j = 3; // We only need to populate the alpha values
     for (let i = 0; i < data.length; i++) {
@@ -71,7 +75,7 @@ const worker = function worker() {
     }
 
     try {
-      const rgba = toRgba(hist);
+      const rgba = toRgba(hist, { log: event.data.log });
       self.postMessage({ rgba }, [rgba.buffer]);
     } catch (error) {
       self.postMessage({ error });
