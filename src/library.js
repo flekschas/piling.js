@@ -1068,8 +1068,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         });
 
         pileInstances.forEach(pile => {
-          const pileState = piles[pile.id];
-          updatePreviewAndCover(pileState, pile);
+          updatePreviewAndCover(piles[pile.id], pile);
         });
 
         scaleItems();
