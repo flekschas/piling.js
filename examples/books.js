@@ -67,6 +67,7 @@ const createBookPiles = async (element, darkMode) => {
           name: 'Random Item Arrangement',
           action: () => {
             piling.set({
+              ...defaultProps,
               pileScale: pile =>
                 pile.items.reduce((sum, index) => sum + items[index].scale, 0) /
                 pile.items.length,
@@ -74,12 +75,7 @@ const createBookPiles = async (element, darkMode) => {
                 i * 2 + (Math.random() * 20 - 10),
                 i * -10 + (Math.random() * 8 - 4)
               ],
-              pileItemRotation: () => Math.random() * 16 - 8,
-              coverAggregator: null,
-              coverRenderer: null,
-              previewAggregator: null,
-              previewRenderer: null,
-              pileVisibilityItems: true
+              pileItemRotation: () => Math.random() * 16 - 8
             });
           }
         },
@@ -87,6 +83,7 @@ const createBookPiles = async (element, darkMode) => {
           name: 'Left-Aligned Foreshortened Previews',
           action: () => {
             piling.set({
+              ...defaultProps,
               coverAggregator,
               coverRenderer: renderer,
               previewAggregator,
@@ -102,6 +99,7 @@ const createBookPiles = async (element, darkMode) => {
           name: 'Gallery Previews',
           action: () => {
             piling.set({
+              ...defaultProps,
               coverAggregator: representativeAggregator,
               coverRenderer: representativeRenderer,
               pileVisibilityItems: pile => pile.items.length === 1
