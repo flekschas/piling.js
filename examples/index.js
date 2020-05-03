@@ -9,6 +9,8 @@ import createRidgePlotPiles from './ridge-plot';
 import createTimeSeriesPiles from './time-series';
 import createBookPiles from './books';
 
+import { createRequestIdleCallback } from './utils';
+
 import './index.scss';
 
 const photosEl = document.getElementById('photos');
@@ -95,8 +97,10 @@ const updateHandler = ({ action }) => {
   if (history.length > 10) history.shift();
 };
 
+const requestIdleCallback = createRequestIdleCallback();
+
 const updateHandlerIdled = (...args) =>
-  window.requestIdleCallback(() => {
+  requestIdleCallback(() => {
     updateHandler(...args);
   });
 
