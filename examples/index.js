@@ -9,6 +9,8 @@ import createRidgePlotPiles from './ridge-plot';
 import createTimeSeriesPiles from './time-series';
 import createBookPiles from './books';
 
+import { createRequestIdleCallback } from './utils';
+
 import './index.scss';
 
 const photosEl = document.getElementById('photos');
@@ -95,8 +97,10 @@ const updateHandler = ({ action }) => {
   if (history.length > 10) history.shift();
 };
 
+const requestIdleCallback = createRequestIdleCallback();
+
 const updateHandlerIdled = (...args) =>
-  window.requestIdleCallback(() => {
+  requestIdleCallback(() => {
     updateHandler(...args);
   });
 
@@ -244,7 +248,7 @@ exampleEl.addEventListener('change', event => {
   window.location.search = urlQueryParams.toString();
 });
 
-const example = urlQueryParams.get('example')
+let example = urlQueryParams.get('example')
   ? urlQueryParams
       .get('example')
       .split(' ')[0]
@@ -252,10 +256,6 @@ const example = urlQueryParams.get('example')
   : null;
 
 switch (example) {
-  case 'photos':
-    exampleEl.selectedIndex = 0;
-    break;
-
   case 'matrices':
     exampleEl.selectedIndex = 1;
     break;
@@ -284,8 +284,15 @@ switch (example) {
     exampleEl.selectedIndex = 7;
     break;
 
+  case 'books':
+    exampleEl.selectedIndex = 7;
+    break;
+
+  case 'photos':
   default:
-  // Nothing
+    example = 'photos';
+    exampleEl.selectedIndex = 0;
+    break;
 }
 
 let isOptionsOpen = false;

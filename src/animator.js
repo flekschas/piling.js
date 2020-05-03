@@ -1,4 +1,5 @@
 import withRaf from 'with-raf';
+import { throttleAndDebounce } from '@flekschas/utils';
 
 const PARTIAL_ON_DONE_BATCH_SIZE = 100;
 
@@ -31,10 +32,10 @@ const createAnimator = (render, pubSub) => {
     const tobeInvoked = doneTweeners.slice(0, PARTIAL_ON_DONE_BATCH_SIZE);
     doneTweeners.splice(0, PARTIAL_ON_DONE_BATCH_SIZE);
 
-    window.requestIdleCallback(() => {
-      tobeInvoked.forEach(tweener => tweener.onDone());
-    });
+    tobeInvoked.forEach(tweener => tweener.onDone());
   };
+
+  const onDonePartialDb = throttleAndDebounce(onDonePartial, 50);
 
   const animate = () => {
     isAnimating = true;
@@ -47,7 +48,7 @@ const createAnimator = (render, pubSub) => {
     doneTweeners.forEach(tweener => activeTweeners.delete(tweener));
 
     // Partially invoke onDone();
-    onDonePartial();
+    onDonePartialDb();
   };
 
   const animateRaf = withRaf(animate, onCall);

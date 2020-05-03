@@ -461,6 +461,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelTextMapping        | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelTextColor          | string or int                     | `0x000000`         | see [`notes`](#notes)                                                                           | `true`     |
 | pileLabelTextOpacity        | float                             | `1`                | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextStyle          | object                            | `{}`               | see [PIXI.TextStyle](https://pixijs.download/dev/docs/PIXI.TextStyle.html)                      | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileOrderItems              | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
