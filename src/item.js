@@ -25,18 +25,18 @@ const createItem = (
       }
     });
 
-  const replaceImage = (newImage, newPreview) => {
+  const replaceImage = (newImage, newPreview = null) => {
     image.destroy();
     // eslint-disable-next-line no-param-reassign
     image = newImage;
-    if (preview) preview.destroy();
-    if (newPreview) {
-      // eslint-disable-next-line no-param-reassign
-      preview = newPreview;
-    } else {
+    if (preview) {
+      preview.destroy();
       // eslint-disable-next-line no-param-reassign
       preview = null;
     }
+
+    // eslint-disable-next-line no-param-reassign
+    preview = newPreview;
   };
 
   const withPublicMethods = () => self =>
