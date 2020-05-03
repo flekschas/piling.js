@@ -1607,14 +1607,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const pileInstance = pileInstances.get(id);
     if (pileInstance) {
       lastPilePosition.set(id, [pileState.x, pileState.y]);
-      if (pileInstance.size === 1) {
-        const item = renderedItems.get(id);
-        if (!item.fromDepiling) {
-          item.setOriginalPosition([pileState.x, pileState.y]);
-        } else {
-          delete item.fromDepiling;
-        }
-      }
       return Promise.all([
         animateMovePileTo(pileInstance, pileState.x, pileState.y),
         new Promise(resolve => {
@@ -1950,13 +1942,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       y: piles[pileId].y
     };
 
-    items
-      .filter(id => id !== pileId)
-      .forEach(id => {
-        const item = renderedItems.get(id);
-        item.fromDepiling = true;
-      });
-
     store.dispatch(createAction.scatterPiles([depiledPile]));
     blurPrevDragOverPiles();
 
@@ -2184,6 +2169,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     if (!store.state.temporaryDepiledPiles.length) {
       const pilesInLasso = findPilesInLasso(lassoPolygon);
+      updateOriginalPilePosition(pilesInLasso);
       if (pilesInLasso.length > 1) {
         store.dispatch(createAction.setFocusedPiles([]));
         whenMerged = animateMerge([pilesInLasso]);
@@ -2677,6 +2663,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     return whenGrouped.then(groupedPiles => {
       store.dispatch(createAction.setFocusedPiles([]));
+
+      updateOriginalPilePosition(groupedPiles.flatMap(identity));
 
       // If there's only one pile on a pile we can ignore it
       return animateMerge(
@@ -4377,6 +4365,21 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
   let hit;
 
+  const updateOriginalPilePosition = pileIds => {
+    const { piles } = store.state;
+
+    pileIds
+      .filter(
+        pileId =>
+          pileInstances.has(pileId) && pileInstances.get(pileId).size === 1
+      )
+      .forEach(pileId => {
+        renderedItems
+          .get(pileId)
+          .setOriginalPosition([piles[pileId].x, piles[pileId].y]);
+      });
+  };
+
   const pileDragEndHandler = ({ target }) => {
     hit = false;
 
@@ -4407,6 +4410,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
               pileItem.item.tmpAbsY = pileGfx.y;
               pileItem.item.tmpRelScale = pile.scale;
             });
+
+            updateOriginalPilePosition([targetPileId, target.id]);
 
             const { previewAggregator, previewRenderer } = store.state;
 
