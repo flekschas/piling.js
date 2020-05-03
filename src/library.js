@@ -3354,7 +3354,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       pileLabelText,
       pileLabelTextMapping,
       pileLabelTextColor,
-      pileLabelFontSize
+      pileLabelFontSize,
+      pileLabelTextStyle
     } = store.state;
 
     // Destroy existing labels to avoid memory leaks
@@ -3416,11 +3417,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
         const pixiText = new PIXI.Text(labelText, {
           fill: pileLabelTextColor,
-          dropShadow: true,
-          dropShadowBlur: 3 * window.devicePixelRatio,
-          dropShadowDistance: 0,
           fontSize: pileLabelFontSize * 2 * window.devicePixelRatio,
-          align: 'center'
+          align: 'center',
+          ...(pileLabelTextStyle || {})
         });
         pixiText.updateText();
         label.texture = pixiText.texture;
