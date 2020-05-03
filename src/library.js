@@ -2319,7 +2319,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     }
 
     normalPiles.addChild(newPile.graphics);
-    updatePileBounds(pileId);
+    updatePileBounds(pileId, { forceUpdate: true });
     updatePileItemStyle(pileState, pileId);
     lastPilePosition.set(pileId, [pileState.x, pileState.y]);
   };
