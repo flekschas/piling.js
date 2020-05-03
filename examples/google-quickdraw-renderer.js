@@ -14,7 +14,8 @@ const renderStroke = (ctx, strokes, size) => {
     ctx.stroke();
   }
 
-  return ctx.getImageData(0, 0, size, size).data;
+  // Needed for Safari
+  return new Uint8Array(ctx.getImageData(0, 0, size, size).data.buffer);
 };
 
 const createGoogleQuickDrawRenderer = (size = 64) => sources => {
