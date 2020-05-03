@@ -1023,7 +1023,7 @@ const createPile = (
 
   const magnifyByWheel = wheelDelta => {
     const force = Math.log(Math.abs(wheelDelta) + 1);
-    const momentum = Math.sign(wheelDelta) * force;
+    const momentum = -Math.sign(wheelDelta) * force;
 
     const currentScale = getScale();
     const newScale = Math.min(

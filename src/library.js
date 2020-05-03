@@ -3837,6 +3837,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           // We currently allow only one item to be magnified up so all
           // previously magnified piles are reset
           scaledPileInstance.unmagnify();
+          delete scaledPileInstance.magnifiedByWheel;
           updatePileBounds(scaledPileInstance.id);
           clearActivePileLayer();
         });
@@ -3845,7 +3846,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         .map(scaledPile => pileInstances.get(scaledPile))
         .filter(scaledPileInstance => scaledPileInstance)
         .forEach(scaledPileInstance => {
-          scaledPileInstance.magnify();
+          if (!scaledPileInstance.magnifiedByWheel) {
+            scaledPileInstance.magnify();
+          }
           moveToActivePileLayer(scaledPileInstance.graphics);
         });
 
@@ -4710,8 +4713,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       });
 
       if (result.length !== 0) {
+        const pile = pileInstances.get(result[0].id);
         event.preventDefault();
-        store.dispatch(createAction.setMagnifiedPiles([result[0].id]));
+        if (pile.isMagnified) {
+          pile.magnifiedByWheel = true;
+          store.dispatch(createAction.setMagnifiedPiles([pile.id]));
+        } else {
+          delete pile.magnifiedByWheel;
+          store.dispatch(createAction.setMagnifiedPiles([]));
+        }
         scalePile(result[0].id, normalizeWheel(event).pixelY);
       }
     } else if (isPanZoom) {
