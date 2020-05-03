@@ -922,7 +922,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         const [oldRowNum, oldColumnNum] = oldLayout.xyToIj(pos[0], pos[1]);
 
         pile.updateOffset();
-        updatePileBounds(pile.id);
+        updatePileBounds(pile.id, { forceUpdate: true });
 
         const oldCellIndex = oldLayout.ijToIdx(oldRowNum, oldColumnNum);
 
