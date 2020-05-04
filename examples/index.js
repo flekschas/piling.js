@@ -416,6 +416,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
     Array.isArray(piling.get('pileLabelText'));
 
   const options = [
+    ...(additionalOptions || []),
     {
       id: 'pile-item',
       title: 'Pile/Item',
@@ -904,8 +905,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           ]
         }
       ]
-    },
-    ...additionalOptions
+    }
   ];
 
   const dtypeToInputType = {
