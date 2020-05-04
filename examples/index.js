@@ -277,10 +277,15 @@ switch (example) {
 }
 
 let isOptionsOpen = false;
-const bodyClasses = document.body.className;
+let bodyClasses = document.body.className;
 
 const handleOptionsTogglerClick = event => {
   event.preventDefault();
+
+  if (sessionStorage.getItem('pilingjs-options') === null) {
+    sessionStorage.setItem('pilingjs-options', 'true');
+    bodyClasses += ' options-opened';
+  }
 
   isOptionsOpen = !isOptionsOpen;
 

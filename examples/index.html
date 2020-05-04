@@ -105,13 +105,19 @@
             break;
         }
       }
+
+      const optionsToggled = sessionStorage.getItem('pilingjs-options')
+        ? 'options-opened'
+        : '';
+
       document.body.setAttribute(
         'class',
         [
           window.example,
           window.permanentOptions,
           window.mode,
-          window.fullscreen
+          window.fullscreen,
+          optionsToggled
         ].join(' ')
       );
     </script>

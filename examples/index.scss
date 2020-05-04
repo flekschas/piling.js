@@ -351,12 +351,14 @@ body.permanent-options #group-by-grid {
     padding: 0.5rem;
     background: $white;
     color: $black;
-    border: 1px solid $gray-lighter;
+    border: 1px solid $gray-light;
     border-radius: 0.25rem;
     opacity: 0.2;
     transform: translate(-4rem, 0);
     transition: transform $normal $ease, border-radius $normal $ease,
       background $normal $ease, opacity $normal $ease, box-shadow $normal $ease;
+    transform-origin: center;
+    animation: 10s $ease 0s 1 fadeInLight;
 
     &:hover {
       opacity: 0.4;
@@ -373,12 +375,66 @@ body.permanent-options #group-by-grid {
     }
   }
 
+  @keyframes fadeInLight {
+    0% {
+      opacity: 1;
+      color: $white;
+      border-color: $black;
+      background: $black;
+      transform: translate(-4rem, 0) scale(1);
+    }
+    80% {
+      opacity: 1;
+      color: $white;
+      border-color: $black;
+      background: $black;
+      transform: translate(-4rem, 0) scale(1);
+    }
+    82.5% {
+      opacity: 1;
+      color: $white;
+      border-color: $primary-darker;
+      background: $primary-darker;
+      transform: translate(-4rem, 0) scale(1.2);
+    }
+    85% {
+      opacity: 1;
+      color: $white;
+      border-color: $black;
+      background: $black;
+      transform: translate(-4rem, 0) scale(1.1);
+    }
+    87.5% {
+      opacity: 1;
+      color: $white;
+      border-color: $primary-darker;
+      background: $primary-darker;
+      transform: translate(-4rem, 0) scale(1.2);
+    }
+    90% {
+      opacity: 1;
+      color: $white;
+      border-color: $primary-darker;
+      background: $primary-darker;
+      transform: translate(-4rem, 0) scale(1.1);
+    }
+    100% {
+      opacity: 0.2;
+      color: $black;
+      border-color: $gray-light;
+      background: $white;
+      transform: translate(-4rem, 0) scale(1);
+    }
+  }
+
   &.open .toggler {
     opacity: 1;
     transform: translate(-3rem, 0);
+    border-color: $gray-lighter;
     border-right: 0;
     border-radius: 0.25rem 0 0 0.25rem;
     background: $white;
+    animation: none;
   }
 
   .content {
@@ -496,12 +552,67 @@ body.dark-mode #options {
 
   .toggler {
     color: $white;
-    border-color: $gray-darker;
+    border-color: $gray-dark;
     background: $black;
+    animation: 10s $ease 0s 1 fadeInDark;
+  }
+
+  @keyframes fadeInDark {
+    0% {
+      opacity: 1;
+      color: $black;
+      border-color: $white;
+      background: $white;
+      transform: translate(-4rem, 0) scale(1);
+    }
+    80% {
+      opacity: 1;
+      color: $black;
+      border-color: $white;
+      background: $white;
+      transform: translate(-4rem, 0) scale(1);
+    }
+    82.5% {
+      opacity: 1;
+      color: $black;
+      border-color: $primary;
+      background: $primary;
+      transform: translate(-4rem, 0) scale(1.2);
+    }
+    85% {
+      opacity: 1;
+      color: $black;
+      border-color: $white;
+      background: $white;
+      transform: translate(-4rem, 0) scale(1.1);
+    }
+    87.5% {
+      opacity: 1;
+      color: $black;
+      border-color: $primary;
+      background: $primary;
+      transform: translate(-4rem, 0) scale(1.2);
+    }
+    90% {
+      opacity: 1;
+      color: $black;
+      border-color: $primary;
+      background: $primary;
+      transform: translate(-4rem, 0) scale(1.1);
+    }
+    100% {
+      opacity: 0.2;
+      color: $white;
+      border-color: $gray-dark;
+      background: $black;
+      transform: translate(-4rem, 0) scale(1);
+    }
   }
 
   &.open .toggler {
+    border-color: $gray-darker;
     background: $black;
+    animation: none;
   }
 
   .button {
@@ -513,6 +624,10 @@ body.dark-mode #options {
       background: $black;
     }
   }
+}
+
+body.options-opened #options .toggler {
+  animation: none;
 }
 
 #undo {
