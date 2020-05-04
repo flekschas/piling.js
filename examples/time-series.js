@@ -3,7 +3,7 @@ import createPilingJs from '../src/library';
 import { createImageRenderer } from '../src/renderer';
 
 const createTimeSeriesPiles = async (element, darkMode) => {
-  const response = await fetch('data/us-daily-precipitation-remote.json');
+  const response = await fetch('data/us-daily-precipitation.json');
 
   // const response = await fetch('data/cube.json');
   // const response = await fetch('data/last-knit.json');
