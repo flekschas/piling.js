@@ -57,6 +57,7 @@ const conditionalElements = [
 const optionsEl = document.getElementById('options');
 const optionsTogglerEl = document.getElementById('options-toggler');
 const undoButton = document.getElementById('undo');
+const footer = document.getElementById('footer');
 
 let piling;
 
@@ -74,6 +75,18 @@ const undoHandler = () => {
 };
 
 undoButton.addEventListener('click', undoHandler);
+
+if (sessionStorage.getItem('pilingjs-footer') === null) {
+  sessionStorage.setItem('pilingjs-footer', 'true');
+  footer.className = 'show';
+  footer.addEventListener(
+    'click',
+    () => {
+      footer.className = '';
+    },
+    { once: true }
+  );
+}
 
 const ignoredActions = new Set([
   'OVERWRITE',
