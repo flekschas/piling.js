@@ -89,7 +89,7 @@ const create = async (element, darkMode) => {
   data = await data.json();
 
   const numDays = data.US.cases.length;
-  const startDate = new Date('2020-01-22:00:00');
+  const startDate = new Date('2020-01-22 00:00');
   const endDate = addDays(startDate, data.US.cases.length);
 
   const map = await loadMapbox().then(createMapbox(element, darkMode));
