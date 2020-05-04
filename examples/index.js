@@ -120,122 +120,103 @@ const pilingEls = {
   books: booksEl
 };
 const createPiles = async example => {
+  let element;
+  let createPiling;
   let additionalOptions;
 
   const darkMode = window.mode === 'dark-mode';
 
+  document.querySelector('#error').style.display = 'none';
+  document.querySelector('#no-webgl2-support').style.display = 'none';
+  document.querySelector('#unknown-example').style.display = 'none';
+  document.querySelector('#general-error').style.display = 'block';
+
+  if (piling) piling.destroy();
+  conditionalElements.forEach(hideEl);
+  undoButton.disabled = true;
+
   switch (example) {
     case 'photos':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       photosEl.style.display = 'block';
       photosCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createPhotoPiles(photosEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createPhotoPiles;
+      element = photosEl;
       break;
 
     case 'matrices':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       matricesEl.style.display = 'block';
       matricesCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createMatrixPiles(
-        matricesEl,
-        darkMode
-      );
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createMatrixPiles;
+      element = matricesEl;
       break;
 
     case 'covid':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       covidEl.style.display = 'block';
       covidCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createCovidPiles(covidEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createCovidPiles;
+      element = covidEl;
       break;
 
     case 'drawings':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       drawingsEl.style.display = 'block';
       drawingsCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createDrawingPiles(
-        drawingsEl,
-        darkMode
-      );
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createDrawingPiles;
+      element = drawingsEl;
       break;
 
     case 'ridgeplot':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       ridgePlotEl.style.display = 'block';
       ridgePlotCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      piling = await createRidgePlotPiles(ridgePlotEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createRidgePlotPiles;
+      element = ridgePlotEl;
       break;
 
     case 'vitessce':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       vitessceEl.style.display = 'block';
       vitessceCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createVitessce(vitessceEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createVitessce;
+      element = vitessceEl;
       break;
 
     case 'scatterplots':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       scatterplotsEl.style.display = 'block';
       scatterplotsCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      piling = await createScatterplotPiles(scatterplotsEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createScatterplotPiles;
+      element = scatterplotsEl;
       break;
 
     case 'timeseries':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       timeseriesEl.style.display = 'block';
       timeseriesCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createTimeSeriesPiles(
-        timeseriesEl,
-        darkMode
-      );
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createTimeSeriesPiles;
+      element = timeseriesEl;
       break;
 
     case 'books':
-      if (piling) piling.destroy();
-      conditionalElements.forEach(hideEl);
       booksEl.style.display = 'block';
       booksCreditEl.style.display = 'block';
-      undoButton.disabled = true;
-      [piling, additionalOptions] = await createBookPiles(booksEl, darkMode);
-      history = [];
-      piling.subscribe('update', updateHandlerIdled);
+      createPiling = createBookPiles;
+      element = booksEl;
       break;
 
     default:
       console.warn('Unknown example:', example);
       break;
+  }
+
+  if (createPiling) {
+    const response = await createPiling(element, darkMode);
+    if (response) {
+      [piling, additionalOptions] = response;
+      history = [];
+      piling.subscribe('update', updateHandlerIdled);
+    } else {
+      document.querySelector('#error').style.display = 'flex';
+    }
+  } else {
+    document.querySelector('#error').style.display = 'flex';
+    document.querySelector('#unknown-example').style.display = 'block';
+    document.querySelector('#general-error').style.display = 'none';
   }
 
   return [piling, additionalOptions];

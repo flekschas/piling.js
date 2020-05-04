@@ -223,8 +223,8 @@
     <div id="timeseries" class="container"></div>
     <div id="books" class="container"></div>
 
-    <div id="no-webgl2-support" class="container error">
-      <div>
+    <div id="error" class="container">
+      <div id="no-webgl2-support">
         <p>
           <strong
             >Your
@@ -233,6 +233,23 @@
             >!</strong
           ><br />
           Please use Chrome, Firefox, or Edge to see this demo.
+        </p>
+      </div>
+      <div id="unknown-example">
+        <p>
+          <strong>The chosen example is unknown!</strong><br />
+          Please pick one from the drop-down list. Thanks.
+        </p>
+      </div>
+      <div id="general-error">
+        <p>
+          <strong>Something bad happened!</strong><br />
+          An unexpected error occurred. Please let us know by
+          <a
+            href="https://github.com/flekschas/piling.js/issues/new"
+            target="_blank"
+            >filing an issue</a
+          >. Thanks a lot.
         </p>
       </div>
     </div>

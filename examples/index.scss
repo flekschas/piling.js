@@ -549,13 +549,12 @@ body.dark-mode #undo {
   }
 }
 
-#no-webgl2-support {
+#error {
   z-index: 9999;
   display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: transparentize($primary, 0.9);
 
   > div {
     width: 100%;
@@ -563,8 +562,33 @@ body.dark-mode #undo {
     padding: 1rem;
     color: black;
     border-radius: 0.25rem;
-    background: $primary;
+    background: #c76526;
   }
+
+  a,
+  a:hover {
+    color: inherit;
+  }
+
+  ::-webkit-selection {
+    color: $white;
+    background: $black;
+  }
+
+  ::-moz-selection {
+    color: $white;
+    background: $black;
+  }
+
+  ::selection {
+    color: $white;
+    background: $black;
+  }
+}
+
+#no-webgl2-support,
+#unknown-example {
+  display: none;
 }
 
 #hue-mrna::-webkit-slider-runnable-track,
