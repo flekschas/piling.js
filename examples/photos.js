@@ -68,8 +68,8 @@ const createPhotoPiles = async (element, darkMode) => {
     darkMode,
     renderer: imageRenderer,
     items: data,
-    columns: 20,
-    cellPadding: 16,
+    columns: 15,
+    cellPadding: 12,
     // Use with `node scripts/measure-init-time`
     // columns: 10, // 200
     // columns: 15, // 500
