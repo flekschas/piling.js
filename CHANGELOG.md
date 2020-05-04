@@ -1,5 +1,9 @@
 ### Next
 
+_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...master)_
+
+## v0.7.0
+
 - Add `pileLabelTextColor`, `pileLabelTextOpacity`, and `pileLabelTextStyle` (#164)
 - Add more pile/item properties and label properties to sidebar
 - Add `zoomScale` for efficient zoom-based scaling (#164)
@@ -49,7 +53,7 @@
 - Ensure item/preview and pile properties can be functional properties (#174)
 - Fix pile events (#182)
 
-_[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...master)_
+_[Changes since v0.6.0](https://github.com/flekschas/piling.js/compare/v0.6.0...v0.7.0)_
 
 ## v0.6.0
 
