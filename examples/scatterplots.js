@@ -162,7 +162,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
 
   piling.arrangeBy('data', 'year', { once: true });
 
-  return piling;
+  return [piling];
 };
 
 export default createScatterplotPiles;

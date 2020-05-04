@@ -139,7 +139,7 @@ const create = async (element, darkMode) => {
 
   piling.arrangeBy('data', 'numDecade');
 
-  return piling;
+  return [piling];
 };
 
 export default create;
