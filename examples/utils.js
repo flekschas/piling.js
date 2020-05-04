@@ -1,11 +1,11 @@
 import { debounce } from '@flekschas/utils';
 
 export const supportsWebGl2 = () =>
-  new Promise((resolve, reject) => {
+  new Promise(resolve => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('webgl2');
     if (ctx) resolve(true);
-    else reject(new Error('No WebGL2 support'));
+    else resolve(false);
   });
 
 export const createRequestIdleCallback = () => {
