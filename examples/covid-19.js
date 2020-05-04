@@ -307,8 +307,8 @@ const create = async (element, darkMode) => {
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
-      createYAxis(yRange),
-      createXAxis(xRange),
+      // createYAxis(yRange),
+      // createXAxis(xRange),
       createArea(toXy(y)),
       createSvgEnd()
     ].join('');
