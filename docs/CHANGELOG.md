@@ -1,5 +1,9 @@
 ### Next
 
+- Add `pileLabelTextColor`, `pileLabelTextOpacity`, and `pileLabelTextStyle` (#164)
+- Add more pile/item properties and label properties to sidebar
+- Add `zoomScale` for efficient zoom-based scaling (#164)
+- Rename `pileItemOrder` to `pileOrderItems` to make it a pile property (#194)
 - Add piling by selection (i.e., focused piles). See (interactions)[https://piling.js.org/docs/#/README?id=multi-select-grouping] for details.
 - Add `pileLabelSizeTransform` property for adjusting the relative size of pile labels. When set to `histogram`, this option can be used to visualizing the distribution of categories on a pile (#167)
 - Add some pile/item properties and label properties to sidebar (#158)
@@ -20,24 +24,26 @@
   - `pileLabelText`
 - Add `pileSizeBadge` and `pileSizeBadgeAlign` to display a badge showing the pile size (#138)
 - Add `cellSize` to define the size of the cell (#136)
-- Add `splitAll()` to scatter all piles (#144)
+- Add `splitBy()` and `splitAll()` to scatter piles (#144, #164)
 - Add `groupBy()` for layout-, location-, and data-driven piling (#129, #141, #142, #161)
 - Add `pileItemOrder` to sort the items on a pile by a callback function
 - Add `previewItemOffset` to position previews with a per-item callback function (#113)
 - Add `previewOffset` and `previewPadding` and adjust `previewSpacing` to position previews with a per-pile callback function (#148)
-- Add `previewScaling` to adjust the x and y scaling factor of previews with a per-pile callback function (#148)
+- Add `previewScaling` and `previewScaleToCover` to adjust the x and y scaling factor or width/height of previews relative to the cover (#148)
 - Add representative [aggregator](https://piling.js.org/docs/#/README?id=representative-renderer) and [renderer](https://piling.js.org/docs/#/README?id=representative-renderer)
 - Add `pileItemInvert` and `pileCoverInvert` property for inverting colors
 - Add `pileCoverScale` for scaling the cover in comparison to the pile size
+- Show spinner during the initial item rendering
 - Add placeholder image to cover items during their computation (#132)
-- Add spinner during the initial item rendering
 - Add support for dynamic item creation and removal (#104)
+- Add a spatial example using COVID-19 data from John Hopkins University (#164)
 - Add an example of scatterplot piles using the data from [World Bank Open Data](https://data.worldbank.org/) (#130)
 - Add example of dynamic renderer for microscopy data from [Codeluppi et al., 2018](http://linnarssonlab.org/osmFISH/) that is based on the [Vitessce Image Viewer](https://github.com/hubmapconsortium/vitessce-image-viewer) (#109)
 - Update and expand the Google Quickdraw examples (#172)
 - [Docsify the docs](https://piling.js.org/docs)
 - Remove `arrangeByOnce()`. Instead use `arrangeBy(..., ..., { onPile: true })`
 - Make `arrangeBy` return a promise that resolves once the items have been positioned
+- Several perfomance improvements
 - Ensure pile covers update as items update (#175)
 - Ensure layout is updated properly (#155, #156)
 - Ensure item/preview and pile properties can be functional properties (#174)

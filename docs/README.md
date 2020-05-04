@@ -197,7 +197,7 @@ Position piles with user-specified arrangement method.
 
 The following options are available for all types:
 
-- `options.onPile` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
+- `options.onGrouping` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
 
 **Notes and examples:**
 
@@ -448,7 +448,6 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileItemInvert              | boolean or function               | `false`            | can only be `true` or `false` where `true` refers inverted colors and `false` are normal colors | `false`    |
 | pileItemOffset              | array or function                 | `[5, 5]`           | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemOpacity             | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
-| pileItemOrder               | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemRotation            | float or function                 | `0`                | see [`notes`](#notes)                                                                           | `true`     |
 | pileItemTint                | string, int or function           | `0xffffff`         | can be HEX, RGB, or RGBA string or hexadecimal value                                            | `true`     |
 | pileLabel                   | string, array, function or object |                    | see [`notes`](#notes)                                                                           | `true`     |
@@ -458,8 +457,13 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | pileLabelHeight             | float or function                 | 2                  |                                                                                                 | `true`     |
 | pileLabelStackAlign         | string or function                | `horizontal`       | `horizontal` or `vertical`                                                                      | `true`     |
 | pileLabelSizeTransform      | string or function                | `histogram`        | see [`notes`](#notes)                                                                           | `true`     |
-| pileLabelText               | array or function                 | `false`            | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelText               | boolean or function               | `false`            | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextMapping        | array or function                 |                    | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextColor          | string or int                     | `0x000000`         | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextOpacity        | float                             | `1`                | see [`notes`](#notes)                                                                           | `true`     |
+| pileLabelTextStyle          | object                            | `{}`               | see [PIXI.TextStyle](https://pixijs.download/dev/docs/PIXI.TextStyle.html)                      | `true`     |
 | pileOpacity                 | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
+| pileOrderItems              | function                          |                    | see [`notes`](#notes)                                                                           | `true`     |
 | pileScale                   | float or function                 | `1.0`              | see [`notes`](#notes)                                                                           | `true`     |
 | pileSizeBadge               | boolean or function               | `false`            | if `true` show the pile size as a badge                                                         | `true`     |
 | pileSizeBadgeAlign          | array or function                 | `['top', 'right']` | if `true` show the pile size as a badge                                                         | `true`     |
@@ -480,6 +484,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 | tempDepileDirection         | string                            | horizontal         | horizontal or vertical                                                                          | `true`     |
 | tempDepileOneDNum           | number                            | `6`                | the maximum number of items to be temporarily depiled in 1D layout                              | `true`     |
 | temporaryDepiledPile        | array                             | `[]`               | the id of the pile to be temporarily depiled                                                    | `true`     |
+| zoomScale                   | number or function                | `1`                | Allows adjusting the zoom-induced pile scale                                                    | `true`     |
 
 **Examples and Notes:**
 
@@ -594,6 +599,23 @@ Unsubscribe from an event. See [events](#events) for all the events.
   }
   ```
 
+- `pileOrderItems` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive the current [pile](#statepiles), and should return an array of sorted itemIDs. E.g.,
+
+  ```javascript
+  const pileOrderItems = pileState => pileState.items.sort((a, b) => a - b);
+
+  piling.set('pileOrderItems', pileOrderItems);
+  ```
+
+  The signature of the callback function is as follows:
+
+  ```javascript
+    function (pileState) {
+      // Sort itemIDs
+      return arrayOfSortedIds;
+    }
+  ```
+
 - `pileItemOffset` can be set to an array or a callback function. The array should be a tuple specifying the x and y offset in pixel. E.g.,
 
   ```javascript
@@ -628,32 +650,6 @@ Unsubscribe from an event. See [events](#events) for all the events.
   The function should return a value within `[0, 1]`.
 
 - The default value of `previewBackgroundColor` and `previewBackgroundOpacity` is `'inherit'`, which means that their value inherits from `pileBackgroundColor` and `pileBackgroundOpacity`. If you want preview's background color to be different from pile's, you can set a specific color.
-
-- `pileItemOrder` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive an array of all the [items](#stateitems) on the pile, and should return a `Map` that maps the item's id to its expected index after sorting. E.g.,
-
-  ```javascript
-  const pileItemOrder = itemStates => {
-    itemStates.sort((a, b) => a.id - b.id);
-
-    const itemIdToIndexMap = new Map();
-    itemStates.forEach((item, index) => {
-      itemIdToIndexMap.set(item.id.toString(), index);
-    });
-
-    return itemIdToIndexMap;
-  };
-
-  piling.set('pileItemOrder', pileItemOrder);
-  ```
-
-  The signature of the callback function is as follows:
-
-  ```javascript
-    function (itemStates) {
-      // Sort item states and create a map
-      return itemIdToIndexMap;
-    }
-  ```
 
 - `pileLabel` can be set to a `string`, `object`, `function`, or `array` of the previous types. E.g.,
 
@@ -705,13 +701,14 @@ Unsubscribe from an event. See [events](#events) for all the events.
     };
   ```
 
-- `pileLabelText` can be set to a boolean, an `array` of strings, or a callback function. E.g.,
+- `pileLabelTextMapping` can be set to an `array` of strings, or a callback function. E.g.,
 
   ```javascript
-  piling.set('pileLabelText', false); // default, i.e., no text by default
-  piling.set('pileLabelText', true); // simply show the label string
-  piling.set('pileLabelText', ['red', 'blue', 'yellow', 'green']);
-  piling.set('pileLabelText', (label, allLabels) => `#{abbreviation[label]}`);
+  piling.set('pileLabelTextMapping', ['red', 'blue', 'yellow', 'green']);
+  piling.set(
+    'pileLabelTextMapping',
+    (label, allLabels) => `${abbreviation[label]}`
+  );
   ```
 
   The callback function receives the current label (`string`), and an array of all the labels, and it should return a text string. The signature is as follows:
@@ -736,7 +733,9 @@ Unsubscribe from an event. See [events](#events) for all the events.
   });
   ```
 
-- `previewOffset` and `previewSpacing` are used to **globally** position preview items. Hereby, `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
+- `previewAlignment`, `previewOffset` and `previewSpacing` are used to **globally** position preview items. `previewAlignment` specifies the alignment direction, which can one of `top` (default), `left`, `right`, or `bottom`.
+
+- `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
 
   ```javascript
   piling.set('previewOffset', pileState => {
@@ -745,13 +744,23 @@ Unsubscribe from an event. See [events](#events) for all the events.
   });
   ```
 
-- `previewScaling` defines how much preview items are scaled according to the cover. Normally the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
+- `previewScaling` defines how much preview items are scaled according to the cover. Normally, the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
 
   ```javascript
   piling.set('previewScaling', pileState => {
     // Define the x and y scaling
     return [xScaling, yScaling];
   });
+  ```
+
+  Additionally, `previewScaleToCover` allows to automatically pick the scale factor such that the width or height of the preview are identical to the width and height of the cover. To do so, `previewScaleToCover` accepts a tuple of Boolean values (for the width and height scaling), where `true` will make the preview's width/height scale to the cover's with/height.
+
+- `zoomScale` allows to dynamically adjust the scale factor related to zooming. By default zooming **does not** affect the scale!
+
+  ```javascript
+  piling.set('zoomScale', cameraScale =>
+    cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
+  );
   ```
 
 ## Events
