@@ -12,7 +12,6 @@ import {
   cubicOut,
   debounce,
   identity,
-  interpolateNumber,
   interpolateVector,
   isFunction,
   isObject,
@@ -1969,21 +1968,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     );
   };
 
-  const animateAlpha = (graphics, endValue) => {
-    animator.add(
-      createTweener({
-        interpolator: interpolateNumber,
-        endValue,
-        getter: () => {
-          return graphics.alpha;
-        },
-        setter: newValue => {
-          graphics.alpha = newValue;
-        }
-      })
-    );
-  };
-
   const closeTempDepile = pileIds => {
     const { piles } = store.state;
 
@@ -2110,8 +2094,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
-      animateAlpha(pile.graphics, 1);
-      pile.graphics.interactive = true;
+      pile.animateOpacity(1);
+      pile.enableInteractivity();
 
       const items = [...piles[pileId].items];
 
@@ -3782,17 +3766,18 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       if (newState.temporaryDepiledPiles.length) {
         pileInstances.forEach(otherPile => {
-          animateAlpha(otherPile.graphics, 0.1);
-          otherPile.graphics.interactive = false;
+          otherPile.disableInteractivity();
+          otherPile.animateOpacity(0.1);
         });
 
         tempDepile(newState.temporaryDepiledPiles);
       } else {
         pileInstances.forEach(otherPile => {
-          animateAlpha(otherPile.graphics, 1);
-          otherPile.graphics.interactive = true;
+          otherPile.animateOpacity(1);
+          otherPile.enableInteractivity();
         });
       }
+      renderRaf();
     }
 
     if (state.focusedPiles !== newState.focusedPiles) {
