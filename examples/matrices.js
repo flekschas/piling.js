@@ -147,14 +147,14 @@ const createPiling = async (element, darkMode) => {
     cellSize: 64,
     pileCellAlignment: 'center',
     pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
-    pileOrderItems: pileState => pileState.items.sort((a, b) => a - b),
+    pileOrderItems: pileState => [...pileState.items].sort((a, b) => a - b),
     previewScaling: pile => [
       1,
-      Math.max(0.1, 1 - (pile.items.length - 2) / 10)
+      Math.max(0.1, 1 - (pile.items.length - 2) / 20)
     ],
     previewOffset: 1,
     previewPadding: 2,
-    previewSpacing: pile => Math.max(0, 2 - (pile.items.length - 2) / 10)
+    previewSpacing: pile => Math.max(0, 2 - (pile.items.length - 2) / 20)
   });
 
   // Uncomment the following code to apply UMAP on the raw data
