@@ -753,11 +753,11 @@ const createPile = (
         ? previewScaleToCover(pileState)
         : previewScaleToCover;
 
-      offset = Math.round(offset !== null ? offset : spacing / 2);
+      offset = offset !== null ? offset : spacing / 2;
 
       const halfSpacing = spacing / 2;
-      const halfWidth = Math.round(_cover.width / 2);
-      const halfHeight = Math.round(_cover.height / 2);
+      const halfWidth = _cover.width / 2;
+      const halfHeight = _cover.height / 2;
 
       isPositioning = previewItemContainer.children.length > 0;
 
@@ -792,10 +792,10 @@ const createPile = (
           switch (alignment) {
             case 'left':
               itemOffset = [
-                (index === 0) * -halfWidth +
+                (index === 0) * (-halfWidth - offset) +
                   prevOffset[0] -
                   prevSize[0] / 2 -
-                  previewItem.width / 2 -
+                  item.preview.width / 2 -
                   halfSpacing,
                 0
               ];
@@ -803,10 +803,10 @@ const createPile = (
 
             case 'right':
               itemOffset = [
-                (index === 0) * halfWidth +
+                (index === 0) * (halfWidth + offset) +
                   prevOffset[0] +
                   prevSize[0] / 2 +
-                  previewItem.width / 2 +
+                  item.preview.width / 2 +
                   halfSpacing,
                 0
               ];
@@ -815,7 +815,11 @@ const createPile = (
             case 'bottom':
               itemOffset = [
                 0,
-                halfHeight + index + halfSpacing * index + offset
+                (index === 0) * (halfHeight + offset) +
+                  prevOffset[1] +
+                  prevSize[1] / 2 +
+                  item.preview.height / 2 +
+                  halfSpacing
               ];
               break;
 
@@ -823,12 +827,16 @@ const createPile = (
             case 'top':
               itemOffset = [
                 0,
-                -halfHeight - index - halfSpacing * index - offset
+                (index === 0) * (-halfHeight - offset) +
+                  prevOffset[1] -
+                  prevSize[1] / 2 -
+                  item.preview.height / 2 -
+                  halfSpacing
               ];
               break;
           }
           prevOffset = [...itemOffset];
-          prevSize = [previewItem.width, previewItem.height];
+          prevSize = [item.preview.width, item.preview.height];
         }
 
         item.preview.clearBackground();
