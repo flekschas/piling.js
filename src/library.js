@@ -370,6 +370,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
+  const filterLayer = new PIXI.Container();
 
   const clearActivePileLayer = () => {
     if (activePile.children.length) {
@@ -424,6 +425,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   stage.addChild(spatialIndexGfx);
   stage.addChild(lasso.fillContainer);
   stage.addChild(normalPiles);
+  stage.addChild(filterLayer);
   stage.addChild(activePile);
   stage.addChild(lasso.lineContainer);
 
@@ -1974,6 +1976,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
+      clearActivePileLayer();
+      filterLayer.removeChildren();
+
       const onDone = () => {
         pile.tempDepileContainer.removeChildren();
         pile.isTempDepiled = false;
@@ -2083,6 +2088,16 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
+  const AddFilterLayer = () => {
+    const blackSprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+    blackSprite.tint = store.state.darkMode ? 0x000000 : 0xffffff;
+    blackSprite.width = containerWidth;
+    blackSprite.height = containerHeight;
+    blackSprite.alpha = 0.9;
+
+    filterLayer.addChild(blackSprite);
+  };
+
   const tempDepile = pileIds => {
     const {
       piles,
@@ -2094,7 +2109,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     pileIds.forEach(pileId => {
       const pile = pileInstances.get(pileId);
 
-      pile.animateOpacity(1);
+      moveToActivePileLayer(pile.graphics);
+      AddFilterLayer();
+
       pile.enableInteractivity();
 
       const items = [...piles[pileId].items];
@@ -3767,13 +3784,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       if (newState.temporaryDepiledPiles.length) {
         pileInstances.forEach(otherPile => {
           otherPile.disableInteractivity();
-          otherPile.animateOpacity(0.1);
         });
 
         tempDepile(newState.temporaryDepiledPiles);
       } else {
         pileInstances.forEach(otherPile => {
-          otherPile.animateOpacity(1);
           otherPile.enableInteractivity();
         });
       }
