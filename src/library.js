@@ -877,7 +877,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
           item.preview.scaleX(xScale);
           item.preview.scaleY(yScale);
-          item.preview.drawBackground();
+          item.preview.rescaleBackground();
         }
       });
     });
