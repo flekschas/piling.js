@@ -17,11 +17,6 @@ module.exports = () => ({
       {
         test: /(umap-js|skmeans)/,
         use: ['raw-loader']
-      },
-      {
-        test: /\.(js|fs|vs)$/,
-        exclude: /node_modules/,
-        use: ['babel-loader']
       }
     ]
   },
@@ -32,18 +27,8 @@ module.exports = () => ({
     extensions: ['*', '.js']
   },
   externals: {
-    'pixi.js': {
-      commonjs: 'pixi.js',
-      commonjs2: 'pixi.js',
-      amd: 'pixi.js',
-      root: 'PIXI'
-    },
-    'umap-js': {
-      commonjs: 'umap-js',
-      commonjs2: 'umap-js',
-      amd: 'umap-js',
-      root: 'UMAP'
-    }
+    'pixi.js': 'PIXI',
+    'umap-js': 'UMAP'
   },
   plugins: [
     new webpack.DefinePlugin({
