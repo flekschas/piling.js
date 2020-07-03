@@ -34,6 +34,8 @@ import {
   unique
 } from '@flekschas/utils';
 
+import convolve from 'ndarray-convolve';
+import ndarray from 'ndarray';
 import createAnimator from './animator';
 import createBadgeFactory from './badge-factory';
 import createLevels from './levels';
@@ -86,8 +88,8 @@ import { version } from '../package.json';
 
 // We cannot import the following libraries using the normal `import` statement
 // as this blows up the Rollup bundle massively for some reasons...
-const convolve = require('ndarray-convolve');
-const ndarray = require('ndarray');
+// const convolve = require('ndarray-convolve');
+// const ndarray = require('ndarray');
 
 const EXTRA_ROWS = 3;
 
