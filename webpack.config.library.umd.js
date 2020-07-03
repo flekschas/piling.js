@@ -38,8 +38,18 @@ module.exports = (env, argv) => ({
     extensions: ['*', '.js']
   },
   externals: {
-    'pixi.js': 'PIXI',
-    'umap-js': 'UMAP'
+    'pixi.js': {
+      commonjs: 'pixi.js',
+      commonjs2: 'pixi.js',
+      amd: 'pixi.js',
+      root: 'PIXI'
+    },
+    'umap-js': {
+      commonjs: 'umap-js',
+      commonjs2: 'umap-js',
+      amd: 'umap-js',
+      root: 'UMAP'
+    }
   },
   plugins: [
     new webpack.DefinePlugin({
