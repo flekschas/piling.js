@@ -516,7 +516,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
       : zoomScale;
     pileInstances.forEach(pile => {
       pile.setZoomScale(scaling);
-      pile.drawBorder();
     });
     renderRaf();
   };
@@ -812,6 +811,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     let maxHeight = 0;
     let minAspectRatio = Infinity;
     let maxAspectRatio = 0;
+
     renderedItems.forEach(item => {
       const width = item.image.originalWidth;
       const height = item.image.originalHeight;
@@ -888,7 +888,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
         pile.cover.scale(scaleFactor);
       }
       pile.updateOffset();
-      pile.drawBorder();
+      pile.drawChrome();
     });
   };
 
@@ -1803,7 +1803,6 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
       const srcPile = pileInstances.get(srcPileId);
       srcPile.blur();
-      srcPile.drawBorder();
 
       const readyPiles = itemIds
         .map(itemId => pileInstances.get(itemId))
@@ -2250,11 +2249,10 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     });
   };
 
-  const scalePile = (pileId, wheelDelta) => {
+  const magnifyPileByWheel = (pileId, wheelDelta) => {
     const pile = pileInstances.get(pileId);
     if (pile.magnifyByWheel(wheelDelta)) {
       updatePileBounds(pileId, { forceUpdate: true });
-      pile.drawBorder();
     }
     renderRaf();
   };
@@ -4737,7 +4735,7 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           delete pile.magnifiedByWheel;
           store.dispatch(createAction.setMagnifiedPiles([]));
         }
-        scalePile(result[0].id, normalizeWheel(event).pixelY);
+        magnifyPileByWheel(result[0].id, normalizeWheel(event).pixelY);
       }
     } else if (isPanZoom) {
       panZoomHandler();

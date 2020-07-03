@@ -1,5 +1,6 @@
 import {
   cubicOut,
+  decToRgb,
   interpolateNumber,
   interpolateVector,
   isClose,
@@ -10,6 +11,7 @@ import {
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
+import createBorder from './border';
 import createBBox from './bounding-box';
 import createPileItem from './pile-item';
 import createTweener from './tweener';
@@ -80,20 +82,33 @@ const createPile = (
   const previewItemIdIndex = new Map();
   const newItems = new Set();
   const rootContainer = new PIXI.Container();
-  const borderGraphics = new PIXI.Graphics();
+  const chromeContainer = new PIXI.Container();
   const contentContainer = new PIXI.Container();
-  const borderedContentContainer = new PIXI.Container();
   const normalItemContainer = new PIXI.Container();
   const previewItemContainer = new PIXI.Container();
-  const coverContainer = new PIXI.Container();
+  const coverItemContainer = new PIXI.Container();
   const hoverItemContainer = new PIXI.Container();
-  const tempDepileContainer = new PIXI.Container();
   const hoverPreviewContainer = new PIXI.Container();
+  const tempDepileContainer = new PIXI.Container();
+
+  const background = new PIXI.Sprite(PIXI.Texture.WHITE);
+  const border = createBorder();
+
+  // eslint-disable-next-line
+  let contentWidth = 1;
+  // eslint-disable-next-line
+  let contentHeight = 1;
 
   const createPileBBox = createBBox({ id });
 
   let bBox = createPileBBox();
-  let anchorBox = createPileBBox();
+  let anchorBBox = createPileBBox(); // Bounding box of the first or cover item
+  // eslint-disable-next-line
+  let itemsBBox = createPileBBox(); // Bounding box of the items
+  // eslint-disable-next-line
+  let previewBBox = createPileBBox(); // Bounding box of the previews
+  // eslint-disable-next-line
+  let outerBBox = createPileBBox(); // Bounding box of the entire pile
 
   let cover;
   let whenCover;
@@ -128,8 +143,8 @@ const createPile = (
   const clonePileItemSprite = pileItem => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
     if (cover) {
-      clonedSprite.x = coverContainer.x;
-      clonedSprite.y = coverContainer.y;
+      clonedSprite.x = coverItemContainer.x;
+      clonedSprite.y = coverItemContainer.y;
     } else {
       clonedSprite.x = pileItem.displayObject.x;
       clonedSprite.y = pileItem.displayObject.y;
@@ -145,7 +160,7 @@ const createPile = (
       if (!rootContainer.isDragging) {
         const clonedSprite = clonePileItemSprite(item);
         hoverItemContainer.addChild(clonedSprite);
-        coverContainer.visible = false;
+        coverItemContainer.visible = false;
         if (hasPreviewItem(item)) {
           const {
             previewBorderColor,
@@ -188,7 +203,7 @@ const createPile = (
 
   const itemOutHandler = ({ item }) => {
     if (isFocus) {
-      coverContainer.visible = true;
+      coverItemContainer.visible = true;
       while (hoverItemContainer.children.length) {
         hoverItemContainer.removeChildAt(0);
       }
@@ -228,13 +243,14 @@ const createPile = (
   const getContentBounds = () => {
     if (pileBounds.drawCall === borderDrawCall) return pileBounds;
 
-    const borderBounds = borderGraphics.getBounds();
+    // eslint-disable-next-line
+    const borderBounds = border.displayObject.getBounds();
     const contentBounds = contentContainer.getBounds();
 
     pileBounds = {
       drawCall: borderDrawCall,
-      x: contentBounds.x - borderBounds.x,
-      y: contentBounds.y - borderBounds.y,
+      x: contentBounds.x,
+      y: contentBounds.y,
       width: contentBounds.width,
       height: contentBounds.height
     };
@@ -245,7 +261,7 @@ const createPile = (
   let previousSize;
   let previousSizeBadge;
   const drawSizeBadge = () => {
-    if (isPositioning) return;
+    if (!isShowSizeBadge) return;
 
     const { darkMode, piles, pileSizeBadgeAlign } = store.state;
     const [yAlign, xAlign] = isFunction(pileSizeBadgeAlign)
@@ -270,7 +286,7 @@ const createPile = (
 
     if (
       !normalItemContainer.children.length &&
-      !coverContainer.children.length
+      !coverItemContainer.children.length
     ) {
       return;
     }
@@ -314,8 +330,6 @@ const createPile = (
       whenCover.then(() => {
         drawBorder();
       });
-    } else {
-      drawBorder();
     }
   };
 
@@ -348,31 +362,18 @@ const createPile = (
     return backgroundOpacity;
   };
 
-  const drawBorder = () => {
-    ++borderDrawCall;
-    const size = getBorderSize();
+  const drawBackground = () => {
     const backgroundOpacity = getBackgroundOpacity();
 
-    if (!size && !backgroundOpacity) {
-      borderGraphics.clear();
+    if (backgroundOpacity === 0) {
+      background.alpha = 0;
       return;
     }
-
-    if (isPositioning) {
-      const currentMode = mode;
-      postPilePositionAnimation.set('drawBorder', () => {
-        drawBorder(size, currentMode);
-      });
-      return;
-    }
-
-    borderGraphics.clear();
 
     const bounds = getContentBounds();
 
     const state = store.state;
 
-    const borderOffset = Math.ceil(size / 2);
     let backgroundColor = getPileProp(
       state[`pileBackgroundColor${modeToString.get(mode) || ''}`],
       state.piles[id]
@@ -382,15 +383,24 @@ const createPile = (
       backgroundColor = getBackgroundColor();
     }
 
-    // draw black background
-    borderGraphics.beginFill(backgroundColor, backgroundOpacity);
-    borderGraphics.drawRect(
-      bounds.x - borderOffset,
-      bounds.y - borderOffset,
-      bounds.width + 2 * borderOffset,
-      bounds.height + 2 * borderOffset
-    );
-    borderGraphics.endFill();
+    background.tint = backgroundColor;
+    background.alpha = backgroundOpacity;
+    background.width = bounds.width;
+    background.height = bounds.height;
+  };
+
+  const drawBorder = () => {
+    ++borderDrawCall;
+    const size = getBorderSize();
+
+    if (size === 0) {
+      border.update({ opacity: 0 });
+      return;
+    }
+
+    const bounds = getContentBounds();
+
+    const state = store.state;
 
     let color = state[`pileBorderColor${modeToString.get(mode) || ''}`];
     const opacity = getPileProp(
@@ -402,41 +412,56 @@ const createPile = (
       ? colorToDecAlpha(color(state.piles[id]))[0]
       : color;
 
-    // draw border
-    borderGraphics.lineStyle(size, color, opacity);
-    borderGraphics.drawRect(
-      bounds.x - borderOffset,
-      bounds.y - borderOffset,
-      bounds.width + 2 * borderOffset,
-      bounds.height + 2 * borderOffset
-    );
+    border.update({
+      color: decToRgb(color).map(x => x / 255),
+      opacity,
+      width: bounds.width,
+      height: bounds.height,
+      size
+    });
 
-    if (isShowSizeBadge) drawSizeBadge();
+    border.displayObject.x = -size - bounds.width / 2;
+    border.displayObject.y = -size - bounds.height / 2;
+  };
+
+  /**
+   * Update all graphical user interface elements surrounding the content
+   */
+  const drawChrome = () => {
+    if (isPositioning) {
+      postPilePositionAnimation.add(drawChrome);
+      return;
+    }
+
+    drawBackground();
+    drawBorder();
+    drawLabel();
+    drawSizeBadge();
 
     render();
   };
 
   const blur = () => {
     mode = MODE_NORMAL;
-    drawBorder();
+    drawChrome();
   };
 
   const hover = () => {
     if (mode === MODE_HOVER) return;
     mode = MODE_HOVER;
-    drawBorder();
+    drawChrome();
   };
 
   const focus = () => {
     if (mode === MODE_FOCUS) return;
     mode = MODE_FOCUS;
-    drawBorder();
+    drawChrome();
   };
 
   const active = () => {
     if (mode === MODE_ACTIVE) return;
     mode = MODE_ACTIVE;
-    drawBorder();
+    drawChrome();
   };
 
   let isHover = false;
@@ -559,18 +584,18 @@ const createPile = (
    * Calculate the current anchor box of the pile
    * @return  {object}  Anchor bounding box
    */
-  const calcAnchorBox = (xOffset = 0, yOffset = 0, forceUpdate) => {
+  const calcAnchorBBox = (xOffset = 0, yOffset = 0, forceUpdate) => {
     let bounds;
     let localXOffset = 0;
     let localYOffset = 0;
 
     if (whenCover) {
-      if (coverContainer.children.length) {
-        bounds = coverContainer.getBounds(!forceUpdate);
+      if (coverItemContainer.children.length) {
+        bounds = coverItemContainer.getBounds(!forceUpdate);
       } else {
         // We're in the middle of updating the cover so lets return the
         // old anchor box for now.
-        return anchorBox;
+        return anchorBBox;
       }
     } else {
       bounds = normalItemContainer.getBounds(!forceUpdate);
@@ -586,29 +611,33 @@ const createPile = (
     return createPileBBox({
       localXOffset,
       localYOffset,
-      minX: bounds.x - xOffset,
-      minY: bounds.y - yOffset,
-      maxX: bounds.x + bounds.width - xOffset,
-      maxY: bounds.y + bounds.height - yOffset
+      x: bounds.x - xOffset,
+      y: bounds.y - yOffset,
+      width: bounds.width,
+      height: bounds.height
     });
   };
 
-  const updateAnchorBox = (xOffset, yOffset, forceUpdate) => {
-    anchorBox = calcAnchorBox(xOffset, yOffset, forceUpdate);
+  const updateAnchorBBox = (xOffset, yOffset, forceUpdate) => {
+    anchorBBox = calcAnchorBBox(xOffset, yOffset, forceUpdate);
   };
 
   /**
-   * Compute the current bounding box of the pile
-   * @return  {object}  Pile bounding box
+   * Compute the outer bounding box of the pile
+   * @param   {number}  xOffset  Global x offset
+   * @param   {number}  yOffset  Global y offset
+   * @param   {Boolean}  forceUpdate  If `true` force update the bounds
+   * @return  {object}  The outer bounding box of the pile
    */
   const calcBBox = (xOffset = 0, yOffset = 0, forceUpdate) => {
+    // eslint-disable-next-line
     const bounds = borderedContentContainer.getBounds(!forceUpdate);
 
     return createPileBBox({
-      minX: bounds.x - xOffset,
-      minY: bounds.y - yOffset,
-      maxX: bounds.x + bounds.width - xOffset,
-      maxY: bounds.y + bounds.height - yOffset
+      x: bounds.x - xOffset,
+      y: bounds.y - yOffset,
+      width: bounds.width,
+      height: bounds.height
     });
   };
 
@@ -617,7 +646,7 @@ const createPile = (
   };
 
   const updateBounds = (xOffset, yOffset, forceUpdate) => {
-    updateAnchorBox(xOffset, yOffset, forceUpdate);
+    updateAnchorBBox(xOffset, yOffset, forceUpdate);
     updateBBox(xOffset, yOffset, forceUpdate);
   };
 
@@ -660,7 +689,7 @@ const createPile = (
   };
 
   // Map to store calls for after the pile position animation
-  const postPilePositionAnimation = new Map();
+  const postPilePositionAnimation = new Set();
   const animatePositionItems = (
     itemSprite,
     x,
@@ -694,8 +723,7 @@ const createPile = (
         itemSprite.tmpTargetScale = undefined;
         if (isLastOne) {
           isPositioning = false;
-          drawBorder();
-          drawLabel();
+          drawChrome();
           postPilePositionAnimation.forEach(fn => {
             fn();
           });
@@ -953,15 +981,20 @@ const createPile = (
   };
 
   const scale = (currentScale = baseScale) => {
-    contentContainer.scale.x = currentScale * zoomScale;
-    contentContainer.scale.y = currentScale * zoomScale;
+    const newScale = currentScale * zoomScale;
+    const scaleChanged = Math.abs(newScale - contentContainer.scale.x) < EPS;
+
+    contentContainer.scale.x = newScale;
+    contentContainer.scale.y = newScale;
+
+    return scaleChanged;
   };
 
   const getScale = () => contentContainer.scale.x / zoomScale;
 
   const setScale = (newScale, { isMagnification = false } = {}) => {
     if (!isMagnification) baseScale = newScale;
-    scale(newScale);
+    if (scale(newScale)) drawChrome();
   };
 
   let scaleTweener;
@@ -972,8 +1005,6 @@ const createPile = (
     const isSame = isClose(getScale(), newScale * zoomScale, 9);
 
     const done = () => {
-      drawBorder();
-      drawLabel();
       if (!isSame)
         pubSub.publish('updatePileBounds', { id, forceUpdate: true });
       onDone();
@@ -1019,7 +1050,6 @@ const createPile = (
       getter: getScale,
       setter: v => {
         setScale(v, { isMagnification });
-        drawBorder();
       },
       onDone: () => {
         isScaling = false;
@@ -1227,7 +1257,9 @@ const createPile = (
       pubSub
     });
     const numItems = allItems.push(normalItem);
-    if (numItems > 1) newItems.add(normalItem);
+    if (numItems > 1) {
+      newItems.add(normalItem);
+    }
     normalItemIndex.set(normalItem.id, normalItem);
     normalItemIdIndex.set(normalItem.displayObject, normalItem.id);
     normalItemContainer.addChild(normalItem.displayObject);
@@ -1342,12 +1374,12 @@ const createPile = (
       whenCover = newWhenCover;
       whenCover.then(newCover => {
         cover = newCover;
-        while (coverContainer.children.length) {
-          coverContainer.removeChildAt(0);
+        while (coverItemContainer.children.length) {
+          coverItemContainer.removeChildAt(0);
         }
-        coverContainer.addChild(cover.displayObject);
+        coverItemContainer.addChild(cover.displayObject);
         pubSub.publish('updatePileBounds', { id, forceUpdate: true });
-        drawBorder();
+        drawChrome();
       });
     }
   };
@@ -1355,8 +1387,8 @@ const createPile = (
   const removeCover = () => {
     if (!cover) return;
 
-    while (coverContainer.children.length) {
-      coverContainer.removeChildAt(0);
+    while (coverItemContainer.children.length) {
+      coverItemContainer.removeChildAt(0);
     }
 
     cover = undefined;
@@ -1495,8 +1527,8 @@ const createPile = (
       placeholderGfx = new PIXI.Graphics();
       contentContainer.addChild(placeholderGfx);
     }
-    const width = anchorBox.width / baseScale / zoomScale;
-    const height = anchorBox.height / baseScale / zoomScale;
+    const width = anchorBBox.width / baseScale / zoomScale;
+    const height = anchorBBox.height / baseScale / zoomScale;
 
     const r = width / 12;
     const color = store.state.darkMode ? 0xffffff : 0x000000;
@@ -1564,31 +1596,29 @@ const createPile = (
     isInteractive = true;
   };
 
-  const init = () => {
-    rootContainer.addChild(borderedContentContainer);
+  // Init
+  rootContainer.addChild(contentContainer);
+  rootContainer.addChild(chromeContainer);
 
-    borderedContentContainer.addChild(borderGraphics);
-    borderedContentContainer.addChild(contentContainer);
+  chromeContainer.addChild(background);
+  chromeContainer.addChild(border.displayObject);
 
-    contentContainer.addChild(normalItemContainer);
-    contentContainer.addChild(previewItemContainer);
-    contentContainer.addChild(coverContainer);
-    contentContainer.addChild(hoverItemContainer);
-    contentContainer.addChild(tempDepileContainer);
-    contentContainer.addChild(hoverPreviewContainer);
+  contentContainer.addChild(normalItemContainer);
+  contentContainer.addChild(previewItemContainer);
+  contentContainer.addChild(coverItemContainer);
+  contentContainer.addChild(hoverItemContainer);
+  contentContainer.addChild(tempDepileContainer);
+  contentContainer.addChild(hoverPreviewContainer);
 
-    rootContainer.x = initialX;
-    rootContainer.y = initialY;
+  rootContainer.x = initialX;
+  rootContainer.y = initialY;
 
-    enableInteractivity();
-  };
-
-  init();
+  enableInteractivity();
 
   return {
     // Properties
-    get anchorBox() {
-      return anchorBox;
+    get anchorBBox() {
+      return anchorBBox;
     },
     get baseScale() {
       return baseScale;
@@ -1606,7 +1636,7 @@ const createPile = (
       return contentContainer;
     },
     get height() {
-      return borderedContentContainer.height;
+      return contentContainer.height;
     },
     get isFocus() {
       return isFocus;
@@ -1634,8 +1664,8 @@ const createPile = (
     },
     get offset() {
       return [
-        (baseOffset[0] - anchorBox.localXOffset) * baseScale,
-        (baseOffset[1] - anchorBox.localYOffset) * baseScale
+        (baseOffset[0] - anchorBBox.localXOffset) * baseScale,
+        (baseOffset[1] - anchorBBox.localYOffset) * baseScale
       ];
     },
     get previewItemContainer() {
@@ -1654,7 +1684,7 @@ const createPile = (
       return tempDepileContainer;
     },
     get width() {
-      return borderedContentContainer.width;
+      return contentContainer.width;
     },
     get x() {
       return rootContainer.x;
@@ -1677,7 +1707,9 @@ const createPile = (
     animatePositionItems,
     calcBBox,
     destroy,
+    drawBackground,
     drawBorder,
+    drawChrome,
     drawPlaceholder,
     drawSizeBadge,
     getMoveToTweener,

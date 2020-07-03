@@ -1,21 +1,24 @@
-import { pipe, withStaticProperty } from '@flekschas/utils';
+import { pipe, withConstructor, withStaticProperty } from '@flekschas/utils';
 
 const createBBox = (metadata = {}) => ({
-  minX = 0,
-  minY = 0,
-  maxX = 1,
-  maxY = 1,
+  x = 0,
+  y = 0,
+  width = 1,
+  height = 1,
   ...extra
 } = {}) =>
   pipe(
-    withStaticProperty('minX', minX),
-    withStaticProperty('minY', minY),
-    withStaticProperty('maxX', maxX),
-    withStaticProperty('maxY', maxY),
-    withStaticProperty('width', maxX - minX),
-    withStaticProperty('height', maxY - minY),
-    withStaticProperty('cX', minX + (maxX - minX) / 2),
-    withStaticProperty('cY', minY + (maxY - minY) / 2),
+    withConstructor(createBBox),
+    withStaticProperty('x', x),
+    withStaticProperty('y', y),
+    withStaticProperty('minX', x),
+    withStaticProperty('minY', y),
+    withStaticProperty('maxX', x + width),
+    withStaticProperty('maxY', y + width),
+    withStaticProperty('cX', x + width / 2),
+    withStaticProperty('cY', x + height / 2),
+    withStaticProperty('width', width),
+    withStaticProperty('height', height),
     ...Object.entries({ ...metadata, ...extra }).map(([key, value]) =>
       withStaticProperty(key, value)
     )
