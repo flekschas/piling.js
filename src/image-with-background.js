@@ -17,32 +17,31 @@ const DEFAULT_BACKGROUND_OPACITY = 0.2;
 const DEFAULT_PADDING = 0;
 
 const withBackground = ({
+  background,
   backgroundColor,
-  backgroundGraphics,
   backgroundOpacity
 }) => self =>
   assign(self, {
     get backgroundColor() {
-      return backgroundGraphics.fill.color;
+      return background.tint;
+    },
+    setBackgroundColor(color = backgroundColor) {
+      background.tint = color;
     },
     get backgroundOpacity() {
-      return backgroundGraphics.fill.alpha;
+      return background.alpha;
     },
-    clearBackground() {
-      backgroundGraphics.clear();
+    setBackgroundOpacity(opacity = backgroundOpacity) {
+      background.alpha = opacity;
     },
-    drawBackground(
-      color = backgroundColor,
-      opacity = backgroundOpacity,
-      withPadding = false
-    ) {
+    rescaleBackground(withPadding = false) {
       const width = self.width + self.padding * withPadding;
       const height = self.height + self.padding * withPadding;
 
-      backgroundGraphics.clear();
-      backgroundGraphics.beginFill(color, opacity);
-      backgroundGraphics.drawRect(-width / 2, -height / 2, width, height);
-      backgroundGraphics.endFill();
+      background.x = -width / 2;
+      background.y = -height / 2;
+      background.width = width;
+      background.height = height;
     }
   });
 
@@ -67,7 +66,8 @@ const createImageWithBackground = (
     padding = DEFAULT_PADDING
   } = {}
 ) => {
-  const backgroundGraphics = new PIXI.Graphics();
+  const container = new PIXI.Container();
+  const background = new PIXI.Sprite(PIXI.Texture.WHITE);
   const displayObject = toDisplayObject(source);
 
   let sprite;
@@ -79,29 +79,24 @@ const createImageWithBackground = (
     sprite = displayObject;
   }
 
-  const init = self => {
-    backgroundGraphics.addChild(sprite);
+  container.addChild(background);
+  container.addChild(sprite);
 
-    return self;
-  };
-
-  return init(
-    pipe(
-      withStaticProperty('displayObject', backgroundGraphics),
-      withStaticProperty('sprite', sprite),
-      withColorFilters(sprite),
-      withScale(sprite, displayObject.width, displayObject.height),
-      withSize(sprite, displayObject.width, displayObject.height),
-      withPadding(padding),
-      withBackground({
-        backgroundColor,
-        backgroundGraphics,
-        backgroundOpacity
-      }),
-      withDestroy(backgroundGraphics),
-      withConstructor(createImageWithBackground)
-    )({})
-  );
+  return pipe(
+    withStaticProperty('displayObject', container),
+    withStaticProperty('sprite', sprite),
+    withColorFilters(sprite),
+    withScale(sprite, displayObject.width, displayObject.height),
+    withSize(sprite, displayObject.width, displayObject.height),
+    withPadding(padding),
+    withBackground({
+      background,
+      backgroundColor,
+      backgroundOpacity
+    }),
+    withDestroy(sprite),
+    withConstructor(createImageWithBackground)
+  )({});
 };
 
 export default createImageWithBackground;

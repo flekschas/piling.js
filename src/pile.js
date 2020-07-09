@@ -164,11 +164,9 @@ const createPile = (
             index
           );
 
-          item.image.drawBackground(
-            getForegroundColor(borderColor),
-            borderOpacity,
-            true
-          );
+          item.image.setBackgroundColor(getForegroundColor(borderColor));
+          item.image.setBackgroundOpacity(borderOpacity);
+          item.image.rescaleBackground(true);
           hoverPreviewContainer.addChild(item.displayObject);
         }
         render();
@@ -210,11 +208,15 @@ const createPile = (
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
             : getItemProp(previewBackgroundColor, items[item.id], index);
+
         const backgroundOpacity =
           previewBackgroundOpacity === INHERIT
             ? getPileProp(pileBackgroundOpacity, piles[id])
             : getItemProp(previewBackgroundOpacity, items[item.id], index);
-        item.image.drawBackground(backgroundColor, backgroundOpacity);
+
+        item.image.setBackgroundColor(backgroundColor);
+        item.image.setBackgroundOpacity(backgroundOpacity);
+
         previewItemContainer.addChild(item.displayObject);
       }
       render();
@@ -839,7 +841,7 @@ const createPile = (
           prevSize = [item.preview.width, item.preview.height];
         }
 
-        item.preview.clearBackground();
+        item.preview.setBackgroundOpacity(0);
 
         animatePositionItems(
           previewItem,

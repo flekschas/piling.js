@@ -5,31 +5,35 @@ import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import filesize from 'rollup-plugin-filesize';
 import { string } from 'rollup-plugin-string';
-import visualizer from 'rollup-plugin-visualizer';
+// import visualizer from 'rollup-plugin-visualizer';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 const bundleConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/index.js',
   output: {
-    name: 'createPilingJs',
+    name: 'pilingJs',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI',
-      regl: 'createREGL',
       'umap-js': 'UMAP'
     }
   },
   plugins: [
     json(),
+    babel({ runtimeHelpers: true }),
     resolve({
+      browser: true,
       dedupe: ['gl-matrix'],
-      mainFields: ['module', 'main']
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
     }),
     commonjs({ sourceMap: false }),
-    babel({ runtimeHelpers: true }),
     string({
       include: '**/skmeans.min'
     }),
+    nodePolyfills(),
     ...plugins
   ],
   external: ['pixi.js', 'regl', 'umap-js']
@@ -42,25 +46,30 @@ const bundleEsm = bundleConfig('dist/piling.esm.js', [filesize()], 'es');
 const libConfig = (file, plugins = [], format = 'umd') => ({
   input: 'src/library.js',
   output: {
-    name: 'createPilingJs',
+    name: 'pilingJsLibrary',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI'
     }
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      browser: true,
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
+    nodePolyfills(),
     ...plugins
   ],
   external: ['pixi.js']
 });
 
-const libDev = libConfig('dist/piling-library.js', [filesize(), visualizer()]);
-const libProd = libConfig('dist/piling-library.min.js', [terser()]);
 const libEsm = libConfig('dist/piling-library.esm.js', [filesize()], 'es');
 
 const rndConfig = (file, plugins = [], format = 'umd') => ({
@@ -69,23 +78,27 @@ const rndConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsRenderer',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
-      'pixi.js': 'PIXI',
-      regl: 'createREGL'
+      'pixi.js': 'PIXI'
     }
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      browser: true,
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
+    nodePolyfills(),
     ...plugins
   ],
   external: ['pixi.js', 'regl']
 });
 
-const rndDev = rndConfig('dist/piling-renderer.js', [filesize()]);
-const rndProd = rndConfig('dist/piling-renderer.min.js', [terser()]);
 const rndEsm = rndConfig('dist/piling-renderer.esm.js', [filesize()], 'es');
 
 const agrConfig = (file, plugins = [], format = 'umd') => ({
@@ -94,20 +107,25 @@ const agrConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsAggregator',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {}
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      browser: true,
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
+    nodePolyfills(),
     ...plugins
   ],
   external: []
 });
 
-const agrDev = agrConfig('dist/piling-aggregator.js', [filesize()]);
-const agrProd = agrConfig('dist/piling-aggregator.min.js', [terser()]);
 const agrEsm = agrConfig('dist/piling-aggregator.esm.js', [filesize()], 'es');
 
 const clstConfig = (file, plugins = [], format = 'umd') => ({
@@ -116,23 +134,28 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsClusterer',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {}
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      browser: true,
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     string({
       include: '**/skmeans.min'
     }),
+    nodePolyfills(),
     ...plugins
   ],
   external: []
 });
 
-const clstDev = clstConfig('dist/piling-clusterer.js', [filesize()]);
-const clstProd = clstConfig('dist/piling-clusterer.min.js', [terser()]);
 const clstEsm = clstConfig('dist/piling-clusterer.esm.js', [filesize()], 'es');
 
 const dimRedConfig = (file, plugins = [], format = 'umd') => ({
@@ -141,27 +164,28 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsDimensionalityReducer',
     format,
     file,
+    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {}
   },
   plugins: [
     json(),
-    resolve(),
+    resolve({
+      browser: true,
+      dedupe: ['gl-matrix'],
+      mainFields: ['module', 'main'],
+      preferBuiltins: false
+    }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     string({
       include: '**umap-js.min'
     }),
+    nodePolyfills(),
     ...plugins
   ],
   external: []
 });
 
-const dimRedDev = dimRedConfig('dist/piling-dimensionality-reducer.js', [
-  filesize()
-]);
-const dimRedProd = dimRedConfig('dist/piling-dimensionality-reducer.min.js', [
-  terser()
-]);
 const dimRedEsm = dimRedConfig(
   'dist/piling-dimensionality-reducer.esm.js',
   [filesize()],
@@ -172,19 +196,9 @@ export default [
   bundleDev,
   bundleProd,
   bundleEsm,
-  libDev,
-  libProd,
   libEsm,
-  rndDev,
-  rndProd,
   rndEsm,
-  agrDev,
-  agrProd,
   agrEsm,
-  clstDev,
-  clstProd,
   clstEsm,
-  dimRedDev,
-  dimRedProd,
   dimRedEsm
 ];
