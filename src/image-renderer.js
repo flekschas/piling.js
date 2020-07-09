@@ -10,16 +10,16 @@ export const loadImage = (src, isCrossOrigin = false) =>
     image.onload = () => {
       resolve(image);
     };
-    image.onerror = error => {
+    image.onerror = (error) => {
       console.error(`Could't load ${src}`);
       reject(error);
     };
     image.src = src;
   });
 
-const createImageRenderer = () => sources =>
+const createImageRenderer = () => (sources) =>
   Promise.all(
-    sources.map(src => {
+    sources.map((src) => {
       const isCrossOrigin = true;
       return loadImage(src, isCrossOrigin);
     })

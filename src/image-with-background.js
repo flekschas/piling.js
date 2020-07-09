@@ -2,7 +2,7 @@ import {
   assign,
   pipe,
   withConstructor,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -16,11 +16,9 @@ const DEFAULT_BACKGROUND_COLOR = 0x00ff00;
 const DEFAULT_BACKGROUND_OPACITY = 0.2;
 const DEFAULT_PADDING = 0;
 
-const withBackground = ({
-  background,
-  backgroundColor,
-  backgroundOpacity
-}) => self =>
+const withBackground = ({ background, backgroundColor, backgroundOpacity }) => (
+  self
+) =>
   assign(self, {
     get backgroundColor() {
       return background.tint;
@@ -42,10 +40,10 @@ const withBackground = ({
       background.y = -height / 2;
       background.width = width;
       background.height = height;
-    }
+    },
   });
 
-const withPadding = initialPadding => self => {
+const withPadding = (initialPadding) => (self) => {
   let padding = initialPadding;
   return assign(self, {
     get padding() {
@@ -53,7 +51,7 @@ const withPadding = initialPadding => self => {
     },
     setPadding(newPadding) {
       padding = Number.isNaN(+newPadding) ? +newPadding : padding;
-    }
+    },
   });
 };
 
@@ -63,7 +61,7 @@ const createImageWithBackground = (
     anchor = [0.5, 0.5],
     backgroundColor = DEFAULT_BACKGROUND_COLOR,
     backgroundOpacity = DEFAULT_BACKGROUND_OPACITY,
-    padding = DEFAULT_PADDING
+    padding = DEFAULT_PADDING,
   } = {}
 ) => {
   const container = new PIXI.Container();
@@ -92,7 +90,7 @@ const createImageWithBackground = (
     withBackground({
       background,
       backgroundColor,
-      backgroundOpacity
+      backgroundOpacity,
     }),
     withDestroy(sprite),
     withConstructor(createImageWithBackground)

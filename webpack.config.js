@@ -5,34 +5,34 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = (env, argv) => ({
   entry: {
-    index: './examples/index.js'
+    index: './examples/index.js',
   },
   output: {
     path: `${__dirname}/examples-build`,
-    publicPath: argv.mode === 'production' ? './' : '/'
+    publicPath: argv.mode === 'production' ? './' : '/',
   },
   devServer: {
-    contentBase: './examples'
+    contentBase: './examples',
   },
   module: {
     rules: [
       {
         test: /(umap-js|skmeans)/,
-        use: ['raw-loader']
+        use: ['raw-loader'],
       },
       {
         test: /\.(js|fs|vs)$/,
         exclude: /node_modules/,
-        use: ['babel-loader']
+        use: ['babel-loader'],
       },
       {
         test: /\.s[ac]ss$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
-      }
-    ]
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+      },
+    ],
   },
   resolve: {
-    extensions: ['*', '.js']
+    extensions: ['*', '.js'],
   },
   plugins: [
     new MiniCssExtractPlugin(),
@@ -40,8 +40,8 @@ module.exports = (env, argv) => ({
       template: 'examples/index.html',
       filename: 'index.html',
       chunks: ['index'],
-      inlineSource: /\.css$/i
+      inlineSource: /\.css$/i,
     }),
-    new HtmlInlineCssWebpackPlugin()
-  ]
+    new HtmlInlineCssWebpackPlugin(),
+  ],
 });

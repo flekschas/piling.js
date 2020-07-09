@@ -5,7 +5,7 @@ const whichTransitionEvent = () => {
     MozTransition: 'transitionend',
     MSTransition: 'msTransitionEnd',
     OTransition: 'oTransitionEnd',
-    transition: 'transitionEnd'
+    transition: 'transitionEnd',
   };
 
   // eslint-disable-next-line

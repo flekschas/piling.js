@@ -7,7 +7,7 @@ import VS from './matrix-renderer.vs';
 
 const BLACK_WHITE_COLOR_MAP = [];
 
-const createColorTexture = colors => {
+const createColorTexture = (colors) => {
   const colorTexRes = Math.max(2, Math.ceil(Math.sqrt(colors.length)));
   const rgba = new Float32Array(colorTexRes ** 2 * 4);
   colors.forEach((color, i) => {
@@ -23,7 +23,7 @@ const createColorTexture = colors => {
 const createMatrixRenderer = ({
   colorMap = BLACK_WHITE_COLOR_MAP,
   domain = [0, 1],
-  shape
+  shape,
 } = {}) => {
   const geometry = new PIXI.Geometry();
   geometry.addAttribute('aVertexPosition', [-1, -1, 1, -1, 1, 1, -1, 1], 2);
@@ -36,23 +36,23 @@ const createMatrixRenderer = ({
 
   let allUniforms = [];
 
-  const renderer = async sources =>
+  const renderer = async (sources) =>
     Promise.all(
-      sources.map(async source => {
+      sources.map(async (source) => {
         const [height, width] = shape || source.shape;
 
-        const createDataTexture = data => {
+        const createDataTexture = (data) => {
           const resource = new CustomBufferResource(new Float32Array(data), {
             width,
             height,
             internalFormat: 'R32F',
             format: 'RED',
-            type: 'FLOAT'
+            type: 'FLOAT',
           });
 
           return new PIXI.Texture(
             new PIXI.BaseTexture(resource, {
-              scaleMode: PIXI.SCALE_MODES.NEAREST
+              scaleMode: PIXI.SCALE_MODES.NEAREST,
             })
           );
         };
@@ -63,7 +63,7 @@ const createMatrixRenderer = ({
           uColorMapSize,
           uMinValue: domain[0],
           uMaxValue: domain[1],
-          uDataTex: createDataTexture(source.data)
+          uDataTex: createDataTexture(source.data),
         });
 
         allUniforms.push(uniforms);
@@ -80,7 +80,7 @@ const createMatrixRenderer = ({
       })
     );
 
-  const setColorMap = newColorMap => {
+  const setColorMap = (newColorMap) => {
     const [newColorMapTex, newColorMapTexRes] = createColorTexture(newColorMap);
 
     allUniforms.forEach(({ uniforms }) => {
@@ -89,7 +89,7 @@ const createMatrixRenderer = ({
     });
   };
 
-  const setDomain = newDomain => {
+  const setDomain = (newDomain) => {
     allUniforms.forEach(({ uniforms }) => {
       uniforms.uMinValue = newDomain[0];
       uniforms.uMaxValue = newDomain[1];
@@ -104,7 +104,7 @@ const createMatrixRenderer = ({
     clear,
     renderer,
     setColorMap,
-    setDomain
+    setDomain,
   };
 };
 

@@ -51,7 +51,7 @@ const conditionalElements = [
   vitessceCreditEl,
   ridgePlotCreditEl,
   timeseriesCreditEl,
-  booksCreditEl
+  booksCreditEl,
 ];
 
 const optionsEl = document.getElementById('options');
@@ -93,7 +93,7 @@ const ignoredActions = new Set([
   'SOFT_OVERWRITE',
   'SET_CLICKED_PILE',
   'SET_FOCUSED_PILES',
-  'SET_MAGNIFIED_PILES'
+  'SET_MAGNIFIED_PILES',
 ]);
 
 const updateHandler = ({ action }) => {
@@ -117,7 +117,7 @@ const updateHandlerIdled = (...args) =>
     updateHandler(...args);
   });
 
-const hideEl = el => {
+const hideEl = (el) => {
   el.style.display = 'none';
 };
 
@@ -130,9 +130,9 @@ const pilingEls = {
   vitessce: vitessceEl,
   scatterplots: scatterplotsEl,
   timeseries: timeseriesEl,
-  books: booksEl
+  books: booksEl,
 };
-const createPiles = async example => {
+const createPiles = async (example) => {
   let element;
   let createPiling;
   let additionalOptions;
@@ -237,16 +237,13 @@ const createPiles = async example => {
 
 const exampleEl = document.getElementById('example');
 
-exampleEl.addEventListener('change', event => {
+exampleEl.addEventListener('change', (event) => {
   urlQueryParams.set('example', event.target.value);
   window.location.search = urlQueryParams.toString();
 });
 
 let example = urlQueryParams.get('example')
-  ? urlQueryParams
-      .get('example')
-      .split(' ')[0]
-      .toLowerCase()
+  ? urlQueryParams.get('example').split(' ')[0].toLowerCase()
   : null;
 
 switch (example) {
@@ -292,7 +289,7 @@ switch (example) {
 let isOptionsOpen = false;
 let bodyClasses = document.body.className;
 
-const handleOptionsTogglerClick = event => {
+const handleOptionsTogglerClick = (event) => {
   event.preventDefault();
 
   if (sessionStorage.getItem('pilingjs-options') === null) {
@@ -318,15 +315,15 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
 
   const excludedProps = ['src', 'id'];
   const numericalProps = Object.keys(firstItem).filter(
-    prop =>
+    (prop) =>
       excludedProps.indexOf(prop) === -1 && !Number.isNaN(+firstItem[prop])
   );
   const categoricalProps = Object.keys(firstItem).filter(
-    prop =>
+    (prop) =>
       excludedProps.indexOf(prop) === -1 && typeof firstItem[prop] === 'string'
   );
   const spatialProps = Object.keys(firstItem).filter(
-    prop =>
+    (prop) =>
       excludedProps.indexOf(prop) === -1 &&
       Array.isArray(firstItem[prop]) &&
       firstItem[prop].length === 2
@@ -344,7 +341,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
     groupByGridCtx.clearRect(0, 0, groupByGridCtx.width, groupByGridCtx.height);
   };
 
-  const drawgroupByGrid = columns => {
+  const drawgroupByGrid = (columns) => {
     groupByGrid.style.zIndex = 1;
     const { width, height } = groupByGridCanvas.getBoundingClientRect();
     const res = window.devicePixelRatio;
@@ -356,7 +353,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
       columnWidth,
       numColumns,
       numRows,
-      rowHeight
+      rowHeight,
     } = pilingLib.get('layout');
 
     if (columns) {
@@ -429,7 +426,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           min: 4,
           max: 320,
           numSteps: 79,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Item offset',
@@ -442,27 +439,27 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               name: 'x',
               dtype: 'float',
               defaultValue: pileItemOffsetX,
-              setter: x => {
+              setter: (x) => {
                 pileItemOffsetX = x;
                 piling.set('pileItemOffset', [
                   pileItemOffsetX,
-                  pileItemOffsetY
+                  pileItemOffsetY,
                 ]);
-              }
+              },
             },
             {
               name: 'y',
               dtype: 'float',
               defaultValue: pileItemOffsetY,
-              setter: y => {
+              setter: (y) => {
                 pileItemOffsetY = y;
                 piling.set('pileItemOffset', [
                   pileItemOffsetX,
-                  pileItemOffsetY
+                  pileItemOffsetY,
                 ]);
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         // Can't be adjusted dynamically at the moment
         // {
@@ -482,7 +479,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
-          max: 10
+          max: 10,
         },
         {
           name: 'Preview offset',
@@ -493,9 +490,9 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '5rem',
           dtype: 'int',
           min: 0,
-          max: 10
-        }
-      ]
+          max: 10,
+        },
+      ],
     },
     {
       id: 'layout',
@@ -509,7 +506,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           min: 16,
           max: 320,
           numSteps: 38,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Cell padding',
@@ -518,7 +515,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 0,
           max: 64,
-          numSteps: 32
+          numSteps: 32,
         },
         {
           name: 'Columns',
@@ -528,7 +525,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           min: 2,
           max: 80,
           numSteps: 39,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Row height',
@@ -538,23 +535,29 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           min: 16,
           max: 320,
           numSteps: 38,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Cell aspect ratio',
           propName: 'cellAspectRatio',
           labelMinWidth: '6.25rem',
           dtype: 'float',
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Cell alignment',
           propName: 'pileCellAlignment',
           labelMinWidth: '6.25rem',
           dtype: 'string',
-          values: ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center']
-        }
-      ]
+          values: [
+            'topLeft',
+            'topRight',
+            'bottomLeft',
+            'bottomRight',
+            'center',
+          ],
+        },
+      ],
     },
     {
       id: 'arrangement',
@@ -564,16 +567,16 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           name: 'Pile properties',
           dtype: 'string',
           values: numericalProps,
-          setter: values => {
+          setter: (values) => {
             arrangementObjective = values;
             return values && values.length
               ? pilingLib.arrangeBy('data', values, {
-                  onGrouping: arrangeOnGrouping
+                  onGrouping: arrangeOnGrouping,
                 })
               : pilingLib.arrangeBy();
           },
           multiple: true,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'arrangeBy',
@@ -581,7 +584,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           width: '4rem',
           action: () => {
             pilingLib.arrangeBy(arrangeByType, arrangeByProp, {
-              onGrouping: arrangeOnGrouping
+              onGrouping: arrangeOnGrouping,
             });
           },
           subInputs: [
@@ -589,41 +592,41 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               dtype: 'string',
               values: ['uv', 'ij', 'xy', 'custom'],
               defaultValue: arrangeByType,
-              setter: type => {
+              setter: (type) => {
                 arrangeByType = type;
-              }
+              },
             },
             {
               dtype: 'string',
               values: spatialProps,
               defaultValue: arrangeByProp,
-              setter: prop => {
+              setter: (prop) => {
                 arrangeByProp = prop;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Update arrangement on grouping',
           labelMinWidth: '5rem',
           dtype: 'boolean',
           nullifiable: true,
-          setter: isChecked => {
+          setter: (isChecked) => {
             arrangeOnGrouping = isChecked;
             return arrangementObjective && arrangementObjective.length
               ? pilingLib.arrangeBy('data', arrangementObjective, {
-                  onGrouping: arrangeOnGrouping
+                  onGrouping: arrangeOnGrouping,
                 })
               : pilingLib.arrangeBy();
-          }
+          },
         },
         {
           name: 'Navigation mode',
           propName: 'navigationMode',
           dtype: 'string',
-          values: ['auto', 'panZoom', 'scroll']
-        }
-      ]
+          values: ['auto', 'panZoom', 'scroll'],
+        },
+      ],
     },
     {
       id: 'grouping',
@@ -640,11 +643,11 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               dtype: 'string',
               values: ['left', 'center', 'right'],
               defaultValue: groupByRow,
-              setter: direction => {
+              setter: (direction) => {
                 groupByRow = direction;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Column',
@@ -657,11 +660,11 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               dtype: 'string',
               values: ['top', 'center', 'bottom'],
               defaultValue: groupByColumn,
-              setter: direction => {
+              setter: (direction) => {
                 groupByColumn = direction;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Grid',
@@ -697,7 +700,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               min: 1,
               max: 20,
               onInput: true,
-              setter: columns => {
+              setter: (columns) => {
                 groupByGridColumns = columns;
                 if (groupByGridActive && columns !== null) {
                   drawgroupByGrid(columns);
@@ -724,9 +727,9 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
                 groupByGridActive = false;
                 cleargroupByGrid();
                 groupByGrid.style.zIndex = -1;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Overlap',
@@ -741,11 +744,11 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               max: 256,
               defaultValue: 1,
               onInput: true,
-              setter: sqPx => {
+              setter: (sqPx) => {
                 groupByOverlapSqPx = sqPx;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Distance',
@@ -760,11 +763,11 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               max: 256,
               defaultValue: 1,
               onInput: true,
-              setter: px => {
+              setter: (px) => {
                 groupByDistancePx = px;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Category',
@@ -776,31 +779,31 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               name: 'Group',
               action: () => {
                 pilingLib.groupBy('category', groupByCategory);
-              }
+              },
             },
             {
               name: 'Split',
               action: () => {
                 pilingLib.splitBy('category', groupByCategory);
-              }
+              },
             },
             {
               dtype: 'string',
               values: categoricalProps,
               defaultValue: groupByCategory,
-              setter: category => {
+              setter: (category) => {
                 groupByCategory = category;
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
           name: 'Split All',
           action: () => {
             pilingLib.splitAll();
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       id: 'label',
@@ -814,7 +817,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: categoricalProps,
           multiple: true,
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Show text label',
@@ -822,7 +825,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           hide: categoricalProps.length === 0 || pileLabelTextDisable,
           labelMinWidth: '4rem',
           dtype: 'boolean',
-          nullifiable: true
+          nullifiable: true,
         },
         {
           name: 'Alignment',
@@ -832,7 +835,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['top', 'bottom'],
           dropDown: true,
-          defaultValue: piling.get('pileLabelAlign')
+          defaultValue: piling.get('pileLabelAlign'),
         },
         {
           name: 'Stack direction',
@@ -842,7 +845,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'string',
           values: ['horizontal', 'vertical'],
           dropDown: true,
-          defaultValue: piling.get('pileLabelStackAlign')
+          defaultValue: piling.get('pileLabelStackAlign'),
         },
         {
           name: 'Font size',
@@ -851,7 +854,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           labelMinWidth: '6rem',
           dtype: 'int',
           min: 0,
-          max: 16
+          max: 16,
         },
         {
           name: 'Height',
@@ -863,14 +866,14 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           dtype: 'int',
           min: 0.1,
           max: 16,
-          numSteps: 159
+          numSteps: 159,
         },
         {
           name: 'Show size badge',
           propName: 'pileSizeBadge',
           hide: isFunction(piling.get('pileSizeBadge')),
           labelMinWidth: '6rem',
-          dtype: 'boolean'
+          dtype: 'boolean',
         },
         {
           name: 'Size badge align',
@@ -882,44 +885,44 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
               dtype: 'string',
               values: ['top', 'center', 'bottom'],
               defaultValue: pileSizeBadgeAlignY,
-              setter: yAlign => {
+              setter: (yAlign) => {
                 pileSizeBadgeAlignY = yAlign;
                 piling.set('pileSizeBadgeAlign', [
                   pileSizeBadgeAlignY,
-                  pileSizeBadgeAlignX
+                  pileSizeBadgeAlignX,
                 ]);
-              }
+              },
             },
             {
               dtype: 'string',
               values: ['left', 'center', 'right'],
               defaultValue: pileSizeBadgeAlignX,
-              setter: xAlign => {
+              setter: (xAlign) => {
                 pileSizeBadgeAlignX = xAlign;
                 piling.set('pileSizeBadgeAlign', [
                   pileSizeBadgeAlignY,
-                  pileSizeBadgeAlignX
+                  pileSizeBadgeAlignX,
                 ]);
-              }
-            }
-          ]
-        }
-      ]
-    }
+              },
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   const dtypeToInputType = {
     boolean: 'checkbox',
     int: 'number',
     float: 'number',
-    string: 'text'
+    string: 'text',
   };
 
   const parseDtype = {
-    boolean: v => !!v,
-    int: v => +v,
-    float: v => +v,
-    string: v => v
+    boolean: (v) => !!v,
+    int: (v) => +v,
+    float: (v) => +v,
+    string: (v) => v,
   };
 
   const createInput = (field, isSub = false) => {
@@ -942,7 +945,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
         checkboxes.className =
           field.values.length > 5 ? 'checkboxes scrollbar' : 'checkboxes';
 
-        field.values.forEach(value => {
+        field.values.forEach((value) => {
           const checkboxLabel = document.createElement('label');
           checkboxLabel.className = 'checkbox';
           checkboxes.appendChild(checkboxLabel);
@@ -962,14 +965,14 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
           get: () =>
             Array.from(
               checkboxes.querySelectorAll('input:checked'),
-              e => e.value
-            )
+              (e) => e.value
+            ),
         });
 
         checkboxes.addEventListener = (type, callback) => {
           Array.prototype.forEach.call(
             checkboxes.querySelectorAll('input'),
-            checkbox => {
+            (checkbox) => {
               checkbox.addEventListener(type, callback);
             }
           );
@@ -996,13 +999,13 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
             get: () => {
               return Array.from(
                 select.querySelectorAll('option:checked'),
-                e => e.value
+                (e) => e.value
               );
-            }
+            },
           });
         } else {
           Object.defineProperty(select, 'value', {
-            get: () => select.options[select.selectedIndex].value
+            get: () => select.options[select.selectedIndex].value,
           });
         }
 
@@ -1011,7 +1014,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
 
       const radios = document.createElement('div');
 
-      field.values.forEach(value => {
+      field.values.forEach((value) => {
         const radioLabel = document.createElement('label');
         radioLabel.className = 'radio';
         radios.appendChild(radioLabel);
@@ -1030,13 +1033,13 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
       });
 
       Object.defineProperty(radios, 'value', {
-        get: () => radios.querySelector('input:checked').value
+        get: () => radios.querySelector('input:checked').value,
       });
 
       radios.addEventListener = (type, callback) => {
         Array.prototype.forEach.call(
           radios.querySelectorAll('input'),
-          radio => {
+          (radio) => {
             radio.addEventListener(type, callback);
           }
         );
@@ -1092,7 +1095,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
         ) {
           isSet.checked = true;
         }
-        isSet.addEventListener('change', event => {
+        isSet.addEventListener('change', (event) => {
           if (event.target.checked) {
             const value = field.dtype && parseDtype[field.dtype](input.value);
 
@@ -1136,7 +1139,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
     if (field.onInput) eventType = 'input';
     if (field.action) eventType = 'click';
 
-    input.addEventListener(eventType, event => {
+    input.addEventListener(eventType, (event) => {
       let value = event.target.value;
 
       if (field.values && field.multiple) {
@@ -1186,9 +1189,9 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
   };
 
   const optionsContent = document.querySelector('#options .content');
-  options.forEach(section => {
+  options.forEach((section) => {
     const validFields = section.fields.filter(
-      field => typeof field.values === 'undefined' || field.values.length
+      (field) => typeof field.values === 'undefined' || field.values.length
     );
 
     if (!validFields.length) return;
@@ -1206,8 +1209,8 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
     sectionEl.appendChild(fields);
 
     validFields
-      .filter(field => !field.hide)
-      .forEach(field => {
+      .filter((field) => !field.hide)
+      .forEach((field) => {
         const label = document.createElement('div');
         label.className = 'label-wrapper';
         const labelTitle = document.createElement('div');
@@ -1242,14 +1245,14 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
 
         const input = createInput(field);
         const subInputs = field.subInputs
-          ? field.subInputs.map(subInput => createInput(subInput, true))
+          ? field.subInputs.map((subInput) => createInput(subInput, true))
           : [];
 
         let newElements;
 
         if (field.dtype !== null) {
           newElements = addListeners(input, field, valueEl);
-          newElements.forEach(el => inputs.appendChild(el));
+          newElements.forEach((el) => inputs.appendChild(el));
           inputs.appendChild(input);
           if (field.dtype === 'int' && (field.min || field.max)) {
             inputs.appendChild(valueEl);
@@ -1263,7 +1266,7 @@ createPiles(example).then(([pilingLib, additionalOptions = []]) => {
         subInputs.forEach((subInput, i) => {
           const subInputField = field.subInputs[i];
           newElements = addListeners(subInput, subInputField, valueEl, true);
-          newElements.forEach(el => inputs.appendChild(el));
+          newElements.forEach((el) => inputs.appendChild(el));
           inputs.appendChild(subInput);
           if (
             subInputField.dtype === 'int' &&

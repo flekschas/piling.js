@@ -52,14 +52,14 @@ const STATE = new PIXI.State();
 const createRoundedRectangleFactory = ({
   color = COLOR,
   rounding = ROUNDING,
-  size = 1
+  size = 1,
 } = {}) => {
   let uniforms = {
     uColor: color,
     uRounding: rounding,
     uRectPos: RECT_POS,
     uRectSize: RECT_SIZE,
-    uSize: size
+    uSize: size,
   };
 
   const uniformGroup = new PIXI.UniformGroup(uniforms);
@@ -74,7 +74,7 @@ const createRoundedRectangleFactory = ({
 
   const mesh = create();
 
-  const setColor = newColor => {
+  const setColor = (newColor) => {
     uniforms.uColor = newColor;
   };
 
@@ -83,7 +83,7 @@ const createRoundedRectangleFactory = ({
     uniforms = {};
   };
 
-  const setSize = newSize => {
+  const setSize = (newSize) => {
     uniforms.uSize = newSize * window.devicePixelRatio;
   };
 
@@ -91,7 +91,7 @@ const createRoundedRectangleFactory = ({
     create,
     destroy,
     setColor,
-    setSize
+    setSize,
   });
 };
 

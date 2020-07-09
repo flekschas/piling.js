@@ -22,7 +22,7 @@ const createTweener = ({
   endValue: initialEndValue,
   getter,
   setter,
-  onDone = toVoid
+  onDone = toVoid,
 } = {}) => {
   let startValue;
   let startTime;
@@ -66,12 +66,12 @@ const createTweener = ({
     return false;
   };
 
-  const setEasing = newEasing => {
+  const setEasing = (newEasing) => {
     // eslint-disable-next-line no-param-reassign
     easing = newEasing;
   };
 
-  const updateEndValue = newEndValue => {
+  const updateEndValue = (newEndValue) => {
     endValue = newEndValue;
   };
 
@@ -86,7 +86,7 @@ const createTweener = ({
     register,
     update,
     updateEndValue,
-    setEasing
+    setEasing,
   };
 };
 

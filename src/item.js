@@ -4,7 +4,7 @@ import {
   withConstructor,
   withProperty,
   withReadOnlyProperty,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 
 /**
@@ -17,12 +17,12 @@ const createItem = (
   { id, image },
   { preview = null, originalPosition = [0, 0] } = {}
 ) => {
-  const withDestroy = () => self =>
+  const withDestroy = () => (self) =>
     assign(self, {
       destroy() {
         if (image) image.destroy();
         if (preview) preview.destroy();
-      }
+      },
     });
 
   const replaceImage = (newImage, newPreview = null) => {
@@ -39,9 +39,9 @@ const createItem = (
     preview = newPreview;
   };
 
-  const withPublicMethods = () => self =>
+  const withPublicMethods = () => (self) =>
     assign(self, {
-      replaceImage
+      replaceImage,
     });
 
   return pipe(
@@ -50,7 +50,7 @@ const createItem = (
     withReadOnlyProperty('preview', () => preview),
     withProperty('originalPosition', {
       initialValue: originalPosition,
-      cloner: v => [...v]
+      cloner: (v) => [...v],
     }),
     withDestroy(),
     withPublicMethods(),

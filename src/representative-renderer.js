@@ -8,7 +8,7 @@ import { toDisplayObject } from './utils';
  * @return {array} Quintuple of number of number of images, rows,
  *   number of columns, aspectRatio, scaling
  */
-const getRegularGrid = n => {
+const getRegularGrid = (n) => {
   switch (n) {
     case 1:
       return [1, 1, 1, 1, 1];
@@ -43,7 +43,7 @@ const renderRepresentative = async (
     innerPadding = 2,
     outerPadding = 2,
     backgroundColor = 0x000000,
-    maxNumberOfRepresentatives = 9
+    maxNumberOfRepresentatives = 9,
   } = {}
 ) => {
   const n = Math.min(maxNumberOfRepresentatives, srcs.length);
@@ -59,7 +59,7 @@ const renderRepresentative = async (
 
   let maxSize = -Infinity;
 
-  renderedItems.forEach(renderedItem => {
+  renderedItems.forEach((renderedItem) => {
     maxSize = Math.max(maxSize, renderedItem.width, renderedItem.height);
   });
 
@@ -136,12 +136,12 @@ const renderRepresentative = async (
 };
 
 const createRepresentativeRenderer = (itemRenderer, options) => {
-  const renderer = sources =>
+  const renderer = (sources) =>
     Promise.all(
-      sources.map(srcs => renderRepresentative(srcs, itemRenderer, options))
+      sources.map((srcs) => renderRepresentative(srcs, itemRenderer, options))
     );
 
-  renderer.scaler = pile => getRegularGrid(pile.items.length)[4];
+  renderer.scaler = (pile) => getRegularGrid(pile.items.length)[4];
 
   return renderer;
 };

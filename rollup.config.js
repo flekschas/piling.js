@@ -17,8 +17,8 @@ const bundleConfig = (file, plugins = [], format = 'umd') => ({
     intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI',
-      'umap-js': 'UMAP'
-    }
+      'umap-js': 'UMAP',
+    },
   },
   plugins: [
     json(),
@@ -27,16 +27,16 @@ const bundleConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     string({
-      include: '**/skmeans.min'
+      include: '**/skmeans.min',
     }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: ['pixi.js', 'regl', 'umap-js']
+  external: ['pixi.js', 'regl', 'umap-js'],
 });
 
 const bundleDev = bundleConfig('dist/piling.js', [filesize()]);
@@ -51,8 +51,8 @@ const libConfig = (file, plugins = [], format = 'umd') => ({
     file,
     intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
-      'pixi.js': 'PIXI'
-    }
+      'pixi.js': 'PIXI',
+    },
   },
   plugins: [
     json(),
@@ -60,14 +60,14 @@ const libConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: ['pixi.js']
+  external: ['pixi.js'],
 });
 
 const libEsm = libConfig('dist/piling-library.esm.js', [filesize()], 'es');
@@ -80,8 +80,8 @@ const rndConfig = (file, plugins = [], format = 'umd') => ({
     file,
     intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
-      'pixi.js': 'PIXI'
-    }
+      'pixi.js': 'PIXI',
+    },
   },
   plugins: [
     json(),
@@ -89,14 +89,14 @@ const rndConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: ['pixi.js', 'regl']
+  external: ['pixi.js', 'regl'],
 });
 
 const rndEsm = rndConfig('dist/piling-renderer.esm.js', [filesize()], 'es');
@@ -108,7 +108,7 @@ const agrConfig = (file, plugins = [], format = 'umd') => ({
     format,
     file,
     intro: 'var process = { env: { NODE_ENV: "production" } };',
-    globals: {}
+    globals: {},
   },
   plugins: [
     json(),
@@ -116,14 +116,14 @@ const agrConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: []
+  external: [],
 });
 
 const agrEsm = agrConfig('dist/piling-aggregator.esm.js', [filesize()], 'es');
@@ -135,7 +135,7 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
     format,
     file,
     intro: 'var process = { env: { NODE_ENV: "production" } };',
-    globals: {}
+    globals: {},
   },
   plugins: [
     json(),
@@ -143,17 +143,17 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     string({
-      include: '**/skmeans.min'
+      include: '**/skmeans.min',
     }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: []
+  external: [],
 });
 
 const clstEsm = clstConfig('dist/piling-clusterer.esm.js', [filesize()], 'es');
@@ -165,7 +165,7 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
     format,
     file,
     intro: 'var process = { env: { NODE_ENV: "production" } };',
-    globals: {}
+    globals: {},
   },
   plugins: [
     json(),
@@ -173,17 +173,17 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
       browser: true,
       dedupe: ['gl-matrix'],
       mainFields: ['module', 'main'],
-      preferBuiltins: false
+      preferBuiltins: false,
     }),
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     string({
-      include: '**umap-js.min'
+      include: '**umap-js.min',
     }),
     nodePolyfills(),
-    ...plugins
+    ...plugins,
   ],
-  external: []
+  external: [],
 });
 
 const dimRedEsm = dimRedConfig(
@@ -200,5 +200,5 @@ export default [
   rndEsm,
   agrEsm,
   clstEsm,
-  dimRedEsm
+  dimRedEsm,
 ];

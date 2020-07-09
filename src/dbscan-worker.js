@@ -2,11 +2,11 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  const error = message => ({ error: new Error(message) });
+  const error = (message) => ({ error: new Error(message) });
 
-  const identity = x => x;
+  const identity = (x) => x;
 
-  const l2DistDim = dim => {
+  const l2DistDim = (dim) => {
     const body = Array(dim)
       .fill()
       .map((_, i) => `s += (v[${i}] - w[${i}]) ** 2;`)
@@ -17,7 +17,7 @@ const worker = function worker() {
 
   // From dbscanjs
   const rangeQuery = (points, q, dist, eps) =>
-    points.filter(p => dist(p.datum, q.datum) <= eps);
+    points.filter((p) => dist(p.datum, q.datum) <= eps);
 
   const dbscan = (data, dist, eps, minPts) => {
     let cluster = 0;
@@ -27,10 +27,10 @@ const worker = function worker() {
     const points = data.map((datum, idx) => ({
       idx,
       datum,
-      label: -1
+      label: -1,
     }));
 
-    points.forEach(point => {
+    points.forEach((point) => {
       // Only process unlabelled points
       if (point.label !== -1) return;
 
@@ -47,7 +47,7 @@ const worker = function worker() {
       point.label = cluster; // Label initial point
 
       // Remove point p from n
-      seeds = neighbors.filter(neighbor => neighbor.idx !== point.idx);
+      seeds = neighbors.filter((neighbor) => neighbor.idx !== point.idx);
 
       // Process every seed point
       while (seeds.length) {
@@ -66,7 +66,7 @@ const worker = function worker() {
       }
     });
 
-    return points.map(p => p.label - 1);
+    return points.map((p) => p.label - 1);
   };
 
   self.onmessage = function onmessage(event) {
@@ -74,7 +74,7 @@ const worker = function worker() {
 
     // Import the skmeans
     try {
-      scripts.forEach(scriptUrl => {
+      scripts.forEach((scriptUrl) => {
         importScripts(scriptUrl);
       });
     } catch (err) {
@@ -100,7 +100,7 @@ const worker = function worker() {
           (_extrema, v) =>
             v.map((x, i) => [
               Math.min(x, _extrema[i][0]),
-              Math.max(x, _extrema[i][1])
+              Math.max(x, _extrema[i][1]),
             ]),
           Array(data.length)
             .fill()
@@ -125,7 +125,7 @@ const worker = function worker() {
 
       self.postMessage({
         labels,
-        postProcessing
+        postProcessing,
       });
 
       self.postMessage({ labels });

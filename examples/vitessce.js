@@ -4,7 +4,7 @@ import createPilingJs from '../src/library';
 import { createRepresentativeAggregator } from '../src/aggregator';
 import {
   createMatrixRenderer,
-  createRepresentativeRenderer
+  createRepresentativeRenderer,
 } from '../src/renderer';
 import createVitessceRenderer from './vitessce-renderer';
 import { createUmap } from '../src/dimensionality-reducer';
@@ -43,8 +43,8 @@ const createPiling = async (element, darkMode) => {
         data: data[id],
         factors: {
           cluster,
-          subcluster
-        }
+          subcluster,
+        },
       };
     }
 
@@ -57,9 +57,9 @@ const createPiling = async (element, darkMode) => {
   Object.entries(data).forEach(([id, cell]) => {
     if (!cellsByFactor.Sample) cellsByFactor.Sample = {};
 
-    cell.data = cell.data.map(d => ({
+    cell.data = cell.data.map((d) => ({
       ...d,
-      values: new Float32Array(d.values)
+      values: new Float32Array(d.values),
     }));
 
     cellsByFactor.Sample[id] = cell;
@@ -77,8 +77,8 @@ const createPiling = async (element, darkMode) => {
       ...rgbStr
         .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
         .slice(1, 4)
-        .map(x => parseInt(x, 10) / 256),
-      alpha
+        .map((x) => parseInt(x, 10) / 256),
+      alpha,
     ];
   };
 
@@ -89,17 +89,17 @@ const createPiling = async (element, darkMode) => {
         rgbStr2rgba(interpolateGreys(Math.abs((numColors - i) / numColors)))
       );
 
-  const getData = async source => data[source.id].data;
+  const getData = async (source) => data[source.id].data;
 
   let numGenes = 0;
-  const createItems = factor =>
+  const createItems = (factor) =>
     Object.entries(cellsByFactor[factor]).map(([id, cell]) => {
       const item = {
         id,
         embeddingTsne: cell.mappings['t-SNE'],
         embeddingPca: cell.mappings.PCA,
         cellType: cell.factors.cluster,
-        cellSubType: cell.factors.subcluster
+        cellSubType: cell.factors.subcluster,
       };
 
       const genes = [];
@@ -111,7 +111,7 @@ const createPiling = async (element, darkMode) => {
       numGenes = genes.length;
 
       item.src = {
-        id
+        id,
       };
       item.genes = genes;
 
@@ -122,13 +122,13 @@ const createPiling = async (element, darkMode) => {
 
   const colors = {
     polyT: [0, 255, 0],
-    nuclei: [0, 0, 255]
+    nuclei: [0, 0, 255],
   };
 
   const vitessceRenderer = createVitessceRenderer(getData, {
     darkMode: true,
     colors: Object.values(colors),
-    domains: null // Auto-scale channels
+    domains: null, // Auto-scale channels
   });
 
   const umap = createUmap();
@@ -143,10 +143,10 @@ const createPiling = async (element, darkMode) => {
           const pixels = piling.renderer.extract.pixels(gfx);
           return pixels;
         },
-        propertyIsVector: true
+        propertyIsVector: true,
       },
       {
-        forceDimReduction: true
+        forceDimReduction: true,
       }
     );
   };
@@ -157,20 +157,20 @@ const createPiling = async (element, darkMode) => {
   );
 
   const representativeAggregator = createRepresentativeAggregator(9, {
-    valueGetter: item => Object.values(item.genes)
+    valueGetter: (item) => Object.values(item.genes),
   });
 
-  const previewAggregator = _items =>
+  const previewAggregator = (_items) =>
     Promise.resolve(
-      _items.map(i => {
+      _items.map((i) => {
         const m = Math.max(...i.genes);
-        return { shape: [1, numGenes], data: i.genes.map(x => x / m) };
+        return { shape: [1, numGenes], data: i.genes.map((x) => x / m) };
       })
     );
 
   const previewRenderer = createMatrixRenderer({
     colorMap: createColorMap(256),
-    shape: [1, numGenes]
+    shape: [1, numGenes],
   });
 
   const piling = createPilingJs(element, {
@@ -195,8 +195,8 @@ const createPiling = async (element, darkMode) => {
       {
         id: 'umapify',
         label: 'UMAPify',
-        callback: umapHandler
-      }
+        callback: umapHandler,
+      },
     ],
     // previewScaling: pile => [
     //   1,
@@ -206,7 +206,7 @@ const createPiling = async (element, darkMode) => {
     previewOffset: 2,
     previewPadding: 0.5,
     previewSpacing: 0,
-    previewScaleToCover: [true, false]
+    previewScaleToCover: [true, false],
   });
 
   const additionalSidebarOptions = [
@@ -248,10 +248,10 @@ const createPiling = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: rgb2hsv(colors.polyT)[0],
           onInput: true,
-          setter: hue => {
+          setter: (hue) => {
             vitessceRenderer.setColor(0, hue);
             piling.render();
-          }
+          },
         },
         {
           name: 'Nuclei',
@@ -263,12 +263,12 @@ const createPiling = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: rgb2hsv(colors.nuclei)[0],
           onInput: true,
-          setter: hue => {
+          setter: (hue) => {
             vitessceRenderer.setColor(1, hue);
             piling.render();
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       title: 'Custom Arrange By',
@@ -276,14 +276,14 @@ const createPiling = async (element, darkMode) => {
         {
           name: 'Normalized t-SNE',
           action: () => {
-            piling.arrangeBy('uv', pile => [
+            piling.arrangeBy('uv', (pile) => [
               tsneXScale(items[pile.index].embeddingTsne[0]),
-              tsneYScale(items[pile.index].embeddingTsne[1])
+              tsneYScale(items[pile.index].embeddingTsne[1]),
             ]);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
   // piling.subscribe(

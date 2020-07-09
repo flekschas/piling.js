@@ -21,7 +21,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     ? d3.interpolateRgbBasis(['#444', 'firebrick', 'orange', 'white'])
     : d3.interpolateRgbBasis(['lightgray', 'orange', 'black']);
 
-  const drawPileConnections = prop => {
+  const drawPileConnections = (prop) => {
     d3.select('#connection').remove();
 
     const svg = d3
@@ -38,8 +38,8 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
     const line = d3
       .line()
-      .x(d => d[prop][0] * width)
-      .y(d => d[prop][1] * height);
+      .x((d) => d[prop][0] * width)
+      .y((d) => d[prop][1] * height);
 
     const g = svg.append('g');
 
@@ -77,22 +77,22 @@ const createTimeSeriesPiles = async (element, darkMode) => {
             'tsne_gray',
             'tsne_hsl',
             'mds_gray',
-            'mds_hsl'
+            'mds_hsl',
           ],
-          setter: values => {
-            piling.arrangeBy('uv', pile => data[pile.items[0]][values], {
-              onPile: true
+          setter: (values) => {
+            piling.arrangeBy('uv', (pile) => data[pile.items[0]][values], {
+              onPile: true,
             });
             lineGroup = drawPileConnections(values);
             embedding = values;
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
-  const getMedianItemId = items => {
-    const sortedItemIds = items.map(itemId => +itemId).sort();
+  const getMedianItemId = (items) => {
+    const sortedItemIds = items.map((itemId) => +itemId).sort();
     return sortedItemIds[Math.floor(sortedItemIds.length / 2)];
   };
 
@@ -106,34 +106,38 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     // Global properties
     darkMode,
     itemSize: 96,
-    zoomScale: cameraScale =>
+    zoomScale: (cameraScale) =>
       cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2,
 
     // Pile-specific properties
     pileBackgroundColor: 'rgba(0, 0, 0, 1)',
-    pileBorderColor: pile => colorMap(getMedianItemId(pile.items) / n),
-    pileBorderSize: pile => 1 + Math.log(pile.items.length),
+    pileBorderColor: (pile) => colorMap(getMedianItemId(pile.items) / n),
+    pileBorderSize: (pile) => 1 + Math.log(pile.items.length),
 
     // Item-specific properties
     pileItemOffset: (item, i, pile) => [
       isLast(i, pile.items) * (Math.random() * 24 - 12),
-      isLast(i, pile.items) * (Math.random() * 24 - 12)
+      isLast(i, pile.items) * (Math.random() * 24 - 12),
     ],
     pileItemRotation: (item, i, pile) =>
-      isLast(i, pile.items) * (Math.random() * 24 - 12)
+      isLast(i, pile.items) * (Math.random() * 24 - 12),
   };
 
   const piling = createPilingJs(element, viewSpecification);
 
-  piling.arrangeBy('uv', pile => data[getMedianItemId(pile.items)].umap_gray, {
-    onPile: true
-  });
+  piling.arrangeBy(
+    'uv',
+    (pile) => data[getMedianItemId(pile.items)].umap_gray,
+    {
+      onPile: true,
+    }
+  );
 
   let transformData = [];
 
   let lineGroup = drawPileConnections('umap_gray');
 
-  piling.subscribe('zoom', camera => {
+  piling.subscribe('zoom', (camera) => {
     transformData = [];
     lineGroup.attr(
       'transform',
@@ -142,7 +146,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
     transformData.push(...camera.translation, camera.scaling);
   });
 
-  piling.subscribe('resize', size => {
+  piling.subscribe('resize', (size) => {
     width = size.width;
     height = size.height;
     lineGroup = drawPileConnections(embedding);

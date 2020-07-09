@@ -3,7 +3,7 @@ import {
   capitalize,
   interpolateNumber,
   pipe,
-  withProperty
+  withProperty,
 } from '@flekschas/utils';
 
 import createTweener from './tweener';
@@ -11,16 +11,16 @@ import createTweener from './tweener';
 const addAnimation = (
   { name, pubSub },
   { duration, delay, eps = 1e-6 } = {}
-) => self => {
+) => (self) => {
   const getter = () => self[name];
-  const setter = value => {
+  const setter = (value) => {
     self[`set${capitalize(name)}`](value);
   };
 
   let tweener;
 
   return assign(self, {
-    [`animate${capitalize(name)}`]: newValue => {
+    [`animate${capitalize(name)}`]: (newValue) => {
       const d = Math.abs(newValue - getter());
 
       if (d < eps) {
@@ -41,10 +41,10 @@ const addAnimation = (
         interpolator: interpolateNumber,
         endValue: newValue,
         getter,
-        setter
+        setter,
       });
       pubSub.publish('startAnimation', tweener);
-    }
+    },
   });
 };
 
@@ -58,9 +58,9 @@ const withAnimatedProperty = (
     transformer,
     validator,
     duration,
-    delay
+    delay,
   } = {}
-) => self =>
+) => (self) =>
   pipe(
     withProperty(name, {
       initialValue,
@@ -68,7 +68,7 @@ const withAnimatedProperty = (
       setter,
       cloner,
       transformer,
-      validator
+      validator,
     }),
     addAnimation({ name, pubSub }, { duration, delay })
   )(self);

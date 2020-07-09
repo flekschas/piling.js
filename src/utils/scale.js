@@ -1,4 +1,4 @@
-const createScale = (transformer = x => x) => {
+const createScale = (transformer = (x) => x) => {
   let domainMin = 1;
   let domainMinTransformed = Math.log10(domainMin);
   let domainMax = 10;
@@ -9,7 +9,7 @@ const createScale = (transformer = x => x) => {
   let rangeMax = 1;
   let rangeSize = 1;
 
-  const scale = value =>
+  const scale = (value) =>
     Math.min(
       rangeMax,
       Math.max(

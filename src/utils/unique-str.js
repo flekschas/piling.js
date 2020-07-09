@@ -1,5 +1,5 @@
 import { unique } from '@flekschas/utils';
 
-const uniqueStr = v => unique(v).join('-');
+const uniqueStr = (v) => unique(v).join('-');
 
 export default uniqueStr;

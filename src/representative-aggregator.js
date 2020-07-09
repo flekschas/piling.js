@@ -6,11 +6,11 @@ const createRepresentativeAggregator = (
     distanceFunction = null,
     initialization = 'kmpp',
     maxIterations = null,
-    valueGetter = null
+    valueGetter = null,
   } = {}
 ) => {
   const postProcessing = (results, data) => {
-    const l2DistDim = dim => {
+    const l2DistDim = (dim) => {
       const body = Array(dim)
         .fill()
         .map((_, i) => `s += (v[${i}] - w[${i}]) ** 2;`)
@@ -34,7 +34,7 @@ const createRepresentativeAggregator = (
     });
 
     return {
-      selectedItemIdxs
+      selectedItemIdxs,
     };
   };
 
@@ -43,15 +43,15 @@ const createRepresentativeAggregator = (
     initialization,
     maxIterations,
     valueGetter,
-    postProcessing
+    postProcessing,
   });
 
-  return items => {
-    if (items.length <= k) return Promise.resolve(items.map(i => i.src));
+  return (items) => {
+    if (items.length <= k) return Promise.resolve(items.map((i) => i.src));
 
-    return kmeans(items).then(response => {
+    return kmeans(items).then((response) => {
       return response.postProcessing.selectedItemIdxs.map(
-        itemIndex => items[itemIndex].src
+        (itemIndex) => items[itemIndex].src
       );
     });
   };

@@ -19,8 +19,8 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
   let maxX = -Infinity;
   let maxY = -Infinity;
 
-  const defineScales = embedding => {
-    embedding.forEach(point => {
+  const defineScales = (embedding) => {
+    embedding.forEach((point) => {
       minX = point[0] < minX ? point[0] : minX;
       minY = point[1] < minY ? point[1] : minY;
       maxX = point[0] > maxX ? point[0] : maxX;
@@ -38,7 +38,7 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
     return embedding;
   };
 
-  const scalePoint = pt => [xScale(pt[0]), yScale(pt[1])];
+  const scalePoint = (pt) => [xScale(pt[0]), yScale(pt[1])];
 
   const destroy = () => {
     umapWorker.terminate();
@@ -50,25 +50,25 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
     maxX = -Infinity;
     maxY = -Infinity;
 
-    return new Promise(resolve => {
-      umapWorker.onmessage = event => {
+    return new Promise((resolve) => {
+      umapWorker.onmessage = (event) => {
         resolve(defineScales(event.data));
       };
 
       umapWorker.postMessage({
         task: 'fit',
         data,
-        labels
+        labels,
       });
     });
   };
 
-  const transform = data => {
+  const transform = (data) => {
     if (!umapWorker)
       return Promise.reject(new Error('You need to fit data first!'));
 
-    return new Promise(resolve => {
-      umapWorker.onmessage = event => {
+    return new Promise((resolve) => {
+      umapWorker.onmessage = (event) => {
         resolve(event.data.map(scalePoint));
       };
 
@@ -79,7 +79,7 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
   return {
     destroy,
     fit,
-    transform
+    transform,
   };
 };
 

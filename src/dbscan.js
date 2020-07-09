@@ -9,7 +9,7 @@ const createDbscan = ({
   maxDistance = null,
   minPoints = 2,
   valueGetter = null,
-  postProcessing = null
+  postProcessing = null,
 } = {}) => {
   const scripts = [];
 
@@ -35,11 +35,11 @@ const createDbscan = ({
     );
   }
 
-  return items =>
+  return (items) =>
     new Promise((resolve, reject) => {
       const worker = createWorker(workerFn);
 
-      worker.onmessage = e => {
+      worker.onmessage = (e) => {
         if (e.data.error) reject(e.data.error);
         else resolve(e.data);
 
@@ -50,7 +50,7 @@ const createDbscan = ({
         maxDistance,
         minPoints,
         items,
-        scripts
+        scripts,
       });
     });
 };

@@ -4,7 +4,7 @@
  * @return  {array}  Quadruple of form `[xMin, yMin, xMax, yMax]` defining the
  *  bounding box
  */
-const getBBox = positions2d => {
+const getBBox = (positions2d) => {
   let xMin = Infinity;
   let xMax = -Infinity;
   let yMin = Infinity;
@@ -21,7 +21,7 @@ const getBBox = positions2d => {
     minX: xMin,
     minY: yMin,
     maxX: xMax,
-    maxY: yMax
+    maxY: yMax,
   };
 };
 

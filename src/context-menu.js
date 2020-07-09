@@ -3,7 +3,7 @@ import styleToCss from 'style-object-to-css-string';
 const STYLES_ROOT = {
   position: 'absolute',
   zIndex: 2,
-  display: 'none'
+  display: 'none',
 };
 
 const STYLES_UL = {
@@ -13,7 +13,7 @@ const STYLES_UL = {
   borderRadius: '0.25rem',
   backgroundColor: 'white',
   boxShadow:
-    '0 0 0 1px rgba(0, 0, 0, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 2px 6px 0 rgba(0, 0, 0, 0.075)'
+    '0 0 0 1px rgba(0, 0, 0, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 2px 6px 0 rgba(0, 0, 0, 0.075)',
 };
 
 const STYLES_BUTTON = {
@@ -27,29 +27,29 @@ const STYLES_BUTTON = {
   backgroundColor: 'transparent',
   cursor: 'pointer',
   outline: 'none',
-  whiteSpace: 'nowrap'
+  whiteSpace: 'nowrap',
 };
 
 const STYLES_BUTTON_HOVER = {
-  backgroundColor: '#ff7ff6'
+  backgroundColor: '#ff7ff6',
 };
 
 const STYLES_BUTTON_ACTIVE = {
-  backgroundColor: '#dd33ff'
+  backgroundColor: '#dd33ff',
 };
 
 const STYLES_BUTTON_INACTIVE = {
   cursor: 'default',
   opacity: 0.3,
-  backgroundColor: 'transparent !important'
+  backgroundColor: 'transparent !important',
 };
 
 const STYLES_FIRST_BUTTON = {
-  borderRadius: '0.25rem 0.25rem 0 0'
+  borderRadius: '0.25rem 0.25rem 0 0',
 };
 
 const STYLES_LAST_BUTTON = {
-  borderRadius: '0 0 0.25rem 0.25rem'
+  borderRadius: '0 0 0.25rem 0.25rem',
 };
 
 const STYLES = {
@@ -60,7 +60,7 @@ const STYLES = {
   'button:active': STYLES_BUTTON_ACTIVE,
   'button.inactive': STYLES_BUTTON_INACTIVE,
   'li:first-child > button': STYLES_FIRST_BUTTON,
-  'li:last-child > button': STYLES_LAST_BUTTON
+  'li:last-child > button': STYLES_LAST_BUTTON,
 };
 
 const TEMPLATE = `<ul id="piling-js-context-menu-list">
@@ -87,7 +87,7 @@ const TEMPLATE = `<ul id="piling-js-context-menu-list">
 const createContextMenu = ({
   template = TEMPLATE,
   styles = STYLES,
-  customItems = []
+  customItems = [],
 } = {}) => {
   const rootElement = document.createElement('nav');
   rootElement.id = 'piling-js-context-menu';

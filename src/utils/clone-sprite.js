@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-const cloneSprite = sprite => {
+const cloneSprite = (sprite) => {
   let clonedSprite;
   if (sprite.isSprite) {
     clonedSprite = new PIXI.Sprite(sprite.texture);

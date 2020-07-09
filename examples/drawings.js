@@ -14,7 +14,7 @@ const regionToLabel = {
   ECS: 'Europe',
   MEA: 'Middle East',
   EAS: 'East Asia',
-  NAC: 'North America'
+  NAC: 'North America',
 };
 
 const regionToColor = {
@@ -24,10 +24,10 @@ const regionToColor = {
   ECS: '#D55E00',
   MEA: '#F0E442',
   EAS: '#CC79A7',
-  NAC: '#0072B2'
+  NAC: '#0072B2',
 };
 
-const mapRegion = (mapping, unknown) => region =>
+const mapRegion = (mapping, unknown) => (region) =>
   mapping[region.toUpperCase()] || unknown;
 
 const selectedCategory = 'teapot';
@@ -39,10 +39,10 @@ const categories = [
   'power-outlet',
   'teapot',
   'smiley-face',
-  'snowman'
+  'snowman',
 ];
 
-const createItems = async category => {
+const createItems = async (category) => {
   const response = await fetch(`data/${category}.json`);
   const items = await response.json();
 
@@ -66,14 +66,14 @@ const createDrawingPiles = async (element, darkMode) => {
   );
 
   const sameRegion = (pileA, pileB) => {
-    const regionsA = unique(pileA.items.map(itemId => items[itemId].region));
-    const regionsB = unique(pileB.items.map(itemId => items[itemId].region));
+    const regionsA = unique(pileA.items.map((itemId) => items[itemId].region));
+    const regionsB = unique(pileB.items.map((itemId) => items[itemId].region));
     return regionsA.every((region, i) => region === regionsB[i]);
   };
 
   let regionHistogram = [];
 
-  const createRegionHistogram = _items => {
+  const createRegionHistogram = (_items) => {
     let total = 0;
     regionHistogram = _items.reduce((hist, item) => {
       if (!hist[item.region]) hist[item.region] = 1;
@@ -82,7 +82,7 @@ const createDrawingPiles = async (element, darkMode) => {
       return hist;
     }, {});
 
-    Object.keys(regionHistogram).forEach(region => {
+    Object.keys(regionHistogram).forEach((region) => {
       regionHistogram[region] /= total;
     });
   };
@@ -128,8 +128,8 @@ const createDrawingPiles = async (element, darkMode) => {
       ? 'rgba(0, 0, 0, 1.0)'
       : 'rgba(255, 255, 255, 1.0)',
     pileBorderOpacityHover: 0,
-    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
-    pileVisibilityItems: pile => pile.items.length === 1,
+    pileScale: (pile) => 1 + Math.min((pile.items.length - 1) * 0.05, 2),
+    pileVisibilityItems: (pile) => pile.items.length === 1,
     backgroundColor: '#ffffff',
     lassoFillColor: '#000000',
     lassoStrokeColor: '#000000',
@@ -137,7 +137,7 @@ const createDrawingPiles = async (element, darkMode) => {
     pileLabelColor: mapRegion(regionToColor, '#808080'),
     pileLabelTextColor: darkMode ? 0xffffff : 0x000000,
     pileLabelStackAlign: 'horizontal',
-    pileLabelHeight: pile => (pile.items.length > 1 ? 9 : 0.5),
+    pileLabelHeight: (pile) => (pile.items.length > 1 ? 9 : 0.5),
     pileLabelSizeTransform: (counts, labels) => {
       const totalCounts = sum(counts);
       let max = 0;
@@ -148,11 +148,11 @@ const createDrawingPiles = async (element, darkMode) => {
         max = Math.max(max, observedOverExpected);
         return observedOverExpected;
       });
-      return normValues.map(x => x / max);
+      return normValues.map((x) => x / max);
     },
     pileLabelTextMapping: mapRegion(regionToLabel, 'Unknown'),
-    zoomScale: cameraScale =>
-      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : cameraScale
+    zoomScale: (cameraScale) =>
+      cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : cameraScale,
   });
 
   // Uncomment for `node scripts/measure-***-fps`
@@ -192,11 +192,11 @@ const createDrawingPiles = async (element, darkMode) => {
           dtype: 'string',
           action: () => {
             piling.groupBy('overlap', 0, {
-              conditions: [sameRegion]
+              conditions: [sameRegion],
             });
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       id: 'drawing-category',
@@ -207,14 +207,14 @@ const createDrawingPiles = async (element, darkMode) => {
           dtype: 'string',
           defaultValue: selectedCategory,
           values: categories,
-          setter: async category => {
+          setter: async (category) => {
             items = await createItems(category);
             createRegionHistogram(items);
             piling.set('items', items);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
   return [piling, additionalSidebarOptions];

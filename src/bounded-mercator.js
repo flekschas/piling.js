@@ -36,12 +36,12 @@ const createBoundedMercator = (initWidth, initHeight) => {
   let height = initHeight;
   let xPad = (weight - height) / 2;
 
-  const toPx = lngLat => {
+  const toPx = (lngLat) => {
     const [x, y] = llToXy(lngLat[0], lngLat[1]);
     return [xToU(x) * height + xPad, xToU(-y) * height];
   };
 
-  const toLl = xy => {
+  const toLl = (xy) => {
     const u = (xy[0] - xPad) / height;
     const v = xy[1] / height;
     return xyToLl(uToX(u), -uToX(v));
@@ -56,7 +56,7 @@ const createBoundedMercator = (initWidth, initHeight) => {
   return {
     toPx,
     toLl,
-    updateBounds
+    updateBounds,
   };
 };
 

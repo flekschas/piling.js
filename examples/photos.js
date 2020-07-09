@@ -11,7 +11,7 @@ const createPhotoPiles = async (element, darkMode) => {
 
   // Extract categories
   const combinedCategories = unique(
-    data.flatMap(i => Object.keys(i.categories))
+    data.flatMap((i) => Object.keys(i.categories))
   );
 
   const catMap = combinedCategories.reduce((mm, combinedCategory) => {
@@ -21,7 +21,9 @@ const createPhotoPiles = async (element, darkMode) => {
     return mm;
   }, new Map());
 
-  const superCategories = unique(combinedCategories.map(c => c.split('/')[0]));
+  const superCategories = unique(
+    combinedCategories.map((c) => c.split('/')[0])
+  );
   const superCatMap = new Map();
   superCategories.forEach((c, i) => {
     superCatMap.set(c, i);
@@ -29,16 +31,16 @@ const createPhotoPiles = async (element, darkMode) => {
 
   let maxJ = superCatMap.size;
   const jScales = {
-    'super categories': superCategory => superCatMap.get(superCategory)
+    'super categories': (superCategory) => superCatMap.get(superCategory),
   };
   catMap.forEach((map, cat) => {
-    jScales[cat] = x => map.get(x);
+    jScales[cat] = (x) => map.get(x);
     maxJ = Math.max(maxJ, map.size);
   });
 
   // Extract annotation size
   const minMaxArea = aggregate(
-    data.map(i =>
+    data.map((i) =>
       max(
         Object.values(i.categories[`${i.mainSuperCategory}/${i.mainCategory}`])
       )
@@ -48,16 +50,12 @@ const createPhotoPiles = async (element, darkMode) => {
   );
 
   // Needed to use log scaling for `iScale`
-  const areaScale = createScale()
-    .domain(minMaxArea)
-    .range([1, 10]);
+  const areaScale = createScale().domain(minMaxArea).range([1, 10]);
 
   let xAxis = 'super categories';
   let yRange = 10;
 
-  const iScale = createScale(Math.log10)
-    .domain([1, 10])
-    .range([0, yRange]);
+  const iScale = createScale(Math.log10).domain([1, 10]).range([0, yRange]);
 
   // Uncomment for `node scripts/measure-init-time`
   // const el = document.createElement('div');
@@ -83,16 +81,16 @@ const createPhotoPiles = async (element, darkMode) => {
     // cellPadding: 1, // 5000
     pileCellAlignment: 'center',
     cellAspectRatio: 1.1,
-    pileBorderColor: pile =>
+    pileBorderColor: (pile) =>
       darkMode
         ? interpolateGreys(1 - (0.2 + (pile.items.length / 500) * 0.8))
         : interpolateGreys(0.2 + (pile.items.length / 500) * 0.8),
-    pileBorderSize: pile => Math.log(pile.items.length),
+    pileBorderSize: (pile) => Math.log(pile.items.length),
     pileItemOffset: (item, i, pile) => {
       const isNotLast = pile.items.length - 1 !== i;
       return [
         +isNotLast * (Math.random() * 12 - 6),
-        +isNotLast * (Math.random() * 12 - 6)
+        +isNotLast * (Math.random() * 12 - 6),
       ];
     },
     pileItemRotation: (item, i, pile) => {
@@ -105,7 +103,7 @@ const createPhotoPiles = async (element, darkMode) => {
     // ],
     // pileItemRotation: (item, i, pile) =>
     //   i === pile.items.length - 1 ? 0 : Math.random() * 16 - 8,
-    zoomScale: scale => scale
+    zoomScale: (scale) => scale,
   });
 
   // Uncomment for `node scripts/measure-init-time`
@@ -120,19 +118,19 @@ const createPhotoPiles = async (element, darkMode) => {
   //   1
   // );
 
-  const getSuperCat = item => {
+  const getSuperCat = (item) => {
     const c = `${item.mainSuperCategory}/${item.mainCategory}`;
     return [
       Math.round(iScale(areaScale(max(item.categories[c])))),
-      jScales[xAxis](item.mainSuperCategory)
+      jScales[xAxis](item.mainSuperCategory),
     ];
   };
 
-  const getCat = item => {
+  const getCat = (item) => {
     const cats = Object.keys(item.categories)
-      .map(c => c.split('/'))
-      .filter(c => c[0] === xAxis)
-      .map(c => `${c[0]}/${c[1]}`);
+      .map((c) => c.split('/'))
+      .filter((c) => c[0] === xAxis)
+      .map((c) => `${c[0]}/${c[1]}`);
 
     if (cats.length === 0) {
       return [getSuperCat(item)[0], maxJ];
@@ -151,7 +149,7 @@ const createPhotoPiles = async (element, darkMode) => {
 
     return [
       Math.round(iScale(areaScale(largestCat[0]))),
-      jScales[xAxis](largestCat[1].split('/')[1])
+      jScales[xAxis](largestCat[1].split('/')[1]),
     ];
   };
 
@@ -168,7 +166,7 @@ const createPhotoPiles = async (element, darkMode) => {
 
             piling.set('columns', maxJ);
 
-            await piling.arrangeBy('ij', pile => {
+            await piling.arrangeBy('ij', (pile) => {
               const item = data[pile.id];
               return xAxis === 'super categories'
                 ? getSuperCat(item)
@@ -180,9 +178,9 @@ const createPhotoPiles = async (element, darkMode) => {
               dtype: 'string',
               values: ['super categories', ...superCategories],
               defaultValue: xAxis,
-              setter: prop => {
+              setter: (prop) => {
                 xAxis = prop;
-              }
+              },
             },
             {
               name: '# rows',
@@ -193,15 +191,15 @@ const createPhotoPiles = async (element, darkMode) => {
               numSteps: 18,
               defaultValue: yRange,
               hideCheckbox: true,
-              setter: value => {
+              setter: (value) => {
                 yRange = value;
                 iScale.range([0, yRange - 1]);
-              }
-            }
-          ]
-        }
-      ]
-    }
+              },
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   return [piling, additionalSidebarOptions];

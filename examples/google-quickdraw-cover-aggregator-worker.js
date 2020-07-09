@@ -31,7 +31,7 @@ const worker = function worker() {
     });
   };
 
-  const scaleLinearMaxToUint8 = (max, t) => value =>
+  const scaleLinearMaxToUint8 = (max, t) => (value) =>
     Math.min(255, Math.max(0, 255 - ((max - t(value)) / max) * 255));
 
   const toRgba = (data, { log = false } = {}) => {
@@ -44,7 +44,7 @@ const worker = function worker() {
     }
 
     const scaleFactor = log ? (1 / max) * 9 : 1;
-    const transformer = log ? x => Math.log10(x * scaleFactor + 1) : x => x;
+    const transformer = log ? (x) => Math.log10(x * scaleFactor + 1) : (x) => x;
     const scale = scaleLinearMaxToUint8(transformer(max), transformer);
 
     let j = 3; // We only need to populate the alpha values
@@ -68,7 +68,7 @@ const worker = function worker() {
         hist,
         size: event.data.size,
         items: event.data.items,
-        lineWidth: event.data.lineWidth
+        lineWidth: event.data.lineWidth,
       });
     } catch (error) {
       self.postMessage({ error });

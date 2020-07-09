@@ -22,7 +22,7 @@ const loadMapbox = () =>
       link.href = 'https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css';
       link.rel = 'stylesheet';
       document.head.appendChild(link);
-    })
+    }),
   ]);
 
 const createMapbox = (element, darkMode) => () => {
@@ -49,7 +49,7 @@ const createMapbox = (element, darkMode) => () => {
     center: [0, 0],
     minZoom: 0,
     maxZoom: 22,
-    interactive: false
+    interactive: false,
   });
 
   return map;
@@ -67,7 +67,7 @@ const monthNames = [
   'Sep',
   'Oct',
   'Nov',
-  'Dec'
+  'Dec',
 ];
 
 const addDays = (date, days) => {
@@ -110,7 +110,7 @@ const create = async (element, darkMode) => {
       minX: region.longLat[0] - 0.1,
       maxX: region.longLat[0] + 0.1,
       minY: -1 * region.longLat[1] - 0.1,
-      maxY: -1 * region.longLat[1] + 0.1
+      maxY: -1 * region.longLat[1] + 0.1,
     });
   });
 
@@ -135,18 +135,18 @@ const create = async (element, darkMode) => {
 
   const svgRenderer = createSvgRenderer({
     width: renderedItemWidth,
-    height: renderedItemHeight
+    height: renderedItemHeight,
   });
 
   const svgCoverRenderer = createSvgRenderer({
     width: renderedItemWidth,
     height: renderedItemHeight,
-    background: 'rgba(0, 0, 0, 0.33)'
+    background: 'rgba(0, 0, 0, 0.33)',
   });
 
   const svgPreviewRenderer = createSvgRenderer({
     width: renderedPreviewWidth,
-    height: renderedPreviewHeight
+    height: renderedPreviewHeight,
   });
 
   const stepSize = absWidth / numDays;
@@ -160,7 +160,7 @@ const create = async (element, darkMode) => {
   const xRange = [
     new Date('2020-02-01 00:00'),
     new Date('2020-03-01 00:00'),
-    new Date('2020-04-01 00:00')
+    new Date('2020-04-01 00:00'),
   ];
 
   const numTicks = Math.ceil(Math.log10(maxCases));
@@ -169,15 +169,9 @@ const create = async (element, darkMode) => {
     .fill()
     .map((x, i) => 10 ** (i + 1));
 
-  const xScale = d3
-    .scaleTime()
-    .domain([startDate, endDate])
-    .nice();
+  const xScale = d3.scaleTime().domain([startDate, endDate]).nice();
 
-  const yScale = d3
-    .scaleLog()
-    .domain([1, maxCases])
-    .range([0, 1]);
+  const yScale = d3.scaleLog().domain([1, maxCases]).range([0, 1]);
 
   const createSvgStart = (w, h) =>
     `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
@@ -204,38 +198,38 @@ const create = async (element, darkMode) => {
 
   const createLine = d3
     .line()
-    .x(d => halfStepSize + stepSize * d[0])
-    .y(d => absHeight - absHeight * yScale(d[1] + 1));
+    .x((d) => halfStepSize + stepSize * d[0])
+    .y((d) => absHeight - absHeight * yScale(d[1] + 1));
 
-  const createArea = y => {
+  const createArea = (y) => {
     const path = createLine(y).slice(1);
     return [
       `<defs><mask id="path"><path d="M0,100L${path}L100,100" stroke="none" fill="white"/></mask></defs>`,
-      '<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path)" />'
+      '<rect x="0" y="0" width="100" height="100" fill="url(#linear-stroke)" mask="url(#path)" />',
     ];
   };
 
-  const createBar = y => {
+  const createBar = (y) => {
     const yScaled = absHeight - absHeight * yScale(y + 1);
     const h = absHeight - yScaled;
     return [
       `<defs><mask id="path"><rect x="0" y="${yScaled}" width="10" height="${h}" fill="white"/></mask></defs>`,
-      '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />'
+      '<rect x="0" y="0" width="10" height="100" fill="url(#linear-stroke)" mask="url(#path)" />',
     ];
   };
 
-  const createStackedArea = ys => {
+  const createStackedArea = (ys) => {
     const n = ys.length;
     const commonX = {};
-    ys.forEach(y =>
-      y.forEach(d => {
+    ys.forEach((y) =>
+      y.forEach((d) => {
         commonX[d[0]] = commonX[d[0]] ? commonX[d[0]] + 1 : 1;
       })
     );
 
     const cumYs = {};
 
-    const paths = ys.map(y => {
+    const paths = ys.map((y) => {
       const cumXy = y.reduce((_cumXy, [x, _y]) => {
         if (commonX[x] !== n) return _cumXy;
         if (!cumYs[x]) cumYs[x] = _y;
@@ -261,82 +255,82 @@ const create = async (element, darkMode) => {
         .reverse(),
       paths
         .map(
-          path =>
+          (path) =>
             `<path d="M0,100L${path}L100,100" stroke="black" stroke-width="0.75" stroke-opacity="0.33" fill="none"/>`
         )
-        .reverse()
+        .reverse(),
     ];
   };
 
-  const createYAxis = ticks =>
-    ticks.flatMap(tick => {
+  const createYAxis = (ticks) =>
+    ticks.flatMap((tick) => {
       const label = d3.format('~s')(tick);
       const y = 100 - yScale(tick) * 100;
       const y2 = y + 10;
       const color = darkMode ? '#fff' : '#000';
       return [
         `<text x="0" y="${y2}" fill="${color}" fill-opacity="0.33" style="font: 10px sans-serif;">${label}</text>`,
-        `<path d="M 0 ${y} L 100 ${y}" stroke="${color}" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`
+        `<path d="M 0 ${y} L 100 ${y}" stroke="${color}" stroke-opacity="0.33" stroke-width="0.5" stroke-dasharray="1 2" fill="none"/>`,
       ];
     });
 
-  const createXAxis = ticks => [
+  const createXAxis = (ticks) => [
     `<line x1="0" y1="100" x2="100" y2="100" stroke="#000" stroke-opacity="0.33" stroke-width="1" />`,
-    ...ticks.flatMap(tick => {
+    ...ticks.flatMap((tick) => {
       const label = monthNames[tick.getMonth()];
       const x = xScale(tick) * 100;
       const color = darkMode ? '#fff' : '#000';
       return [
         `<text x="${x}" y="112" fill="${color}" fill-opacity="0.33" style="font: 10px sans-serif;" text-anchor="middle">${label}</text>`,
-        `<path d="M ${x} 100 L ${x} 103" stroke="${color}" stroke-opacity="0.33" stroke-width="1" fill="none"/>`
+        `<path d="M ${x} 100 L ${x} 103" stroke="${color}" stroke-opacity="0.33" stroke-width="1" fill="none"/>`,
       ];
-    })
+    }),
   ];
 
   const strokeColorRange = darkMode
     ? ['#444444', '#ff9957', ['#a34e23', '#d37136']]
     : ['#bbbbbb', '#802000', ['#c76526']];
 
-  const toXy = ys =>
+  const toXy = (ys) =>
     ys.reduce((xys, y, i) => {
       if (y !== null) xys.push([i, y]);
       return xys;
     }, []);
 
-  const createAreaChart = y =>
+  const createAreaChart = (y) =>
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
       // createYAxis(yRange),
       // createXAxis(xRange),
       createArea(toXy(y)),
-      createSvgEnd()
+      createSvgEnd(),
     ].join('');
 
-  const renderer = sources => svgRenderer(sources.map(createAreaChart));
+  const renderer = (sources) => svgRenderer(sources.map(createAreaChart));
 
-  const createBarChart = y =>
+  const createBarChart = (y) =>
     [
       createSvgStart(absHeight * relPreviewWidth, absHeight),
       createGradient('linear-stroke', ...strokeColorRange),
       createBar(y),
-      createSvgEnd()
+      createSvgEnd(),
     ].join('');
 
-  const previewRenderer = sources =>
+  const previewRenderer = (sources) =>
     svgPreviewRenderer(sources.map(createBarChart));
 
-  const createStackedAreaChart = ys =>
+  const createStackedAreaChart = (ys) =>
     [
       createSvgStart(absWidth, finalHeight),
       createGradient('linear-stroke', ...strokeColorRange),
       createYAxis(yRange),
       createXAxis(xRange),
       createStackedArea(ys.map(toXy)),
-      createSvgEnd()
+      createSvgEnd(),
     ].join('');
 
-  const coverRenderer = sources =>
+  const coverRenderer = (sources) =>
     svgCoverRenderer(sources.map(createStackedAreaChart));
 
   const itemize = ([region, { cases, longLat, level, numLevels }]) => {
@@ -367,7 +361,7 @@ const create = async (element, darkMode) => {
       region: r,
       lonLat: longLat,
       level,
-      numLevels
+      numLevels,
     };
   };
 
@@ -375,20 +369,20 @@ const create = async (element, darkMode) => {
     .filter(([, d]) => d.level <= 1)
     .map(itemize);
 
-  const previewAggregator = _items =>
-    Promise.resolve(_items.map(item => item.src[item.src.length - 1]));
+  const previewAggregator = (_items) =>
+    Promise.resolve(_items.map((item) => item.src[item.src.length - 1]));
 
-  const coverAggregator = _items => {
+  const coverAggregator = (_items) => {
     const sortedItems = [..._items];
     sortedItems.sort(
       (a, b) => a.src[a.src.length - 1] - b.src[b.src.length - 1]
     );
-    return Promise.resolve(sortedItems.map(i => i.src));
+    return Promise.resolve(sortedItems.map((i) => i.src));
   };
 
   const boundedMercator = createBoundedMercator(width, height);
 
-  const getItems = level => {
+  const getItems = (level) => {
     const { lng: minLng, lat: minLat } = map.unproject([0, 0]);
     const { lng: maxLng, lat: maxLat } = map.unproject([width, height]);
 
@@ -396,11 +390,11 @@ const create = async (element, darkMode) => {
       minX: minLng,
       maxX: maxLng,
       minY: -1 * minLat,
-      maxY: -1 * maxLat
+      maxY: -1 * maxLat,
     };
 
     const items = countriesAndStates.filter(
-      country =>
+      (country) =>
         !country.numLevels ||
         country.numLevels < level ||
         country.level === level
@@ -408,7 +402,7 @@ const create = async (element, darkMode) => {
 
     if (level === 2) {
       const hits = level2Index.search(bBox);
-      items.push(...hits.map(hit => [hit.id, data[hit.id]]).map(itemize));
+      items.push(...hits.map((hit) => [hit.id, data[hit.id]]).map(itemize));
     }
 
     return items;
@@ -418,10 +412,10 @@ const create = async (element, darkMode) => {
     renderedItemWidth +
       (i + 0.5) * renderedPreviewHeight * relPreviewWidth * 1.25,
     renderedItemHeight / 2 -
-      (renderedItemHeight / 2 - renderedPreviewHeight / 2)
+      (renderedItemHeight / 2 - renderedPreviewHeight / 2),
   ];
 
-  const pileOrderItems = pile =>
+  const pileOrderItems = (pile) =>
     [...pile.items].sort((a, b) => {
       const casesA = data[a].cases[data[a].cases.length - 1];
       const casesB = data[b].cases[data[b].cases.length - 1];
@@ -457,28 +451,28 @@ const create = async (element, darkMode) => {
     // pileLabel: 'region',
     pileLabelAlign: 'top',
     pileLabelStackAlign: 'vertical',
-    pileLabelText: pile => pile.items.length === 1,
+    pileLabelText: (pile) => pile.items.length === 1,
     pileLabelColor: 'rgba(0, 0, 0, 0.0)',
     pileLabelTextColor: darkMode
       ? 'rgba(255, 255, 255, 1)'
       : 'rgba(0, 0, 0, 1)',
     pileOrderItems,
-    pileVisibilityItems: pile => pile.items.length < 2,
+    pileVisibilityItems: (pile) => pile.items.length < 2,
     previewOffset: 1,
     previewPadding: 2,
     previewItemOffset,
-    projector: ll => boundedMercator.toPx(ll),
+    projector: (ll) => boundedMercator.toPx(ll),
     zoomBounds: [0, 8],
     // zoomScale: scale =>
     //   scale >= 1 ? 1 + (scale - 1) / 3 : 1 - (1 - scale) / 3,
-    showSpatialIndex: false
+    showSpatialIndex: false,
   });
 
   const whenItemUpdated = () =>
-    new Promise(resolve => piling.subscribe('itemUpdate', resolve, 1));
+    new Promise((resolve) => piling.subscribe('itemUpdate', resolve, 1));
   const whenItemLastUpdated = whenItemUpdated();
 
-  const scaleToZoom = scale => Math.log(scale) / Math.LN2;
+  const scaleToZoom = (scale) => Math.log(scale) / Math.LN2;
 
   // const zoomInThresholds = zoomLevel => {
   //   if (zoomLevel >= 6) return 2;
@@ -524,10 +518,10 @@ const create = async (element, darkMode) => {
             whenArranged = whenItemLastUpdated.then(() => {
               map.getContainer().style.opacity = 1;
               piling.set('navigationMode', 'panZoom');
-              piling.subscribe('zoom', camera => {
+              piling.subscribe('zoom', (camera) => {
                 const zoomLevel = scaleToZoom(camera.scaling);
                 map.panTo(boundedMercator.toLl(camera.target), {
-                  animate: false
+                  animate: false,
                 });
                 map.setZoom(minZoom + zoomLevel);
                 // updateItems(zoomLevel, lastZoomLevel);
@@ -535,7 +529,7 @@ const create = async (element, darkMode) => {
               });
               return piling.arrangeBy('custom', 'lonLat');
             });
-          }
+          },
         },
         {
           name: 'Automatically group and split',
@@ -546,22 +540,22 @@ const create = async (element, darkMode) => {
                 piling.splitBy('distance', 0.5, { onZoom: true });
                 piling.groupBy('overlap', 384, { onZoom: true });
               });
-          }
+          },
         },
         {
           name: 'Show previews',
           labelMinWidth: '6rem',
           nullifiable: true,
           dtype: 'boolean',
-          setter: isChecked => {
+          setter: (isChecked) => {
             piling.set(
               'pileVisibilityItems',
-              isChecked || (pile => pile.items.length < 2)
+              isChecked || ((pile) => pile.items.length < 2)
             );
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
   return [piling, additionalSidebarOptions];

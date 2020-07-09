@@ -3,7 +3,7 @@ import createPilingJs from './library';
 export {
   createMatrixPreviewAggregator,
   createMatrixCoverAggregator,
-  createRepresentativeAggregator
+  createRepresentativeAggregator,
 } from './aggregator';
 
 export { createDbscan, createKmeans } from './clusterer';
@@ -12,7 +12,7 @@ export {
   createImageRenderer,
   createMatrixRenderer,
   createRepresentativeRenderer,
-  createSvgRenderer
+  createSvgRenderer,
 } from './renderer';
 
 export { default as createLibrary } from './library';
