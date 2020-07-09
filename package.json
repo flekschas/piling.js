@@ -66,7 +66,7 @@
     "singleQuote": true
   },
   "dependencies": {
-    "@flekschas/utils": "~0.22.1",
+    "@flekschas/utils": "~0.23.0",
     "camera-2d-simple": "~2.2.0",
     "deep-equal": "~1.1.0",
     "dom-2d-camera": "~1.0.1",
@@ -76,7 +76,7 @@
     "ndarray-convolve": "~2.0.0",
     "normalize-wheel": "~1.0.1",
     "pixi.js": "~5.1.6",
-    "pub-sub-es": "~1.2.1",
+    "pub-sub-es": "~1.2.2",
     "rbush": "~3.0.1",
     "redux": "~4.0.5",
     "redux-batched-actions": "~0.4.1",
