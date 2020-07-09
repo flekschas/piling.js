@@ -1,5 +1,7 @@
 ### Next
 
+- Fix bundles
+
 _[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...master)_
 
 ## v0.7.0
