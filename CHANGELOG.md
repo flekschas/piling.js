@@ -1,8 +1,13 @@
 ### Next
 
-- Fix bundles
+_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.1...master)_
 
-_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...master)_
+## v0.7.1
+
+- Fix bundles
+- Update third-party packages
+
+_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...v0.7.1)_
 
 ## v0.7.0
 
