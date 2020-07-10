@@ -38,7 +38,6 @@
   "scripts": {
     "build": "npm run build-library; npm run build-examples;",
     "build-library": "rm -rf dist/*; rollup -c;",
-    "build-library-wp": "rm -rf dist/*; webpack --config ./webpack.config.library.umd.js --mode development; webpack --config ./webpack.config.library.umd.js --mode production; webpack --config ./webpack.config.library.esm.js --mode production;",
     "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME; touch examples-build/.nojekyll;",
     "deploy": "npm run build-examples; gh-pages -d examples-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
@@ -100,6 +99,7 @@
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-replace": "^2.3.3",
     "@tensorflow/tfjs-core": "^1.7.4",
     "acorn": "^7.3.1",
     "babel-loader": "^8.1.0",

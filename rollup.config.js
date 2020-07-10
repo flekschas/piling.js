@@ -1,9 +1,11 @@
+/* eslint-env node */
 import { terser } from 'rollup-plugin-terser';
 import babel from 'rollup-plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import filesize from 'rollup-plugin-filesize';
+import replace from '@rollup/plugin-replace';
 import { string } from 'rollup-plugin-string';
 // import visualizer from 'rollup-plugin-visualizer';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
@@ -14,7 +16,6 @@ const bundleConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJs',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI',
       'umap-js': 'UMAP',
@@ -34,6 +35,9 @@ const bundleConfig = (file, plugins = [], format = 'umd') => ({
       include: '**/skmeans.min',
     }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: ['pixi.js', 'regl', 'umap-js'],
@@ -49,7 +53,6 @@ const libConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsLibrary',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI',
     },
@@ -65,6 +68,9 @@ const libConfig = (file, plugins = [], format = 'umd') => ({
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: ['pixi.js'],
@@ -78,7 +84,6 @@ const rndConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsRenderer',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {
       'pixi.js': 'PIXI',
     },
@@ -94,6 +99,9 @@ const rndConfig = (file, plugins = [], format = 'umd') => ({
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: ['pixi.js', 'regl'],
@@ -107,7 +115,6 @@ const agrConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsAggregator',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {},
   },
   plugins: [
@@ -121,6 +128,9 @@ const agrConfig = (file, plugins = [], format = 'umd') => ({
     commonjs({ sourceMap: false }),
     babel({ runtimeHelpers: true }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: [],
@@ -134,7 +144,6 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsClusterer',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {},
   },
   plugins: [
@@ -151,6 +160,9 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
       include: '**/skmeans.min',
     }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: [],
@@ -164,7 +176,6 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
     name: 'pilingJsDimensionalityReducer',
     format,
     file,
-    intro: 'var process = { env: { NODE_ENV: "production" } };',
     globals: {},
   },
   plugins: [
@@ -181,6 +192,9 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
       include: '**umap-js.min',
     }),
     nodePolyfills(),
+    replace({
+      'browser.env.NODE_ENV': '"production"',
+    }),
     ...plugins,
   ],
   external: [],
