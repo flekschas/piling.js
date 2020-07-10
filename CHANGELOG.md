@@ -1,6 +1,12 @@
 ### Next
 
-_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.1...master)_
+_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.2...master)_
+
+## v0.7.2
+
+- Properly replace `browser.env.NODE_ENV` to avoid redux error
+
+_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.1...v0.7.2)_
 
 ## v0.7.1
 
