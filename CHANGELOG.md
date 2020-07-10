@@ -1,12 +1,18 @@
 ### Next
 
-_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.2...master)_
+_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...master)_
+
+## v0.7.3
+
+- Fix broken import of RBush
+
+_[Changes since v0.7.2](https://github.com/flekschas/piling.js/compare/v0.7.2...v0.7.3)_
 
 ## v0.7.2
 
 - Properly replace `browser.env.NODE_ENV` to avoid redux error
 
-_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.1...v0.7.2)_
+_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.1...v0.7.2)_
 
 ## v0.7.1
 
