@@ -3,7 +3,7 @@ import createDom2dCamera from 'dom-2d-camera';
 import { mat4, vec4 } from 'gl-matrix';
 import createPubSub from 'pub-sub-es';
 import withRaf from 'with-raf';
-import * as RBush from 'rbush';
+import RBush from 'rbush';
 import normalizeWheel from 'normalize-wheel';
 import { batchActions } from 'redux-batched-actions';
 import {
