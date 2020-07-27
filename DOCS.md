@@ -1123,6 +1123,24 @@ piling.set('coverAggregator', coverAggregator);
 piling.set('previewAggregator', previewAggregator);
 ```
 
+## Subsampling previews
+
+To limit the number of shown previews, the preview aggregator function can
+resolve a list of aggregated sources where some of the entries are `null`. These
+`null` entries will be filtered out by piling.js.
+
+For example, the following aggregator limits the previews to those with an
+even index.
+
+```javascript
+const customAggregator = (items) =>
+  Promise.resolve(items.map((item, i) => i % 2 === 0 ? item : null);
+```
+
+It's important that the number of items and number of aggregated previews match,
+otherwise piling.js wouldn't be able to match the previews to their associated
+item.
+
 # Dimensionality Reducers
 
 A dimensionality reducer is a transformation function that that reduced multi-dimensional input data down to two normalized dimension.
