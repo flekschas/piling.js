@@ -997,6 +997,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     ).then((textures) => textures.map(createImage));
 
     const createPreview = (texture, index) => {
+      if (texture === null) return null;
+
       const itemState = itemList[index];
       const pileState = piles[itemState.id];
       const pileBackgroundColor = getBackgroundColor(pileState);
@@ -1021,7 +1023,26 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     const renderPreviews = aggregator
       ? aggregator(itemList)
-          .then(previewRenderer)
+          .then(
+            (aggregatedItemSources) =>
+              new Promise((resolve) => {
+                // Manually handle `null` values
+                const response = [];
+                previewRenderer(
+                  aggregatedItemSources.filter((src) => src !== null)
+                ).then((textures) => {
+                  let i = 0;
+                  aggregatedItemSources.forEach((src) => {
+                    if (src === null) {
+                      response.push(null);
+                    } else {
+                      response.push(textures[i++]);
+                    }
+                  });
+                  resolve(response);
+                });
+              })
+          )
           .then((textures) => textures.map(createPreview))
       : Promise.resolve([]);
 
@@ -1483,6 +1504,9 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     pileState.items.forEach((itemId) => {
       const item = renderedItems.get(itemId);
+
+      if (!item.preview) return;
+
       const scaleFactor = getImageScaleFactor(item.image);
 
       const xScale = 1 + (scaleFactor * scaling[0] - 1);
