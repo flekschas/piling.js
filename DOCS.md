@@ -87,7 +87,7 @@ import { createMatrixRenderer } from 'piling.js';
 const matrixRenderer = createMatrixRenderer({ colorMap, shape: [3, 3] });
 const coverRenderer = createMatrixRenderer({
   colorMap: aggregateColorMap,
-  shape: [3, 3]
+  shape: [3, 3],
 });
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [3, 1] });
 ```
@@ -97,7 +97,7 @@ Then, you need aggregators for the aggregation and previews. So import and insta
 ```javascript
 import {
   createMatrixCoverAggregator,
-  createMatrixPreviewAggregator
+  createMatrixPreviewAggregator,
 } from 'piling.js';
 
 const matrixCoverAggregator = createMatrixCoverAggregator('mean');
@@ -246,7 +246,7 @@ The following options are available for all types:
 
       ```javascript
       piling.arrangeBy('data', 'a');
-      piling.arrangeBy('data', itemState => itemState.a);
+      piling.arrangeBy('data', (itemState) => itemState.a);
       ```
 
     - `propertyIsVector` [type: `boolean` default: `false`]: If `true` we assume that `property()` is returning a numerical vector instead of a scalar.
@@ -265,9 +265,9 @@ The following options are available for all types:
     // Define the property via a simple string
     piling.arrangeBy('data', 'a');
     // Define the property callback function
-    piling.arrangeBy('data', itemState => itemState.a); // callback function
+    piling.arrangeBy('data', (itemState) => itemState.a); // callback function
     // Define the property callback function as part of the `objective` object
-    piling.arrangeBy('data', { property: itemState => itemState.a });
+    piling.arrangeBy('data', { property: (itemState) => itemState.a });
     // Explicitly define
     piling.arrangeBy('data', ['a']);
     ```
@@ -341,14 +341,14 @@ piling.groupBy('distance'); // Pile all items/piles that touch each other
 piling.groupBy('distance', 64); // Pile all items/piles that are 64 or less pixels apart from each other
 
 piling.groupBy('category', 'country'); // Pile all items/piles that have the same country value
-piling.groupBy('category', item => item.country); // Same as before
+piling.groupBy('category', (item) => item.country); // Same as before
 piling.groupBy('category', {
   property: 'country',
-  aggregator: countries => countries[0]
+  aggregator: (countries) => countries[0],
 }); // Same as before but with a custom aggregator that simply picks the first country to define the category
 
 piling.groupBy('cluster', 'x'); // Pile all that cluster together based on the `x` property
-piling.groupBy('cluster', item => item.x); // Same as above
+piling.groupBy('cluster', (item) => item.x); // Same as above
 piling.groupBy('cluster', { property: 'x', aggregator: 'max' }); // Same as above but with a custom aggregator that picks the max `x` value
 piling.groupBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with a custom clusterer
 piling.groupBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
@@ -381,7 +381,7 @@ Subscribe to an event.
 `eventHandler` is a callback function which looks like this:
 
 ```javascript
-const eventHandler = eventData => {
+const eventHandler = (eventData) => {
   // handle event here
 };
 ```
@@ -499,7 +499,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
   ```javascript
   piling.set({
     propertyNameA: valueA,
-    propertyNameB: valueB
+    propertyNameB: valueB,
   });
   ```
 
@@ -516,7 +516,10 @@ Unsubscribe from an event. See [events](#events) for all the events.
   // another function that takes in as input the position of a 1D ordering and
   // outputs the an array of `x` an `y` coordinates.
 
-  const rowMajor = cols => index => [index % cols, Math.floor(index / cols)];
+  const rowMajor = (cols) => (index) => [
+    index % cols,
+    Math.floor(index / cols),
+  ];
   ```
 
 - The following properties to define the _grid_: `cellSize`, `cellPadding`, `columns`, `rowHeight` and `cellAspectRatio`.
@@ -530,7 +533,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 - `easing` is the easing function for animation, the default function is `cubicInOut` which looks like this:
 
   ```javascript
-  const cubicInOut = t => {
+  const cubicInOut = (t) => {
     t *= 2;
     const p = (t <= 1 ? t * t * t : (t -= 2) * t * t + 2) / 2;
     return p;
@@ -566,7 +569,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
   ```javascript
   // Add a custom context menu
-  const myClickHandler = pile => {
+  const myClickHandler = (pile) => {
     console.log('Hi!', pile);
     // The log statement could look as follows for example:
     // Hi!, { id: 5, items: [2, 0, 8], x: 215, y: 8 }
@@ -575,8 +578,8 @@ Unsubscribe from an event. See [events](#events) for all the events.
     {
       id: 'my-click',
       label: 'Click me!',
-      callback: myClickHandler
-    }
+      callback: myClickHandler,
+    },
   ]);
   ```
 
@@ -587,7 +590,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
   piling.set('pileScale', 2.0);
 
   // Set to a callback function
-  piling.set('pileOpacity', pile => 1 / pile.items.length);
+  piling.set('pileOpacity', (pile) => 1 / pile.items.length);
   ```
 
   The callback function is evaluated for each pile and receives the current [pile](#statepiles). The function’s return value is then used to set each pile’s corresponding property. I.e., the function signature is as follows:
@@ -602,7 +605,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 - `pileOrderItems` is used to sort the items on a pile before positioning the items. It should be set to a callback function which will receive the current [pile](#statepiles), and should return an array of sorted itemIDs. E.g.,
 
   ```javascript
-  const pileOrderItems = pileState => pileState.items.sort((a, b) => a - b);
+  const pileOrderItems = (pileState) => pileState.items.sort((a, b) => a - b);
 
   piling.set('pileOrderItems', pileOrderItems);
   ```
@@ -655,11 +658,11 @@ Unsubscribe from an event. See [events](#events) for all the events.
 
   ```javascript
   piling.set('pileLabel', 'country');
-  piling.set('pileLabel', itemState => itemState.country);
+  piling.set('pileLabel', (itemState) => itemState.country);
   piling.set('pileLabel', ['country', 'year']);
   piling.set('pileLabel', {
-    property: item => item.country,
-    aggregator: countries => countries[0]
+    property: (item) => item.country,
+    aggregator: (countries) => countries[0],
   });
   ```
 
@@ -688,7 +691,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
   piling.set('pileLabelSizeTransform', (counts, labels) => {
     // This function normalizes the counts to be in [0,1]
     const maxCount = Math.max(...counts);
-    return counts.map(x => x / maxCount);
+    return counts.map((x) => x / maxCount);
   });
   ```
 
@@ -738,7 +741,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 - `previewOffset` defines the offset in pixel to the pile cover and `previewSpacing` defines the combined spacing around a pile. E.g., `previewSpacing === 2` results in a 1px margin around the preview items. Both properties can be dynamically defines using a per-pile callback function as follows:
 
   ```javascript
-  piling.set('previewOffset', pileState => {
+  piling.set('previewOffset', (pileState) => {
     // Define the offset
     return offset;
   });
@@ -747,7 +750,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 - `previewScaling` defines how much preview items are scaled according to the cover. Normally, the previews' scale factor is identical to the cover's scale factor. Using this property the impact of this scale factor can be adjusted. The final x and y scale will then be determined as follows _xScale = 1 + (scaleFactor - 1) \* scaling[0]_. E.g., to not adjust the y scale to the cover but keep the x scale one can set `previewScaling = [1,0]`. The scaling can be determined dynamically using a per-pile callback function as follows:
 
   ```javascript
-  piling.set('previewScaling', pileState => {
+  piling.set('previewScaling', (pileState) => {
     // Define the x and y scaling
     return [xScaling, yScaling];
   });
@@ -758,7 +761,7 @@ Unsubscribe from an event. See [events](#events) for all the events.
 - `zoomScale` allows to dynamically adjust the scale factor related to zooming. By default zooming **does not** affect the scale!
 
   ```javascript
-  piling.set('zoomScale', cameraScale =>
+  piling.set('zoomScale', (cameraScale) =>
     cameraScale >= 1 ? 1 + (cameraScale - 1) / 2 : 1 - (1 - cameraScale) / 2
   );
   ```
@@ -917,8 +920,8 @@ const rgbStrToRgba = (rgbStr, alpha = 1) => {
     ...rgbStr
       .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
       .slice(1, 4)
-      .map(x => parseInt(x, 10) / 256),
-    alpha
+      .map((x) => parseInt(x, 10) / 256),
+    alpha,
   ];
 };
 const numColors = 256;
@@ -942,7 +945,7 @@ const aggregateColorMap = new Array(numColors)
 
 const coverRenderer = createMatrixRenderer({
   colorMap: aggregateColorMap,
-  shape: [16, 16]
+  shape: [16, 16],
 });
 
 const previewRenderer = createMatrixRenderer({ colorMap, shape: [16, 1] });
@@ -1072,7 +1075,7 @@ const matrixPreviewAggregator = createMatrixPreviewAggregator(aggregator);
 
 ### Representative aggregator
 
-The representative aggregator selects `k` number of representative items from all the items on a pile.
+The representative aggregator selects `k` number of representative items from all the items on a pile. It should be used as a cover aggregator in combination with the [representative cover renderer](#representative-renderer).
 
 **Constructor:**
 
@@ -1099,7 +1102,7 @@ The representative aggregator uses kmeans++ to determine `k` clusters in the dat
 If you want to define your own aggregator, you can do something as follows:
 
 ```javascript
-const customAggregator = items =>
+const customAggregator = (items) =>
   new Promise((resolve, reject) => {
     // Aggregate items somehow
     const aggregatedSrc = myMagicAggregation(items);
@@ -1119,6 +1122,24 @@ Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 piling.set('coverAggregator', coverAggregator);
 piling.set('previewAggregator', previewAggregator);
 ```
+
+## Subsampling previews
+
+To limit the number of shown previews, the preview aggregator function can
+resolve a list of aggregated sources where some of the entries are `null`. These
+`null` entries will be filtered out by piling.js.
+
+For example, the following aggregator limits the previews to those with an
+even index.
+
+```javascript
+const customAggregator = (items) =>
+  Promise.resolve(items.map((item, i) => i % 2 === 0 ? item : null);
+```
+
+It's important that the number of items and number of aggregated previews match,
+otherwise piling.js wouldn't be able to match the previews to their associated
+item.
 
 # Dimensionality Reducers
 
@@ -1165,7 +1186,7 @@ const createCustomAggregator = () => {
     },
     transform(data) {
       return getTransformedData(data);
-    }
+    },
   };
 };
 ```

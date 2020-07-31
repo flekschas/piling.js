@@ -1234,6 +1234,8 @@ const createPile = (
   };
 
   const addPreviewItem = (item) => {
+    if (!item.preview) return;
+
     const previewItem = createPileItem({
       image: item.preview,
       item,

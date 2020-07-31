@@ -1,5 +1,7 @@
 ### Next
 
+- Allow subsampling of previews
+
 _[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...master)_
 
 ## v0.7.3
