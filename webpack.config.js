@@ -14,6 +14,7 @@ module.exports = (env, argv) => ({
   devServer: {
     contentBase: './examples',
   },
+  devtool: 'eval-cheap-source-map',
   module: {
     rules: [
       {
