@@ -1,6 +1,7 @@
 ### Next
 
 - Allow subsampling of previews
+- Allow initializing from previous state using `createPilingJs(element, { ... }, { initFromState: true })`
 
 _[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...master)_
 
