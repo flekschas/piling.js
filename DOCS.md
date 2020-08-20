@@ -158,14 +158,16 @@ An array of objects with one required property `src` and other optional user-def
 
 ## Constructor
 
-#### `const piling = createPilingJs(domElement, options = {});`
-
-**Returns:** a new piling instance.
+#### `const piling = createPilingJs(domElement, properties = {}, options = {});`
 
 **Arguments:**
 
 - `domElement`: reference to the DOM element that will host piling.js' canvas
-- `options` (optional): an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for configuration. The [supported properties](#pilingsetproperty-value) are the same as for [`set()`](#pilingsetproperty-value).
+- `properties` (optional): an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for setting initil view properties. The [supported properties](#pilingsetproperty-value) are the same as for [`set()`](#pilingsetproperty-value).
+- `options` (optional): an an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for additional configuration:
+  - `initFromState`: if `true` piling.js will treat `properties` as a complete state and import it using [`importState()`](#pilingimportstatestate) rather than initializing the state from scratch.
+
+**Returns:** a new piling instance.
 
 ## Methods
 
@@ -389,6 +391,16 @@ const eventHandler = (eventData) => {
 #### `piling.unsubscribe(eventName, eventHandler)`
 
 Unsubscribe from an event. See [events](#events) for all the events.
+
+#### `piling.exportState()`
+
+**Returns:** current state object.
+
+#### `piling.importState(state)`
+
+**Arguments:**
+
+- `state`: Previously exported state object.
 
 ## Properties
 
