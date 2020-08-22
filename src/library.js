@@ -95,11 +95,7 @@ const EXTRA_ROWS = 3;
 
 const l2RectDist = lRectDist(2);
 
-const createPilingJs = (
-  rootElement,
-  initProps = {},
-  { initFromState = false } = {}
-) => {
+const createPilingJs = (rootElement, initProps = {}) => {
   const scrollContainer = document.createElement('div');
   scrollContainer.className = 'pilingjs-scroll-container';
   const scrollEl = document.createElement('div');
@@ -5137,15 +5133,10 @@ const createPilingJs = (
     enableScrolling();
     enableInteractivity();
 
-    if (initFromState) {
-      isInitialPositioning = false;
-      importState(initProps, true);
-    } else {
-      setPublic(initProps);
+    setPublic(initProps);
 
-      if (!initProps.piles && initProps.items) {
-        store.dispatch(createAction.initPiles(initProps.items));
-      }
+    if (!initProps.piles && initProps.items) {
+      store.dispatch(createAction.initPiles(initProps.items));
     }
   };
 
