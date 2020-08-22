@@ -156,33 +156,40 @@ An array of objects with one required property `src` and other optional user-def
 
 # Library
 
-## Constructor
+## Constructors
 
-#### `const piling = createPilingJs(domElement, properties = {}, options = {});`
+### createPilingJs(_domElement_, _initialProperties_)
 
 **Arguments:**
 
 - `domElement`: reference to the DOM element that will host piling.js' canvas
-- `properties` (optional): an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for setting initil view properties. The [supported properties](#pilingsetproperty-value) are the same as for [`set()`](#pilingsetproperty-value).
-- `options` (optional): an an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for additional configuration:
-  - `initFromState`: if `true` piling.js will treat `properties` as a complete state and import it using [`importState()`](#pilingimportstatestate) rather than initializing the state from scratch.
+- `initialProperties` (optional): an [options object](https://www.codereadability.com/what-are-javascript-options-objects/) for setting initil view properties. The [supported properties](#pilingsetproperty-value) are the same as for [`set()`](#pilingsetproperty-value).
 
 **Returns:** a new piling instance.
 
+### createPilingJsFromState(_domElement_, _initialProperties_)
+
+**Arguments:**
+
+- `domElement`: reference to the DOM element that will host piling.js' canvas
+- `state`: a complete state object obtained from [`exportState()`](#pilingexportstate).
+
+**Returns:** a promise resolving to the new piling instance once the state was imported.
+
 ## Methods
 
-#### `piling.get(property)`
+### piling.get(_property_)
 
-**Returns:** one of the properties documented in [`set()`](#pilingsetproperty-value)
+**Returns:** one of the properties documented in [`set()`](#piling.set)
 
-#### `piling.set(property, value)`
+### piling.set(_property_, _value_)
 
 **Arguments:**
 
 - `property`: Either a string defining the [property](#properties) to be set or an object defining key-value pairs to set multiple [properties](#properties) at once.
 - `value`: If `property` is a string, `value` is the corresponding value. Otherwise, `value` is ignored.
 
-#### `piling.arrangeBy(type, objective, options)`
+### piling.arrangeBy(_type_, _objective_, _options_)
 
 Position piles with user-specified arrangement method.
 
@@ -310,7 +317,7 @@ The following options are available for all types:
     piling.arrangeBy('data', ['a', 'b', 'c'], { runDimReductionOnPiles: true });
     ```
 
-#### `piling.groupBy(type, objective, options)`
+### piling.groupBy(_type_, _objective_, _options_)
 
 Programmatically group items and piles based on the layout, spatial proximity, or data together.
 
@@ -356,27 +363,31 @@ piling.groupBy('cluster', 'x', { clusterer: dbscan }); // Same as above but with
 piling.groupBy('cluster', 'x', { clustererOptions: { k: 2 } }); // Same as above but with customized clusterer options
 ```
 
-#### `piling.destroy()`
+### piling.destroy()
 
 Destroys the piling instance by disposing all event listeners, the pubSub instance, canvas, and the root PIXI container.
 
-#### `piling.halt({ text, spinner = true })`
+### piling.halt(_options_)
 
 This will display a popup across the entire piling.js element to temporarily block all interactions. This is useful if you are doing some asynchronous job outside piling and want to prevent user interactions.
 
-#### `piling.render()`
+**Arguments:**
+
+- `options` (optional): Object with the two properties: `text` and `spinner` (default `true`)
+
+### piling.render()
 
 Render the root PIXI container.
 
-#### `piling.resume()`
+### piling.resume()
 
 This will the halting popup.
 
-#### `piling.splitAll()`
+### piling.splitAll()
 
 Scatter all the piles at the same time.
 
-#### `piling.subscribe(eventName, eventHandler)`
+### piling.subscribe(_eventName_, _eventHandler_)
 
 Subscribe to an event.
 `eventName` needs to be one of these [events](#events).
@@ -388,19 +399,21 @@ const eventHandler = (eventData) => {
 };
 ```
 
-#### `piling.unsubscribe(eventName, eventHandler)`
+### piling.unsubscribe(_eventName_, _eventHandler_)
 
 Unsubscribe from an event. See [events](#events) for all the events.
 
-#### `piling.exportState()`
+### piling.exportState()
 
 **Returns:** current state object.
 
-#### `piling.importState(state)`
+### piling.importState(_state_)
 
 **Arguments:**
 
 - `state`: Previously exported state object.
+
+**Returns:** a promise that resolves once the state was imported
 
 ## Properties
 
@@ -839,6 +852,8 @@ A list of objects with the following properties:
 ]
 ```
 
+---
+
 # Renderers
 
 A renderer should be a function that takes as input an array of the value of `src` property in your data that determining the source, and outputs promises which resolve to [Pixi Texture objects](http://pixijs.download/release/docs/PIXI.Texture.html).
@@ -1038,6 +1053,8 @@ piling.set('coverRenderer', coverRenderer);
 piling.set('previewRenderer', previewRenderer);
 ```
 
+---
+
 # Aggregators
 
 Aggregators are used to aggregate items.
@@ -1153,6 +1170,8 @@ It's important that the number of items and number of aggregated previews match,
 otherwise piling.js wouldn't be able to match the previews to their associated
 item.
 
+---
+
 # Dimensionality Reducers
 
 A dimensionality reducer is a transformation function that that reduced multi-dimensional input data down to two normalized dimension.
@@ -1211,7 +1230,11 @@ Call [set](#pilingsetproperty-value) method to add aggregators to the library.
 piling.set('dimensionalityReducer', umap);
 ```
 
+---
+
 # Clusterers
+
+---
 
 # Interactions
 
