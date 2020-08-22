@@ -17,4 +17,13 @@ export {
 
 export { default as createLibrary } from './library';
 
+export const createPilingJsFromState = (element, state) =>
+  new Promise((resolve) => {
+    const piling = createPilingJs(element);
+    piling.subscribe(async () => {
+      await piling.importState(state);
+      resolve(piling);
+    }, 1);
+  });
+
 export default createPilingJs;
