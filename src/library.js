@@ -4027,8 +4027,20 @@ const createPilingJs = (
   const exportState = () => store.export();
 
   const importState = (newState, overwriteState = false) => {
+    // We assume that the user imports an already initialized state
+    isInitialPositioning = false;
+    let updateUnsubscriber;
+    const whenUpdated = new Promise((resolve) => {
+      updateUnsubscriber = pubSub.subscribe('update', ({ action }) => {
+        if (action.type.indexOf('OVERWRITE') >= 0) resolve();
+      });
+    });
     store.import(newState, overwriteState);
     resetPileBorder();
+    whenUpdated.then(() => {
+      pubSub.unsubscribe(updateUnsubscriber);
+    });
+    return whenUpdated;
   };
 
   const expandProperty = (objective) => {
