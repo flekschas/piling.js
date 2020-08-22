@@ -1,6 +1,6 @@
 ### Next
 
-- Add `createPilingJsFromState` as a named export to simplify the initialization of a piling.js instance from an existing state.
+- Add `createLibraryFromState` as a named export to simplify the initialization of a piling.js instance from an existing state.
 - Allow subsampling of previews
 - Allow initializing from previous state using `createPilingJs(element, { ... }, { initFromState: true })`
 - Return promise when running `importState()` that resolves once piling.js' state was overridden.

@@ -158,7 +158,7 @@ An array of objects with one required property `src` and other optional user-def
 
 ## Constructors
 
-### createPilingJs(_domElement_, _initialProperties_)
+### createLibrary(_domElement_, _initialProperties_)
 
 **Arguments:**
 
@@ -167,7 +167,7 @@ An array of objects with one required property `src` and other optional user-def
 
 **Returns:** a new piling instance.
 
-### createPilingJsFromState(_domElement_, _initialProperties_)
+### createLibraryFromState(_domElement_, _initialProperties_)
 
 **Arguments:**
 
