@@ -462,6 +462,20 @@ const setItems = (newItems) => ({
 
 const piles = (previousState = {}, action) => {
   switch (action.type) {
+    case 'SET_PILES': {
+      return Object.entries(action.payload.piles).reduce(
+        (newState, [pileId, pileState], index) => {
+          newState[pileId] = {
+            ...pileState,
+            id: pileId,
+            index: Number.isNaN(+pileState.index) ? index : +pileState.index,
+          };
+          return newState;
+        },
+        {}
+      );
+    }
+
     case 'INIT_PILES': {
       const useCustomItemId = action.payload.newItems.length
         ? typeof action.payload.newItems[0].id !== 'undefined'
@@ -636,6 +650,11 @@ const scatterPiles = (pilesToBeScattered) => ({
 const splitPiles = (pilesToBeSplit) => ({
   type: 'SPLIT_PILES',
   payload: { piles: pilesToBeSplit },
+});
+
+const setPiles = (newPiles) => ({
+  type: 'SET_PILES',
+  payload: { piles: newPiles },
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -823,6 +842,7 @@ export const createAction = {
   mergePiles,
   movePiles,
   scatterPiles,
+  setPiles,
   setCoverRenderer,
   setArrangementObjective,
   setArrangeOnGrouping,

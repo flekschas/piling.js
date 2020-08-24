@@ -95,7 +95,7 @@ const EXTRA_ROWS = 3;
 
 const l2RectDist = lRectDist(2);
 
-const createPilingJs = (rootElement, initOptions = {}) => {
+const createPilingJs = (rootElement, initProps = {}) => {
   const scrollContainer = document.createElement('div');
   scrollContainer.className = 'pilingjs-scroll-container';
   const scrollEl = document.createElement('div');
@@ -964,9 +964,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
 
     createRBush();
 
-    store.state.focusedPiles.forEach((focusedPile) => {
-      pileInstances.get(focusedPile).focus();
-    });
+    store.state.focusedPiles
+      .filter((pileId) => pileInstances.has(pileId))
+      .forEach((pileId) => {
+        pileInstances.get(pileId).focus();
+      });
 
     updateScrollHeight();
     renderRaf();
@@ -1120,9 +1122,15 @@ const createPilingJs = (rootElement, initOptions = {}) => {
           const newItem = createItem({ id, image, pubSub }, { preview });
 
           renderedItems.set(id, newItem);
-
+        });
+        // We cannot combine the two loops as we might have initialized
+        // piling.js with a predefined pile state. In that case a pile of
+        // with a lower index might rely on an item with a higher index that
+        // hasn't been created yet.
+        renderedImages.forEach((image, index) => {
+          const id = newItemIds[index];
           const pileState = piles[id];
-          createPileHandler(id, pileState);
+          if (pileState.items.length) createPileHandler(id, pileState);
         });
         scaleItems();
         renderRaf();
@@ -1392,6 +1400,8 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     const { piles, pileOrderItems } = store.state;
 
     const pileInstance = pileInstances.get(pileId);
+
+    if (!pileInstance) return;
 
     if (isFunction(pileOrderItems)) {
       const pileState = piles[pileId];
@@ -4013,8 +4023,20 @@ const createPilingJs = (rootElement, initOptions = {}) => {
   const exportState = () => store.export();
 
   const importState = (newState, overwriteState = false) => {
+    // We assume that the user imports an already initialized state
+    isInitialPositioning = false;
+    let updateUnsubscriber;
+    const whenUpdated = new Promise((resolve) => {
+      updateUnsubscriber = pubSub.subscribe('update', ({ action }) => {
+        if (action.type.indexOf('OVERWRITE') >= 0) resolve();
+      });
+    });
     store.import(newState, overwriteState);
     resetPileBorder();
+    whenUpdated.then(() => {
+      pubSub.unsubscribe(updateUnsubscriber);
+    });
+    return whenUpdated;
   };
 
   const expandProperty = (objective) => {
@@ -5111,7 +5133,11 @@ const createPilingJs = (rootElement, initOptions = {}) => {
     enableScrolling();
     enableInteractivity();
 
-    setPublic(initOptions);
+    setPublic(initProps);
+
+    if (!initProps.piles && initProps.items) {
+      store.dispatch(createAction.initPiles(initProps.items));
+    }
   };
 
   const destroy = () => {

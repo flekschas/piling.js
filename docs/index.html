@@ -105,6 +105,45 @@
         margin: 1em 0 0;
       }
 
+      .markdown-section h1:before {
+        content: '';
+        display: block;
+        padding-bottom: 0.5rem;
+        border-top: 2px solid var(--theme-color);
+      }
+
+      .markdown-section h1:first-child:before {
+        display: none;
+      }
+
+      .markdown-section h2:before {
+        content: '';
+        display: block;
+        padding-bottom: 0.25rem;
+        border-top: 1px solid var(--mono-shade3);
+      }
+
+      .markdown-section h2:first-child:before {
+        display: none;
+      }
+
+      .markdown-section h3 {
+        position: relative;
+      }
+
+      .markdown-section h3:before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: -1rem;
+        margin-top: -0.25rem;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 0.5rem;
+        background: var(--mono-shade3);
+      }
+
       #external-links a {
         color: var(--mono-tint1);
       }
