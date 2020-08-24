@@ -1,11 +1,15 @@
-### Next
+## Next
+
+_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.4...master)_
+
+## v0.7.4
 
 - Add `createLibraryFromState` as a named export to simplify the initialization of a piling.js instance from an existing state.
 - Allow subsampling of previews
 - Allow initializing from previous state using `createPilingJs(element, { ... }, { initFromState: true })`
 - Return promise when running `importState()` that resolves once piling.js' state was overridden.
 
-_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...master)_
+_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...v0.7.4)_
 
 ## v0.7.3
 
