@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.4...master)_
+_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.5...master)_
+
+## v0.7.5
+
+- Fix an issue when deleting/adding items.
+
+_[Changes since v0.7.4](https://github.com/flekschas/piling.js/compare/v0.7.4...v0.7.5)_
 
 ## v0.7.4
 

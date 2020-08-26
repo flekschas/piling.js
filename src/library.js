@@ -185,6 +185,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
         createAction.setItems(newItems),
         createAction.initPiles(newItems),
       ],
+      batchActions: true,
     },
     lassoFillColor: {
       set: createColorOpacityActions(
@@ -341,11 +342,15 @@ const createPilingJs = (rootElement, initProps = {}) => {
       console.warn(`Unknown property "${property}"`);
     }
 
-    if (!noDispatch && (!config || !config.noAction)) {
+    if (noDispatch || (config && config.noAction)) return actions;
+
+    if (config && config.batchActions) {
+      store.dispatch(batchActions(actions));
+    } else {
       actions.forEach((action) => store.dispatch(action));
     }
 
-    return actions;
+    return undefined;
   };
 
   const setPublic = (newProperty, newValue) => {
@@ -872,6 +877,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
       pile.items.forEach((itemId) => {
         const item = renderedItems.get(itemId);
+
+        if (!item) return;
 
         const scaleFactor = getImageScaleFactor(item.image);
         item.image.scale(scaleFactor);
