@@ -1143,13 +1143,11 @@ const createPile = (
       }
     } else {
       normalItemIndex.forEach((pileItem) => {
-        const newImage = pileItem.item.image;
-        pileItem.replaceImage(newImage);
+        pileItem.replaceImage(pileItem.item.image);
       });
       previewItemIndex.forEach((pileItem) => {
-        const newImage = pileItem.item.preview;
-        if (newImage) {
-          pileItem.replaceImage(newImage);
+        if (pileItem.item.preview) {
+          pileItem.replaceImage(pileItem.item.preview);
         } else {
           updateItemToNormal(pileItem.item);
         }
