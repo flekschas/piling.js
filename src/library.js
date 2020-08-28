@@ -127,7 +127,9 @@ const createPilingJs = (rootElement, initProps = {}) => {
     height: containerHeight,
   } = rootElement.getBoundingClientRect();
 
-  const renderer = new PIXI.Renderer({
+  let destroyed = false;
+
+  let renderer = new PIXI.Renderer({
     width: containerWidth,
     height: containerHeight,
     view: canvas,
@@ -146,7 +148,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
   let arranging = Promise.resolve();
 
-  const root = new PIXI.Container();
+  let root = new PIXI.Container();
 
   const stage = new PIXI.Container();
   root.addChild(stage);
@@ -3579,6 +3581,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
   };
 
   const updated = () => {
+    if (destroyed) return;
+
     const newState = store.state;
 
     const stateUpdates = new Set();
@@ -5148,6 +5152,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
   };
 
   const destroy = () => {
+    destroyed = true;
+
     // Remove event listeners
     window.removeEventListener('mousedown', mouseDownHandler);
     window.removeEventListener('mouseup', mouseUpHandler);
@@ -5163,7 +5169,11 @@ const createPilingJs = (rootElement, initProps = {}) => {
     canvas.removeEventListener('wheel', wheelHandler);
 
     store.reset();
+
+    root.destroy(true);
+    root = null;
     renderer.destroy(true);
+    renderer = null;
     lasso.destroy();
     badgeFactory.destroy();
 
