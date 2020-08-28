@@ -1,10 +1,20 @@
 ## Next
 
+_[Changes since v0.7.7](https://github.com/flekschas/piling.js/compare/v0.7.7...master)_
+
+## v0.7.7
+
+- Fix `piling.destroy()`
+
+_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.6...v0.7.7)_
+
+## v0.7.6
+
 - Enforce aggregators to return a promise
 - Fix preview scaling
 - Fix a regression introduced in #218
 
-_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.5...master)_
+_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.5...v0.7.6)_
 
 ## v0.7.5
 
