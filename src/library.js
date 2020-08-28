@@ -5172,7 +5172,9 @@ const createPilingJs = (rootElement, initProps = {}) => {
       storeUnsubscribor = undefined;
     }
 
-    rootElement.removeChild(scrollEl);
+    while (rootElement.firstChild) {
+      rootElement.firstChild.remove();
+    }
 
     pubSub.clear();
   };
