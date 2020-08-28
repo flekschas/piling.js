@@ -1031,7 +1031,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
       : null;
 
     const renderPreviews = aggregator
-      ? aggregator(itemList)
+      ? Promise.resolve(aggregator(itemList))
           .then(
             (aggregatedItemSources) =>
               new Promise((resolve) => {
@@ -1564,7 +1564,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
       return;
     }
 
-    const whenCoverImage = coverAggregator(itemsOnPile)
+    const whenCoverImage = Promise.resolve(coverAggregator(itemsOnPile))
       .then((aggregatedSrcs) => coverRenderer([aggregatedSrcs]))
       .then(([coverTexture]) => {
         const scaledImage = createScaledImage(coverTexture);
