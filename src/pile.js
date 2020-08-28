@@ -1191,7 +1191,8 @@ const createPile = (
   };
 
   const updateItemToPreview = (item) => {
-    if (hasItem(item, { asPreview: true })) return;
+    if (hasItem(item, { asPreview: true }) || !item.preview) return;
+
     const currentItem = getItemById(item.id);
     const previewItem = createPileItem({ image: item.preview, item, pubSub });
 
