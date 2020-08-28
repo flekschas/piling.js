@@ -307,9 +307,8 @@ const createPile = (
   const setBorderSize = (newBorderSize) => {
     borderSizeBase = +newBorderSize;
 
-    drawBorder();
-
     if (whenCover) {
+      drawBorder();
       // Wait until the cover is rendered
       whenCover.then(() => {
         drawBorder();
@@ -725,6 +724,41 @@ const createPile = (
     allItems.sort((a, b) => itemIdToIndex.get(a.id) - itemIdToIndex.get(b.id));
   };
 
+  const scalePreview = (previewItem, bounds) => {
+    const { piles, previewScaleToCover } = store.state;
+
+    const pileState = piles[id];
+
+    const [scaleWidthToCover, scaleHeightToCover] = isFunction(
+      previewScaleToCover
+    )
+      ? previewScaleToCover(pileState)
+      : previewScaleToCover;
+
+    const applyScale = (_bounds) => {
+      if (scaleWidthToCover === true) {
+        const scaleFactor = _bounds.width / previewItem.width;
+        previewItem.scale.x *= scaleFactor;
+        if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
+      } else if (scaleHeightToCover === true) {
+        const scaleFactor = _bounds.height / previewItem.height;
+        previewItem.scale.y *= scaleFactor;
+        if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
+      } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
+        previewItem.scale.x *= _bounds.width / previewItem.width;
+        previewItem.scale.y *= _bounds.height / previewItem.height;
+      }
+    };
+
+    if (bounds) {
+      applyScale(bounds);
+    } else if (whenCover) {
+      whenCover.then(applyScale);
+    } else {
+      applyScale(getContentBounds());
+    }
+  };
+
   const positionPreviews = (animator) => {
     const {
       piles,
@@ -732,7 +766,6 @@ const createPile = (
       previewItemOffset,
       previewOffset,
       previewSpacing,
-      previewScaleToCover,
     } = store.state;
     const pileState = piles[id];
 
@@ -748,12 +781,6 @@ const createPile = (
       const spacing = isFunction(previewSpacing)
         ? previewSpacing(pileState)
         : previewSpacing;
-
-      const [scaleWidthToCover, scaleHeightToCover] = isFunction(
-        previewScaleToCover
-      )
-        ? previewScaleToCover(pileState)
-        : previewScaleToCover;
 
       offset = offset !== null ? offset : spacing / 2;
 
@@ -771,18 +798,7 @@ const createPile = (
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        if (scaleWidthToCover === true) {
-          const scaleFactor = _cover.width / previewItem.width;
-          previewItem.scale.x *= scaleFactor;
-          if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
-        } else if (scaleHeightToCover === true) {
-          const scaleFactor = _cover.height / previewItem.height;
-          previewItem.scale.y *= scaleFactor;
-          if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
-        } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
-          previewItem.scale.x *= _cover.width / previewItem.width;
-          previewItem.scale.y *= _cover.height / previewItem.height;
-        }
+        scalePreview(previewItem, _cover);
 
         let itemOffset;
 
@@ -797,7 +813,7 @@ const createPile = (
                 (index === 0) * (-halfWidth - offset) +
                   prevOffset[0] -
                   prevSize[0] / 2 -
-                  item.preview.width / 2 -
+                  previewItem.width / 2 -
                   halfSpacing,
                 0,
               ];
@@ -808,7 +824,7 @@ const createPile = (
                 (index === 0) * (halfWidth + offset) +
                   prevOffset[0] +
                   prevSize[0] / 2 +
-                  item.preview.width / 2 +
+                  previewItem.width / 2 +
                   halfSpacing,
                 0,
               ];
@@ -820,7 +836,7 @@ const createPile = (
                 (index === 0) * (halfHeight + offset) +
                   prevOffset[1] +
                   prevSize[1] / 2 +
-                  item.preview.height / 2 +
+                  previewItem.height / 2 +
                   halfSpacing,
               ];
               break;
@@ -832,13 +848,13 @@ const createPile = (
                 (index === 0) * (-halfHeight - offset) +
                   prevOffset[1] -
                   prevSize[1] / 2 -
-                  item.preview.height / 2 -
+                  previewItem.height / 2 -
                   halfSpacing,
               ];
               break;
           }
           prevOffset = [...itemOffset];
-          prevSize = [item.preview.width, item.preview.height];
+          prevSize = [previewItem.width, previewItem.height];
         }
 
         item.preview.setBackgroundOpacity(0);
@@ -1211,6 +1227,7 @@ const createPile = (
     normalItemContainer.removeChildAt(
       normalItemContainer.getChildIndex(currentItem.displayObject)
     );
+    scalePreview(previewItem.displayObject);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 
@@ -1244,6 +1261,7 @@ const createPile = (
     newItems.add(previewItem);
     previewItemIndex.set(previewItem.id, previewItem);
     previewItemIdIndex.set(previewItem.displayObject, previewItem.id);
+    scalePreview(previewItem.displayObject);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 

@@ -1,5 +1,9 @@
 ## Next
 
+- Enforce aggregators to return a promise
+- Fix preview scaling
+- Fix a regression introduced in #218
+
 _[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.5...master)_
 
 ## v0.7.5
