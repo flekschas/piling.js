@@ -384,7 +384,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
   const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
-  const filterLayer = new PIXI.Container();
+  const filterLayer = new PIXI.Sprite(PIXI.Texture.WHITE);
 
   const clearActivePileLayer = () => {
     if (activePile.children.length) {
@@ -2027,7 +2027,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
       const pile = pileInstances.get(pileId);
 
       clearActivePileLayer();
-      filterLayer.removeChildren();
+      hideFilterLayer();
 
       const onDone = () => {
         pile.tempDepileContainer.removeChildren();
@@ -2138,14 +2138,15 @@ const createPilingJs = (rootElement, initProps = {}) => {
     });
   };
 
-  const AddFilterLayer = () => {
-    const blackSprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-    blackSprite.tint = store.state.darkMode ? 0x000000 : 0xffffff;
-    blackSprite.width = containerWidth;
-    blackSprite.height = containerHeight;
-    blackSprite.alpha = 0.9;
+  const showFilterLayer = () => {
+    filterLayer.tint = store.state.darkMode ? 0x000000 : 0xffffff;
+    filterLayer.width = containerWidth;
+    filterLayer.height = containerHeight;
+    filterLayer.alpha = 0.9;
+  };
 
-    filterLayer.addChild(blackSprite);
+  const hideFilterLayer = () => {
+    filterLayer.alpha = 0;
   };
 
   const tempDepile = (pileIds) => {
@@ -2160,7 +2161,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
       const pile = pileInstances.get(pileId);
 
       moveToActivePileLayer(pile.graphics);
-      AddFilterLayer();
+      showFilterLayer();
 
       pile.enableInteractivity();
 
