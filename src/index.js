@@ -17,10 +17,12 @@ export {
 
 export { default as createLibrary } from './library';
 
-export const createLibraryFromState = async (element, state) => {
+export const createLibraryFromState = async (element, state, options) => {
   const piling = createPilingJs(element);
-  await piling.importState(state);
+  await piling.importState(state, options);
   return piling;
 };
+
+export { deserializeState, serializeState } from './utils';
 
 export default createPilingJs;

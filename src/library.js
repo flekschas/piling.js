@@ -63,11 +63,13 @@ import {
 import {
   cloneSprite,
   colorToDecAlpha,
+  createScale,
+  deserializeState,
   getBBox,
   getItemProp,
   getPileProp,
   matchArrayPair,
-  createScale,
+  serializeState,
   toAlignment,
   toHomogeneous,
   uniqueStr,
@@ -382,6 +384,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
   const pileInstances = new Map();
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
+  const filterLayer = new PIXI.Sprite(PIXI.Texture.WHITE);
 
   const clearActivePileLayer = () => {
     if (activePile.children.length) {
@@ -436,6 +439,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
   stage.addChild(spatialIndexGfx);
   stage.addChild(lasso.fillContainer);
   stage.addChild(normalPiles);
+  stage.addChild(filterLayer);
   stage.addChild(activePile);
   stage.addChild(lasso.lineContainer);
 
@@ -2022,6 +2026,9 @@ const createPilingJs = (rootElement, initProps = {}) => {
     pileIds.forEach((pileId) => {
       const pile = pileInstances.get(pileId);
 
+      clearActivePileLayer();
+      hideFilterLayer();
+
       const onDone = () => {
         pile.tempDepileContainer.removeChildren();
         pile.isTempDepiled = false;
@@ -2131,6 +2138,17 @@ const createPilingJs = (rootElement, initProps = {}) => {
     });
   };
 
+  const showFilterLayer = () => {
+    filterLayer.tint = store.state.darkMode ? 0x000000 : 0xffffff;
+    filterLayer.width = containerWidth;
+    filterLayer.height = containerHeight;
+    filterLayer.alpha = 0.9;
+  };
+
+  const hideFilterLayer = () => {
+    filterLayer.alpha = 0;
+  };
+
   const tempDepile = (pileIds) => {
     const {
       piles,
@@ -2142,7 +2160,9 @@ const createPilingJs = (rootElement, initProps = {}) => {
     pileIds.forEach((pileId) => {
       const pile = pileInstances.get(pileId);
 
-      pile.animateOpacity(1);
+      moveToActivePileLayer(pile.graphics);
+      showFilterLayer();
+
       pile.enableInteractivity();
 
       const items = [...piles[pileId].items];
@@ -3817,13 +3837,11 @@ const createPilingJs = (rootElement, initProps = {}) => {
       if (newState.temporaryDepiledPiles.length) {
         pileInstances.forEach((otherPile) => {
           otherPile.disableInteractivity();
-          otherPile.animateOpacity(0.1);
         });
 
         tempDepile(newState.temporaryDepiledPiles);
       } else {
         pileInstances.forEach((otherPile) => {
-          otherPile.animateOpacity(1);
           otherPile.enableInteractivity();
         });
       }
@@ -4031,9 +4049,15 @@ const createPilingJs = (rootElement, initProps = {}) => {
     });
   };
 
-  const exportState = () => store.export();
+  const exportState = ({ serialize = false } = {}) => {
+    if (serialize) return serializeState(store.export());
+    return store.export();
+  };
 
-  const importState = (newState, overwriteState = false) => {
+  const importState = (
+    newState,
+    { deserialize = false, overwriteState = false } = {}
+  ) => {
     // We assume that the user imports an already initialized state
     isInitialPositioning = false;
     let updateUnsubscriber;
@@ -4042,7 +4066,10 @@ const createPilingJs = (rootElement, initProps = {}) => {
         if (action.type.indexOf('OVERWRITE') >= 0) resolve();
       });
     });
-    store.import(newState, overwriteState);
+    store.import(
+      deserialize ? deserializeState(newState) : newState,
+      overwriteState
+    );
     resetPileBorder();
     whenUpdated.then(() => {
       pubSub.unsubscribe(updateUnsubscriber);
