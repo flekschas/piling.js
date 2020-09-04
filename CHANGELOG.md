@@ -1,6 +1,7 @@
 ## Next
 
 - Add state serialization options via `exportState({ serialize: true })`
+- Export image class `createImage()`
 - Fix opacity issues on temporary depiling (#198 and #204)
 
 _[Changes since v0.7.7](https://github.com/flekschas/piling.js/compare/v0.7.7...master)_

@@ -15,6 +15,8 @@ export {
   createSvgRenderer,
 } from './renderer';
 
+export { default as createImage } from './image';
+
 export { default as createLibrary } from './library';
 
 export const createLibraryFromState = async (element, state, options) => {
