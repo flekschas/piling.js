@@ -1,6 +1,6 @@
 import { isObject } from '@flekschas/utils';
 
-const isNdarray = a =>
+const isNdarray = (a) =>
   isObject(a) &&
   a.data &&
   (a.data.constructor === Float32Array || a.data.constructor === Uint8Array) &&

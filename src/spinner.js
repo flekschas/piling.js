@@ -2,7 +2,7 @@ import {
   createHtmlByTemplate,
   pipe,
   withConstructor,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 
 import { ifNotNull } from './utils';
@@ -96,7 +96,7 @@ const createSpinner = (darkMode = false) => {
     withStaticProperty('element', element),
     withConstructor(createSpinner)
   )({
-    set
+    set,
   });
 };
 

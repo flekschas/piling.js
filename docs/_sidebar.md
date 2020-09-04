@@ -9,7 +9,7 @@
 
 - [**Library**](/docs/?id=library)
 
-  - [Constructor](/docs/?id=constructor)
+  - [Constructors](/docs/?id=constructors)
   - [Methods](/docs/?id=methods)
   - [Properties](/docs/?id=properties)
   - [Events](/docs/?id=events)

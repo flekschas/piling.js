@@ -24,7 +24,7 @@ const create = async (element, darkMode) => {
   const svgRenderer = createSvgRenderer({
     width: itemWidth,
     height: itemHeight,
-    color: darkMode ? '#333' : '#ccc'
+    color: darkMode ? '#333' : '#ccc',
   });
   const numBins = data[0][0].length;
   const barWidth = 100 / numBins;
@@ -42,12 +42,13 @@ const create = async (element, darkMode) => {
     'Sep',
     'Oct',
     'Nov',
-    'Dec'
+    'Dec',
   ];
 
   const createSvgStart = () =>
-    `<svg viewBox="0 0 100 ${absHeight +
-      tickHeight}" xmlns="http://www.w3.org/2000/svg">`;
+    `<svg viewBox="0 0 100 ${
+      absHeight + tickHeight
+    }" xmlns="http://www.w3.org/2000/svg">`;
 
   const createGradient = (name, startColor, midColor, endColor) => `<defs>
   <linearGradient id="${name}" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -61,9 +62,9 @@ const create = async (element, darkMode) => {
 
   const createLine = line()
     .x((_, i) => barHalf + barWidth * i)
-    .y(d => absHeight - absHeight * d);
+    .y((d) => absHeight - absHeight * d);
 
-  const createPath = kde => {
+  const createPath = (kde) => {
     const path = createLine(kde);
     return `<path d="M${absHeight},0${path}L100,${absHeight}L" stroke="url(#linear-stroke)" stroke-size="1" fill="url(#linear-fill)"/>`;
   };
@@ -76,16 +77,16 @@ const create = async (element, darkMode) => {
   </div>
 </foreignObject>`;
 
-  const createAxis = ticks => {
-    const tickEls = ticks.map(tick => {
+  const createAxis = (ticks) => {
+    const tickEls = ticks.map((tick) => {
       const x = ((tick - fromX) / domainSize) * 100;
       return `<line x1="${x}" y1="0" x2="${x}" y2="${tickHeight}" stroke="black" opacity="0.33" />`;
     });
     return `<g transform="translate(0 ${absHeight})">${tickEls.join('')}</g>`;
   };
 
-  const getAvgTemp = hist =>
-    fromX + (hist.findIndex(x => x === 1) + 0.5) * stepSize;
+  const getAvgTemp = (hist) =>
+    fromX + (hist.findIndex((x) => x === 1) + 0.5) * stepSize;
 
   const fillColorRange = darkMode
     ? ['#245280', '#333333', '#804118']
@@ -117,7 +118,7 @@ const create = async (element, darkMode) => {
         decade: years,
         month: months[numMonth],
         numMonth,
-        numDecade
+        numDecade,
       };
     })
   );
@@ -133,8 +134,8 @@ const create = async (element, darkMode) => {
     pileItemOffset: [0, 8],
     pileItemBrightness: (_, i, pile) =>
       Math.min(0.5, 0.01 * (pile.items.length - i - 1)),
-    pileScale: pile => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
-    pileOrderItems: pile => [...pile.items].sort((a, b) => a - b)
+    pileScale: (pile) => 1 + Math.min(0.5, (pile.items.length - 1) * 0.1),
+    pileOrderItems: (pile) => [...pile.items].sort((a, b) => a - b),
   });
 
   piling.arrangeBy('data', 'numDecade');

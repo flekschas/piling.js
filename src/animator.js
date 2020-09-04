@@ -24,7 +24,7 @@ const createAnimator = (render, pubSub) => {
   };
 
   const onDone = () => {
-    doneTweeners.forEach(tweener => tweener.onDone());
+    doneTweeners.forEach((tweener) => tweener.onDone());
     doneTweeners = [];
   };
 
@@ -32,20 +32,20 @@ const createAnimator = (render, pubSub) => {
     const tobeInvoked = doneTweeners.slice(0, PARTIAL_ON_DONE_BATCH_SIZE);
     doneTweeners.splice(0, PARTIAL_ON_DONE_BATCH_SIZE);
 
-    tobeInvoked.forEach(tweener => tweener.onDone());
+    tobeInvoked.forEach((tweener) => tweener.onDone());
   };
 
   const onDonePartialDb = throttleAndDebounce(onDonePartial, 50);
 
   const animate = () => {
     isAnimating = true;
-    activeTweeners.forEach(tweener => {
+    activeTweeners.forEach((tweener) => {
       if (tweener.update()) doneTweeners.push(tweener);
     });
     render();
 
     // Remove tweeners that are done updating
-    doneTweeners.forEach(tweener => activeTweeners.delete(tweener));
+    doneTweeners.forEach((tweener) => activeTweeners.delete(tweener));
 
     // Partially invoke onDone();
     onDonePartialDb();
@@ -53,28 +53,28 @@ const createAnimator = (render, pubSub) => {
 
   const animateRaf = withRaf(animate, onCall);
 
-  const add = tweener => {
+  const add = (tweener) => {
     activeTweeners.add(tweener);
     tweener.register();
     animateRaf();
   };
 
-  const addBatch = tweeners => {
-    tweeners.forEach(tweener => {
+  const addBatch = (tweeners) => {
+    tweeners.forEach((tweener) => {
       activeTweeners.add(tweener);
       tweener.register();
     });
     animateRaf();
   };
 
-  const cancel = tweener => {
+  const cancel = (tweener) => {
     activeTweeners.delete(tweener);
   };
 
   return {
     add,
     addBatch,
-    cancel
+    cancel,
   };
 };
 

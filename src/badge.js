@@ -3,7 +3,7 @@ import {
   pipe,
   toVoid,
   withConstructor,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -23,7 +23,7 @@ const createBadge = (
       fontFamily: 'sans-serif',
       fontSize: fontSize * window.devicePixelRatio,
       fill: 0xffffff,
-      align: 'center'
+      align: 'center',
     });
     pixiText.updateText();
     texture = pixiText.texture;
@@ -41,16 +41,16 @@ const createBadge = (
   image.displayObject.height /= window.devicePixelRatio;
 
   let destroyed = false;
-  const withDestroy = () => self =>
+  const withDestroy = () => (self) =>
     assign(self, {
       destroy() {
         if (destroyed) return;
         destroyed = true;
         onDestroy();
-      }
+      },
     });
 
-  const setDarkMode = newDarkMode => {
+  const setDarkMode = (newDarkMode) => {
     image.invert(newDarkMode);
     backgroundFactory.setColor(newDarkMode ? [1, 1, 1, 1] : [0, 0, 0, 1]);
   };
@@ -65,7 +65,7 @@ const createBadge = (
     withClone(texture, { backgroundFactory, fontSize, darkMode, onDestroy }),
     withDestroy()
   )({
-    setDarkMode
+    setDarkMode,
   });
 };
 

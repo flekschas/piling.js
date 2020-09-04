@@ -26,7 +26,7 @@ export const INHERIT = 'inherit';
 export const INITIAL_ARRANGEMENT_TYPE = 'index';
 export const INITIAL_ARRANGEMENT_OBJECTIVE = {
   property: (pileState, i) => i,
-  isCustom: true
+  isCustom: true,
 };
 
 export const DEFAULT_POPUP_BACKGROUND_OPACITY = 0.85;
@@ -47,7 +47,7 @@ export const NAVIGATION_MODE_SCROLL = 'scroll';
 export const NAVIGATION_MODES = [
   NAVIGATION_MODE_AUTO,
   NAVIGATION_MODE_PAN_ZOOM,
-  NAVIGATION_MODE_SCROLL
+  NAVIGATION_MODE_SCROLL,
 ];
 
 export const DEFAULT_PILE_COVER_SCALE = 1.0;
@@ -65,11 +65,11 @@ export const DEFAULT_COLOR_MAP = [
   '#F0E442', // yellow
   '#0072B2', // blue
   '#D55E00', // vermillion
-  '#CC79A7' // reddish purple
+  '#CC79A7', // reddish purple
 ];
 
 export const UNKNOWN_LABEL = {
-  color: '#808080'
+  color: '#808080',
 };
 
 export const POSITION_PILES_DEBOUNCE_TIME = 100;

@@ -4,13 +4,13 @@ const createStylesheet = () => {
 
   const stylesheets = styleEl.sheet;
 
-  const addRule = rule => {
+  const addRule = (rule) => {
     const currentNumRules = stylesheets.length;
     stylesheets.insertRule(rule, currentNumRules);
     return currentNumRules;
   };
 
-  const removeRule = index => {
+  const removeRule = (index) => {
     stylesheets.deleteRule(index);
   };
 
@@ -21,7 +21,7 @@ const createStylesheet = () => {
   return {
     addRule,
     destroy,
-    removeRule
+    removeRule,
   };
 };
 

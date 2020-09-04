@@ -17,7 +17,7 @@ void main(void){
 `;
 
 const BrightenTintBatchRenderer = PIXI.BatchPluginFactory.create({
-  fragment: BRIGHTEN_FS
+  fragment: BRIGHTEN_FS,
 });
 PIXI.Renderer.registerPlugin('brighten-tint', BrightenTintBatchRenderer);
 
@@ -35,11 +35,11 @@ void main(void){
 `;
 
 const InvertBatchRenderer = PIXI.BatchPluginFactory.create({
-  fragment: INVERT_FS
+  fragment: INVERT_FS,
 });
 PIXI.Renderer.registerPlugin('invert', InvertBatchRenderer);
 
-const withColorFilters = sprite => self => {
+const withColorFilters = (sprite) => (self) => {
   let brightness = 0;
 
   return assign(self, {
@@ -76,7 +76,7 @@ const withColorFilters = sprite => self => {
           : colorToDecAlpha(value, null)[0];
 
       sprite.tint = color;
-    }
+    },
   });
 };
 

@@ -1,6 +1,6 @@
 import { assign } from '@flekschas/utils';
 
-const withSize = (sprite, width, height) => self =>
+const withSize = (sprite, width, height) => (self) =>
   assign(self, {
     get aspectRatio() {
       return sprite.width / sprite.height;
@@ -22,7 +22,7 @@ const withSize = (sprite, width, height) => self =>
     },
     get originalWidth() {
       return width;
-    }
+    },
   });
 
 export default withSize;

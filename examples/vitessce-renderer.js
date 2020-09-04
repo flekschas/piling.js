@@ -10,7 +10,7 @@ const DEFAULT_COLORS = [
   [255, 0, 0],
   [0, 255, 0],
   [0, 0, 255],
-  [255, 128, 0]
+  [255, 128, 0],
 ];
 
 // prettier-ignore
@@ -26,7 +26,7 @@ const createVitessceRenderer = (
   {
     darkMode = false,
     domains: customDomains = null,
-    colors: customColors = []
+    colors: customColors = [],
   } = {}
 ) => {
   const geometry = new PIXI.Geometry();
@@ -50,34 +50,34 @@ const createVitessceRenderer = (
 
   let allUniforms = [];
 
-  const renderer = async sources =>
+  const renderer = async (sources) =>
     Promise.all(
-      sources.map(async source => {
+      sources.map(async (source) => {
         const channels = await getData(source);
 
         const [height, width] = channels[0].shape;
 
-        const createTexture = data => {
+        const createTexture = (data) => {
           const resource = new CustomBufferResource(data, {
             width,
             height,
             internalFormat: 'R32F',
             format: 'RED',
-            type: 'FLOAT'
+            type: 'FLOAT',
           });
 
           return new PIXI.Texture(
             new PIXI.BaseTexture(resource, {
-              scaleMode: PIXI.SCALE_MODES.NEAREST
+              scaleMode: PIXI.SCALE_MODES.NEAREST,
             })
           );
         };
 
         const valueRanges =
           domains === null
-            ? channels.flatMap(tensor => [
+            ? channels.flatMap((tensor) => [
                 min(tensor.values),
-                max(tensor.values)
+                max(tensor.values),
               ])
             : domains;
 
@@ -91,7 +91,7 @@ const createVitessceRenderer = (
           uComboModifier: darkMode ? 1.0 : -1.0, // addition vs substraction
           uColors: colors,
           uDomains: valueRanges,
-          ...textures
+          ...textures,
         });
 
         allUniforms.push(uniforms);
@@ -122,7 +122,7 @@ const createVitessceRenderer = (
   return {
     clear,
     renderer,
-    setColor
+    setColor,
   };
 };
 

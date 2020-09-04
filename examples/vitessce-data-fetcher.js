@@ -2,7 +2,7 @@ import {
   getExactData,
   getZarr,
   getZarrMetadata,
-  getRasterTileIndices
+  getRasterTileIndices,
 } from './vitessce-utils';
 
 const createDataFetcher = async ({ channels, minZoom }) => {
@@ -10,21 +10,21 @@ const createDataFetcher = async ({ channels, minZoom }) => {
     connections,
     imageHeight,
     imageWidth,
-    tileSize
+    tileSize,
   } = await getZarrMetadata({
     channels,
-    minZoom
+    minZoom,
   });
 
   const getData = getZarr(connections);
 
-  return viewport => {
+  return (viewport) => {
     const tileIndices = getRasterTileIndices({
       viewport,
       imageHeight,
       imageWidth,
       tileSize,
-      minZoom
+      minZoom,
     });
 
     return getExactData({
@@ -32,7 +32,7 @@ const createDataFetcher = async ({ channels, minZoom }) => {
       tileIndices,
       getData,
       viewport,
-      tileSize
+      tileSize,
     });
   };
 };

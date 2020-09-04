@@ -82,10 +82,7 @@
       }
 
       window.example = urlParams.has('example')
-        ? urlParams
-            .get('example')
-            .split(' ')[0]
-            .toLowerCase()
+        ? urlParams.get('example').split(' ')[0].toLowerCase()
         : null;
     </script>
   </head>
@@ -117,7 +114,7 @@
           window.permanentOptions,
           window.mode,
           window.fullscreen,
-          optionsToggled
+          optionsToggled,
         ].join(' ')
       );
     </script>
@@ -156,13 +153,13 @@
               >
             </select>
             <div class="credits">
-              <em id="photos-credit" style="display: none">
+              <em id="photos-credit" style="display: none;">
                 (Data from the
                 <a href="http://cocodataset.org" target="_blank"
                   >Lin et al., 2014</a
                 >)
               </em>
-              <em id="matrices-credit" style="display: none">
+              <em id="matrices-credit" style="display: none;">
                 (Data from
                 <a href="http://hipiler.higlass.io" target="_blank"
                   >Lekschas et al., 2018</a
@@ -176,7 +173,7 @@
                   >Johns Hopkins University</a
                 >)</em
               >
-              <em id="drawings-credit" style="display: none">
+              <em id="drawings-credit" style="display: none;">
                 (Data from
                 <a
                   href="https://github.com/googlecreativelab/quickdraw-dataset"
@@ -184,32 +181,30 @@
                   >Google Quickdraw Dataset</a
                 >)
               </em>
-              <em id="ridgeplot-credit" style="display: none">
+              <em id="ridgeplot-credit" style="display: none;">
                 (Data from
                 <a href="https://data.giss.nasa.gov/gistemp/" target="_blank"
                   >NASA GISTEMP</a
                 >)
               </em>
-              <em id="vitessce-credit" style="display: none">
+              <em id="vitessce-credit" style="display: none;">
                 (Data from
                 <a href="http://linnarssonlab.org/osmFISH/" target="_blank"
                   >Codeluppi et al., 2018</a
                 >
                 based on
-                <a
-                  href="https://github.com/hubmapconsortium/vitessce-image-viewer"
-                  target="_blank"
-                  >Vitessce Image Viewer</a
+                <a href="https://github.com/hms-dbmi/viv" target="_blank"
+                  >Viv</a
                 >
                 )
               </em>
-              <em id="scatterplots-credit" style="display: none">
+              <em id="scatterplots-credit" style="display: none;">
                 (Data from
                 <a href="https://data.worldbank.org/" target="_blank"
                   >World Bank Open Data</a
                 >)
               </em>
-              <em id="timeseries-credit" style="display: none">
+              <em id="timeseries-credit" style="display: none;">
                 (From
                 <a
                   href="https://www.youtube.com/watch?v=pz2DsQeF_UM"
@@ -222,7 +217,7 @@
                 >
                 )
               </em>
-              <em id="books-credit" style="display: none"></em>
+              <em id="books-credit" style="display: none;"></em>
             </div>
           </div>
         </div>

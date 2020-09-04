@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import createPilingJs from '../src/library';
 import createScatterplotRenderer, {
-  DEFAULT_COLOR_RANGE
+  DEFAULT_COLOR_RANGE,
 } from './scatterplot-renderer';
 import createScatterplotCoverAggregator from './scatterplot-cover-aggregator';
 import createScatterplotPreviewAggregator from './scatterplot-preview-aggregator';
@@ -14,7 +14,7 @@ const colorRangeDarkMode = [
   '#e5d500',
   '#c17da5',
   '#295fcc',
-  '#d55e00'
+  '#d55e00',
 ];
 
 const createScatterplotPiles = async (element, darkMode = false) => {
@@ -30,10 +30,10 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     'Middle East & North Africa': 3,
     'Sub-Saharan Africa': 4,
     'South Asia': 5,
-    'East Asia & Pacific': 6
+    'East Asia & Pacific': 6,
   };
 
-  Object.keys(regionOrderIndex).forEach(region => {
+  Object.keys(regionOrderIndex).forEach((region) => {
     Object.entries(data[region]).forEach(([year, countries]) => {
       items.push({
         region,
@@ -42,8 +42,8 @@ const createScatterplotPiles = async (element, darkMode = false) => {
           region,
           year: +year,
           countryCode,
-          ...country
-        }))
+          ...country,
+        })),
       });
     });
   });
@@ -76,17 +76,17 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     lineColor,
     tickColor,
     textColor,
-    dotSizeRange
+    dotSizeRange,
   });
   const coverAggregator = createScatterplotCoverAggregator();
   const previewAggregator = createScatterplotPreviewAggregator();
   const previewRenderer = createScatterplotPreviewRenderer({
     width: previewWidth,
-    height: previewHeight
+    height: previewHeight,
   });
 
-  const pileOrderItems = pileState => {
-    const itemStates = pileState.items.map(itemId => {
+  const pileOrderItems = (pileState) => {
+    const itemStates = pileState.items.map((itemId) => {
       return { ...items[itemId], id: itemId };
     });
     itemStates.sort((a, b) => {
@@ -95,7 +95,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
       }
       return regionOrderIndex[a.region] - regionOrderIndex[b.region];
     });
-    return itemStates.map(item => item.id);
+    return itemStates.map((item) => item.id);
   };
 
   const previewItemYOffset = d3.scaleLinear();
@@ -143,7 +143,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     cellAspectRatio,
     pileOrderItems,
     previewItemOffset,
-    previewScaling: pile => {
+    previewScaling: (pile) => {
       const regionCount = pile.items.reduce((count, itemId) => {
         if (!count[items[itemId].region]) count[items[itemId].region] = 1;
         count[items[itemId].region] += 1;
@@ -154,10 +154,10 @@ const createScatterplotPiles = async (element, darkMode = false) => {
         Math.min(
           1,
           height / Math.max(...Object.values(regionCount)) / (previewHeight + 4)
-        )
+        ),
       ];
     },
-    zoomScale: x => x
+    zoomScale: (x) => x,
   });
 
   piling.arrangeBy('data', 'year', { once: true });

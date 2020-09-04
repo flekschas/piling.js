@@ -17,12 +17,12 @@ const svgToImg = (
 
     const colorStyle = color && `color: ${color}`;
     const backgroundStyle = background && `background: ${background}`;
-    const styles = [colorStyle, backgroundStyle].filter(s => s);
+    const styles = [colorStyle, backgroundStyle].filter((s) => s);
     const style = `style="${styles.join('; ')}"`;
 
     const widthAttr = width && `width="${width}"`;
     const heightAttr = height && `height="${height}"`;
-    const attrs = [widthAttr, heightAttr].filter(s => s).join(' ');
+    const attrs = [widthAttr, heightAttr].filter((s) => s).join(' ');
 
     svgStr = `${svgStr.slice(0, 5)} ${attrs} ${style} ${svgStr.slice(5)}`;
 
@@ -32,14 +32,14 @@ const svgToImg = (
     image.onload = () => {
       resolve(image);
     };
-    image.onerror = error => {
+    image.onerror = (error) => {
       reject(error);
     };
 
     image.src = image64;
   });
 
-const createSvgRenderer = options => sources =>
-  Promise.all(sources.map(src => svgToImg(src, options)));
+const createSvgRenderer = (options) => (sources) =>
+  Promise.all(sources.map((src) => svgToImg(src, options)));
 
 export default createSvgRenderer;

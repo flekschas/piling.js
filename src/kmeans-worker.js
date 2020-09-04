@@ -2,16 +2,16 @@
 /* eslint no-restricted-globals: 1 */
 
 const worker = function worker() {
-  const error = message => ({ error: new Error(message) });
+  const error = (message) => ({ error: new Error(message) });
 
-  const identity = x => x;
+  const identity = (x) => x;
 
   self.onmessage = function onmessage(event) {
     const { initialization, k, maxIterations, items, scripts } = event.data;
 
     // Import the skmeans
     try {
-      scripts.forEach(scriptUrl => {
+      scripts.forEach((scriptUrl) => {
         importScripts(scriptUrl);
       });
     } catch (err) {
@@ -47,7 +47,7 @@ const worker = function worker() {
         self.postMessage({
           centroids: results.centroids,
           labels: results.idxs,
-          postProcessing
+          postProcessing,
         });
       } catch (err) {
         self.postMessage(error(`Failed to run k-means++: ${err}`));

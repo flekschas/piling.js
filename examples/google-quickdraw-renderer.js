@@ -18,14 +18,14 @@ const renderStroke = (ctx, strokes, size) => {
   return new Uint8Array(ctx.getImageData(0, 0, size, size).data.buffer);
 };
 
-const createGoogleQuickDrawRenderer = (size = 64) => sources => {
+const createGoogleQuickDrawRenderer = (size = 64) => (sources) => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
 
   return Promise.resolve(
-    sources.map(src =>
+    sources.map((src) =>
       PIXI.Texture.fromBuffer(renderStroke(ctx, src, size), size, size)
     )
   );

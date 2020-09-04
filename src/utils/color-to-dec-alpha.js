@@ -12,7 +12,7 @@ const colorToDecAlpha = (color, defaultAlpha = 1) => {
           // eslint-disable-next-line no-bitwise
           .map((x, i) => +x << (8 * (2 - i)))
           .reduce((x, sum) => sum + x, 0),
-        Number.isNaN(+matches[4]) ? 1 : +matches[4]
+        Number.isNaN(+matches[4]) ? 1 : +matches[4],
       ];
     }
 
@@ -24,7 +24,7 @@ const colorToDecAlpha = (color, defaultAlpha = 1) => {
         // eslint-disable-next-line no-bitwise
         .map((x, i) => +x << (8 * (2 - i)))
         .reduce((x, dec) => dec + x, 0),
-      defaultAlpha
+      defaultAlpha,
     ];
   }
 

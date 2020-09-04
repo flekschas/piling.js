@@ -6,7 +6,7 @@ import {
   isFunction,
   l2PointDist,
   mergeMaps,
-  toVoid
+  toVoid,
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -17,7 +17,7 @@ import {
   cloneSprite,
   colorToDecAlpha,
   getItemProp,
-  getPileProp
+  getPileProp,
 } from './utils';
 
 import { BLACK, EPS, INHERIT, WHITE } from './defaults';
@@ -34,7 +34,7 @@ modeToString.set(MODE_HOVER, 'Hover');
 modeToString.set(MODE_FOCUS, 'Focus');
 modeToString.set(MODE_ACTIVE, 'Active');
 
-const alignToXMod = align => {
+const alignToXMod = (align) => {
   switch (align) {
     case 'left':
       return 0;
@@ -47,7 +47,7 @@ const alignToXMod = align => {
   }
 };
 
-const alignToYMod = align => {
+const alignToYMod = (align) => {
   switch (align) {
     case 'top':
       return 0;
@@ -120,12 +120,12 @@ const createPile = (
   const destroy = () => {
     if (previousSizeBadge) previousSizeBadge.destroy();
     rootContainer.destroy();
-    pubSubSubscribers.forEach(subscriber => {
+    pubSubSubscribers.forEach((subscriber) => {
       pubSub.unsubscribe(subscriber);
     });
   };
 
-  const clonePileItemSprite = pileItem => {
+  const clonePileItemSprite = (pileItem) => {
     const clonedSprite = cloneSprite(pileItem.item.image.displayObject);
     if (cover) {
       clonedSprite.x = coverContainer.x;
@@ -150,7 +150,7 @@ const createPile = (
           const {
             previewBorderColor,
             previewBorderOpacity,
-            items
+            items,
           } = store.state;
           const index = allItems.indexOf(item);
           const borderColor = getItemProp(
@@ -164,11 +164,9 @@ const createPile = (
             index
           );
 
-          item.image.drawBackground(
-            getForegroundColor(borderColor),
-            borderOpacity,
-            true
-          );
+          item.image.setBackgroundColor(getForegroundColor(borderColor));
+          item.image.setBackgroundOpacity(borderOpacity);
+          item.image.rescaleBackground(true);
           hoverPreviewContainer.addChild(item.displayObject);
         }
         render();
@@ -183,7 +181,7 @@ const createPile = (
     return darkMode ? BLACK : WHITE;
   };
 
-  const getForegroundColor = color => {
+  const getForegroundColor = (color) => {
     if (color !== null) return color;
     return store.state.darkMode ? WHITE : BLACK;
   };
@@ -200,7 +198,7 @@ const createPile = (
           previewBackgroundOpacity,
           pileBackgroundOpacity,
           items,
-          piles
+          piles,
         } = store.state;
         const index = allItems.indexOf(item);
 
@@ -210,11 +208,15 @@ const createPile = (
           previewBackgroundColor === INHERIT
             ? pileBackgroundColor
             : getItemProp(previewBackgroundColor, items[item.id], index);
+
         const backgroundOpacity =
           previewBackgroundOpacity === INHERIT
             ? getPileProp(pileBackgroundOpacity, piles[id])
             : getItemProp(previewBackgroundOpacity, items[item.id], index);
-        item.image.drawBackground(backgroundColor, backgroundOpacity);
+
+        item.image.setBackgroundColor(backgroundColor);
+        item.image.setBackgroundOpacity(backgroundOpacity);
+
         previewItemContainer.addChild(item.displayObject);
       }
       render();
@@ -234,7 +236,7 @@ const createPile = (
       x: contentBounds.x - borderBounds.x,
       y: contentBounds.y - borderBounds.y,
       width: contentBounds.width,
-      height: contentBounds.height
+      height: contentBounds.height,
     };
 
     return pileBounds;
@@ -289,7 +291,7 @@ const createPile = (
   };
 
   let isShowSizeBadge = false;
-  const showSizeBadge = show => {
+  const showSizeBadge = (show) => {
     isShowSizeBadge = show;
     if (isShowSizeBadge) {
       drawSizeBadge();
@@ -302,12 +304,11 @@ const createPile = (
 
   let borderSizeBase = 0;
 
-  const setBorderSize = newBorderSize => {
+  const setBorderSize = (newBorderSize) => {
     borderSizeBase = +newBorderSize;
 
-    drawBorder();
-
     if (whenCover) {
+      drawBorder();
       // Wait until the cover is rendered
       whenCover.then(() => {
         drawBorder();
@@ -438,7 +439,7 @@ const createPile = (
   };
 
   let isHover = false;
-  const onPointerOver = event => {
+  const onPointerOver = (event) => {
     isHover = true;
 
     pubSub.publish('pileEnter', { target: store.state.piles[id], event });
@@ -463,7 +464,7 @@ const createPile = (
     }
   };
 
-  const onPointerOut = event => {
+  const onPointerOut = (event) => {
     if (rootContainer.isDragging) return;
     isHover = false;
 
@@ -486,14 +487,14 @@ const createPile = (
 
   let dragMove;
 
-  const onDragStart = event => {
+  const onDragStart = (event) => {
     if (event.data.button === 2) return;
 
     // first get the offset from the Pointer position to the current pile.x and pile.y
     // And store it (draggingMouseOffset = [x, y])
     rootContainer.draggingMouseOffset = [
       event.data.getLocalPosition(rootContainer.parent).x - rootContainer.x,
-      event.data.getLocalPosition(rootContainer.parent).y - rootContainer.y
+      event.data.getLocalPosition(rootContainer.parent).y - rootContainer.y,
     ];
     rootContainer.alpha = 1;
     rootContainer.isDragging = true;
@@ -504,7 +505,7 @@ const createPile = (
     pubSub.publish('pileDragStart', { target: store.state.piles[id], event });
   };
 
-  const onDragEnd = event => {
+  const onDragEnd = (event) => {
     if (event.data.button === 2) return;
 
     if (!rootContainer.isDragging) return;
@@ -517,7 +518,7 @@ const createPile = (
     }
   };
 
-  const onDragMove = event => {
+  const onDragMove = (event) => {
     if (event.data.button === 2) return;
 
     if (rootContainer.isDragging) {
@@ -587,7 +588,7 @@ const createPile = (
       minX: bounds.x - xOffset,
       minY: bounds.y - yOffset,
       maxX: bounds.x + bounds.width - xOffset,
-      maxY: bounds.y + bounds.height - yOffset
+      maxY: bounds.y + bounds.height - yOffset,
     });
   };
 
@@ -606,7 +607,7 @@ const createPile = (
       minX: bounds.x - xOffset,
       minY: bounds.y - yOffset,
       maxX: bounds.x + bounds.width - xOffset,
-      maxY: bounds.y + bounds.height - yOffset
+      maxY: bounds.y + bounds.height - yOffset,
     });
   };
 
@@ -620,13 +621,13 @@ const createPile = (
   };
 
   const getOpacity = () => rootContainer.alpha;
-  const setOpacity = newOpacity => {
+  const setOpacity = (newOpacity) => {
     rootContainer.alpha = newOpacity;
   };
 
   let opacityTweener;
   // eslint-disable-next-line consistent-return
-  const animateOpacity = newOpacity => {
+  const animateOpacity = (newOpacity) => {
     const d = Math.abs(newOpacity - getOpacity());
 
     if (d < 1 / 100) {
@@ -647,12 +648,12 @@ const createPile = (
       interpolator: interpolateNumber,
       endValue: newOpacity,
       getter: getOpacity,
-      setter: setOpacity
+      setter: setOpacity,
     });
     pubSub.publish('startAnimation', opacityTweener);
   };
 
-  const setVisibilityItems = visibility => {
+  const setVisibilityItems = (visibility) => {
     normalItemContainer.visible = visibility;
     previewItemContainer.visible = visibility;
   };
@@ -679,9 +680,9 @@ const createPile = (
         itemSprite.x,
         itemSprite.y,
         itemSprite.scale.x,
-        itemSprite.angle
+        itemSprite.angle,
       ],
-      setter: newValue => {
+      setter: (newValue) => {
         itemSprite.x = newValue[0];
         itemSprite.y = newValue[1];
         itemSprite.scale.x = newValue[2];
@@ -694,25 +695,25 @@ const createPile = (
           isPositioning = false;
           drawBorder();
           drawLabel();
-          postPilePositionAnimation.forEach(fn => {
+          postPilePositionAnimation.forEach((fn) => {
             fn();
           });
           postPilePositionAnimation.clear();
           pubSub.publish('updatePileBounds', { id });
           if (isPlaceholderDrawn) removePlaceholder();
         }
-      }
+      },
     });
     animator.add(tweener);
   };
 
-  const setItemOrder = itemIds => {
+  const setItemOrder = (itemIds) => {
     const itemIdToIndex = new Map();
     itemIds.forEach((itemId, index) => {
       itemIdToIndex.set(itemId.toString(), index);
     });
 
-    const sortFunc = index => (a, b) => {
+    const sortFunc = (index) => (a, b) => {
       const id1 = index.get(a);
       const id2 = index.get(b);
       return itemIdToIndex.get(id1) - itemIdToIndex.get(id2);
@@ -723,18 +724,52 @@ const createPile = (
     allItems.sort((a, b) => itemIdToIndex.get(a.id) - itemIdToIndex.get(b.id));
   };
 
-  const positionPreviews = animator => {
+  const scalePreview = (previewItem, bounds) => {
+    const { piles, previewScaleToCover } = store.state;
+
+    const pileState = piles[id];
+
+    const [scaleWidthToCover, scaleHeightToCover] = isFunction(
+      previewScaleToCover
+    )
+      ? previewScaleToCover(pileState)
+      : previewScaleToCover;
+
+    const applyScale = (_bounds) => {
+      if (scaleWidthToCover === true) {
+        const scaleFactor = _bounds.width / previewItem.width;
+        previewItem.scale.x *= scaleFactor;
+        if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
+      } else if (scaleHeightToCover === true) {
+        const scaleFactor = _bounds.height / previewItem.height;
+        previewItem.scale.y *= scaleFactor;
+        if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
+      } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
+        previewItem.scale.x *= _bounds.width / previewItem.width;
+        previewItem.scale.y *= _bounds.height / previewItem.height;
+      }
+    };
+
+    if (bounds) {
+      applyScale(bounds);
+    } else if (whenCover) {
+      whenCover.then(applyScale);
+    } else {
+      applyScale(getContentBounds());
+    }
+  };
+
+  const positionPreviews = (animator) => {
     const {
       piles,
       previewAlignment,
       previewItemOffset,
       previewOffset,
       previewSpacing,
-      previewScaleToCover
     } = store.state;
     const pileState = piles[id];
 
-    whenCover.then(_cover => {
+    whenCover.then((_cover) => {
       const alignment = isFunction(previewAlignment)
         ? previewAlignment(pileState)
         : previewAlignment;
@@ -746,12 +781,6 @@ const createPile = (
       const spacing = isFunction(previewSpacing)
         ? previewSpacing(pileState)
         : previewSpacing;
-
-      const [scaleWidthToCover, scaleHeightToCover] = isFunction(
-        previewScaleToCover
-      )
-        ? previewScaleToCover(pileState)
-        : previewScaleToCover;
 
       offset = offset !== null ? offset : spacing / 2;
 
@@ -769,18 +798,7 @@ const createPile = (
         const item = previewItem.__pilingjs__item;
         const itemState = store.state.items[item.id];
 
-        if (scaleWidthToCover === true) {
-          const scaleFactor = _cover.width / previewItem.width;
-          previewItem.scale.x *= scaleFactor;
-          if (scaleHeightToCover === 'auto') previewItem.scale.y *= scaleFactor;
-        } else if (scaleHeightToCover === true) {
-          const scaleFactor = _cover.height / previewItem.height;
-          previewItem.scale.y *= scaleFactor;
-          if (scaleWidthToCover === 'auto') previewItem.scale.x *= scaleFactor;
-        } else if (scaleWidthToCover === true && scaleHeightToCover === true) {
-          previewItem.scale.x *= _cover.width / previewItem.width;
-          previewItem.scale.y *= _cover.height / previewItem.height;
-        }
+        scalePreview(previewItem, _cover);
 
         let itemOffset;
 
@@ -795,9 +813,9 @@ const createPile = (
                 (index === 0) * (-halfWidth - offset) +
                   prevOffset[0] -
                   prevSize[0] / 2 -
-                  item.preview.width / 2 -
+                  previewItem.width / 2 -
                   halfSpacing,
-                0
+                0,
               ];
               break;
 
@@ -806,9 +824,9 @@ const createPile = (
                 (index === 0) * (halfWidth + offset) +
                   prevOffset[0] +
                   prevSize[0] / 2 +
-                  item.preview.width / 2 +
+                  previewItem.width / 2 +
                   halfSpacing,
-                0
+                0,
               ];
               break;
 
@@ -818,8 +836,8 @@ const createPile = (
                 (index === 0) * (halfHeight + offset) +
                   prevOffset[1] +
                   prevSize[1] / 2 +
-                  item.preview.height / 2 +
-                  halfSpacing
+                  previewItem.height / 2 +
+                  halfSpacing,
               ];
               break;
 
@@ -830,16 +848,16 @@ const createPile = (
                 (index === 0) * (-halfHeight - offset) +
                   prevOffset[1] -
                   prevSize[1] / 2 -
-                  item.preview.height / 2 -
-                  halfSpacing
+                  previewItem.height / 2 -
+                  halfSpacing,
               ];
               break;
           }
           prevOffset = [...itemOffset];
-          prevSize = [item.preview.width, item.preview.height];
+          prevSize = [previewItem.width, previewItem.height];
         }
 
-        item.preview.clearBackground();
+        item.preview.setBackgroundOpacity(0);
 
         animatePositionItems(
           previewItem,
@@ -867,7 +885,7 @@ const createPile = (
           // newItems is a set, there is no index, so we're using a counter
           let count = 0;
 
-          newItems.forEach(pileItem => {
+          newItems.forEach((pileItem) => {
             count++;
 
             const item = pileItem.item;
@@ -900,7 +918,7 @@ const createPile = (
 
             const itemOffset = isFunction(pileItemOffset)
               ? pileItemOffset(itemState, itemIndex, pileState)
-              : pileItemOffset.map(_offset => _offset * itemIndex);
+              : pileItemOffset.map((_offset) => _offset * itemIndex);
 
             const itemRotation = isFunction(pileItemRotation)
               ? pileItemRotation(itemState, itemIndex, pileState)
@@ -929,7 +947,7 @@ const createPile = (
 
           const itemOffset = isFunction(pileItemOffset)
             ? pileItemOffset(itemState, itemIndex, pileState)
-            : pileItemOffset.map(_offset => _offset * itemIndex);
+            : pileItemOffset.map((_offset) => _offset * itemIndex);
 
           const itemRotation = isFunction(pileItemRotation)
             ? pileItemRotation(itemState, itemIndex, pileState)
@@ -1015,21 +1033,21 @@ const createPile = (
       interpolator: interpolateNumber,
       endValue: newScale,
       getter: getScale,
-      setter: v => {
+      setter: (v) => {
         setScale(v, { isMagnification });
         drawBorder();
       },
       onDone: () => {
         isScaling = false;
-        postPilePositionAnimation.forEach(fn => fn());
+        postPilePositionAnimation.forEach((fn) => fn());
         postPilePositionAnimation.clear();
         done();
-      }
+      },
     });
     pubSub.publish('startAnimation', scaleTweener);
   };
 
-  const magnifyByWheel = wheelDelta => {
+  const magnifyByWheel = (wheelDelta) => {
     const force = Math.log(Math.abs(wheelDelta) + 1);
     const momentum = -Math.sign(wheelDelta) * force;
 
@@ -1082,12 +1100,12 @@ const createPile = (
       interpolator: interpolateVector,
       endValue: [x, y],
       getter: () => [rootContainer.x, rootContainer.y],
-      setter: xy => moveTo(xy[0], xy[1]),
+      setter: (xy) => moveTo(xy[0], xy[1]),
       onDone: () => {
         isMoving = false;
         pubSub.publish('updatePileBounds', { id });
         onDone();
-      }
+      },
     });
   };
 
@@ -1096,7 +1114,7 @@ const createPile = (
     y,
     { easing, onDone: customOnDone = toVoid } = {}
   ) =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       const onDone = () => {
         resolve(store.state.piles[id]);
         enableInteractivity();
@@ -1140,14 +1158,12 @@ const createPile = (
         }
       }
     } else {
-      normalItemIndex.forEach(pileItem => {
-        const newImage = pileItem.item.image;
-        pileItem.replaceImage(newImage);
+      normalItemIndex.forEach((pileItem) => {
+        pileItem.replaceImage(pileItem.item.image);
       });
-      previewItemIndex.forEach(pileItem => {
-        const newImage = pileItem.item.preview;
-        if (newImage) {
-          pileItem.replaceImage(newImage);
+      previewItemIndex.forEach((pileItem) => {
+        if (pileItem.item.preview) {
+          pileItem.replaceImage(pileItem.item.preview);
         } else {
           updateItemToNormal(pileItem.item);
         }
@@ -1155,11 +1171,11 @@ const createPile = (
     }
   };
 
-  const getItemById = itemId =>
+  const getItemById = (itemId) =>
     normalItemIndex.get(itemId) || previewItemIndex.get(itemId);
 
-  const hasNormalItem = item => normalItemIndex.has(item.id);
-  const hasPreviewItem = item => previewItemIndex.has(item.id);
+  const hasNormalItem = (item) => normalItemIndex.has(item.id);
+  const hasPreviewItem = (item) => previewItemIndex.has(item.id);
 
   const hasItem = (item, { asPreview = null } = {}) => {
     if (asPreview === false) return hasNormalItem(item);
@@ -1167,7 +1183,7 @@ const createPile = (
     return hasNormalItem(item) || hasPreviewItem(item);
   };
 
-  const updateItemToNormal = item => {
+  const updateItemToNormal = (item) => {
     if (hasItem(item, { asPreview: false })) return;
     const currentItem = getItemById(item.id);
     const normalItem = createPileItem({ image: item.image, item, pubSub });
@@ -1190,8 +1206,9 @@ const createPile = (
     normalItemContainer.addChild(normalItem.displayObject);
   };
 
-  const updateItemToPreview = item => {
-    if (hasItem(item, { asPreview: true })) return;
+  const updateItemToPreview = (item) => {
+    if (hasItem(item, { asPreview: true }) || !item.preview) return;
+
     const currentItem = getItemById(item.id);
     const previewItem = createPileItem({ image: item.preview, item, pubSub });
 
@@ -1210,6 +1227,7 @@ const createPile = (
     normalItemContainer.removeChildAt(
       normalItemContainer.getChildIndex(currentItem.displayObject)
     );
+    scalePreview(previewItem.displayObject);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 
@@ -1218,11 +1236,11 @@ const createPile = (
     else updateItemToNormal(item);
   };
 
-  const addNormalItem = item => {
+  const addNormalItem = (item) => {
     const normalItem = createPileItem({
       image: item.image,
       item,
-      pubSub
+      pubSub,
     });
     const numItems = allItems.push(normalItem);
     if (numItems > 1) newItems.add(normalItem);
@@ -1231,16 +1249,19 @@ const createPile = (
     normalItemContainer.addChild(normalItem.displayObject);
   };
 
-  const addPreviewItem = item => {
+  const addPreviewItem = (item) => {
+    if (!item.preview) return;
+
     const previewItem = createPileItem({
       image: item.preview,
       item,
-      pubSub
+      pubSub,
     });
     allItems.push(previewItem);
     newItems.add(previewItem);
     previewItemIndex.set(previewItem.id, previewItem);
     previewItemIdIndex.set(previewItem.displayObject, previewItem.id);
+    scalePreview(previewItem.displayObject);
     previewItemContainer.addChild(previewItem.displayObject);
   };
 
@@ -1261,7 +1282,7 @@ const createPile = (
     if (allItems.length === 1) updateBaseOffset();
   };
 
-  const removeItem = item => {
+  const removeItem = (item) => {
     const pileItem = getItemById(item.id);
 
     // Remove from the `allItems` array
@@ -1316,7 +1337,7 @@ const createPile = (
     const outdatedItems = mergeMaps(normalItemIndex, previewItemIndex);
 
     // Add new items
-    items.forEach(item => {
+    items.forEach((item) => {
       if (hasItem(item)) {
         // Item already exists so we remove it from `oldItems`
         outdatedItems.delete(item.id);
@@ -1328,17 +1349,17 @@ const createPile = (
     });
 
     // Remove all the outdated items
-    outdatedItems.forEach(item => {
+    outdatedItems.forEach((item) => {
       removeItem(item);
     });
   };
 
-  const setCover = newWhenCover => {
+  const setCover = (newWhenCover) => {
     if (!newWhenCover) {
       removeCover();
     } else {
       whenCover = newWhenCover;
-      whenCover.then(newCover => {
+      whenCover.then((newCover) => {
         cover = newCover;
         while (coverContainer.children.length) {
           coverContainer.removeChildAt(0);
@@ -1407,7 +1428,7 @@ const createPile = (
       pileLabelStackAlign,
       pileLabelText,
       pileLabelTextOpacity,
-      piles
+      piles,
     } = store.state;
 
     const labelAlign = getPileProp(pileLabelAlign, piles[id]);
@@ -1524,7 +1545,7 @@ const createPile = (
     render();
   };
 
-  const setZoomScale = newZoomScale => {
+  const setZoomScale = (newZoomScale) => {
     zoomScale = newZoomScale;
     scale();
   };
@@ -1532,7 +1553,7 @@ const createPile = (
   let isInteractive = false;
   const disableInteractivity = () => {
     if (!isInteractive) return;
-    allItems.forEach(pileItem => pileItem.disableInteractivity());
+    allItems.forEach((pileItem) => pileItem.disableInteractivity());
     rootContainer.interactive = false;
     rootContainer.buttonMode = false;
     tempDepileContainer.interactive = false;
@@ -1548,7 +1569,7 @@ const createPile = (
 
   const enableInteractivity = () => {
     if (isInteractive) return;
-    allItems.forEach(pileItem => pileItem.enableInteractivity());
+    allItems.forEach((pileItem) => pileItem.enableInteractivity());
     rootContainer.interactive = true;
     rootContainer.buttonMode = true;
     tempDepileContainer.interactive = true;
@@ -1633,7 +1654,7 @@ const createPile = (
     get offset() {
       return [
         (baseOffset[0] - anchorBox.localXOffset) * baseScale,
-        (baseOffset[1] - anchorBox.localYOffset) * baseScale
+        (baseOffset[1] - anchorBox.localYOffset) * baseScale,
       ];
     },
     get previewItemContainer() {
@@ -1700,7 +1721,7 @@ const createPile = (
     updateBounds,
     updateOffset: updateBaseOffset,
     replaceItemsImage,
-    unmagnify
+    unmagnify,
   };
 };
 

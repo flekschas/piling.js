@@ -3,7 +3,7 @@ const matchArrayPair = (oldArray = [], newArray = []) => {
   oldArray = new Set(oldArray);
 
   const newItems = [];
-  const sameItems = newArray.filter(x => {
+  const sameItems = newArray.filter((x) => {
     if (oldArray.has(x)) {
       oldArray.delete(x);
       return true;

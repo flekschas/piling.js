@@ -4,7 +4,7 @@ import createPilingJs from '../src/library';
 import { createRepresentativeAggregator } from '../src/aggregator';
 import {
   createMatrixRenderer,
-  createRepresentativeRenderer
+  createRepresentativeRenderer,
 } from '../src/renderer';
 import createVitessceDataFetcher from './vitessce-data-fetcher';
 import createVitessceRenderer from './vitessce-renderer';
@@ -24,7 +24,7 @@ const ZARR_MIN_ZOOM = -6;
 
 const ZARR_CHANNELS = {
   polyT: ZARR_URL,
-  nuclei: ZARR_URL
+  nuclei: ZARR_URL,
 };
 
 // Absolute value ranges.
@@ -63,20 +63,20 @@ const createVitessce = async (element, darkMode) => {
 
   const itemSize = 64;
 
-  const polyToBbox = polygon =>
+  const polyToBbox = (polygon) =>
     createBBox()(
       polygon.reduce(
         (bBox, point) => ({
           minX: Math.min(bBox.minX, point[0]),
           minY: Math.min(bBox.minY, point[1]),
           maxX: Math.max(bBox.maxX, point[0]),
-          maxY: Math.max(bBox.maxY, point[1])
+          maxY: Math.max(bBox.maxY, point[1]),
         }),
         {
           minX: Infinity,
           minY: Infinity,
           maxX: -Infinity,
-          maxY: -Infinity
+          maxY: -Infinity,
         }
       )
     );
@@ -88,8 +88,8 @@ const createVitessce = async (element, darkMode) => {
       ...rgbStr
         .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
         .slice(1, 4)
-        .map(x => parseInt(x, 10) / 256),
-      alpha
+        .map((x) => parseInt(x, 10) / 256),
+      alpha,
     ];
   };
 
@@ -102,16 +102,16 @@ const createVitessce = async (element, darkMode) => {
 
   const getData = await createVitessceDataFetcher({
     channels: ZARR_CHANNELS,
-    minZoom: ZARR_MIN_ZOOM
+    minZoom: ZARR_MIN_ZOOM,
   });
 
   let numGenes = 0;
-  const createItems = factor =>
+  const createItems = (factor) =>
     Object.entries(cellsByFactor[factor]).map(([id, cell]) => {
       const item = {
         id,
         embeddingTsne: cell.mappings['t-SNE'],
-        embeddingPca: cell.mappings.PCA
+        embeddingPca: cell.mappings.PCA,
       };
 
       const genes = [];
@@ -139,7 +139,7 @@ const createVitessce = async (element, darkMode) => {
         cY: bBox.cY,
         zoom,
         zoomLevel: Math.ceil(zoom),
-        genes
+        genes,
       };
 
       return item;
@@ -214,13 +214,13 @@ const createVitessce = async (element, darkMode) => {
     // polyT: [255, 128, 0],
     // nuclei: [0, 128, 255]
     polyT: [0, 0, 255],
-    nuclei: [0, 255, 0]
+    nuclei: [0, 255, 0],
   };
 
   const vitessceRenderer = createVitessceRenderer(getData, {
     darkMode: true,
     colors: Object.values(colors),
-    domains: null // Auto-scale channels
+    domains: null, // Auto-scale channels
   });
 
   const umap = createUmap();
@@ -235,10 +235,10 @@ const createVitessce = async (element, darkMode) => {
           const pixels = piling.renderer.extract.pixels(gfx);
           return pixels;
         },
-        propertyIsVector: true
+        propertyIsVector: true,
       },
       {
-        forceDimReduction: true
+        forceDimReduction: true,
       }
     );
   };
@@ -249,20 +249,20 @@ const createVitessce = async (element, darkMode) => {
   );
 
   const representativeAggregator = createRepresentativeAggregator(9, {
-    valueGetter: item => Object.values(item.src.genes)
+    valueGetter: (item) => Object.values(item.src.genes),
   });
 
-  const previewAggregator = _items =>
+  const previewAggregator = (_items) =>
     Promise.resolve(
-      _items.map(i => {
+      _items.map((i) => {
         const m = Math.max(...i.src.genes);
-        return { shape: [1, numGenes], data: i.src.genes.map(x => x / m) };
+        return { shape: [1, numGenes], data: i.src.genes.map((x) => x / m) };
       })
     );
 
   const previewRenderer = createMatrixRenderer({
     colorMap: createColorMap(256),
-    shape: [1, numGenes]
+    shape: [1, numGenes],
   });
 
   const piling = createPilingJs(element, {
@@ -287,8 +287,8 @@ const createVitessce = async (element, darkMode) => {
       {
         id: 'umapify',
         label: 'UMAPify',
-        callback: umapHandler
-      }
+        callback: umapHandler,
+      },
     ],
     // previewScaling: pile => [
     //   1,
@@ -298,7 +298,7 @@ const createVitessce = async (element, darkMode) => {
     previewOffset: 2,
     previewPadding: 0.5,
     previewSpacing: 4,
-    previewScaleToCover: [true, false]
+    previewScaleToCover: [true, false],
   });
 
   const additionalSidebarOptions = [
@@ -314,16 +314,16 @@ const createVitessce = async (element, darkMode) => {
           labels: [
             '-',
             ...Object.keys(cellsByFactor).map(
-              cluster =>
+              (cluster) =>
                 `${cluster} (${Object.keys(cellsByFactor[cluster]).length})`
-            )
+            ),
           ],
-          setter: factor => {
+          setter: (factor) => {
             vitessceRenderer.clear();
             piling.set('items', createItems(factor));
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       id: 'coloring',
@@ -339,10 +339,10 @@ const createVitessce = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: rgb2hsv(colors.polyT)[0],
           onInput: true,
-          setter: hue => {
+          setter: (hue) => {
             vitessceRenderer.setColor(0, hue);
             piling.render();
-          }
+          },
         },
         {
           name: 'nuclei',
@@ -354,12 +354,12 @@ const createVitessce = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: rgb2hsv(colors.nuclei)[0],
           onInput: true,
-          setter: hue => {
+          setter: (hue) => {
             vitessceRenderer.setColor(1, hue);
             piling.render();
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       title: 'Custom Arrange By',
@@ -367,14 +367,14 @@ const createVitessce = async (element, darkMode) => {
         {
           name: 'Normalized t-SNE',
           action: () => {
-            piling.arrangeBy('uv', pile => [
+            piling.arrangeBy('uv', (pile) => [
               tsneXScale(items[pile.index].embeddingTsne[0]),
-              tsneYScale(items[pile.index].embeddingTsne[1])
+              tsneYScale(items[pile.index].embeddingTsne[1]),
             ]);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
   // setTimeout(() => {

@@ -13,7 +13,7 @@ const createRandomLinePlot = () => {
   return [
     SVG_START,
     `<path d="M 0 100 C ${x1} ${y1}, ${x2} ${y2}, 100 0" stroke="currentColor" fill="transparent"/>`,
-    SVG_END
+    SVG_END,
   ].join('');
 };
 
@@ -21,19 +21,19 @@ const createSvgLinesPiles = (element, darkMode) => {
   const svgRenderer = createSvgRenderer({
     color: darkMode ? 'white' : 'black',
     width: 600,
-    height: 600
+    height: 600,
   });
 
   let data = new Array(100).fill().map((_, i) => ({
     id: i.toString(),
-    src: createRandomLinePlot()
+    src: createRandomLinePlot(),
   }));
 
-  const redrawHandler = pile => {
-    pile.items.forEach(itemId => {
+  const redrawHandler = (pile) => {
+    pile.items.forEach((itemId) => {
       data[itemId] = {
         ...data[itemId],
-        src: createRandomLinePlot()
+        src: createRandomLinePlot(),
       };
     });
     data = [...data];
@@ -48,23 +48,23 @@ const createSvgLinesPiles = (element, darkMode) => {
       (1 / pile.items.length) * (2 / 3) + 1 / 3,
     pileItemOffset: [0, 0],
     pileBackgroundColor: 'rgba(255, 255, 255, 0.85)',
-    pileSizeBadge: pile => pile.items.length > 1,
+    pileSizeBadge: (pile) => pile.items.length > 1,
     pileContextMenuItems: [
       {
         label: 'Redraw',
-        callback: redrawHandler
+        callback: redrawHandler,
       },
       {
         label: 'Split All',
         callback: () => {
           piling.splitAll();
-        }
-      }
-    ]
+        },
+      },
+    ],
   });
 
   // eslint-disable-next-line no-console
-  const log = message => () => console.log(message);
+  const log = (message) => () => console.log(message);
 
   piling.subscribe('pileFocus', log('pileFocus'));
   piling.subscribe('pileBlur', log('pileBlur'));

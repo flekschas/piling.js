@@ -4,7 +4,7 @@ import {
   pipe,
   withConstructor,
   withReadOnlyProperty,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 
 import createSpinner from './spinner';
@@ -14,14 +14,14 @@ import { ifNotNull, whichTransitionEvent } from './utils';
 import {
   CSS_EASING_CUBIC_IN_OUT,
   DEFAULT_DARK_MODE,
-  DEFAULT_POPUP_BACKGROUND_OPACITY
+  DEFAULT_POPUP_BACKGROUND_OPACITY,
 } from './defaults';
 
 const TRANSITION_EVENT = whichTransitionEvent();
 
 const createPopup = ({
   backgroundOpacity: initialBackgroundOpacity = DEFAULT_POPUP_BACKGROUND_OPACITY,
-  isDarkMode: initialIsDarkMode = DEFAULT_DARK_MODE
+  isDarkMode: initialIsDarkMode = DEFAULT_DARK_MODE,
 } = {}) => {
   let backgroundOpacity = initialBackgroundOpacity;
   let isDarkMode = initialIsDarkMode;
@@ -97,9 +97,9 @@ const createPopup = ({
   let isOpen = false;
 
   const open = ({ text = null, showSpinner = true } = {}) =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       rootElement.addEventListener(TRANSITION_EVENT, resolve, {
-        once: true
+        once: true,
       });
 
       isOpen = true;
@@ -116,7 +116,7 @@ const createPopup = ({
     });
 
   const close = () =>
-    new Promise(resolve => {
+    new Promise((resolve) => {
       isOpen = false;
       rootElement.addEventListener(
         TRANSITION_EVENT,
@@ -130,7 +130,7 @@ const createPopup = ({
           resolve();
         },
         {
-          once: true
+          once: true,
         }
       );
 
@@ -140,7 +140,7 @@ const createPopup = ({
 
   const set = ({
     backgroundOpacity: newBackgroundOpacity = null,
-    darkMode: newIsDarkMode = null
+    darkMode: newIsDarkMode = null,
   } = {}) => {
     backgroundOpacity = ifNotNull(newBackgroundOpacity, backgroundOpacity);
     isDarkMode = ifNotNull(newIsDarkMode, isDarkMode);
@@ -151,11 +151,11 @@ const createPopup = ({
     spinner.set({ darkMode: !isDarkMode });
   };
 
-  const withPublicMethods = () => self =>
+  const withPublicMethods = () => (self) =>
     assign(self, {
       close,
       open,
-      set
+      set,
     });
 
   return pipe(

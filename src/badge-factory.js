@@ -6,10 +6,10 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
   let sizeUsage = {};
 
   const roundedRectangleFactory = createRoundedRectangleFactory({
-    size: fontSize * window.devicePixelRatio * 1.5
+    size: fontSize * window.devicePixelRatio * 1.5,
   });
 
-  const onDestroy = text => () => {
+  const onDestroy = (text) => () => {
     sizeUsage[text] = Math.max(0, sizeUsage[text] - 1);
     if (sizeUsage[text] === 0) {
       sizeTexCache.get(text).image.destroy();
@@ -28,7 +28,7 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
       backgroundFactory: roundedRectangleFactory,
       darkMode,
       fontSize,
-      onDestroy: onDestroy(text)
+      onDestroy: onDestroy(text),
     });
 
     sizeUsage[text] = 1;
@@ -38,7 +38,7 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
   };
 
   const clear = () => {
-    sizeTexCache.forEach(badge => badge.destroy());
+    sizeTexCache.forEach((badge) => badge.destroy());
     sizeTexCache.clear();
     sizeUsage = {};
   };
@@ -46,7 +46,7 @@ const createBadgeFactory = ({ fontSize = 8 } = {}) => {
   return {
     clear,
     create,
-    destroy: clear
+    destroy: clear,
   };
 };
 

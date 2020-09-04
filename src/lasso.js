@@ -7,7 +7,7 @@ import {
   throttleAndDebounce,
   wait,
   withConstructor,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
@@ -23,7 +23,7 @@ import {
   LASSO_MIN_DELAY,
   LASSO_MIN_DIST,
   LASSO_SHOW_START_INDICATOR_TIME,
-  LASSO_HIDE_START_INDICATOR_TIME
+  LASSO_HIDE_START_INDICATOR_TIME,
 } from './defaults';
 
 const lassoStyleEl = document.createElement('style');
@@ -31,13 +31,13 @@ document.head.appendChild(lassoStyleEl);
 
 const lassoStylesheets = lassoStyleEl.sheet;
 
-const addRule = rule => {
+const addRule = (rule) => {
   const currentNumRules = lassoStylesheets.length;
   lassoStylesheets.insertRule(rule, currentNumRules);
   return currentNumRules;
 };
 
-const removeRule = index => {
+const removeRule = (index) => {
   lassoStylesheets.deleteRule(index);
 };
 
@@ -87,7 +87,7 @@ const createLasso = ({
   startIndicatorOpacity: initialStartIndicatorOpacity = DEFAULT_LASSO_START_INDICATOR_OPACITY,
   strokeColor: initialStrokeColor = null,
   strokeOpacity: initialStrokeOpacity = DEFAULT_LASSO_STROKE_OPACITY,
-  strokeSize: initialStrokeSize = DEFAULT_LASSO_STROKE_SIZE
+  strokeSize: initialStrokeSize = DEFAULT_LASSO_STROKE_SIZE,
 } = {}) => {
   let fillColor = initialFillColor;
   let fillOpacity = initialFillOpacity;
@@ -140,7 +140,7 @@ const createLasso = ({
     isMouseDown = false;
   };
 
-  const indicatorClickHandler = event => {
+  const indicatorClickHandler = (event) => {
     const parent = event.target.parentElement;
 
     if (!parent) return;
@@ -239,7 +239,7 @@ const createLasso = ({
     if (lassoPos.length) {
       lineGfx.lineStyle(strokeSize, getLassoStrokeColor(), strokeOpacity);
       lineGfx.moveTo(...lassoPos[0]);
-      lassoPos.forEach(pos => {
+      lassoPos.forEach((pos) => {
         lineGfx.lineTo(...pos);
         lineGfx.moveTo(...pos);
       });
@@ -249,7 +249,7 @@ const createLasso = ({
     onDraw();
   };
 
-  const extend = currMousePos => {
+  const extend = (currMousePos) => {
     if (!lassoPrevMousePos) {
       if (!isLasso) {
         isLasso = true;
@@ -311,7 +311,7 @@ const createLasso = ({
     strokeColor: newStrokeColor = null,
     strokeOpacity: newStrokeOpacity = null,
     strokeSize: newStrokeSize = null,
-    darkMode: newIsDarkMode = null
+    darkMode: newIsDarkMode = null,
   } = {}) => {
     fillColor = ifNotNull(newFillColor, fillColor);
     fillOpacity = ifNotNull(newFillOpacity, fillOpacity);
@@ -358,7 +358,7 @@ const createLasso = ({
     );
   };
 
-  const withPublicMethods = () => self =>
+  const withPublicMethods = () => (self) =>
     assign(self, {
       clear,
       destroy,
@@ -366,7 +366,7 @@ const createLasso = ({
       extend,
       extendDb,
       set,
-      showStartIndicator
+      showStartIndicator,
     });
 
   set({
@@ -379,7 +379,7 @@ const createLasso = ({
     startIndicatorOpacity,
     strokeColor,
     strokeOpacity,
-    strokeSize
+    strokeSize,
   });
 
   return pipe(

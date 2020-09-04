@@ -4,7 +4,7 @@
 const worker = function worker() {
   let umap;
 
-  const error = message => ({ error: new Error(message) });
+  const error = (message) => ({ error: new Error(message) });
 
   const create = (umapUrl, config) => {
     importScripts(umapUrl);
@@ -16,7 +16,7 @@ const worker = function worker() {
     return umap.fit(data);
   };
 
-  const transform = data => umap.transform(data);
+  const transform = (data) => umap.transform(data);
 
   self.onmessage = function onmessage(e) {
     switch (e.data.task) {

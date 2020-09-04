@@ -20,12 +20,12 @@ export async function loadZarr({ connections, x, y, z }) {
   return [x, y, z, decode(rawData)];
 }
 
-export const getZarr = connections => ({ x, y, z }) =>
+export const getZarr = (connections) => ({ x, y, z }) =>
   loadZarr({
     x,
     y,
     z: -z,
-    connections
+    connections,
   });
 
 export async function initZarr({ sourceChannels, minZoom }) {
@@ -45,7 +45,7 @@ export async function initZarr({ sourceChannels, minZoom }) {
       const config = {
         store: rootZarrUrl,
         path: `${prefix}/${String(i).padStart(2, '0')}`,
-        mode: 'r'
+        mode: 'r',
       };
       return openArray(config);
     });
@@ -79,11 +79,11 @@ export async function getZarrMetadata({ channels, minZoom }) {
   // Not necessary but this is something we should be parsing from metadata
   const maxLevel = -minZoom;
 
-  const zarrStores = range(maxLevel).map(i => {
+  const zarrStores = range(maxLevel).map((i) => {
     const config = {
       store: rootZarrUrl,
       path: `${prefix}/${String(i).padStart(2, '0')}`,
-      mode: 'r'
+      mode: 'r',
     };
     return openArray(config);
   });
@@ -107,7 +107,7 @@ export const getExactData = async ({
   tileIndices,
   getData,
   viewport,
-  tileSize
+  tileSize,
 }) => {
   const tiles = await Promise.all(tileIndices.map(getData));
   let minI = Infinity;
@@ -138,7 +138,7 @@ export const getExactData = async ({
       screen: viewport,
       tile: tileBBox,
       z,
-      tileSize
+      tileSize,
     });
 
     channels.forEach((channel, i) => {
@@ -148,21 +148,21 @@ export const getExactData = async ({
           [tileViewport.minY, tileViewport.minX],
           [
             tileViewport.maxY - tileViewport.minY,
-            tileViewport.maxX - tileViewport.minX
+            tileViewport.maxX - tileViewport.minX,
           ]
         );
     });
   });
 
   if (numRows === 1 && numCols === 1) {
-    return Promise.all(tileData2d.map(channel => channel[0][0].buffer()));
+    return Promise.all(tileData2d.map((channel) => channel[0][0].buffer()));
   }
 
   return Promise.all(
-    tileData2d.map(channel => {
+    tileData2d.map((channel) => {
       const rowData =
         numCols > 1
-          ? channel.map(rowTensors => tf.concat(rowTensors, 1))
+          ? channel.map((rowTensors) => tf.concat(rowTensors, 1))
           : channel.flatMap(identity);
 
       const outData = rowData.length > 1 ? tf.concat(rowData, 0) : rowData[0];
@@ -176,7 +176,7 @@ export const tileIdxToScreen = ({ x, y, z, tileSize }) => ({
   minX: x * tileSize * 2 ** z,
   minY: y * tileSize * 2 ** z,
   maxX: (x + 1) * tileSize * 2 ** z,
-  maxY: (y + 1) * tileSize * 2 ** z
+  maxY: (y + 1) * tileSize * 2 ** z,
 });
 
 export const screenToTile = ({ screen, tile, z, tileSize }) => {
@@ -198,7 +198,7 @@ export const screenToTile = ({ screen, tile, z, tileSize }) => {
     minX,
     minY,
     maxX,
-    maxY
+    maxY,
   };
 };
 
@@ -209,7 +209,7 @@ export function getRasterTileIndices({
   minZoom,
   tileSize,
   imageWidth,
-  imageHeight
+  imageHeight,
 }) {
   const z = Math.min(0, Math.ceil(viewport.zoom));
   const scale = tileSize * 2 ** -z;
@@ -256,7 +256,7 @@ export const rgb2hsv = ([r, g, b]) => {
   const babs = b / 255;
   const v = Math.max(rabs, gabs, babs);
   const diff = v - Math.min(rabs, gabs, babs);
-  const diffc = c => (v - c) / 6 / diff + 1 / 2;
+  const diffc = (c) => (v - c) / 6 / diff + 1 / 2;
   if (diff === 0) {
     h = 0;
     s = 0;

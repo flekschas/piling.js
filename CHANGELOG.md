@@ -1,6 +1,56 @@
-### Next
+## Next
 
-_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...master)_
+- Add state serialization options via `exportState({ serialize: true })`
+
+_[Changes since v0.7.7](https://github.com/flekschas/piling.js/compare/v0.7.7...master)_
+
+## v0.7.7
+
+- Fix `piling.destroy()`
+
+_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.6...v0.7.7)_
+
+## v0.7.6
+
+- Enforce aggregators to return a promise
+- Fix preview scaling
+- Fix a regression introduced in #218
+
+_[Changes since v0.7.5](https://github.com/flekschas/piling.js/compare/v0.7.5...v0.7.6)_
+
+## v0.7.5
+
+- Fix an issue when deleting/adding items.
+
+_[Changes since v0.7.4](https://github.com/flekschas/piling.js/compare/v0.7.4...v0.7.5)_
+
+## v0.7.4
+
+- Add `createLibraryFromState` as a named export to simplify the initialization of a piling.js instance from an existing state.
+- Allow subsampling of previews
+- Allow initializing from previous state using `createPilingJs(element, { ... }, { initFromState: true })`
+- Return promise when running `importState()` that resolves once piling.js' state was overridden.
+
+_[Changes since v0.7.3](https://github.com/flekschas/piling.js/compare/v0.7.3...v0.7.4)_
+
+## v0.7.3
+
+- Fix broken import of RBush
+
+_[Changes since v0.7.2](https://github.com/flekschas/piling.js/compare/v0.7.2...v0.7.3)_
+
+## v0.7.2
+
+- Properly replace `browser.env.NODE_ENV` to avoid redux error
+
+_[Changes since v0.7.1](https://github.com/flekschas/piling.js/compare/v0.7.1...v0.7.2)_
+
+## v0.7.1
+
+- Fix bundles
+- Update third-party packages
+
+_[Changes since v0.7.0](https://github.com/flekschas/piling.js/compare/v0.7.0...v0.7.1)_
 
 ## v0.7.0
 

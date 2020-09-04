@@ -7,7 +7,7 @@ import {
   toVoid,
   withConstructor,
   withReadOnlyProperty,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 
 import { ifNotNull } from './utils';
@@ -72,7 +72,7 @@ const CSS_BTN_RIGHT_ARROW = [
   border-left-color: inherit;
   border-width: 0.5em;
   margin-top: -0.5em;
-}`
+}`,
 ];
 
 const createLevels = (
@@ -81,7 +81,7 @@ const createLevels = (
     darkMode: initialDarkMode = false,
     maxDepth: initialMaxDepth = 3,
     onEnter = toVoid,
-    onLeave = toVoid
+    onLeave = toVoid,
   } = {}
 ) => {
   let darkMode = initialDarkMode;
@@ -121,37 +121,37 @@ const createLevels = (
 
   const getCurrentStateId = () => currStateIds[currStateIds.length - 1];
 
-  const getStateId = pileIds => {
+  const getStateId = (pileIds) => {
     const { piles } = store.state;
     return pileIds
-      .flatMap(pileId => piles[pileId].items)
+      .flatMap((pileId) => piles[pileId].items)
       .sort()
       .join('-');
   };
 
-  const getNextState = pileIds => {
+  const getNextState = (pileIds) => {
     const currentState = store.export();
     const pileIdIndex = new Set();
 
-    pileIds.forEach(pileId => {
-      currentState.piles[pileId].items.forEach(itemId =>
+    pileIds.forEach((pileId) => {
+      currentState.piles[pileId].items.forEach((itemId) =>
         pileIdIndex.add(itemId)
       );
     });
 
     // "Empty" not selected piles, i.e., set their items to `[]`
     Object.keys(currentState.piles)
-      .filter(pileId => !pileIdIndex.has(pileId))
-      .forEach(pileId => {
+      .filter((pileId) => !pileIdIndex.has(pileId))
+      .forEach((pileId) => {
         currentState.piles[pileId].items = [];
       });
 
     return currentState;
   };
 
-  const countItems = state =>
+  const countItems = (state) =>
     Object.values(state.piles)
-      .filter(pile => pile.items.length)
+      .filter((pile) => pile.items.length)
       .reduce((num, pile) => num + pile.items.length, 0);
 
   const createBreadcrumbTemplate = (state, level) => {
@@ -160,7 +160,7 @@ const createLevels = (
     return `<li><button><span><strong>${label}</strong> (${size})</span></button></li>`;
   };
 
-  const backTo = level => () => {
+  const backTo = (level) => () => {
     if (level === 0) {
       leaveAll();
       return;
@@ -187,7 +187,7 @@ const createLevels = (
     styleNavButtons();
   };
 
-  const enter = pileIds => {
+  const enter = (pileIds) => {
     const nextStateId = getStateId(pileIds);
     const currStateId = getCurrentStateId();
 
@@ -253,7 +253,7 @@ const createLevels = (
 
   const set = ({
     darkMode: newDarkMode = null,
-    maxDepth: newMaxDepth = null
+    maxDepth: newMaxDepth = null,
   } = {}) => {
     darkMode = ifNotNull(newDarkMode, darkMode);
     maxDepth = ifNotNull(newMaxDepth, maxDepth);
@@ -275,7 +275,7 @@ const createLevels = (
     enter,
     leave,
     leaveAll,
-    set
+    set,
   });
 };
 

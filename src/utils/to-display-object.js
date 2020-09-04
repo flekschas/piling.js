@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 
 import isNdarray from './is-ndarray';
 
-const toDisplayObject = source => {
+const toDisplayObject = (source) => {
   let displayObject = source;
   if (
     !(displayObject instanceof PIXI.Texture) &&

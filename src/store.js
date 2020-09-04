@@ -6,7 +6,7 @@ import {
   update,
   withForwardedMethod,
   withReadOnlyProperty,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 import deepEqual from 'deep-equal';
 import { createStore as createReduxStore, combineReducers } from 'redux';
@@ -31,7 +31,7 @@ import {
   DEFAULT_PREVIEW_BACKGROUND_COLOR,
   DEFAULT_PREVIEW_BACKGROUND_OPACITY,
   NAVIGATION_MODE_AUTO,
-  NAVIGATION_MODES
+  NAVIGATION_MODES,
 } from './defaults';
 
 const clone = (value, state) => {
@@ -80,34 +80,34 @@ const setOptionsReducer = (key, options, defaultValue = null) => {
   };
 };
 
-const setAction = key => {
+const setAction = (key) => {
   const type = `SET_${camelToConst(key)}`;
-  return newValue => ({ type, payload: { [key]: newValue } });
+  return (newValue) => ({ type, payload: { [key]: newValue } });
 };
 
 const setter = (key, defaultValue = null) => [
   setReducer(key, defaultValue),
-  setAction(key)
+  setAction(key),
 ];
 
 const setterOptions = (key, options, defaultValue = null) => [
   setOptionsReducer(key, options, defaultValue),
-  setAction(key)
+  setAction(key),
 ];
 
 export const reset = () => ({
   type: 'RESET',
-  payload: {}
+  payload: {},
 });
 
-export const overwrite = newState => ({
+export const overwrite = (newState) => ({
   type: 'OVERWRITE',
-  payload: { newState }
+  payload: { newState },
 });
 
-export const softOverwrite = newState => ({
+export const softOverwrite = (newState) => ({
   type: 'SOFT_OVERWRITE',
-  payload: { newState }
+  payload: { newState },
 });
 
 const [arrangementType, setArrangementType] = setter('arrangementType');
@@ -277,7 +277,7 @@ const [previewScaling, setPreviewScaling] = setter('previewScaling', [1, 1]);
 
 const [
   previewScaleToCover,
-  setPreviewScaleToCover
+  setPreviewScaleToCover,
 ] = setter('previewScaleToCover', [false, false]);
 
 const [previewSpacing, setPreviewSpacing] = setter('previewSpacing', 2);
@@ -444,7 +444,7 @@ const items = (previousState = {}, action) => {
         newState[id] = {
           id,
           index,
-          ...item
+          ...item,
         };
         return newState;
       }, {});
@@ -455,13 +455,27 @@ const items = (previousState = {}, action) => {
   }
 };
 
-const setItems = newItems => ({
+const setItems = (newItems) => ({
   type: 'SET_ITEMS',
-  payload: { items: newItems }
+  payload: { items: newItems },
 });
 
 const piles = (previousState = {}, action) => {
   switch (action.type) {
+    case 'SET_PILES': {
+      return Object.entries(action.payload.piles).reduce(
+        (newState, [pileId, pileState], index) => {
+          newState[pileId] = {
+            ...pileState,
+            id: pileId,
+            index: Number.isNaN(+pileState.index) ? index : +pileState.index,
+          };
+          return newState;
+        },
+        {}
+      );
+    }
+
     case 'INIT_PILES': {
       const useCustomItemId = action.payload.newItems.length
         ? typeof action.payload.newItems[0].id !== 'undefined'
@@ -486,17 +500,17 @@ const piles = (previousState = {}, action) => {
           items: [itemId],
           x: null,
           y: null,
-          ...previousPileState
+          ...previousPileState,
         };
 
         if (previousPileState) {
           if (previousPileState.items.length) {
-            newPileState.items = previousPileState.items.filter(id =>
+            newPileState.items = previousPileState.items.filter((id) =>
               newItemIds.has(id)
             );
           } else if (newItemIds.has(itemId)) {
             const isItemOnPile = Object.values(previousState).filter(
-              pile => pile.items.includes(itemId) && newItemIds.has(pile.id)
+              (pile) => pile.items.includes(itemId) && newItemIds.has(pile.id)
             ).length;
             if (!isItemOnPile) newPileState.items = [itemId];
           }
@@ -525,7 +539,9 @@ const piles = (previousState = {}, action) => {
             ? action.payload.targetPileId
             : Math.min.apply([], action.payload.pileIds).toString();
       }
-      const sourcePileIds = action.payload.pileIds.filter(id => id !== target);
+      const sourcePileIds = action.payload.pileIds.filter(
+        (id) => id !== target
+      );
 
       const [x, y] = action.payload.targetPos;
 
@@ -533,16 +549,16 @@ const piles = (previousState = {}, action) => {
         ...newState[target],
         items: [...newState[target].items],
         x,
-        y
+        y,
       };
 
-      sourcePileIds.forEach(id => {
+      sourcePileIds.forEach((id) => {
         newState[target].items.push(...newState[id].items);
         newState[id] = {
           ...newState[id],
           items: [],
           x: null,
-          y: null
+          y: null,
         };
       });
 
@@ -555,7 +571,7 @@ const piles = (previousState = {}, action) => {
         newState[id] = {
           ...newState[id],
           x,
-          y
+          y,
         };
       });
       return newState;
@@ -563,20 +579,20 @@ const piles = (previousState = {}, action) => {
 
     case 'SCATTER_PILES': {
       const scatterPiles = action.payload.piles.filter(
-        pile => pile.items.length > 1
+        (pile) => pile.items.length > 1
       );
 
       if (!scatterPiles.length) return previousState;
 
       const newState = { ...previousState };
 
-      scatterPiles.forEach(pile => {
-        pile.items.forEach(itemId => {
+      scatterPiles.forEach((pile) => {
+        pile.items.forEach((itemId) => {
           newState[itemId] = {
             ...newState[itemId],
             items: [itemId],
             x: pile.x,
-            y: pile.y
+            y: pile.y,
           };
         });
       });
@@ -591,14 +607,14 @@ const piles = (previousState = {}, action) => {
       // The 0th index represents the groups that is kept on the source pile
       Object.entries(action.payload.piles)
         // If there is only one split group we don't have to do anything
-        .filter(splittedPiles => splittedPiles[1].length > 1)
+        .filter((splittedPiles) => splittedPiles[1].length > 1)
         .forEach(([source, splits]) => {
-          splits.forEach(itemIds => {
+          splits.forEach((itemIds) => {
             newState[itemIds[0]] = {
               ...newState[itemIds[0]],
               x: newState[source].x,
               y: newState[source].y,
-              items: [...itemIds]
+              items: [...itemIds],
             };
           });
         });
@@ -611,29 +627,34 @@ const piles = (previousState = {}, action) => {
 };
 
 // action
-const initPiles = newItems => ({
+const initPiles = (newItems) => ({
   type: 'INIT_PILES',
-  payload: { newItems }
+  payload: { newItems },
 });
 
 const mergePiles = (pileIds, targetPos, targetPileId) => ({
   type: 'MERGE_PILES',
-  payload: { pileIds, targetPos, targetPileId }
+  payload: { pileIds, targetPos, targetPileId },
 });
 
-const movePiles = movingPiles => ({
+const movePiles = (movingPiles) => ({
   type: 'MOVE_PILES',
-  payload: { movingPiles }
+  payload: { movingPiles },
 });
 
-const scatterPiles = pilesToBeScattered => ({
+const scatterPiles = (pilesToBeScattered) => ({
   type: 'SCATTER_PILES',
-  payload: { piles: pilesToBeScattered }
+  payload: { piles: pilesToBeScattered },
 });
 
-const splitPiles = pilesToBeSplit => ({
+const splitPiles = (pilesToBeSplit) => ({
   type: 'SPLIT_PILES',
-  payload: { piles: pilesToBeSplit }
+  payload: { piles: pilesToBeSplit },
+});
+
+const setPiles = (newPiles) => ({
+  type: 'SET_PILES',
+  payload: { piles: newPiles },
 });
 
 const [showSpatialIndex, setShowSpatialIndex] = setter(
@@ -752,7 +773,7 @@ const createStore = () => {
     tempDepileOneDNum,
     temporaryDepiledPiles,
     zoomBounds,
-    zoomScale
+    zoomScale,
   });
 
   const rootReducer = (state, action) => {
@@ -775,7 +796,7 @@ const createStore = () => {
   reduxStore.lastAction = () => lastAction;
 
   Object.defineProperty(reduxStore, 'lastAction', {
-    get: () => lastAction
+    get: () => lastAction,
   });
 
   const exportState = () => {
@@ -810,7 +831,7 @@ const createStore = () => {
   )({
     export: exportState,
     import: importState,
-    reset: resetState
+    reset: resetState,
   });
 };
 
@@ -821,6 +842,7 @@ export const createAction = {
   mergePiles,
   movePiles,
   scatterPiles,
+  setPiles,
   setCoverRenderer,
   setArrangementObjective,
   setArrangeOnGrouping,
@@ -928,5 +950,5 @@ export const createAction = {
   setTemporaryDepiledPiles,
   setZoomBounds,
   setZoomScale,
-  splitPiles
+  splitPiles,
 };

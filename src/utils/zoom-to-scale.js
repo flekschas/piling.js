@@ -1,3 +1,3 @@
-const zoomToScale = zoom => 2 ** zoom;
+const zoomToScale = (zoom) => 2 ** zoom;
 
 export default zoomToScale;

@@ -3,30 +3,30 @@ import {
   pipe,
   withConstructor,
   withReadOnlyProperty,
-  withStaticProperty
+  withStaticProperty,
 } from '@flekschas/utils';
 import * as PIXI from 'pixi.js';
 
 import withAnimatedProperty from './with-animated-property';
 
-const withDestroy = container => self =>
+const withDestroy = (container) => (self) =>
   assign(self, {
     destroy() {
       return container.destroy();
-    }
+    },
   });
 
-const withMoveTo = () => self =>
+const withMoveTo = () => (self) =>
   assign(self, {
     moveTo(x, y) {
       if (!Number.isNaN(+x) && !Number.isNaN(+y)) {
         self.displayObject.x = x;
         self.displayObject.y = y;
       }
-    }
+    },
   });
 
-const withInteractivity = pubSub => self =>
+const withInteractivity = (pubSub) => (self) =>
   assign(self, {
     pointerOverHandler() {
       pubSub.publish('itemOver', { item: self });
@@ -45,7 +45,7 @@ const withInteractivity = pubSub => self =>
       self.displayObject.buttonMode = true;
       self.displayObject.on('pointerover', self.pointerOverHandler);
       self.displayObject.on('pointerout', self.pointerOutHandler);
-    }
+    },
   });
 
 const createPileItem = ({ image, item, pubSub }) => {
@@ -53,19 +53,19 @@ const createPileItem = ({ image, item, pubSub }) => {
   // eslint-disable-next-line no-underscore-dangle
   container.__pilingjs__item = item; // Dirty: for quick access in pile.js
 
-  const replaceImage = newImage => {
+  const replaceImage = (newImage) => {
     // eslint-disable-next-line no-param-reassign
     image = newImage;
     container.removeChildren();
     container.addChild(image.displayObject);
   };
 
-  const withPublicMethods = () => self =>
+  const withPublicMethods = () => (self) =>
     assign(self, {
-      replaceImage
+      replaceImage,
     });
 
-  const init = self => {
+  const init = (self) => {
     self.displayObject.addChild(self.image.displayObject);
 
     self.enableInteractivity();
@@ -84,13 +84,13 @@ const createPileItem = ({ image, item, pubSub }) => {
       withAnimatedProperty(
         {
           name: 'opacity',
-          pubSub
+          pubSub,
         },
         {
           getter: () => container.alpha,
-          setter: newAlpha => {
+          setter: (newAlpha) => {
             container.alpha = newAlpha;
-          }
+          },
         }
       ),
       withDestroy(container),

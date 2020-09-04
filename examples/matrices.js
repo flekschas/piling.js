@@ -2,14 +2,14 @@
 import {
   interpolateOrRd,
   interpolateRdPu,
-  interpolateRainbow
+  interpolateRainbow,
 } from 'd3-scale-chromatic';
 
 import createPilingJs from '../src/library';
 import { createMatrixRenderer } from '../src/renderer';
 import {
   createMatrixCoverAggregator,
-  createMatrixPreviewAggregator
+  createMatrixPreviewAggregator,
 } from '../src/aggregator';
 import { createUmap } from '../src/dimensionality-reducer';
 
@@ -20,8 +20,8 @@ const rgbStr2rgba = (rgbStr, alpha = 1) => {
     ...rgbStr
       .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
       .slice(1, 4)
-      .map(x => parseInt(x, 10) / 256),
-    alpha
+      .map((x) => parseInt(x, 10) / 256),
+    alpha,
   ];
 };
 
@@ -63,7 +63,7 @@ const createPiling = async (element, darkMode) => {
   const domain = [0, 1];
 
   const coverRenderer = createMatrixRenderer({
-    colorMap: createColorMap('red', 512, darkMode)
+    colorMap: createColorMap('red', 512, darkMode),
   });
 
   const matrixCoverAggregator = createMatrixCoverAggregator('mean');
@@ -79,7 +79,7 @@ const createPiling = async (element, darkMode) => {
   const matrixRenderer = createMatrixRenderer({ colorMap });
   const matrix1DRenderer = createMatrixRenderer({
     colorMap,
-    shape: [1, 16]
+    shape: [1, 16],
   });
 
   const additionalSidebarOptions = [
@@ -92,12 +92,12 @@ const createPiling = async (element, darkMode) => {
           dtype: 'string',
           defaultValue: 'purple',
           values: ['purple', 'rainbow'],
-          setter: newColorMap => {
+          setter: (newColorMap) => {
             colorMap = createColorMap(newColorMap, 512, darkMode);
             matrixRenderer.setColorMap(colorMap, 512, darkMode);
             matrix1DRenderer.setColorMap(colorMap, 512, darkMode);
             piling.render();
-          }
+          },
         },
         {
           name: 'minValue',
@@ -107,13 +107,13 @@ const createPiling = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: 0,
           onInput: true,
-          setter: newMinValue => {
+          setter: (newMinValue) => {
             domain[0] = newMinValue;
             matrixRenderer.setDomain(domain);
             coverRenderer.setDomain(domain);
             matrix1DRenderer.setDomain(domain);
             piling.render();
-          }
+          },
         },
         {
           name: 'maxValue',
@@ -123,16 +123,16 @@ const createPiling = async (element, darkMode) => {
           numSteps: 360,
           defaultValue: 1,
           onInput: true,
-          setter: newMaxValue => {
+          setter: (newMaxValue) => {
             domain[1] = newMaxValue;
             matrixRenderer.setDomain(domain);
             coverRenderer.setDomain(domain);
             matrix1DRenderer.setDomain(domain);
             piling.render();
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ];
 
   piling.set({
@@ -146,15 +146,15 @@ const createPiling = async (element, darkMode) => {
     items: data,
     cellSize: 64,
     pileCellAlignment: 'center',
-    pileScale: pile => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
-    pileOrderItems: pileState => [...pileState.items].sort((a, b) => a - b),
-    previewScaling: pile => [
+    pileScale: (pile) => 1 + Math.min((pile.items.length - 1) * 0.05, 0.5),
+    pileOrderItems: (pileState) => [...pileState.items].sort((a, b) => a - b),
+    previewScaling: (pile) => [
       1,
-      Math.max(0.1, 1 - (pile.items.length - 2) / 20)
+      Math.max(0.1, 1 - (pile.items.length - 2) / 20),
     ],
     previewOffset: 1,
     previewPadding: 2,
-    previewSpacing: pile => Math.max(0, 2 - (pile.items.length - 2) / 20)
+    previewSpacing: (pile) => Math.max(0, 2 - (pile.items.length - 2) / 20),
   });
 
   // Uncomment the following code to apply UMAP on the raw data
