@@ -1,11 +1,15 @@
 ## Next
 
+_[Changes since v0.7.8](https://github.com/flekschas/piling.js/compare/v0.7.8...master)_
+
+## v0.7.8
+
 - Add state serialization options via `exportState({ serialize: true })`
 - Export image class `createImage()`
 - Fix opacity issues on temporary depiling (#198 and #204)
 - Fix issues removing piles on temp depile
 
-_[Changes since v0.7.7](https://github.com/flekschas/piling.js/compare/v0.7.7...master)_
+_[Changes since v0.7.7](https://github.com/flekschas/piling.js/compare/v0.7.7...v0.7.8)_
 
 ## v0.7.7
 
