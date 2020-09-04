@@ -2020,6 +2020,17 @@ const createPilingJs = (rootElement, initProps = {}) => {
     );
   };
 
+  const showFilterLayer = () => {
+    filterLayer.tint = store.state.darkMode ? 0x000000 : 0xffffff;
+    filterLayer.width = containerWidth;
+    filterLayer.height = containerHeight;
+    filterLayer.alpha = 0.9;
+  };
+
+  const hideFilterLayer = () => {
+    filterLayer.alpha = 0;
+  };
+
   const closeTempDepile = (pileIds) => {
     const { piles } = store.state;
 
@@ -2136,17 +2147,6 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
       animateTempDepileItem(clonedSprite, x, y, options);
     });
-  };
-
-  const showFilterLayer = () => {
-    filterLayer.tint = store.state.darkMode ? 0x000000 : 0xffffff;
-    filterLayer.width = containerWidth;
-    filterLayer.height = containerHeight;
-    filterLayer.alpha = 0.9;
-  };
-
-  const hideFilterLayer = () => {
-    filterLayer.alpha = 0;
   };
 
   const tempDepile = (pileIds) => {
@@ -4462,6 +4462,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
     const pile = pileInstances.get(target.id);
     const pileGfx = pile.graphics;
 
+    if (pile.isTempDepiled) return;
+
     if (pile.x !== pileGfx.beforeDragX || pile.y !== pileGfx.beforeDragY) {
       const searchBBox = calcPileBBox(target.id);
       const collidePiles = spatialIndex
@@ -4585,8 +4587,9 @@ const createPilingJs = (rootElement, initProps = {}) => {
     moveToActivePileLayer(pile.graphics);
   };
 
-  const pileLeaveHandler = () => {
-    clearActivePileLayer();
+  const pileLeaveHandler = ({ target }) => {
+    const pile = pileInstances.get(target.id);
+    if (!pile || !pile.isTempDepiled) clearActivePileLayer();
   };
 
   const hideContextMenu = (contextMenuElement) => {
