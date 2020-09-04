@@ -167,12 +167,13 @@ An array of objects with one required property `src` and other optional user-def
 
 **Returns:** a new piling instance.
 
-### createLibraryFromState(_domElement_, _initialProperties_)
+### createLibraryFromState(_domElement_, _initialProperties_, _options_)
 
 **Arguments:**
 
 - `domElement`: reference to the DOM element that will host piling.js' canvas
-- `state`: a complete state object obtained from [`exportState()`](#pilingexportstate).
+- `state`: a complete state object obtained from [`exportState()`](#pilingexportstateoptions).
+- `options` (optional): options from [`importState()`](#pilingimportstatestate-options).
 
 **Returns:** a promise resolving to the new piling instance once the state was imported.
 
@@ -180,7 +181,7 @@ An array of objects with one required property `src` and other optional user-def
 
 ### piling.get(_property_)
 
-**Returns:** one of the properties documented in [`set()`](#piling.set)
+**Returns:** one of the properties documented in [`set()`](#pilingsetproperty-value)
 
 ### piling.set(_property_, _value_)
 
@@ -403,17 +404,43 @@ const eventHandler = (eventData) => {
 
 Unsubscribe from an event. See [events](#events) for all the events.
 
-### piling.exportState()
+### piling.exportState(_options_)
+
+**Arguments:**
+
+- `options` (optional): Object with the following properties:
+  - `serialize` (default `false`): If `true` Piling.js will serialize the state into a string. This operation is similar to but more specialized than `JSON.stringify`
 
 **Returns:** current state object.
 
-### piling.importState(_state_)
+### piling.importState(_state_, _options_)
 
 **Arguments:**
 
 - `state`: Previously exported state object.
+- `options` (optional): Object with the following properties:
+  - `deserialize` (default `false`): If `true` Piling.js will deserialize `state` assuming it was serialized with [`piling.exportState({ serialize: true })`](#pilingexportstateoptions)
+  - `overwriteState` (default `false`): If `true` replaces the current store with `state`. Otherwise the properties in `state` will only override properties in the current state.
 
 **Returns:** a promise that resolves once the state was imported
+
+## Utility Functions
+
+### deserializeState(_serializedState_)
+
+**Arguments:**
+
+- `serializedState`: Serialized state string from [`serializeState()`](#serializestatestate)
+
+**Returns:** a state object
+
+### serializeState(_state_)
+
+**Arguments:**
+
+- `state`: State object from [`piling.exportState()`](#pilingexportstateoptions)
+
+**Returns:** Serialized state as a string. This operation is similar to but more specialized than `JSON.stringify`.
 
 ## Properties
 

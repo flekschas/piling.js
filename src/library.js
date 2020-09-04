@@ -63,11 +63,13 @@ import {
 import {
   cloneSprite,
   colorToDecAlpha,
+  createScale,
+  deserializeState,
   getBBox,
   getItemProp,
   getPileProp,
   matchArrayPair,
-  createScale,
+  serializeState,
   toAlignment,
   toHomogeneous,
   uniqueStr,
@@ -4031,9 +4033,15 @@ const createPilingJs = (rootElement, initProps = {}) => {
     });
   };
 
-  const exportState = () => store.export();
+  const exportState = ({ serialize = false } = {}) => {
+    if (serialize) return serializeState(store.export());
+    return store.export();
+  };
 
-  const importState = (newState, overwriteState = false) => {
+  const importState = (
+    newState,
+    { deserialize = false, overwriteState = false } = {}
+  ) => {
     // We assume that the user imports an already initialized state
     isInitialPositioning = false;
     let updateUnsubscriber;
@@ -4042,7 +4050,10 @@ const createPilingJs = (rootElement, initProps = {}) => {
         if (action.type.indexOf('OVERWRITE') >= 0) resolve();
       });
     });
-    store.import(newState, overwriteState);
+    store.import(
+      deserialize ? deserializeState(newState) : newState,
+      overwriteState
+    );
     resetPileBorder();
     whenUpdated.then(() => {
       pubSub.unsubscribe(updateUnsubscriber);
