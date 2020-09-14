@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.7.8](https://github.com/flekschas/piling.js/compare/v0.7.8...master)_
+_[Changes since v0.7.8](https://github.com/flekschas/piling.js/compare/v0.7.9...master)_
+
+## v0.7.9
+
+- Fix minor visual regression from [v0.7.8](#v078)
+
+_[Changes since v0.7.8](https://github.com/flekschas/piling.js/compare/v0.7.8...v0.7.9)_
 
 ## v0.7.8
 
