@@ -385,6 +385,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
   const activePile = new PIXI.Container();
   const normalPiles = new PIXI.Container();
   const filterLayer = new PIXI.Sprite(PIXI.Texture.WHITE);
+  filterLayer.alpha = 0;
 
   const clearActivePileLayer = () => {
     if (activePile.children.length) {
