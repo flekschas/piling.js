@@ -27,7 +27,7 @@
   
 </div>
 
-piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://piling.js.org/?example=lines), but can easily be customized with your own render.
+piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://piling.js.org/?example=ridgeplot), but can easily be customized with [your own render](https://piling.js.org/docs/?id=define-your-own-renderer).
 
 ## Get Started
 
@@ -42,22 +42,22 @@ npm install piling.js
 Let's pile some natural images
 
 ```javascript
-// import the piling.js library
-import createPilingJs from 'piling.js';
-// import the predefined image renderer
-import { createImageRenderer } from 'piling.js';
+import createPilingJs, { createImageRenderer } from 'piling.js';
 
-// define your dataset
-const data = [{ src: 'http://example.com/my-fancy-photo.png' }, ...];
+// define your items
+const items = [{ src: 'http://example.com/my-fancy-photo.png' }, ...];
 
-// instantiate and configure the piling.js library
-// 'demo' is the dom element which piling.js will be rendered in
+// instantiate a matching the data type of your items
+const itemRenderer = createImageRenderer();
+
 const piling = createPilingJs(
-  document.getElementById('demo'),    // dom element in which piling.js will be rendered
+  document.getElementById('demo'), // dom element in which piling.js will be rendered
   {
-    renderer: createImageRenderer(),  // use the image renderer for rendering
-    items: data,                      // add the images
-    columns: 4                        // set the grid to 4 columns
+    // Mandatory: add the items and corresponding renderer
+    items,
+    itemRenderer,
+    // Optional: configure the view specification
+    columns: 4
   }
 );
 ```
@@ -66,24 +66,25 @@ Et voilà 🎉
 
 ![teaser-natural-images](https://user-images.githubusercontent.com/932103/65775958-24d1d080-e10f-11e9-8d12-5aaf6f760228.gif)
 
+### Using Piling.js With an Application Framework
+
+We've set up the following examples for how to use Piling.js with popular application frameworks:
+
+- [Piling.js with Svelte](https://github.com/flekschas/piling.js-svelte)
+- [Piling.js with React](https://github.com/flekschas/piling.js-react)
+
 ## Development
 
 **Install**
 
 ```bash
 git clone https://github.com/flekschas/piling.js
-cd pile-me
-npm ci
+cd piling.js
+npm install
 ```
 
 **Start the Development Server**
 
 ```
 npm start
-```
-
-**Update Demo**
-
-```
-npm run deploy
-```
+``
