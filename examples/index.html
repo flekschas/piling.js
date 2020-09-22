@@ -15,6 +15,8 @@
       content="Visual Piling, Visual Stacking, Piling.js, Visualization, Framework, Library, WebGL, PIXI.js, JavaScript, ES6"
     />
 
+    <link rel="icon" href="favicon.png" />
+
     <!-- Schema.org markup for Google+ -->
     <meta itemprop="name" content="Piling.js Demos" />
     <meta
@@ -68,6 +70,7 @@
       window.fullscreen = urlParams.has('fullscreen') ? 'fullscreen' : '';
 
       switch (urlParams.get('mode')) {
+        case 'light':
         case 'white':
           window.mode = 'white-mode';
           break;
