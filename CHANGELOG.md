@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.7.8](https://github.com/flekschas/piling.js/compare/v0.7.9...master)_
+_[Changes since v0.7.10](https://github.com/flekschas/piling.js/compare/v0.7.10...master)_
+
+## v0.7.10
+
+- Simplify the matrix renderer: you can now use `matrixRenderer` instead of `matrixRenderer.renderer`
+
+_[Changes since v0.7.9](https://github.com/flekschas/piling.js/compare/v0.7.9...v0.7.10)_
 
 ## v0.7.9
 

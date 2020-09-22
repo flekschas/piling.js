@@ -80,7 +80,7 @@ const createMatrixRenderer = ({
       })
     );
 
-  const setColorMap = (newColorMap) => {
+  renderer.setColorMap = (newColorMap) => {
     const [newColorMapTex, newColorMapTexRes] = createColorTexture(newColorMap);
 
     allUniforms.forEach(({ uniforms }) => {
@@ -89,23 +89,21 @@ const createMatrixRenderer = ({
     });
   };
 
-  const setDomain = (newDomain) => {
+  renderer.setDomain = (newDomain) => {
     allUniforms.forEach(({ uniforms }) => {
       uniforms.uMinValue = newDomain[0];
       uniforms.uMaxValue = newDomain[1];
     });
   };
 
-  const clear = () => {
+  renderer.clear = () => {
     allUniforms = [];
   };
 
-  return {
-    clear,
-    renderer,
-    setColorMap,
-    setDomain,
-  };
+  // Only for backward compatibility
+  renderer.renderer = renderer;
+
+  return renderer;
 };
 
 export default createMatrixRenderer;

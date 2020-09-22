@@ -137,10 +137,10 @@ const createPiling = async (element, darkMode) => {
 
   piling.set({
     darkMode,
-    renderer: matrixRenderer.renderer,
-    previewRenderer: matrix1DRenderer.renderer,
+    renderer: matrixRenderer,
+    previewRenderer: matrix1DRenderer,
     dimensionalityReducer: umap,
-    coverRenderer: coverRenderer.renderer,
+    coverRenderer,
     coverAggregator: matrixCoverAggregator,
     previewAggregator: matrixPreviewAggregator,
     items: data,
