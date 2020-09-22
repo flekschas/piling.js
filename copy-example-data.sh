@@ -1,5 +1,6 @@
 #!/bin/sh
 
+### Copy example data
 mkdir -p examples-build/data
 
 # 1. Photos
@@ -33,6 +34,12 @@ cp -r examples/data/worldbank.json examples-build/data/
 # 8. Time Series
 cp -r examples/data/us-daily-precipitation-remote.json examples-build/data/us-daily-precipitation.json
 
+
+### Copy docs
 mkdir -p examples-build/docs
 
 cp -r docs/ examples-build/docs
+
+
+### Assets
+cp examples/favicon.png examples-build/
