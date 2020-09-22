@@ -33,7 +33,10 @@
     "dist/piling-renderer.esm.js",
     "dist/piling-aggregator.js",
     "dist/piling-aggregator.min.js",
-    "dist/piling-aggregator.esm.js"
+    "dist/piling-aggregator.esm.js",
+    "dist/piling-dimensionality-reducer.js",
+    "dist/piling-dimensionality-reducer.min.js",
+    "dist/piling-dimensionality-reducer.esm.js"
   ],
   "scripts": {
     "build": "npm run build-library; npm run build-examples;",
