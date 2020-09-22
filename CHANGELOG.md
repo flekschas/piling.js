@@ -1,6 +1,13 @@
 ## Next
 
-_[Changes since v0.7.10](https://github.com/flekschas/piling.js/compare/v0.7.10...master)_
+_[Changes since v0.7.11](https://github.com/flekschas/piling.js/compare/v0.7.11...master)_
+
+## v0.7.11
+
+- Export `createUmap` from bundle
+- Include missing `piling-dimensionality-reducer` builds into the release
+
+_[Changes since v0.7.10](https://github.com/flekschas/piling.js/compare/v0.7.10...v0.7.11)_
 
 ## v0.7.10
 
