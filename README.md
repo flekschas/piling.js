@@ -27,7 +27,7 @@
   
 </div>
 
-piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://piling.js.org/?example=ridgeplot), but can easily be customized with [your own render](https://piling.js.org/docs/?id=define-your-own-renderer).
+Piling.js currently supports visual piling of [images](#quick-start), [matrices](#teaser-matrices), and [SVG](https://piling.js.org/?example=ridgeplot) out of the box, but can easily be customized with [your own render](https://piling.js.org/docs/?id=define-your-own-renderer).
 
 ## Get Started
 
@@ -87,4 +87,4 @@ npm install
 
 ```
 npm start
-``
+```
