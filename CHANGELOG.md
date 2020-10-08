@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.7.11](https://github.com/flekschas/piling.js/compare/v0.7.11...master)_
+_[Changes since v0.7.12](https://github.com/flekschas/piling.js/compare/v0.7.12...master)_
+
+## v0.7.12
+
+- Fix an issue with external SVGs which are prefixed with `<?xml` and `<!DOCTYPE` definitions
+
+_[Changes since v0.7.11](https://github.com/flekschas/piling.js/compare/v0.7.11...v0.7.12)_
 
 ## v0.7.11
 
