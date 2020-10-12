@@ -55,7 +55,7 @@
     </a>
   </li>
   <li>
-    <a href="/demos/?example=microscopy&options=1">
+    <a href="/demos/?example=vitessce&options=1">
       <figure class="scale-up">
         <img
           src="images/example-microscopy.png"
