@@ -1071,7 +1071,7 @@ Call [set](#pilingsetproperty-value) method to add renderers to the library.
 
 ```javascript
 // for all the items
-piling.set('renderer', matrixRenderer); // the same for imageRenderer
+piling.set('itemRenderer', itemRenderer);
 
 // for the aggregation of a pile
 piling.set('coverRenderer', coverRenderer);
