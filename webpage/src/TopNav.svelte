@@ -20,17 +20,17 @@
 <nav>
   <ol>
     <li>
-      <a href="https://piling.js.org" target="_blank" rel="noopener noreferrer">
+      <a href="/" target="_blank" rel="noopener noreferrer">
         <strong>Overview</strong>
       </a>
     </li>
     <li>
-      <a href="https://piling.js.org/demos" target="_blank" rel="noopener noreferrer">
+      <a href="/demos" target="_blank" rel="noopener noreferrer">
         Examples
       </a>
     </li>
     <li>
-      <a href="https://piling.js.org/docs" target="_blank" rel="noopener noreferrer">
+      <a href="/docs" target="_blank" rel="noopener noreferrer">
         Documentation
       </a>
     </li>
