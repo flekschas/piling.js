@@ -276,19 +276,8 @@ const piling = createPilingJs(domElement, {
 
   /* 960px */
   @media screen and (min-width: 60em) {
-    .bigger {
-      font-size: 1.25em;
-    }
-
     .justify {
       text-align: justify;
-    }
-  }
-
-  /* 1280px */
-  @media screen and (min-width: 80em) {
-    .bigger {
-      font-size: 1.375em;
     }
   }
 </style>

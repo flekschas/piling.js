@@ -188,3 +188,11 @@ ol.large-spacing li {
     margin-bottom: 0;
   }
 }
+
+/* 1280px */
+@media screen and (min-width: 80em) {
+  html,
+  body {
+    font-size: 18px;
+  }
+}
