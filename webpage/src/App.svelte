@@ -230,9 +230,13 @@ const piling = createPilingJs(domElement, {
     left: 50%;
     transform: translate(-50%, 0);
     padding: 0.25rem;
-    background: black;
+    min-width: 10rem;
+    min-height: 6.25rem;
     border-radius: 0.25rem;
     border: 2px solid var(--gray-medium);
+    background-color: black;
+    background: black url(/images/loading.png) no-repeat center center;
+    background-size: contain;
   }
 
   ol.centered {
