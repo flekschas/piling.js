@@ -339,7 +339,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('dragDrop')} dense>pageview</IconButton>
             {#if dragDrop}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/932103/78094083-aa298c80-73a1-11ea-95c8-f436e70b2c9d.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/932103/78094083-aa298c80-73a1-11ea-95c8-f436e70b2c9d.gif"
+                  alt="Drag and drop interaction">
               </div>
             {/if}
           </p>
@@ -352,7 +354,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('multiSelect')} dense>pageview</IconButton>
             {#if multiSelect}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/932103/78094274-27ed9800-73a2-11ea-9efe-3f9121337657.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/932103/78094274-27ed9800-73a2-11ea-9efe-3f9121337657.gif"
+                  alt="Multi-select interaction">
               </div>
             {/if}
           </p>
@@ -365,7 +369,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('lasso')} dense>pageview</IconButton>
             {#if lasso}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/932103/78094424-84e94e00-73a2-11ea-8958-55ba0c032b65.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/932103/78094424-84e94e00-73a2-11ea-8958-55ba0c032b65.gif"
+                  alt="Lasso interaction">
               </div>
             {/if}
           </p>
@@ -378,7 +384,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('inPlaceBrowsing')} dense>pageview</IconButton>
             {#if inPlaceBrowsing}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78209002-7604b780-74d8-11ea-9211-34503e424135.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78209002-7604b780-74d8-11ea-9211-34503e424135.gif"
+                  alt="In-place browsing interaction">
               </div>
             {/if}
           </p>
@@ -391,7 +399,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('previewBrowsing')} dense>pageview</IconButton>
             {#if previewBrowsing}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78207017-03dda400-74d3-11ea-8078-ed1d891f93d5.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78207017-03dda400-74d3-11ea-8078-ed1d891f93d5.gif"
+                  alt="Preview browsing interaction">
               </div>
             {/if}
           </p>
@@ -404,7 +414,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('dispersiveBrowsing')} dense>pageview</IconButton>
             {#if dispersiveBrowsing}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78208161-42c12900-74d6-11ea-8ea9-01886a59b37f.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78208161-42c12900-74d6-11ea-8ea9-01886a59b37f.gif"
+                  alt="Dispersive browing interaction">
               </div>
             {/if}
           </p>
@@ -417,7 +429,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('hierarchicalBrowsing')} dense>pageview</IconButton>
             {#if hierarchicalBrowsing}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78208546-38ebf580-74d7-11ea-9c82-57265446f015.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78208546-38ebf580-74d7-11ea-9c82-57265446f015.gif"
+                  alt="Hierarchical browsing interaction">
               </div>
             {/if}
           </p>
@@ -430,7 +444,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('pileDispersion')} dense>pageview</IconButton>
             {#if pileDispersion}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78209508-ca5c6700-74d9-11ea-8604-bbdc4159f3c5.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78209508-ca5c6700-74d9-11ea-8604-bbdc4159f3c5.gif"
+                  alt="Pile dispersion interaction">
               </div>
             {/if}
           </p>
@@ -443,7 +459,9 @@ const piling = createPilingJs(domElement, {
             <IconButton class="material-icons" on:click={() => show('pileScaling')} dense>pageview</IconButton>
             {#if pileScaling}
               <div class="popover">
-                <img src="https://user-images.githubusercontent.com/39853191/78210748-b9adf000-74dd-11ea-87b8-29a96d5400fc.gif">
+                <img
+                  src="https://user-images.githubusercontent.com/39853191/78210748-b9adf000-74dd-11ea-87b8-29a96d5400fc.gif"
+                  alt="Pile scaling interaction">
               </div>
             {/if}
           </p>
