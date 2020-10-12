@@ -70,10 +70,11 @@ header {
   left: 1rem;
   height: 3rem;
   display: flex;
+  align-items: center;
 }
 
 h1 {
-  margin: 0 1rem 0 0;
+  margin: 0;
   padding: 0 0.5rem;
   font-size: 2rem;
   line-height: 3rem;
@@ -82,9 +83,31 @@ h1 {
   border-radius: 0.25rem;
 }
 
+h1 a,
+h1 a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
 body.dark-mode h1 {
   color: $black;
   background: $white;
+}
+
+h2 {
+  margin: 0 0.5rem 0 -0.25rem;
+  padding: 0 0.5rem 0 0.75rem;
+  font-size: 1.25rem;
+  line-height: 3rem;
+  color: $black;
+  text-transform: uppercase;
+  border-radius: 0 0.25rem 0.25rem 0;
+  box-shadow: inset 0 0 0 2px black;
+}
+
+body.dark-mode h2 {
+  color: $white;
+  box-shadow: inset 0 0 0 2px white;
 }
 
 abbr,
@@ -198,7 +221,7 @@ body.fullscreen .container {
 }
 
 .credits {
-  margin-left: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .credits,
@@ -261,26 +284,13 @@ body.dark-mode {
  * -----------------------------------------------------------------------------
  */
 
-header #description {
-  position: relative;
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-}
-
 body.fullscreen header {
   display: none;
 }
 
-#description .wrapper {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-#description .wrapper > * {
+#selection {
+  display: flex !important;
+  align-items: center;
   position: relative;
   display: block;
   overflow: hidden;
@@ -289,11 +299,6 @@ body.fullscreen header {
   margin: 0;
   height: 1.5rem;
   line-height: 1.5rem;
-}
-
-#selection {
-  display: flex !important;
-  align-items: center;
 }
 
 #selection label {
