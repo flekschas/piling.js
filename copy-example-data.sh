@@ -18,7 +18,7 @@ cp -r examples/data/flower.json webpage-build/demos/data/
 cp -r examples/data/necklace.json webpage-build/demos/data/
 cp -r examples/data/piano.json webpage-build/demos/data/
 cp -r examples/data/power-outlet.json webpage-build/demos/data/
-cp -r examples/data/teapot.json webpage-build/demos/data/
+cp -r examples/data/teapot-2000.json webpage-build/demos/data/
 cp -r examples/data/smiley-face.json webpage-build/demos/data/
 cp -r examples/data/snowman.json webpage-build/demos/data/
 

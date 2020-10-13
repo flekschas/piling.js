@@ -41,7 +41,7 @@
   "scripts": {
     "build": "npm run build-library; npm run build-examples;",
     "build-library": "rm -rf dist/*; rollup -c;",
-    "build-webpage": "mkdir -p webpage-build; rm -rf webpage-build/*; cd webpage && npm run build && cd ..; webpack --config ./webpack.config.js --mode production; cp -r webpage/public/* webpage-build; touch webpage/demos/.nojekyll; ./copy-example-data.sh;",
+    "build-webpage": "mkdir -p webpage-build; rm -rf webpage-build/*; cd webpage && npm run build && cd ..; webpack --config ./webpack.config.js --mode production; cp -r webpage/public/* webpage-build; touch webpage-build/demos/.nojekyll; ./copy-example-data.sh;",
     "deploy": "npm run build-webpage; gh-pages -d webpage-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
