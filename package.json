@@ -41,8 +41,8 @@
   "scripts": {
     "build": "npm run build-library; npm run build-examples;",
     "build-library": "rm -rf dist/*; rollup -c;",
-    "build-examples": "rm -rf examples-build/*; webpack --config ./webpack.config.js --mode production; ./copy-example-data.sh; echo \"piling.js.org\" >> examples-build/CNAME; touch examples-build/.nojekyll;",
-    "deploy": "npm run build-examples; gh-pages -d examples-build -t --git git",
+    "build-webpage": "mkdir -p webpage-build; rm -rf webpage-build/*; cd webpage && npm run build && cd ..; webpack --config ./webpack.config.js --mode production; cp -r webpage/public/* webpage-build; touch webpage-build/demos/.nojekyll; ./copy-example-data.sh;",
+    "deploy": "npm run build-webpage; gh-pages -d webpage-build -t --git git",
     "lint": "eslint src examples rollup.config.js webpack.config.js",
     "precommit": "NODE_ENV=production lint-staged",
     "prepublishOnly": "npm run test",
@@ -118,6 +118,7 @@
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-svelte3": "^2.7.3",
     "esm": "^3.2.25",
     "gh-pages": "^3.1.0",
     "glob": "^7.1.6",

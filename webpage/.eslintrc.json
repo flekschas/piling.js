@@ -1,0 +1,35 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 2019,
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "plugins": ["svelte3"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "prettier"
+  ],
+  "settings": {},
+  "rules": {
+    "semi": [2, "always"],
+    "keyword-spacing": [2, { "before": true, "after": true }],
+    "space-before-blocks": [2, "always"],
+    "space-before-function-paren": [
+      2,
+      { "anonymous": "always", "named": "never", "asyncArrow": "always" }
+    ],
+    "no-mixed-spaces-and-tabs": [2, "smart-tabs"],
+    "object-shorthand": [2, "always"],
+    "no-var": 2,
+    "quote-props": [2, "as-needed"],
+    "one-var": [2, "never"],
+    "prefer-arrow-callback": 2,
+    "prefer-const": 2,
+    "arrow-spacing": 2
+  }
+}

@@ -8,7 +8,7 @@ module.exports = (env, argv) => ({
     index: './examples/index.js',
   },
   output: {
-    path: `${__dirname}/examples-build`,
+    path: `${__dirname}/webpage-build/demos`,
     publicPath: argv.mode === 'production' ? './' : '/',
   },
   devServer: {
