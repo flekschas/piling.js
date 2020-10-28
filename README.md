@@ -34,7 +34,13 @@ Piling.js currently supports visual piling of [images](#quick-start), [matrices]
 #### Install
 
 ```bash
-npm install piling.js
+npm install piling.js pixi.js
+```
+
+PixiJS is the underlying Optionally, if you want to lay out piles by more than two attributes you have to install UMAP as follows.
+
+```bash
+npm install umap-js
 ```
 
 #### Quick Start
