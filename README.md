@@ -78,6 +78,7 @@ We've set up the following examples for how to use Piling.js with popular applic
 
 - [Piling.js with Svelte](https://github.com/flekschas/piling.js-svelte)
 - [Piling.js with React](https://github.com/flekschas/piling.js-react)
+- [Piling.js with Vue](https://github.com/flekschas/piling.js-vue)
 
 ## Development
 
