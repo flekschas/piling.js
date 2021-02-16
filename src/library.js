@@ -4057,7 +4057,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
   const importState = (
     newState,
-    { deserialize = false, overwriteState = false } = {}
+    { deserialize = false, overwriteState = false, debug = false } = {}
   ) => {
     // We assume that the user imports an already initialized state
     isInitialPositioning = false;
@@ -4067,10 +4067,10 @@ const createPilingJs = (rootElement, initProps = {}) => {
         if (action.type.indexOf('OVERWRITE') >= 0) resolve();
       });
     });
-    store.import(
-      deserialize ? deserializeState(newState) : newState,
-      overwriteState
-    );
+    store.import(deserialize ? deserializeState(newState) : newState, {
+      overwriteState,
+      debug,
+    });
     resetPileBorder();
     whenUpdated.then(() => {
       pubSub.unsubscribe(updateUnsubscriber);

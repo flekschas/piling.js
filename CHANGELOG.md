@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.7.12](https://github.com/flekschas/piling.js/compare/v0.7.12...master)_
+_[Changes since v0.7.13](https://github.com/flekschas/piling.js/compare/v0.7.13...master)_
+
+## v0.7.13
+
+- Add `debug` as an option to `piling.importState(state, options)` and `createLibraryFromState` to help discover issues with broken state.
+
+_[Changes since v0.7.12](https://github.com/flekschas/piling.js/compare/v0.7.12...v0.7.13)_
 
 ## v0.7.12
 

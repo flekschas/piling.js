@@ -100,14 +100,14 @@ export const reset = () => ({
   payload: {},
 });
 
-export const overwrite = (newState) => ({
+export const overwrite = (newState, debug) => ({
   type: 'OVERWRITE',
-  payload: { newState },
+  payload: { newState, debug },
 });
 
-export const softOverwrite = (newState) => ({
+export const softOverwrite = (newState, debug) => ({
   type: 'SOFT_OVERWRITE',
-  payload: { newState },
+  payload: { newState, debug },
 });
 
 const [arrangementType, setArrangementType] = setter('arrangementType');
@@ -665,7 +665,7 @@ const [showSpatialIndex, setShowSpatialIndex] = setter(
 const createStore = () => {
   let lastAction = null;
 
-  const appReducer = combineReducers({
+  const reducers = {
     arrangementObjective,
     arrangementOptions,
     arrangementType,
@@ -774,7 +774,25 @@ const createStore = () => {
     temporaryDepiledPiles,
     zoomBounds,
     zoomScale,
-  });
+  };
+
+  const appReducer = combineReducers(reducers);
+
+  const warnForUnknownImportProps = (newState) => {
+    const unknownProps = Object.keys(newState)
+      .reduce((unknown, prop) => {
+        if (reducers[prop] === undefined) {
+          unknown.push(`"${prop}"`);
+        }
+        return unknown;
+      }, [])
+      .join(', ');
+    if (unknownProps) {
+      console.warn(
+        `The following state properties are not understood and will not imported: ${unknownProps}`
+      );
+    }
+  };
 
   const rootReducer = (state, action) => {
     lastAction = action;
@@ -782,8 +800,12 @@ const createStore = () => {
     if (action.type === 'RESET') {
       state = undefined; // eslint-disable-line no-param-reassign
     } else if (action.type === 'OVERWRITE') {
+      if (action.payload.debug)
+        warnForUnknownImportProps(action.payload.newState);
       state = action.payload.newState; // eslint-disable-line no-param-reassign
     } else if (action.type === 'SOFT_OVERWRITE') {
+      if (action.payload.debug)
+        warnForUnknownImportProps(action.payload.newState);
       // eslint-disable-next-line no-param-reassign
       state = update(state, action.payload.newState, true);
     }
@@ -805,7 +827,10 @@ const createStore = () => {
     return clonedState;
   };
 
-  const importState = (newState, overwriteState = false) => {
+  const importState = (
+    newState,
+    { overwriteState = false, debug = false } = {}
+  ) => {
     if (newState.version !== version) {
       console.warn(
         `The version of the imported state "${newState.version}" doesn't match the library version "${version}". Use at your own risk!`
@@ -814,8 +839,8 @@ const createStore = () => {
 
     if (newState.version) delete newState.version;
 
-    if (overwriteState) reduxStore.dispatch(overwrite(newState));
-    else reduxStore.dispatch(softOverwrite(newState));
+    if (overwriteState) reduxStore.dispatch(overwrite(newState, debug));
+    else reduxStore.dispatch(softOverwrite(newState, debug));
   };
 
   const resetState = () => {
