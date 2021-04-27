@@ -293,7 +293,7 @@ const piling = createPilingJs(domElement, {
   </Headline>
   <Section>
     <div slot="center">
-      <p class="bigger justify">Piling.js is a JavaScript library to build <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">visual piling interfaces</a> for exploring large collections of small multiples. Piling.js is data-agnostic and build around a declaritive view specification to avoid having to write low-level code. Being build on top of <a href="https://www.pixijs.com" target="_blank" rel="noreferrer noopener">PixiJS</a>' powerful WebGl rendering framework, Piling.js can render up to several thousand small multiples.</p>
+      <p class="bigger justify">Piling.js is a JavaScript library to build <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">visual piling interfaces</a> for exploring large collections of small multiples. Piling.js is data-agnostic and build around a declarative view specification to avoid having to write low-level code. Being build on top of <a href="https://www.pixijs.com" target="_blank" rel="noreferrer noopener">PixiJS</a>' powerful WebGl rendering framework, Piling.js can render up to several thousand small multiples.</p>
     </div>
   </Section>
   <Section>
