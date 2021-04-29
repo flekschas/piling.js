@@ -3,10 +3,17 @@
 </script>
 
 <style>
+  article {
+    border-left: 2px solid white;
+    margin: 1em 0;
+    padding: 0.5em;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
   h4 {
     font-size: 1.125em;
     line-height: 1.25em;
-    margin: 1em 0 0 0;
+    margin: 0;
   }
 
   p {
@@ -108,6 +115,9 @@
       </span>
     {/if}
   </p>
+  {#if slots.award}
+    <slot name="award" />
+  {/if}
 </article>
 
 <!-- To avoid annoying warnings: https://github.com/sveltejs/svelte/issues/4546#issuecomment-626348879 -->

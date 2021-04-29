@@ -293,7 +293,7 @@ const piling = createPilingJs(domElement, {
   </Headline>
   <Section>
     <div slot="center">
-      <p class="bigger justify">Piling.js is a JavaScript library to build <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">visual piling interfaces</a> for exploring large collections of small multiples. Piling.js is data-agnostic and build around a declaritive view specification to avoid having to write low-level code. Being build on top of <a href="https://www.pixijs.com" target="_blank" rel="noreferrer noopener">PixiJS</a>' powerful WebGl rendering framework, Piling.js can render up to several thousand small multiples.</p>
+      <p class="bigger justify">Piling.js is a JavaScript library to build <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">visual piling interfaces</a> for exploring large collections of small multiples. Piling.js is data-agnostic and build around a declarative view specification to avoid having to write low-level code. Being build on top of <a href="https://www.pixijs.com" target="_blank" rel="noreferrer noopener">PixiJS</a>' powerful WebGl rendering framework, Piling.js can render up to several thousand small multiples.</p>
     </div>
   </Section>
   <Section>
@@ -465,7 +465,7 @@ const piling = createPilingJs(domElement, {
   <Section>
     <article slot="center">
       <Headline level={3} id="rendering-pipeline" lines>Rendering Pipeline</Headline>
-      <p>To support many different pile design, Piling.js is build around the following 3-step rendering pipeline:</p>
+      <p>To support many different pile design, Piling.js is built around the following 3-step rendering pipeline:</p>
 
       <Overflow>
         <figure style="margin: 2rem 0;">
@@ -477,11 +477,13 @@ const piling = createPilingJs(domElement, {
         </figure>
       </Overflow>
 
-      <p><strong>Data:</strong> Piling.js expects the small multiples data to come in form of a list of objects. Each small multiple item is represented by an object, which must feature a <code>src</code> property and can optionally contain other metadata properties. The item <code>src</code> can come in any form as long as it's understood by the renderer.</p>
+      <p><strong>Data:</strong> Piling.js expects the small multiples data to come in the form of a list of objects. Each small multiple item is represented by an object, which must feature a <code>src</code> property and can optionally contain other metadata properties. The item <code>src</code> can come in any form as long as it's understood by the renderer.</p>
 
-      <p><strong>Aggregation:</strong> To increase the content awareness of piles, Piling.js supports rendering pile covers and item previews. The covers and previews typically show a summary of the pile and item respectively. To optain such a summary, the data as to be aggregated by a corresponding aggregator function. For instance, the cover of a pile of matrices could visualize the mean or standard deviation of the matrices. And the previews could show the column- or row-wise sum. When you think of a pile as a 3-way tensor (x-axis &times; y-axis &times; items) then the cover aggregator is expected to reduce the tensor along the <em>items</em> while the preview aggregator is expected to reduce the tensor along the <em>e-axis</em> or <em>y-axis</em> (or both).</p>
+      <p><strong>Aggregation:</strong> To increase the content awareness of piles, Piling.js supports rendering pile covers and item previews. The covers and previews typically show a summary of the pile and item respectively. To obtain such a summary, the data has to be aggregated by a corresponding aggregator function. For instance, the cover of a pile of matrices could visualize the mean or standard deviation of the matrices. And the previews could show the column- or row-wise sum. When you think of a pile as a 3D tensor (x-axis &times; y-axis &times; items) then the cover aggregator is expected to reduce the tensor along the <em>items</em> axis while the preview aggregator is expected to reduce the tensor along the <em>x-axis</em> or <em>y-axis</em> (or both).</p>
 
-      <p><strong>Rendering:</strong> Finally, the items' <code>src</code> properties are passed to a renderer function. The renderer function's task is to translate the data into a form that is renderable by PixiJS. See the accaptable <code>source</code> types of <code>PIXI.Texture</code>'s <code><a href="https://pixijs.download/dev/docs/PIXI.Texture.html#from" target="_blank" rel="noreferrer noopener">from()</a></code> and <code><a href="https://pixijs.download/dev/docs/PIXI.Texture.html#fromBuffer" target="_blank" rel="noreferrer noopener">fromBuffer()</a></code>. To get you started quickly, Piling.js provides <a href="https://piling.js.org/docs/?id=predefined-renderers">renderers for images, matrices, SVGs</a> out of the box.</p>
+      <p>Cover aggregators take <em>n</em> items and use their <code>src</code> (and potentially metadata) to output a single cover <code>src</code>, which can take any form as long as the corresponding cover renderer can interpret it. Preview renderers take a <em>single</em> item and uses its <code>src</code> (and potentially metadata) to output a single preview <code>src</code>, which can also take any form as long as the corresponding preview renderer can interpret it.</p>
+
+      <p><strong>Rendering:</strong> Finally, the items' <code>src</code> properties are passed to a renderer function. The renderer function's task is to translate the data into a form that is renderable by PixiJS. See the acceptable <code>source</code> types of <code>PIXI.Texture</code>'s <code><a href="https://pixijs.download/dev/docs/PIXI.Texture.html#from" target="_blank" rel="noreferrer noopener">from()</a></code> and <code><a href="https://pixijs.download/dev/docs/PIXI.Texture.html#fromBuffer" target="_blank" rel="noreferrer noopener">fromBuffer()</a></code>. To get you started quickly, Piling.js provides <a href="https://piling.js.org/docs/?id=predefined-renderers">renderers for images, matrices, and SVGs</a> out of the box.</p>
     </article>
   </Section>
   <Section>
@@ -521,8 +523,8 @@ const piling = createPilingJs(domElement, {
   </Section>
   <Section>
     <div slot="center">
-      <Headline level={3} id="more-resources" lines>More Resources</Headline>
-      <p>If you want to dive deeper into the design space of visual piling please take a look at <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">piling.lekschas.de</a> and our publication.</p>
+      <Headline level={3} id="publication" lines>Publication</Headline>
+      <p>If you want to learn more about the conceptual aspects and the design space of visual piling, please take a look at <a href="https://piling.lekschas.de" target="_blank" rel="noreferrer noopener">piling.lekschas.de</a> and our publication:</p>
       <Publication>
         <a href="https://vcg.seas.harvard.edu/pubs/piling" target="_blank" slot="title">A Generic Framework and Library for Exploration of Small Multiples through Interactive Piling</a>
         <ol slot="authors">
@@ -533,10 +535,12 @@ const piling = createPilingJs(domElement, {
           <li>Benjamin Bach</li>
           <li>Hanspeter Pfister</li>
         </ol>
-        <span slot="journal">To appear in IEEE Transactions on Visualization and Computer Graphics</span>
+        <span slot="journal">IEEE Transactions on Visualization and Computer Graphics</span>
         <span slot="series">InfoVis '20</span>
-        <span slot="year">2020</span>
+        <span slot="year">2021</span>
+        <span slot="award"><Badge text="IEEE InfoVis Best Paper Honorable Mention" icon="award" /></span>
       </Publication>
+      <p>If you use Piling.js in your own research, we would be super happy if you could cite our above-mentioned publications. Thanks a lot!</p>
     </div>
   </Section>
 </Main>
