@@ -2,6 +2,8 @@
 
 _[Changes since v0.7.13](https://github.com/flekschas/piling.js/compare/v0.7.13...master)_
 
+- Fix an issue where `arrangeBy()` would return an unresolvable promise (#234)
+
 ## v0.7.13
 
 - Add `debug` as an option to `piling.importState(state, options)` and `createLibraryFromState` to help discover issues with broken state.

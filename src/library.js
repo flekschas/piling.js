@@ -120,6 +120,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
   let translatePointFromScreen;
   let camera;
 
+  let attemptArrangement = false;
+
   const scratch = new Float32Array(16);
 
   const lastPilePosition = new Map();
@@ -3730,9 +3732,13 @@ const createPilingJs = (rootElement, initProps = {}) => {
         });
 
         if (updatedPilePositions.length) {
+          attemptArrangement = false;
           Promise.all(updatedPilePositions).then((positionedPiles) => {
             pubSub.publish('pilesPositionEnd', { targets: positionedPiles });
           });
+        } else if (attemptArrangement) {
+          attemptArrangement = false;
+          pubSub.publish('pilesPositionEnd', { targets: updatedPilePositions });
         }
       }
     }
@@ -4185,6 +4191,12 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
     const onGrouping = !!options.onGrouping;
     delete options.onGrouping;
+
+    // We need to set this variable to true to tell `updated()` to fire a
+    // special event in the case that this `arrangeBy()` call does not lead to
+    // any position changes. In this case, without a special event, the returned
+    // promise would otherwise never resove.
+    attemptArrangement = true;
 
     store.dispatch(
       batchActions([
