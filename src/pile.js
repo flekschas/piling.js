@@ -268,26 +268,29 @@ const createPile = (
       }
     }
 
-    if (
-      !normalItemContainer.children.length &&
-      !coverContainer.children.length
-    ) {
-      return;
+    const badgeRendering = () => {
+      const bounds = getContentBounds();
+
+      sizeBadge.displayObject.x =
+        bounds.x - borderSizeBase + (bounds.width + 2 * borderSizeBase) * xMod;
+      sizeBadge.displayObject.y =
+        bounds.y - borderSizeBase + (bounds.height + 2 * borderSizeBase) * yMod;
+
+      if (newBadge) rootContainer.addChild(sizeBadge.displayObject);
+
+      previousSizeBadge = sizeBadge;
+      previousSize = size;
+
+      render();
+    };
+
+    if (normalItemContainer.children.length || coverContainer.children.length) {
+      // Draw badge immediately
+      badgeRendering();
+    } else if (whenCover) {
+      // Draw badge once the cover is rendered
+      whenCover.then(badgeRendering);
     }
-
-    const bounds = getContentBounds();
-
-    sizeBadge.displayObject.x =
-      bounds.x - borderSizeBase + (bounds.width + 2 * borderSizeBase) * xMod;
-    sizeBadge.displayObject.y =
-      bounds.y - borderSizeBase + (bounds.height + 2 * borderSizeBase) * yMod;
-
-    if (newBadge) rootContainer.addChild(sizeBadge.displayObject);
-
-    previousSizeBadge = sizeBadge;
-    previousSize = size;
-
-    render();
   };
 
   let isShowSizeBadge = false;

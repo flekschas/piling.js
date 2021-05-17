@@ -3,6 +3,7 @@
 _[Changes since v0.7.13](https://github.com/flekschas/piling.js/compare/v0.7.13...master)_
 
 - Fix an issue where `arrangeBy()` would return an unresolvable promise (#234)
+- Fix an issue with the badge rendering and async-rendered covers (#235)
 
 ## v0.7.13
 
