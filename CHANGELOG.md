@@ -13,15 +13,15 @@ Together with changes from [v0.7.14](#v0.7.14) you can now do stuff like:
 const piling = createPilingJs(element, { ... });
 
 await piling.whenInit;
-// Piling instance is initialized
+// Piling instance has been initialized
 await piling.groupBy('category', (item) => item.id % 5);
-// Items are grouped by their ID
+// Items have been grouped by their ID
 await piling.arrangeBy('data', (state) => state.index);
-// Piles ordered by their index
+// Piles have been ordered by their index
 await piling.set('items', otherItems);
-// Scatter plot data was replaced
+// Scatter plot items have been replaced
 await piling.arrangeBy('data', { property: 'year', inverse: true });
-// Piles arranged in reverse annual order
+// Piles have been arranged by year in descending order
 ```
 
 _[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...v0.8.0)_
