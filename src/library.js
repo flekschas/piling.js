@@ -28,6 +28,8 @@ import {
   minVector,
   nextAnimationFrame,
   removeClass,
+  sortAsc,
+  sortDesc,
   sortPos,
   sum,
   sumVector,
@@ -359,18 +361,32 @@ const createPilingJs = (rootElement, initProps = {}) => {
     return undefined;
   };
 
+  const setPromise = (propVals) => {
+    if (propVals.items)
+      return new Promise((resolve) => {
+        pubSub.subscribe('itemUpdate', resolve, 1);
+      });
+
+    return Promise.resolve();
+  };
+
   const setPublic = (newProperty, newValue) => {
     if (typeof newProperty === 'string' || newProperty instanceof String) {
+      const whenDone = setPromise({ [newProperty]: newValue });
       set(newProperty, newValue);
-    } else {
-      store.dispatch(
-        batchActions(
-          Object.entries(newProperty).flatMap(([property, value]) =>
-            set(property, value, true)
-          )
-        )
-      );
+      return whenDone;
     }
+
+    const whenDone = setPromise(newProperty);
+    store.dispatch(
+      batchActions(
+        Object.entries(newProperty).flatMap(([property, value]) =>
+          set(property, value, true)
+        )
+      )
+    );
+
+    return whenDone;
   };
 
   const render = () => {
@@ -3272,6 +3288,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
 
       pileSortPosByAggregate[i] = sortPos(aggregatedPileValues, {
         getter: (v) => v[i],
+        comparator: objective.inverse ? sortDesc : sortAsc,
         ignoreNull: true,
       });
 
@@ -5189,11 +5206,13 @@ const createPilingJs = (rootElement, initProps = {}) => {
     enableScrolling();
     enableInteractivity();
 
-    setPublic(initProps);
+    const whenInit = setPublic(initProps);
 
     if (!initProps.piles && initProps.items) {
       store.dispatch(createAction.initPiles(initProps.items));
     }
+
+    return whenInit;
   };
 
   const destroy = () => {
@@ -5234,7 +5253,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
     pubSub.clear();
   };
 
-  init();
+  const whenInit = init();
 
   return {
     // Properties
@@ -5259,6 +5278,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
     splitBy: splitByPublic,
     subscribe: pubSub.subscribe,
     unsubscribe: pubSub.unsubscribe,
+    whenInit,
   };
 };
 

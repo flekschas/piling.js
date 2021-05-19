@@ -1,6 +1,30 @@
 ## Next
 
-_[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...master)_
+_[Changes since v0.8.0](https://github.com/flekschas/piling.js/compare/v0.8.0...master)_
+
+## v0.8.0
+
+- Export `whenInit` promise from a pile instance to easily determine when the instance is initialized. E.g., `piling.whenInit.then(() => { ... })`.
+- Add a `Promise` return to `set()` for better async chaining. At the moment the promise immediately resolves unless you change the items. In the latter case, the promise will resolve once the items have been properly updated.
+
+Together with changes from [v0.7.14](#v0.7.14) you can now do stuff like:
+
+```javascript
+const piling = createPilingJs(element, { ... });
+
+await piling.whenInit;
+// Piling instance is initialized
+await piling.groupBy('category', (item) => item.id % 5);
+// Items are grouped by their ID
+await piling.arrangeBy('data', (state) => state.index);
+// Piles ordered by their index
+await piling.set('items', otherItems);
+// Scatter plot data was replaced
+await piling.arrangeBy('data', { property: 'year', inverse: true });
+// Piles arranged in reverse annual order
+```
+
+_[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...v0.8.0)_
 
 ## v0.7.14
 
