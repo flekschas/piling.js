@@ -138,7 +138,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     previewRenderer: previewRenderer.renderer,
     items,
     columns: Object.keys(data).length,
-    cellAlign: 'center',
+    pileCellAlignment: 'center',
     cellPadding: 9,
     cellAspectRatio,
     pileOrderItems,
@@ -160,7 +160,8 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     zoomScale: (x) => x,
   });
 
-  piling.arrangeBy('data', 'year', { once: true });
+  await piling.whenInit;
+  await piling.arrangeBy('data', 'year');
 
   return [piling];
 };
