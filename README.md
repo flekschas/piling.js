@@ -37,7 +37,9 @@ Piling.js currently supports visual piling of [images](#quick-start), [matrices]
 npm install piling.js pixi.js
 ```
 
-PixiJS is the underlying Optionally, if you want to lay out piles by more than two attributes you have to install UMAP as follows.
+PixiJS is the underlying WebGL rendering engine. It's not pre-bundled in case your application needs to use PixiJS elsewhere.
+
+Optionally, if you want to lay out piles by more than two attributes you have to install UMAP as follows.
 
 ```bash
 npm install umap-js
