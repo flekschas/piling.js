@@ -194,6 +194,8 @@ An array of objects with one required property `src` and other optional user-def
 
 Position piles with user-specified arrangement method.
 
+**Arguments:**
+
 `type`, `objective`, and `options` can be one of the following combinations:
 
 | Type      | Objective                                                          | Options  |
@@ -208,6 +210,8 @@ Position piles with user-specified arrangement method.
 The following options are available for all types:
 
 - `options.onGrouping` [type: `boolean` default: `false`]: If `true` applies the arrangement on every piling event.
+
+**Returns:** a `Promise` resolving once the piles have been arranged.
 
 **Notes and examples:**
 
