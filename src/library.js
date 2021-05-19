@@ -2732,7 +2732,7 @@ const createPilingJs = (rootElement, initProps = {}) => {
   const groupByPublic = (type, objective = null, options = {}) => {
     const expandedObjective = expandGroupingObjective(type, objective);
 
-    groupBy(type, expandedObjective, options);
+    const whenGrouped = groupBy(type, expandedObjective, options);
 
     if ((type === 'distance' || type === 'overlap') && options.onZoom) {
       delete options.onZoom;
@@ -2745,6 +2745,8 @@ const createPilingJs = (rootElement, initProps = {}) => {
         ])
       );
     }
+
+    return whenGrouped;
   };
 
   const createSplitSpatialIndex = (items, coordType) => {

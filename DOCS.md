@@ -326,6 +326,8 @@ The following options are available for all types:
 
 Programmatically group items and piles based on the layout, spatial proximity, or data together.
 
+**Arguments:**
+
 `type`, `objective`, and `options` can be one of the following combinations:
 
 | Type       | Objective                                                                               | Options  |
@@ -337,6 +339,12 @@ Programmatically group items and piles based on the layout, spatial proximity, o
 | `distance` | Distance threshold in pixels. Default is `0`.                                           |          |
 | `category` | A `string`, `object`, `function`, or `array` of the previous types. See examples below. |          |
 | `cluster`  | A `string`, `object`, `function`, or `array` of the previous types. See examples below. | `object` |
+
+The following options are available for all types:
+
+- `options.onZoom` [type: `boolean` default: `false`]: If `true` evaluates whether piles should be grouped on every (debounced) zoom event.
+
+**Returns:** a `Promise` resolving once the piles have been grouped.
 
 **Notes and examples:**
 
