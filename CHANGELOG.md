@@ -1,10 +1,14 @@
 ## Next
 
-_[Changes since v0.7.13](https://github.com/flekschas/piling.js/compare/v0.7.13...master)_
+_[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...master)_
+
+## v0.7.14
 
 - Return a `Promise` when calling `groupBy()` to determine when piles have been grouped (#236)
 - Fix an issue where `arrangeBy()` would return an unresolvable promise (#234)
 - Fix an issue with the badge rendering and async-rendered covers (#235)
+
+_[Changes since v0.7.13](https://github.com/flekschas/piling.js/compare/v0.7.13...v0.7.14)_
 
 ## v0.7.13
 
