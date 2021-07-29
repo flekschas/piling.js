@@ -27,13 +27,17 @@ version: 1.0.0
 date-released: 2020-10-07
 url: https://piling.js.org
 doi: 10.1109/TVCG.2020.3028948
+type: "article"
 title: "A Generic Framework and Library for Exploration of Small Multiples through Interactive Piling"
 conference: "IEEE InfoVis '20"
 date-published: 2020-10-07
-publisher: IEEE
+publisher:
+  - name: IEEE
+    city: London
+    country: US
 journal: "IEEE Transactions on Visualization and Computer Graphics"
-pages: 358-368
+pages: 10
 volumne: 27
-number: 2
+number: "2"
 year: 2021
 month: 10
