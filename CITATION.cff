@@ -1,0 +1,23 @@
+cff-version: 1.1.0
+message: "Please cite the following publication when you use this software in your research."
+authors:
+  - family-names: Lekschas
+    given-names: Fritz
+    orcid: https://orcid.org/0000-0001-8432-4835
+  - family-names: Zhou
+    given-names: Xinyi
+  - family-names: Chen
+    given-names: Wei
+  - family-names: Gehlenborg
+    given-names: Nils
+    orcid: https://orcid.org/0000-0003-0327-8297
+  - family-names: Bach
+    given-names: Benjamin
+  - family-names: Pfister
+    given-names: Hanspeter
+    orcid: https://orcid.org/0000-0002-3620-2582
+title: "A Generic Framework and Library for Exploration of Small Multiples through Interactive Piling"
+version: 1.0.0
+doi: 10.1109/TVCG.2020.3028948
+date-released: 2020-10-07
+url: https://piling.js.org
