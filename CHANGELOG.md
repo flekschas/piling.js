@@ -2,6 +2,9 @@
 
 _[Changes since v0.8.0](https://github.com/flekschas/piling.js/compare/v0.8.0...master)_
 
+- Fix a glitch in the SVG renderer by overwriting any `width`, `height`, and `style` property of the `<svg />` element.
+- Switch from `node-sass` to `sass` (dart-sass) to support Node version 12, 14, and 16.
+
 ## v0.8.0
 
 - Export `whenInit` promise from a pile instance to easily determine when the instance is initialized. E.g., `piling.whenInit.then(() => { ... })`.
