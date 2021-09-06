@@ -71,7 +71,7 @@ As a first step, you have to query the DOM for an element in which you want to r
 const demoEl = document.getElementById('demo');
 ```
 
-### Image piles
+### Image Piles
 
 To render images in Piling.js, create an array of objects (`items`) whose `src` property is an URL to an image and instantiate an [image renderer](#image-renderer). Finally you have to create a Piling.js instance.
 
@@ -84,7 +84,7 @@ const itemRenderer = createImageRenderer();
 const piling = createPilingJs(demoEl, { items, itemRenderer });
 ```
 
-### SVG piles
+### SVG Piles
 
 To render SVG images as pile, your `items` `src` property needs to reference a SVG node or be a stringified version of a SVG node.
 
@@ -99,54 +99,78 @@ const itemRenderer = createSvgRenderer({
 const piling = createPilingJs(demoEl, { items, itemRenderer });
 ```
 
-### D3 piles
+### D3 Piles
 
-Since the `createSvgRenderer` can render SVG nodes, you can easily use D3 for drawing the SVGs. To do so, create a function that takes as input the item sources and returns the SVG node that contain the rendered visualization. See `d3Renderer` below.
+For convenience Piling.js also provides a `createD3Renderer` so you can easily use D3 for drawing the SVGs. To use D3 simply create a function that takes as input an item's source and returns a SVG node that contain the rendered visualization.
 
 For a live demo see [https://observablehq.com/@flekschas/piling-js-with-d3](https://observablehq.com/@flekschas/piling-js-with-d3).
 
 ```javascript
-import createPilingJs, { createImageRenderer } from 'piling.js';
+import createPilingJs, { createD3Renderer } from 'piling.js';
 import { create, range, scaleBand, scaleLinear } from 'd3';
 
-// Data: Ten items that each have as `src` a list of five random numbers
 const items = Array.from({ length: 10 }, () => ({
   src: Array.from({ length: 5 }, () => Math.random()),
 }));
 
-// Scales
+// D3 Scales
 const x = scaleBand().domain(range(5)).range([0, 64]).padding(0.1);
 const y = scaleLinear().domain([0, 1]).range([64, 0]);
 
-// Renderers
-const d3Renderer = (itemSources) =>
-  itemSources.map((itemSrc) => {
-    const svg = create('svg').attr('viewBox', [0, 0, 64, 64]);
+// D3 Renderer
+const itemRenderer = createD3Renderer((itemSrc) => {
+  const svg = create('svg').attr('viewBox', [0, 0, 64, 64]);
 
-    svg
-      .selectAll('rect')
-      .data(itemSrc)
-      .join('rect')
-      .attr('x', (d, i) => x(i))
-      .attr('y', (d) => y(d))
-      .attr('height', (d) => y(0) - y(d))
-      .attr('width', x.bandwidth());
+  svg
+    .selectAll('rect')
+    .data(itemSrc)
+    .join('rect')
+    .attr('x', (d, i) => x(i))
+    .attr('y', (d) => y(d))
+    .attr('height', (d) => y(0) - y(d))
+    .attr('width', x.bandwidth());
 
-    return svg.node();
-  });
-
-const svgRenderer = createSvgRenderer({
-  width: itemWidth,
-  height: itemHeight,
-  background: 'yellow',
+  return svg.node();
 });
-
-const itemRenderer = (itemSources) => svgRenderer(d3Renderer(itemSources));
 
 const piling = createPilingJs(demoEl, { items, itemRenderer });
 ```
 
-### Matrix piles
+### Vega-Lite Piles
+
+To render piles with [Vega-Lite](https://vega.github.io/vega-lite/) use `createVegaLiteRenderer`. The factory function expects as input `vega`, `vegaLite`, and a base specification (`baseSpec`).
+
+For a live demo see [https://observablehq.com/@flekschas/piling-js-with-vega-lite](https://observablehq.com/@flekschas/piling-js-with-vega-lite).
+
+```javascript
+import * as vega from 'vega/build/vega';
+import * as vegaLite from 'vega-lite/build/vega-lite';
+import createPilingJs, { createVegaLiteRenderer } from 'piling.js';
+
+const items = Array.from({ length: 10 }, () => ({
+  src: Array.from({ length: 5 }, () => Math.random()),
+}));
+
+// D3 Renderer
+const itemRenderer = createVegaLiteRenderer({
+  vega,
+  vegaLite,
+  baseSpec: {
+    $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+    width: itemWidth,
+    height: itemHeight,
+    mark: 'bar',
+    encoding: {
+      x: { field: 'index', type: 'ordinal' },
+      y: { field: 'value', type: 'quantitative' },
+    },
+  },
+});
+
+const piling = createPilingJs(demoEl, { items, itemRenderer });
+```
+
+### Matrix Piles
 
 First, import and instantiate a matrix renderer. If you want to have the aggregation and 1D previews of matrices when pile them up, you can also instantiate an cover renderer and a preview renderer here. (See [matrix renderer](#matrix-renderer) for more information.)
 

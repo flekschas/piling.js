@@ -8,6 +8,8 @@ import createVitessce from './vitessce';
 import createRidgePlotPiles from './ridge-plot';
 import createTimeSeriesPiles from './time-series';
 import createBookPiles from './books';
+import createD3Piles from './d3';
+import createVegaLitePiles from './vega-lite';
 
 import { createRequestIdleCallback } from './utils';
 
@@ -22,6 +24,8 @@ const vitessceEl = document.getElementById('vitessce');
 const ridgePlotEl = document.getElementById('ridgeplot');
 const timeseriesEl = document.getElementById('timeseries');
 const booksEl = document.getElementById('books');
+const d3El = document.getElementById('d3');
+const vegaLiteEl = document.getElementById('vega-lite');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
@@ -31,7 +35,11 @@ const drawingsCreditEl = document.getElementById('drawings-credit');
 const vitessceCreditEl = document.getElementById('vitessce-credit');
 const ridgePlotCreditEl = document.getElementById('ridgeplot-credit');
 const timeseriesCreditEl = document.getElementById('timeseries-credit');
-const booksCreditEl = document.getElementById('books-credit');
+
+const noCreditEl = document.getElementById('no-credits');
+const booksCreditEl = noCreditEl;
+const d3CreditEl = noCreditEl;
+const vegaLiteCreditEl = noCreditEl;
 
 const conditionalElements = [
   photosEl,
@@ -43,6 +51,8 @@ const conditionalElements = [
   ridgePlotEl,
   timeseriesEl,
   booksEl,
+  d3El,
+  vegaLiteEl,
   photosCreditEl,
   matricesCreditEl,
   covidCreditEl,
@@ -52,6 +62,8 @@ const conditionalElements = [
   ridgePlotCreditEl,
   timeseriesCreditEl,
   booksCreditEl,
+  d3CreditEl,
+  vegaLiteCreditEl,
 ];
 
 const optionsEl = document.getElementById('options');
@@ -131,6 +143,7 @@ const pilingEls = {
   scatterplots: scatterplotsEl,
   timeseries: timeseriesEl,
   books: booksEl,
+  d3: d3El,
 };
 const createPiles = async (example) => {
   let element;
@@ -212,6 +225,20 @@ const createPiles = async (example) => {
       element = booksEl;
       break;
 
+    case 'd3':
+      d3El.style.display = 'block';
+      d3CreditEl.style.display = 'block';
+      createPiling = createD3Piles;
+      element = d3El;
+      break;
+
+    case 'vega-lite':
+      vegaLiteEl.style.display = 'block';
+      vegaLiteCreditEl.style.display = 'block';
+      createPiling = createVegaLitePiles;
+      element = vegaLiteEl;
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -276,6 +303,8 @@ switch (example) {
     break;
 
   case 'books':
+  case 'd3':
+  case 'vega-lite':
     exampleEl.selectedIndex = 7;
     break;
 
