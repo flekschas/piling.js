@@ -1,10 +1,15 @@
 ## Next
 
-_[Changes since v0.8.0](https://github.com/flekschas/piling.js/compare/v0.8.0...master)_
+_[Changes since v0.9.0](https://github.com/flekschas/piling.js/compare/v0.9.0...master)_
+
+## v0.9.0
 
 - Add `createD3Renderer` and `createVegaLiteRenderer`
 - Fix a glitch in the SVG renderer by overwriting any `width`, `height`, and `style` property of the `<svg />` element.
+- Provide default options for the SVG renderer factory for convenience
 - Switch from `node-sass` to `sass` (dart-sass) to support Node version 12, 14, and 16.
+
+_[Changes since v0.8.0](https://github.com/flekschas/piling.js/compare/v0.8.0...v0.9.0)_
 
 ## v0.8.0
 
