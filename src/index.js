@@ -15,6 +15,8 @@ export {
   createMatrixRenderer,
   createRepresentativeRenderer,
   createSvgRenderer,
+  createD3Renderer,
+  createVegaLiteRenderer,
 } from './renderer';
 
 export { default as createImage } from './image';
