@@ -1,6 +1,39 @@
 ## Next
 
-_[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...master)_
+_[Changes since v0.9.0](https://github.com/flekschas/piling.js/compare/v0.9.0...master)_
+
+## v0.9.0
+
+- Add `createD3Renderer`, `createVegaLiteRenderer`, and `createObservablePlotRenderer`
+- Fix a glitch in the SVG renderer by overwriting any `width`, `height`, and `style` property of the `<svg />` element.
+- Provide default options for the SVG renderer factory for convenience
+- Switch from `node-sass` to `sass` (dart-sass) to support Node version 12, 14, and 16.
+
+_[Changes since v0.8.0](https://github.com/flekschas/piling.js/compare/v0.8.0...v0.9.0)_
+
+## v0.8.0
+
+- Export `whenInit` promise from a pile instance to easily determine when the instance is initialized. E.g., `piling.whenInit.then(() => { ... })`.
+- Add a `Promise` return to `set()` for better async chaining. At the moment the promise immediately resolves unless you change the items. In the latter case, the promise will resolve once the items have been properly updated.
+
+Together with changes from [v0.7.14](#v0.7.14) you can now do stuff like:
+
+```javascript
+const piling = createPilingJs(element, { ... });
+
+await piling.whenInit;
+// Piling instance has been initialized
+await piling.groupBy('category', (item) => item.id % 5);
+// Items have been grouped by their ID
+await piling.arrangeBy('data', (state) => state.index);
+// Piles have been ordered by their index
+await piling.set('items', otherItems);
+// Scatter plot items have been replaced
+await piling.arrangeBy('data', { property: 'year', inverse: true });
+// Piles have been arranged by year in descending order
+```
+
+_[Changes since v0.7.14](https://github.com/flekschas/piling.js/compare/v0.7.14...v0.8.0)_
 
 ## v0.7.14
 
