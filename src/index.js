@@ -17,6 +17,7 @@ export {
   createSvgRenderer,
   createD3Renderer,
   createVegaLiteRenderer,
+  createObservablePlotRenderer,
 } from './renderer';
 
 export { default as createImage } from './image';
