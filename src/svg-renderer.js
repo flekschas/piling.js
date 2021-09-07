@@ -67,7 +67,9 @@ const svgToImg = async (
     ].join('');
 
     // convert SVG string to base64
-    const image64 = `data:image/svg+xml;base64,${btoa(svgStr)}`;
+    const image64 = `data:image/svg+xml;base64,${btoa(
+      unescape(encodeURIComponent(svgStr))
+    )}`;
 
     image.onload = () => {
       resolve(image);
