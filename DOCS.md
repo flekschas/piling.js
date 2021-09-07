@@ -151,7 +151,7 @@ const items = Array.from({ length: 10 }, () => ({
   src: Array.from({ length: 5 }, () => Math.random()),
 }));
 
-// D3 Renderer
+// Vega Lite Renderer
 const itemRenderer = createVegaLiteRenderer({
   vega,
   vegaLite,
@@ -166,6 +166,30 @@ const itemRenderer = createVegaLiteRenderer({
     },
   },
 });
+
+const piling = createPilingJs(demoEl, { items, itemRenderer });
+```
+
+### Observable Plot Piles
+
+To render piles with [Observable Plot](https://observablehq.com/@observablehq/plot/) use `createObservablePlotRenderer`. The factory function expects as input the `Plot` instance, a function that translates an item source into `Plot` marks, and `Plot.plot()` options.
+
+For a live demo see [https://observablehq.com/@flekschas/piling-js-with-observable-plot](https://observablehq.com/@flekschas/piling-js-with-observable-plot).
+
+```javascript
+import * as Plot from '@observablehq/plot';
+import createPilingJs, { createObservablePlotRenderer } from 'piling.js';
+
+const items = Array.from({ length: 10 }, () => ({
+  src: Array.from({ length: 5 }, (_, i) => ({ i, value: Math.random() })),
+}));
+
+// Observable Plot Renderer
+const itemRenderer = createObservablePlotRenderer(
+  Plot,
+  (itemSrc) => [Plot.barY(itemSrc, { x: 'index', y: 'value' })],
+  { width: itemWidth, height: itemHeight }
+);
 
 const piling = createPilingJs(demoEl, { items, itemRenderer });
 ```

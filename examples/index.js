@@ -10,6 +10,7 @@ import createTimeSeriesPiles from './time-series';
 import createBookPiles from './books';
 import createD3Piles from './d3';
 import createVegaLitePiles from './vega-lite';
+import createObservablePlotPiles from './observable-plot';
 
 import { createRequestIdleCallback } from './utils';
 
@@ -26,6 +27,7 @@ const timeseriesEl = document.getElementById('timeseries');
 const booksEl = document.getElementById('books');
 const d3El = document.getElementById('d3');
 const vegaLiteEl = document.getElementById('vega-lite');
+const observablePlotEl = document.getElementById('observable-plot');
 
 const photosCreditEl = document.getElementById('photos-credit');
 const matricesCreditEl = document.getElementById('matrices-credit');
@@ -40,6 +42,7 @@ const noCreditEl = document.getElementById('no-credits');
 const booksCreditEl = noCreditEl;
 const d3CreditEl = noCreditEl;
 const vegaLiteCreditEl = noCreditEl;
+const observablePlotCreditEl = noCreditEl;
 
 const conditionalElements = [
   photosEl,
@@ -239,6 +242,13 @@ const createPiles = async (example) => {
       element = vegaLiteEl;
       break;
 
+    case 'observable-plot':
+      observablePlotEl.style.display = 'block';
+      observablePlotCreditEl.style.display = 'block';
+      createPiling = createObservablePlotPiles;
+      element = observablePlotEl;
+      break;
+
     default:
       console.warn('Unknown example:', example);
       break;
@@ -305,6 +315,7 @@ switch (example) {
   case 'books':
   case 'd3':
   case 'vega-lite':
+  case 'observable-plot':
     exampleEl.selectedIndex = 7;
     break;
 
