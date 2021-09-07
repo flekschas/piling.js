@@ -74,9 +74,15 @@ Et voilà 🎉
 
 ![teaser-natural-images](https://user-images.githubusercontent.com/932103/65775958-24d1d080-e10f-11e9-8d12-5aaf6f760228.gif)
 
-### Using Piling.js With an Application Framework
+## Examples & Templates
 
-We've set up the following examples for how to use Piling.js with popular application frameworks:
+#### Piling.js with a Visualization Library
+
+- [Piling.js with D3](https://observablehq.com/@flekschas/piling-js-with-d3)
+- [Piling.js with Vega Lite](https://observablehq.com/@flekschas/piling-js-with-vega-lite)
+- [Piling.js with Observable Plot](https://observablehq.com/@flekschas/piling-js-with-observable-plot)
+
+#### Piling.js with an Application Framework
 
 - [Piling.js with Svelte](https://github.com/flekschas/piling.js-svelte)
 - [Piling.js with React](https://github.com/flekschas/piling.js-react)
@@ -96,4 +102,23 @@ npm install
 
 ```
 npm start
+```
+
+## Cite Piling.js
+
+```bibtex
+@article{lekschas2021generic,
+  author = {Fritz Lekschas and Xinyi Zhou and Wei Chen and Nils Gehlenborg and Benjamin Bach and Hanspeter Pfister},
+  title = {A Generic Framework and Library for Exploration of Small Multiples through Interactive Piling},
+  publisher = {IEEE},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  series = {InfoVis ’20},
+  year = {2021},
+  month = {2},
+  day = {1},
+  volume = {27},
+  number = {2},
+  pages = {358-368},
+  doi = {10.1109/TVCG.2020.3028948},
+}
 ```
