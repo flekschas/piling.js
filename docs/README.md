@@ -29,7 +29,13 @@
 ## Install
 
 ```bash
-npm install piling.js
+npm install piling.js pixi.js
+```
+
+Optional: If you want to lay out piles by more than two attributes you have to install UMAP:
+
+```bash
+npm install umap-js
 ```
 
 ## Quick Start
