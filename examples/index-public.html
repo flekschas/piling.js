@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Piling.js Demos</title>
+    <meta
+      name="description"
+      content="A WebGL-based Library for Visual Piling"
+    />
+    <meta name="author" content="Fritz Lekschas and Xinyi Zhou" />
+    <meta
+      name="keywords"
+      content="Visual Piling, Visual Stacking, Piling.js, Visualization, Framework, Library, WebGL, PIXI.js, JavaScript, ES6"
+    />
+
+    <link rel="icon" href="favicon.png" />
+
+    <!-- Schema.org markup for Google+ -->
+    <meta itemprop="name" content="Piling.js Demos" />
+    <meta
+      itemprop="description"
+      content="Scalable WebGL-based Visual Piling Library"
+    />
+    <meta
+      itemprop="image"
+      content="https://raw.githubusercontent.com/flekschas/piling.js/master/teaser.png"
+    />
+
+    <!-- Twitter Card data -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@flekschas" />
+    <meta name="twitter:title" content="Piling.js Demos" />
+    <meta
+      name="twitter:description"
+      content="A WebGL-based Library for Visual Piling"
+    />
+    <meta name="twitter:creator" content="@flekschas" />
+    <meta
+      name="twitter:image:src"
+      content="https://raw.githubusercontent.com/flekschas/piling.js/master/teaser.png"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Piling.js Demos" />
+    <meta
+      property="og:description"
+      content="A WebGL-based Library for Visual Piling"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://flekschas.github.io/piling.js/" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/flekschas/piling.js/master/teaser.png"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link href="./index.css" rel="stylesheet" />
+
+    <script defer src="./index.js"></script>
+
+    <script>
+      let urlParams = new URLSearchParams(window.location.search);
+
+      window.permanentOptions = urlParams.has('options')
+        ? 'permanent-options'
+        : '';
+
+      window.fullscreen = urlParams.has('fullscreen') ? 'fullscreen' : '';
+
+      switch (urlParams.get('mode')) {
+        case 'light':
+        case 'white':
+          window.mode = 'white-mode';
+          break;
+
+        case 'dark':
+          window.mode = 'dark-mode';
+          break;
+
+        default:
+          window.mode = null;
+          break;
+      }
+
+      window.example = urlParams.has('example')
+        ? urlParams.get('example').split(' ')[0].toLowerCase()
+        : null;
+    </script>
+  </head>
+
+  <body>
+    <script>
+      if (window.mode === null) {
+        switch (window.example) {
+          case 'books':
+          case 'drawings':
+          case 'ridgeplot':
+            window.mode = 'white-mode';
+            break;
+
+          default:
+            window.mode = 'dark-mode';
+            break;
+        }
+      }
+
+      const optionsToggled = sessionStorage.getItem('pilingjs-options')
+        ? 'options-opened'
+        : '';
+
+      document.body.setAttribute(
+        'class',
+        [
+          window.example,
+          window.permanentOptions,
+          window.mode,
+          window.fullscreen,
+          optionsToggled,
+        ].join(' ')
+      );
+    </script>
+
+    <header>
+      <h1><a href="/" target="_blank">Piling.js</a></h1>
+      <h2>Demos</h2>
+      <div id="description">
+        <div class="wrapper">
+          <div id="selection">
+            <select id="example">
+              <option value="photos">COCO Car Images (HTML Image)</option>
+              <option value="matrices">Hi-C Matrix Patterns (WebGL)</option>
+              <option value="covid">COVID-19 Area Charts (SVG)</option>
+              <option value="drawings"
+                >Google Quickdraw Sketches (Canvas)</option
+              >
+              <option value="ridgeplot"
+                >Global Surface Temperature Ridge Plots (SVG)</option
+              >
+              <option value="vitessce"
+                >Immunofluorescence Microscopy (WebGL)</option
+              >
+              <option value="scatterplots"
+                >Scatterplots of Life Expectancy vs Fertility Rate (D3)</option
+              >
+              <option value="timeseries"
+                >Movie Frames Analysis (HTML Image)</option
+              >
+            </select>
+          </div>
+          <div class="credits">
+            <em id="photos-credit" style="display: none;">
+              Data from the
+              <a href="http://cocodataset.org" target="_blank"
+                >Lin et al., 2014</a
+              >
+            </em>
+            <em id="matrices-credit" style="display: none;">
+              Data from
+              <a href="http://hipiler.higlass.io" target="_blank"
+                >Lekschas et al., 2018</a
+              >
+            </em>
+            <em id="covid-credit">
+              Data from
+              <a
+                href="https://github.com/CSSEGISandData/COVID-19"
+                target="_blank"
+                >Johns Hopkins University</a
+              >
+            </em>
+            <em id="drawings-credit" style="display: none;">
+              Data from
+              <a
+                href="https://github.com/googlecreativelab/quickdraw-dataset"
+                target="_blank"
+                >Google Quickdraw Dataset</a
+              >
+            </em>
+            <em id="ridgeplot-credit" style="display: none;">
+              Data from
+              <a href="https://data.giss.nasa.gov/gistemp/" target="_blank"
+                >NASA GISTEMP</a
+              >
+            </em>
+            <em id="vitessce-credit" style="display: none;">
+              Data from
+              <a href="http://linnarssonlab.org/osmFISH/" target="_blank"
+                >Codeluppi et al., 2018</a
+              >
+              based on
+              <a href="https://github.com/hms-dbmi/viv" target="_blank">Viv</a>
+            </em>
+            <em id="scatterplots-credit" style="display: none;">
+              Data from
+              <a href="https://data.worldbank.org/" target="_blank"
+                >World Bank Open Data</a
+              >
+            </em>
+            <em id="timeseries-credit" style="display: none;">
+              From
+              <a
+                href="https://www.youtube.com/watch?v=pz2DsQeF_UM"
+                target="_blank"
+                >Brian B, 2014</a
+              >
+              inspired by
+              <a href="https://aviz.fr/~bbach/timecurves/" target="_blank"
+                >Bach et al., 2015</a
+              >
+            </em>
+            <em id="no-credits" style="display: none;"></em>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="photos" class="container"></div>
+    <div id="matrices" class="container"></div>
+    <div id="covid" class="container"></div>
+    <div id="drawings" class="container"></div>
+    <div id="ridgeplot" class="container"></div>
+    <div id="vitessce" class="container"></div>
+    <div id="scatterplots" class="container"></div>
+    <div id="timeseries" class="container"></div>
+
+    <div id="error" class="container">
+      <div id="no-webgl2-support">
+        <p>
+          <strong
+            >Your
+            <a href="https://caniuse.com/webgl2" target="_blank"
+              >browser does not support WebGL2</a
+            >!</strong
+          ><br />
+          Please use Chrome, Firefox, or Edge to see this demo.
+        </p>
+      </div>
+      <div id="unknown-example">
+        <p>
+          <strong>The chosen example is unknown!</strong><br />
+          Please pick one from the drop-down list. Thanks.
+        </p>
+      </div>
+      <div id="general-error">
+        <p>
+          <strong>Something bad happened!</strong><br />
+          An unexpected error occurred. Please let us know by
+          <a
+            href="https://github.com/flekschas/piling.js/issues/new"
+            target="_blank"
+            >filing an issue</a
+          >. Thanks a lot.
+        </p>
+      </div>
+    </div>
+
+    <div id="group-by-grid"><canvas></canvas></div>
+
+    <aside id="options">
+      <button id="options-toggler" class="toggler">
+        <svg
+          viewBox="0 0 16 16"
+          xmlns="http://www.w3.org/2000/svg"
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          stroke-linejoin="round"
+          stroke-miterlimit="1.414"
+        >
+          <path
+            d="M9.418 16H6.582c-.32 0-.582-.26-.582-.582v-1.76c-.702-.248-1.344-.624-1.898-1.098l-1.526.88c-.278.162-.635.066-.795-.212L.364 10.772c-.16-.278-.065-.634.213-.795l1.524-.88C2.034 8.74 2 8.375 2 8s.034-.74.1-1.097l-1.524-.88c-.278-.16-.374-.517-.213-.795L1.78 2.772c.16-.278.518-.374.796-.213l1.526.88C4.656 2.966 5.298 2.59 6 2.342V.582C6 .262 6.26 0 6.582 0h2.836c.32 0 .582.26.582.582v1.76c.702.248 1.344.624 1.898 1.098l1.526-.88c.278-.162.635-.066.795.212l1.417 2.456c.16.278.065.634-.213.795l-1.524.88c.066.356.1.722.1 1.097s-.034.74-.1 1.097l1.524.88c.278.16.374.517.213.795l-1.418 2.456c-.16.278-.518.374-.796.213l-1.526-.88c-.554.474-1.196.85-1.898 1.098v1.76c0 .32-.26.582-.582.582zM8 4c2.208 0 4 1.792 4 4s-1.792 4-4 4-4-1.792-4-4 1.792-4 4-4z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+      <div class="content">
+        <button id="undo" disabled="disabled">Undo</button>
+      </div>
+    </aside>
+
+    <footer id="footer">
+      <p>
+        Best be viewed in Google Chrome or Microsoft Edge.
+      </p>
+    </footer>
+  </body>
+</html>
