@@ -27,7 +27,7 @@ const createUmap = (config, { padding = 0.1 } = {}) => {
       maxY = point[1] > maxY ? point[1] : maxY;
     });
 
-    // Some padding can be benefition as piles keep moving around a little bit
+    // Some padding can be beneficial as piles keep moving around a little bit
     // every time they are transformed
     const xPad = (maxX - minX) * padding;
     const yPad = (maxY - minY) * padding;
