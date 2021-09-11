@@ -71,14 +71,14 @@ const worker = function worker() {
         lineWidth: event.data.lineWidth,
       });
     } catch (error) {
-      self.postMessage({ error });
+      self.postMessage({ error: error.message });
     }
 
     try {
       const rgba = toRgba(hist, { log: event.data.log });
       self.postMessage({ rgba }, [rgba.buffer]);
     } catch (error) {
-      self.postMessage({ error });
+      self.postMessage({ error: error.message });
     }
   };
 };
