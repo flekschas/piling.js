@@ -30,10 +30,11 @@ const bundleConfig = (file, plugins = [], format = 'umd') => ({
       mainFields: ['module', 'main'],
       preferBuiltins: false,
     }),
-    commonjs({ sourceMap: false }),
-    string({
-      include: '**/skmeans.min',
+    commonjs({
+      sourceMap: false,
+      exclude: /(umap-js|skmeans)/,
     }),
+    string({ include: /(umap-js|skmeans)/ }),
     nodePolyfills(),
     replace({
       'browser.env.NODE_ENV': '"production"',
@@ -154,11 +155,12 @@ const clstConfig = (file, plugins = [], format = 'umd') => ({
       mainFields: ['module', 'main'],
       preferBuiltins: false,
     }),
-    commonjs({ sourceMap: false }),
-    babel({ runtimeHelpers: true }),
-    string({
-      include: '**/skmeans.min',
+    commonjs({
+      sourceMap: false,
+      exclude: /(umap-js|skmeans)/,
     }),
+    babel({ runtimeHelpers: true }),
+    string({ include: /(umap-js|skmeans)/ }),
     nodePolyfills(),
     replace({
       'browser.env.NODE_ENV': '"production"',
@@ -186,11 +188,12 @@ const dimRedConfig = (file, plugins = [], format = 'umd') => ({
       mainFields: ['module', 'main'],
       preferBuiltins: false,
     }),
-    commonjs({ sourceMap: false }),
-    babel({ runtimeHelpers: true }),
-    string({
-      include: '**umap-js.min',
+    commonjs({
+      sourceMap: false,
+      exclude: /(umap-js|skmeans)/,
     }),
+    babel({ runtimeHelpers: true }),
+    string({ include: /(umap-js|skmeans)/ }),
     nodePolyfills(),
     replace({
       'browser.env.NODE_ENV': '"production"',
