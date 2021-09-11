@@ -1,6 +1,12 @@
 ## Next
 
-_[Changes since v0.9.0](https://github.com/flekschas/piling.js/compare/v0.9.0...master)_
+_[Changes since v0.9.1](https://github.com/flekschas/piling.js/compare/v0.9.1...master)_
+
+## v0.9.1
+
+- Revert setting `white` as the default background color for SVG renderer factory as it breaks existing examples.
+
+_[Changes since v0.9.0](https://github.com/flekschas/piling.js/compare/v0.9.0...v0.9.1)_
 
 ## v0.9.0
 

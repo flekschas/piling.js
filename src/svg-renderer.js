@@ -5,7 +5,7 @@
  */
 const svgToImg = async (
   svg,
-  { width = 128, height = 128, color = 'black', background = 'white' } = {}
+  { width = 128, height = 128, color = 'black', background = null } = {}
 ) => {
   let svgStr =
     typeof svg === 'string' || svg instanceof String
