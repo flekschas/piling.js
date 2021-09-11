@@ -1,5 +1,14 @@
 import { aggregate, unique } from '@flekschas/utils';
-import * as d3 from 'd3';
+import {
+  axisLeft,
+  axisBottom,
+  curveCatmullRom,
+  create,
+  interpolate,
+  line,
+  scaleLinear,
+  scaleOrdinal,
+} from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
 const DEFAULT_WIDTH = 480;
@@ -54,26 +63,25 @@ const createScatterplotRenderer = ({
   });
 
   const createXScale = (domain) =>
-    d3
-      .scaleLinear()
+    scaleLinear()
       .domain(domain)
       .rangeRound([paddingLeft, width + paddingLeft]);
 
   const createYScale = (domain) =>
-    d3.scaleLinear().domain(domain).rangeRound([height, paddingBottom]);
+    scaleLinear().domain(domain).rangeRound([height, paddingBottom]);
 
   const createSizeScale = (domain) =>
-    d3.scaleLinear().domain(domain).range(dotSizeRange).clamp(true);
+    scaleLinear().domain(domain).range(dotSizeRange).clamp(true);
 
   let colorMap;
 
   const createColorMap = (domain) =>
-    d3.scaleOrdinal().domain(domain).range(colorRange);
+    scaleOrdinal().domain(domain).range(colorRange);
 
   const createXAxis = (xScale) => (axis) =>
     axis
       .attr('transform', `translate(0, ${paddingLeft})`)
-      .call(d3.axisBottom(xScale).ticks(4).tickSize(width))
+      .call(axisBottom(xScale).ticks(4).tickSize(width))
       .call((g) => g.select('.domain').remove())
       .call((g) =>
         g
@@ -92,7 +100,7 @@ const createScatterplotRenderer = ({
   const createYAxis = (yScale) => (axis) =>
     axis
       .attr('transform', `translate(${paddingLeft}, 0)`)
-      .call(d3.axisLeft(yScale).ticks(3).tickSize(-height))
+      .call(axisLeft(yScale).ticks(3).tickSize(-height))
       .call((g) => g.select('.domain').remove())
       .call((g) =>
         g
@@ -126,14 +134,12 @@ const createScatterplotRenderer = ({
     yScale,
     sizeScale,
   }) => {
-    const svg = d3
-      .create('svg')
-      .attr(
-        'viewBox',
-        `0 0 ${width + paddingLeft + paddingRight} ${
-          height + paddingTop + paddingBottom
-        }`
-      );
+    const svg = create('svg').attr(
+      'viewBox',
+      `0 0 ${width + paddingLeft + paddingRight} ${
+        height + paddingTop + paddingBottom
+      }`
+    );
 
     const regions = unique(data, (d) => d.region);
 
@@ -207,9 +213,9 @@ const createScatterplotRenderer = ({
       .attr('height', height);
 
     const getColorGradient = (color) => {
-      const gradient = d3.interpolate(backgroundColor, color);
+      const gradient = interpolate(backgroundColor, color);
       const beginColor = gradient(0.2);
-      return d3.interpolate(beginColor, color);
+      return interpolate(beginColor, color);
     };
 
     const stratifiedCountries = stratifyByCountry(data);
@@ -228,9 +234,8 @@ const createScatterplotRenderer = ({
             : [countryData, country[index + 1]]
         );
 
-        const line = d3
-          .line()
-          .curve(d3.curveCatmullRom)
+        const l = line()
+          .curve(curveCatmullRom)
           .x((d) => xScale(d[xProp]))
           .y((d) => yScale(d[yProp]));
 
@@ -243,7 +248,7 @@ const createScatterplotRenderer = ({
         linesBetweenYears.forEach((lineData, index) => {
           cell
             .append('path')
-            .attr('d', line(lineData))
+            .attr('d', l(lineData))
             .attr('stroke', getColor(index + 1, numOfYears))
             .attr('stroke-width', 6)
             .attr('stroke-opacity', (DEFAULT_OPACITY * 2) / 3);

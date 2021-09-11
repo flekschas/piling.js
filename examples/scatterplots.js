@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import { scaleLinear } from 'd3';
 import createPilingJs from '../src/library';
 import createScatterplotRenderer, {
   DEFAULT_COLOR_RANGE,
@@ -98,7 +98,7 @@ const createScatterplotPiles = async (element, darkMode = false) => {
     return itemStates.map((item) => item.id);
   };
 
-  const previewItemYOffset = d3.scaleLinear();
+  const previewItemYOffset = scaleLinear();
 
   let beginYear;
 

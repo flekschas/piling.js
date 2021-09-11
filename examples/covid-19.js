@@ -1,6 +1,5 @@
-// import { debounce } from '@flekschas/utils';
-import * as d3 from 'd3';
-import * as RBush from 'rbush';
+import { format, line, scaleTime, scaleLog } from 'd3';
+import RBush from 'rbush';
 
 import createPilingJs from '../src/library';
 import { createSvgRenderer } from '../src/renderer';
@@ -169,9 +168,9 @@ const create = async (element, darkMode) => {
     .fill()
     .map((x, i) => 10 ** (i + 1));
 
-  const xScale = d3.scaleTime().domain([startDate, endDate]).nice();
+  const xScale = scaleTime().domain([startDate, endDate]).nice();
 
-  const yScale = d3.scaleLog().domain([1, maxCases]).range([0, 1]);
+  const yScale = scaleLog().domain([1, maxCases]).range([0, 1]);
 
   const createSvgStart = (w, h) =>
     `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
@@ -196,8 +195,7 @@ const create = async (element, darkMode) => {
 
   const createSvgEnd = () => '</svg>';
 
-  const createLine = d3
-    .line()
+  const createLine = line()
     .x((d) => halfStepSize + stepSize * d[0])
     .y((d) => absHeight - absHeight * yScale(d[1] + 1));
 
@@ -264,7 +262,7 @@ const create = async (element, darkMode) => {
 
   const createYAxis = (ticks) =>
     ticks.flatMap((tick) => {
-      const label = d3.format('~s')(tick);
+      const label = format('~s')(tick);
       const y = 100 - yScale(tick) * 100;
       const y2 = y + 10;
       const color = darkMode ? '#fff' : '#000';

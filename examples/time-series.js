@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import { interpolateRgbBasis, line, select } from 'd3';
 import createPilingJs from '../src/library';
 import { createImageRenderer } from '../src/renderer';
 
@@ -18,14 +18,13 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
   const n = data.length;
   const colorMap = darkMode
-    ? d3.interpolateRgbBasis(['#444', 'firebrick', 'orange', 'white'])
-    : d3.interpolateRgbBasis(['lightgray', 'orange', 'black']);
+    ? interpolateRgbBasis(['#444', 'firebrick', 'orange', 'white'])
+    : interpolateRgbBasis(['lightgray', 'orange', 'black']);
 
   const drawPileConnections = (prop) => {
-    d3.select('#connection').remove();
+    select('#connection').remove();
 
-    const svg = d3
-      .select(element)
+    const svg = select(element)
       .append('svg')
       .attr('id', 'connection')
       .attr('viewBox', `0 0 ${width} ${height}`)
@@ -36,8 +35,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
       index === data.length - 1 ? [frame] : [frame, data[index + 1]]
     );
 
-    const line = d3
-      .line()
+    const l = line()
       .x((d) => d[prop][0] * width)
       .y((d) => d[prop][1] * height);
 
@@ -45,7 +43,7 @@ const createTimeSeriesPiles = async (element, darkMode) => {
 
     linesBetweenFrames.forEach((lineData, index) => {
       g.append('path')
-        .attr('d', line(lineData))
+        .attr('d', l(lineData))
         .attr('stroke', colorMap(index / n))
         .attr('stroke-width', 3);
     });

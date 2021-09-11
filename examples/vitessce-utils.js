@@ -1,8 +1,8 @@
 import { identity } from '@flekschas/utils';
-import * as tf from '@tensorflow/tfjs-core';
+import { setBackend, concat, tensor2d } from '@tensorflow/tfjs-core';
 import { openArray } from 'zarr';
 
-tf.setBackend('cpu');
+setBackend('cpu');
 
 function decode({ data, shape }) {
   const channelSize = data.length / shape[0];
@@ -142,15 +142,16 @@ export const getExactData = async ({
     });
 
     channels.forEach((channel, i) => {
-      tileData2d[i][y - minI][x - minJ] = tf
-        .tensor2d(channel, [tileSize, tileSize])
-        .slice(
-          [tileViewport.minY, tileViewport.minX],
-          [
-            tileViewport.maxY - tileViewport.minY,
-            tileViewport.maxX - tileViewport.minX,
-          ]
-        );
+      tileData2d[i][y - minI][x - minJ] = tensor2d(channel, [
+        tileSize,
+        tileSize,
+      ]).slice(
+        [tileViewport.minY, tileViewport.minX],
+        [
+          tileViewport.maxY - tileViewport.minY,
+          tileViewport.maxX - tileViewport.minX,
+        ]
+      );
     });
   });
 
@@ -162,10 +163,10 @@ export const getExactData = async ({
     tileData2d.map((channel) => {
       const rowData =
         numCols > 1
-          ? channel.map((rowTensors) => tf.concat(rowTensors, 1))
+          ? channel.map((rowTensors) => concat(rowTensors, 1))
           : channel.flatMap(identity);
 
-      const outData = rowData.length > 1 ? tf.concat(rowData, 0) : rowData[0];
+      const outData = rowData.length > 1 ? concat(rowData, 0) : rowData[0];
 
       return outData.buffer();
     })

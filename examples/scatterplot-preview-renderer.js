@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import { create, scaleOrdinal } from 'd3';
 import { createSvgRenderer } from '../src/renderer';
 
 import { DEFAULT_COLOR_RANGE } from './scatterplot-renderer';
@@ -12,10 +12,10 @@ const createScatterplotPreviewRenderer = ({
   const svgRenderer = createSvgRenderer({ width, height });
 
   const createColorMap = (domain) =>
-    d3.scaleOrdinal().domain(domain).range(colorRange);
+    scaleOrdinal().domain(domain).range(colorRange);
 
   const renderPreview = (color) => {
-    const svg = d3.create('svg').attr('viewBox', `0 0 ${width} ${height}`);
+    const svg = create('svg').attr('viewBox', `0 0 ${width} ${height}`);
 
     svg
       .append('g')
