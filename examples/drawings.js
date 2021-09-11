@@ -53,6 +53,21 @@ const createItems = async (category) => {
 };
 
 const createDrawingPiles = async (element, darkMode) => {
+  const OffscreenCanvasSupport = typeof OffscreenCanvas !== 'undefined';
+
+  if (!OffscreenCanvasSupport) {
+    element.insertAdjacentHTML(
+      'beforeend',
+      `
+        <div class="warning">
+          <strong>Warning:</strong>
+          Pile aggregation will not work due to missing support for <a href="https://caniuse.com/offscreencanvas" target=_"blank">OffscreenCanvas</a>.
+          Please use Google Chrome or Microsoft Edge for the best experience.
+        </div>
+      `
+    );
+  }
+
   let items = await createItems('necklace');
 
   const coverOptions = { size: 128, lineWidth: 3, log: darkMode };

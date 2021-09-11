@@ -284,6 +284,29 @@ body.dark-mode {
  * -----------------------------------------------------------------------------
  */
 
+.warning {
+  position: absolute;
+  z-index: 9999;
+  top: 1rem;
+  left: 50%;
+  transform: translate(-50%, 0);
+  max-width: 40rem;
+  padding: 1rem;
+  background: $primary-darker;
+  color: white;
+  line-height: 1.25rem;
+  border-radius: 0.5rem;
+  opacity: 0.9;
+
+  a:hover {
+    color: white;
+  }
+}
+
+body.dark-mode .warning {
+  background: $primary;
+}
+
 body.fullscreen header {
   display: none;
 }
