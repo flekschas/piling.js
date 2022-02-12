@@ -292,6 +292,12 @@ An array of objects with one required property `src` and other optional user-def
 
 **Returns:** a new piling instance.
 
+### createLibraryAsync(_domElement_, _initialProperties_)
+
+**Arguments:** Same as [`createLibrary()`](#createlibrarydomelement-initialproperties).
+
+**Returns:** a promise resolving to the new piling instance once the library was initialized.
+
 ### createLibraryFromState(_domElement_, _initialProperties_, _options_)
 
 **Arguments:**

@@ -24,6 +24,12 @@ export { default as createImage } from './image';
 
 export { default as createLibrary } from './library';
 
+export const createLibraryAsync = async (element, props) => {
+  const piling = createPilingJs(element, props);
+  await piling.whenInit;
+  return piling;
+};
+
 export const createLibraryFromState = async (element, state, options) => {
   const piling = createPilingJs(element);
   await piling.importState(state, options);
